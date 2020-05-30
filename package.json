@@ -1,0 +1,21 @@
+{
+    "name": "acore-cms",
+    "version": "1.0.0",
+    "author":  {
+        "name": "AzerothCore",
+        "url": "https://azerothcore.org"
+    },
+    "contributors": [
+        "Yehonal"
+    ],
+    "license": "AGPL3",
+    "scripts": {
+        "docker:start": "docker-compose up || docker-compose stop",
+        "docker:start:d": "docker-compose up -d || docker-compose stop",
+        "docker:shell": "docker-compose up -d && docker-compose exec node-server bash || docker-compose stop",
+        "docker:remove": "docker-compose down --volumes --remove-orphans",
+        "docker:stop": "docker-compose stop",
+        "docker:db:export": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_export.sh",
+        "docker:db:import": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_import.sh"
+    }
+}

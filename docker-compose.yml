@@ -1,0 +1,91 @@
+version: '3.7'
+
+services:
+  wp-db:
+    restart: unless-stopped
+    image: mysql:8
+    command: 'mysqld --default-authentication-plugin=mysql_native_password'
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./data:/data/
+      - ./apps:/apps/
+      - ./conf:/conf/
+    environment:
+      MYSQL_ROOT_PASSWORD: flkdsjalfh
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - local-private-net
+  php:
+    restart: unless-stopped
+    build:
+      context: data/docker/
+      dockerfile: Wordpress.Dockerfile 
+    depends_on:
+      - wp-db
+    volumes:
+      - type: bind
+        source: ./conf/dist/php-conf/upload.ini
+        target: /usr/local/etc/php/conf.d/upload.ini
+      - ./srv/wordpress:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: wp-db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1
+      PHP_OPCACHE_MAX_ACCELERATED_FILES: 100000
+      PHP_OPCACHE_MEMORY_CONSUMPTION: 64
+      PHP_OPCACHE_MAX_WASTED_PERCENTAGE: 5
+    networks:
+      - local-private-net
+  web.local:
+    restart: unless-stopped
+    image: nginx
+    depends_on:
+      - php
+    volumes:
+      - ./conf/dist/nginx-conf:/etc/nginx/conf.d/
+      - ./conf/dist/certs/:/etc/nginx/certs/
+      - ./srv/wordpress:/var/www/html
+      - ./var/logs:/var/log/nginx
+    extra_hosts:
+      - "web.local:127.0.0.1"
+    ports: 
+      - "80:80"
+      - "443:80"
+    expose:
+      - "80"
+      - "443"
+    networks:
+      - local-private-net
+      - local-shared-net
+  phpmyadmin:
+    restart: unless-stopped
+    depends_on:
+      - wp-db
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: wp-db
+      PMA_USER: wordpress
+      PMA_PASSWORD: wordpress
+      PMA_ROOT_PASSWORD: flkdsjalfh
+    expose:
+      - "80"
+      - "443"
+      - "62000"
+    links:
+      - "wp-db:wp-db"
+    networks:
+      - local-private-net
+      - local-shared-net
+networks:
+  local-shared-net:
+    name: local-shared-net
+    driver: bridge
+  local-private-net:
+    driver: bridge
+volumes:
+  mysql-data:
+
