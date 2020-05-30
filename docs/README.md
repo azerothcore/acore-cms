@@ -1,4 +1,5 @@
-# acore-cms
+# ACore CMS
+
 ACore CMS based on wordpress.
 
 ## Docker container
