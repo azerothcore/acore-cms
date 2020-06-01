@@ -1,0 +1,6 @@
+services:
+    auth_db.auth_db_mgr:
+        class: ACore\AuthDb\Services\AuthDbMgr
+        calls:
+          - [ setContainer,['@service_container'] ]
+          - [ setAuthDb, ['@database.doctrine_db'] ]

@@ -12,7 +12,7 @@
     "scripts": {
         "docker:start": "docker-compose up || docker-compose stop",
         "docker:start:d": "docker-compose up -d || docker-compose stop",
-        "docker:shell": "docker-compose up -d && docker-compose exec node-server bash || docker-compose stop",
+        "docker:shell": "docker-compose up -d && docker-compose exec php bash || docker-compose stop",
         "docker:remove": "docker-compose down --volumes --remove-orphans",
         "docker:stop": "docker-compose stop",
         "docker:db:export": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_export.sh",

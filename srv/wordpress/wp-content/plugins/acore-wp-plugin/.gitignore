@@ -1,1 +1,22 @@
+.git
 /usr
+
+# Cache, session files and logs (Symfony3)
+/var/cache/*
+/var/logs/*
+/var/sessions/*
+!var/cache/.gitkeep
+!var/logs/.gitkeep
+!var/sessions/.gitkeep
+
+# Logs (Symfony4)
+/var/log/*
+!var/log/.gitkeep
+
+# Parameters
+/src/core/config/parameters.yml
+/src/core/config/parameters.ini
+
+# exclude some useless folders
+/vendor/**/tests
+/vendor/**/docs

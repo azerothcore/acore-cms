@@ -7,6 +7,7 @@
 !/**
 /srv/*
 !/srv/wordpress
+/srv/wordpress/wp-config.php
 /srv/wordpress/wp-content/*
 !/srv/wordpress/wp-content/plugins
 /srv/wordpress/wp-content/plugins/*

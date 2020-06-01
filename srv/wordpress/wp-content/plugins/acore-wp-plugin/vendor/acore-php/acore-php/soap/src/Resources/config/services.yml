@@ -1,0 +1,6 @@
+services:
+    soap.soap_mgr:
+        class: ACore\Soap\Services\SoapMgr
+        shared: false
+        calls:
+          - [ setContainer,['@service_container'] ]

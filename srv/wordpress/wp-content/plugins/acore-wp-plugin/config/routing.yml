@@ -1,0 +1,10 @@
+app:
+    resource: "@AppBundle/Controller/"
+    type:     annotation
+framework:
+    resource: "@ACoreFramework/Resources/config/routing.yml"
+    
+
+
+
+

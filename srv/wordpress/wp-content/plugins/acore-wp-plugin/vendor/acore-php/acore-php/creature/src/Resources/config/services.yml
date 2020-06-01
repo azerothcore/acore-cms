@@ -1,0 +1,7 @@
+services:
+    creature.creature_mgr:
+        class: ACore\Creature\Services\CreatureMgr
+        calls:
+          - [ setContainer,['@service_container'] ]
+          - [ setWorldDb, ['@database.doctrine_db'] ]
+

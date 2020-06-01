@@ -20,15 +20,15 @@ services:
   php:
     restart: unless-stopped
     build:
-      context: data/docker/
-      dockerfile: Wordpress.Dockerfile 
+      context: .
+      dockerfile: data/docker/Wordpress.Dockerfile 
     depends_on:
       - wp-db
+    working_dir: "/var/www/html"
     volumes:
       - type: bind
         source: ./conf/dist/php-conf/upload.ini
         target: /usr/local/etc/php/conf.d/upload.ini
-      - ./srv/wordpress:/var/www/html
     environment:
       WORDPRESS_DB_HOST: wp-db:3306
       WORDPRESS_DB_USER: wordpress
