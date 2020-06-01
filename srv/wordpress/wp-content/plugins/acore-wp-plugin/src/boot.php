@@ -2,8 +2,6 @@
 
 define('FS_METHOD','direct');
 
-if (!)
-
 require_once ACORE_PATH_PLG . 'src/core/autoload.php';
 require_once ACORE_PATH_PLG . 'src/system/Opts.php';
 require_once ACORE_PATH_PLG . 'src/system/Services.php';
