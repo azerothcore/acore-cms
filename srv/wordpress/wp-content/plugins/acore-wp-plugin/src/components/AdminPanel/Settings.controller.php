@@ -34,7 +34,7 @@ class SettingsController {
         // See if the user has posted us some information
         // If they did, this hidden field will be set to 'Y'
 
-        foreach (sOptsConfNames() as $key => $value) {
+        foreach (Opts::I()->getConfs() as $key => $value) {
             if (isset($_POST[$key])) {
                 $this->model->storeConf($key, $_POST[$key]);
             }

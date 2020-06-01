@@ -18,6 +18,4 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN usermod -u 1000 www-data
 RUN usermod -G staff www-data
 
-ADD srv/wordpress /var/www/html
-
 RUN chown -R 1000:www-data /var/www/html

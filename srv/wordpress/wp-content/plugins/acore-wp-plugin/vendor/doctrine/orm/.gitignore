@@ -1,0 +1,16 @@
+build/
+logs/
+reports/
+dist/
+download/
+lib/api/
+lib/Doctrine/Common
+lib/Doctrine/DBAL
+/.settings/
+.buildpath
+.project
+.idea
+*.iml
+vendor/
+/tests/Doctrine/Performance/history.db
+/.phpcs-cache

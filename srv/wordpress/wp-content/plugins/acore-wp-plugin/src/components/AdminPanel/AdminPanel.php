@@ -31,7 +31,7 @@ class AdminPanel {
 // action function for above hook
     function acore_add_pages() {
         // Add a new submenu under Settings:
-        add_options_page(__('ACore Settings Panel', sOpts()->org_alias), __('ACore Settings Panel', sOpts()->org_alias), 'manage_options', 'basettings', array($this, 'acore_settings_page'));
+        add_options_page(__('ACore Settings Panel', Opts::I()->org_alias), __('ACore Settings Panel', Opts::I()->org_alias), 'manage_options', 'basettings', array($this, 'acore_settings_page'));
     }
 
 }

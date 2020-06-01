@@ -1,0 +1,88 @@
+{
+    "name": "symfony/framework-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony FrameworkBundle",
+    "keywords": [],
+    "homepage": "https://symfony.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Fabien Potencier",
+            "email": "fabien@symfony.com"
+        },
+        {
+            "name": "Symfony Community",
+            "homepage": "https://symfony.com/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "ext-xml": "*",
+        "symfony/cache": "~3.2.2|~3.3",
+        "symfony/class-loader": "~3.2",
+        "symfony/dependency-injection": "~3.2.1|~3.3",
+        "symfony/config": "~2.8|~3.0",
+        "symfony/event-dispatcher": "~2.8|~3.0",
+        "symfony/http-foundation": "~3.1",
+        "symfony/http-kernel": "^3.2.5",
+        "symfony/polyfill-mbstring": "~1.0",
+        "symfony/filesystem": "~2.8|~3.0",
+        "symfony/finder": "~2.8|~3.0",
+        "symfony/routing": "~3.1.10|^3.2.3",
+        "symfony/stopwatch": "~2.8|~3.0",
+        "doctrine/cache": "~1.0"
+    },
+    "require-dev": {
+        "symfony/asset": "~2.8|~3.0",
+        "symfony/browser-kit": "~2.8|~3.0",
+        "symfony/console": "~2.8.19|^3.2.7",
+        "symfony/css-selector": "~2.8|~3.0",
+        "symfony/dom-crawler": "~2.8|~3.0",
+        "symfony/polyfill-intl-icu": "~1.0",
+        "symfony/security": "~2.8|~3.0",
+        "symfony/form": "^2.8.19|^3.2.5",
+        "symfony/expression-language": "~2.8|~3.0",
+        "symfony/process": "~2.8|~3.0",
+        "symfony/security-core": "~3.2",
+        "symfony/security-csrf": "~2.8|~3.0",
+        "symfony/serializer": "~2.8|~3.0",
+        "symfony/translation": "~3.2",
+        "symfony/templating": "~2.8|~3.0",
+        "symfony/validator": "~3.2",
+        "symfony/workflow": "~3.2",
+        "symfony/yaml": "~3.2",
+        "symfony/property-info": "~3.1",
+        "doctrine/annotations": "~1.0",
+        "phpdocumentor/reflection-docblock": "^3.0",
+        "twig/twig": "~1.34|~2.4",
+        "sensio/framework-extra-bundle": "^3.0.2"
+    },
+    "conflict": {
+        "phpdocumentor/reflection-docblock": "<3.0",
+        "phpdocumentor/type-resolver": "<0.2.0",
+        "phpunit/phpunit": "<4.8.35|<5.4.3,>=5.0",
+        "symfony/translation": "<3.2"
+    },
+    "suggest": {
+        "ext-apcu": "For best performance of the system caches",
+        "symfony/console": "For using the console commands",
+        "symfony/form": "For using forms",
+        "symfony/serializer": "For using the serializer service",
+        "symfony/validator": "For using validation",
+        "symfony/yaml": "For using the debug:config and lint:yaml commands",
+        "symfony/property-info": "For using the property_info service",
+        "symfony/process": "For using the server:run, server:start, server:stop, and server:status commands"
+    },
+    "autoload": {
+        "psr-4": { "Symfony\\Bundle\\FrameworkBundle\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "3.2-dev"
+        }
+    }
+}

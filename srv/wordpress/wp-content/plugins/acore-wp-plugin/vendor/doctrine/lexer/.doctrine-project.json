@@ -1,0 +1,25 @@
+{
+    "active": true,
+    "name": "Lexer",
+    "slug": "lexer",
+    "docsSlug": "doctrine-lexer",
+    "versions": [
+        {
+            "name": "1.0",
+            "branchName": "1.0",
+            "slug": "1.0",
+            "current": true,
+            "maintained": true,
+            "aliases": [
+                "current",
+                "stable"
+            ]
+        },
+        {
+            "name": "master",
+            "branchName": "master",
+            "slug": "latest",
+            "upcoming": true
+        }
+    ]
+}

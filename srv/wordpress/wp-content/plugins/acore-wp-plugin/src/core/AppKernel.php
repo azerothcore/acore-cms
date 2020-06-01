@@ -33,15 +33,15 @@ class AppKernel extends Kernel {
     }
 
     public function getRootDir() {
-        return ACORE_PATH_PLG;
+        return realpath(__DIR__ . '/../../');
     }
 
     public function getCacheDir() {
-        return ACORE_PATH_PLG . '/var/cache/' . $this->getEnvironment();
+        return __DIR__ . '/../../var/cache/' . $this->getEnvironment();
     }
 
     public function getLogDir() {
-        return ACORE_PATH_PLG . '/var/logs';
+        return __DIR__ . '/../../var/logs';
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader) {

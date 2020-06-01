@@ -10,8 +10,8 @@ class SoapMgr {
 
     private $params = null;
 
-    public function configure($alias) {
-        $this->params = $this->container->getParameter("soap")["connections"][$alias];
+    public function configure($params) {
+        $this->params = $params;
     }
 
     public function isConfigured() {
@@ -20,7 +20,7 @@ class SoapMgr {
 
     public function executeCommand($command) {
         if (!$this->params) {
-            throw new Exception("Soap service is not configured, please use configure() function before!");
+            throw new \Exception("Soap service is not configured, please use configure() function before!");
         }
 
         $soap = new \SoapClient(NULL, Array(

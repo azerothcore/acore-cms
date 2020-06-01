@@ -13,10 +13,6 @@
 /var/log/*
 !var/log/.gitkeep
 
-# Parameters
-/src/core/config/parameters.yml
-/src/core/config/parameters.ini
-
 # exclude some useless folders
 /vendor/**/tests
 /vendor/**/docs

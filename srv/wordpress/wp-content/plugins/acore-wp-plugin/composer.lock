@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e3c8f01306d5f5d17383731aa895213f",
+    "content-hash": "6684fb1aa2b8ae45c3fe202463cb8cda",
     "packages": [
         {
             "name": "acore-php/acore-php",
@@ -2817,6 +2817,7 @@
                 }
             ],
             "description": "This bundle generates code for you",
+            "abandoned": "symfony/maker-bundle",
             "time": "2017-12-07T15:36:41+00:00"
         },
         {
