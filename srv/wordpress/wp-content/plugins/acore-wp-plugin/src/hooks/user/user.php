@@ -16,8 +16,8 @@ function validateUserSignup($errors) {
     if (!empty($errors))
         return $errors;
     
-    $accRepo = Services::I()->getAzthAccountRepo();
-    $charRepo = Services::I()->getAzthCharactersRepo();
+    $accRepo = Services::I()->getAccountRepo();
+    $charRepo = Services::I()->getCharactersRepo();
     $connection=$accRepo->getDbConn();
 
     $username = \esc_sql($_POST['user_login']);
@@ -57,7 +57,7 @@ function validateUserSignup($errors) {
 
     //$addon = array_key_exists($expansion, $expansions) ? $expansions[$expansion] : 2;
     $addon = \ACore\Defines\Common::EXPANSION_WOTLK; // force expansion 2
-    $soap = Services::I()->getAzthAccountSoap();
+    $soap = Services::I()->getAccountSoap();
 
     $result = $soap->createAccountFull($username, $password, $email, $addon);
 
@@ -94,7 +94,7 @@ function activate_user($uid) {
     $user = get_user_by('id', $uid);
     $username = $user->data->user_login;
 
-    $accRepo = Services::I()->getAzthAccountRepo();
+    $accRepo = Services::I()->getAccountRepo();
     $accRepo->setAccountLock($username, '127.0.0.1', false);
 }
 
@@ -113,7 +113,7 @@ function user_meta_added($user_id, $meta_key, $meta_value) {
                 //Exist's but is not user to the current blog id
                 //$result = add_user_to_blog( $blog_id, $user_id, $_POST['user_role']);
                 if (array_key_exists("pwd", $_POST) && $_POST["pwd"]) {
-                    $soap = Services::I()->getAzthAccountSoap();
+                    $soap = Services::I()->getAccountSoap();
 
                     $password = $_POST["pwd"];
                     //[TODO] We should add a check: if the server is not reachable we should delete
@@ -144,7 +144,7 @@ add_action('add_user_meta', __NAMESPACE__ . '\user_meta_added', 10, 3);
  */
 function user_profile_update($user_id, $old_user_data) {
     $user = get_userdata($user_id)->data;
-    $soap = Services::I()->getAzthAccountSoap();
+    $soap = Services::I()->getAccountSoap();
 
     // Update user email
     if ($user->user_email != $old_user_data->user_email) {
@@ -153,7 +153,7 @@ function user_profile_update($user_id, $old_user_data) {
         if ($result instanceof \Exception)
             die("Game server error: " . $result->getMessage());*/
         
-        $accRepo = Services::I()->getAzthAccountRepo();
+        $accRepo = Services::I()->getAccountRepo();
         //workaround since soap doesn't work
         $accRepo->query("UPDATE account SET email= '".$user->user_email."' WHERE username = '".$user->user_login."'");
     }
@@ -169,7 +169,7 @@ function user_profile_update($user_id, $old_user_data) {
 add_action('profile_update', __NAMESPACE__ . '\user_profile_update', 10, 2);
 
 function sph_user_profile_update($message, $thisUser) {
-    $soap = Services::I()->getAzthAccountSoap();
+    $soap = Services::I()->getAccountSoap();
     
     // don't know why but simplepress doesn't update wordpress email
     $user_id = wp_update_user( array( 'ID' => $thisUser, 'user_email' => $_POST['email'] ) );
@@ -177,7 +177,7 @@ function sph_user_profile_update($message, $thisUser) {
     $user = get_userdata($user_id)->data;
     
     // Update user email  
-    $accRepo = Services::I()->getAzthAccountRepo();
+    $accRepo = Services::I()->getAccountRepo();
     //workaround since soap doesn't work
     $accRepo->query("UPDATE account SET email= '".$user->user_email."' WHERE username = '".$user->user_login."'");
 
@@ -197,7 +197,7 @@ add_filter("sph_UpdateProfileSettings", __NAMESPACE__ . '\sph_user_profile_updat
  * @param String $new_pass
  */
 function user_password_reset($user, $new_pass) {
-    $soap = Services::I()->getAzthAccountSoap();
+    $soap = Services::I()->getAccountSoap();
 
     if ($result = $soap->setAccountPassword($user->user_login, $new_pass) instanceof \Exception)
         die("Game server error: " . $result->getMessage());
@@ -212,7 +212,7 @@ function after_delete($user_id) {
     $email = $user_obj->user_email;
     $username = $user_obj->user_login;
     
-    $soap = Services::I()->getAzthAccountSoap();
+    $soap = Services::I()->getAccountSoap();
 
     $soap->deleteAccount($username);
 

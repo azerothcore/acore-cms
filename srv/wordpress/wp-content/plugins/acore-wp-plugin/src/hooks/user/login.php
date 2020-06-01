@@ -9,10 +9,10 @@ use \ACore\Defines\Common;
 add_action('wp_login', function($user_login, $user) {
     $password = $_POST['pwd'];
 
-    $accRepo = Services::I()->getAzthAccountRepo();
+    $accRepo = Services::I()->getAccountRepo();
 
     if (!$accRepo->findOneByUsername($user_login)) {
-        $soap = Services::I()->getAzthAccountSoap();
+        $soap = Services::I()->getAccountSoap();
 
         $soap->createAccountFull($user->user_login, $password, $user->user_email, \ACore\Defines\Common::EXPANSION_WOTLK);
 
@@ -36,7 +36,7 @@ add_action('wp_authenticate', function($username, $password ) {
 
         if (!\username_exists($username)) {
 
-            $accRepo = Services::I()->getAzthAccountRepo();
+            $accRepo = Services::I()->getAccountRepo();
 
             $userInfo = $accRepo->verifyAccount($username, $password);
 

@@ -23,8 +23,8 @@ class Services
         $this->kernel = require_once ACORE_PATH_PLG . "/src/core/app.php";
         $this->kernel->boot();
         $this->realmAlias = Opts::I()->acore_realm_alias;
-        $mgrAuth = $this->getKernel()->getContainer()->get("auth_db.auth_db_mgr");
-        $mgrAuth->createAuthEm($this->realmAlias, array(
+        $this->mgrAuth = $this->getKernel()->getContainer()->get("auth_db.auth_db_mgr");
+        $this->mgrAuth->createAuthEm($this->realmAlias, array(
             'driver' => 'pdo_mysql',
             'host' => Opts::I()->acore_db_auth_host,
             'port' => Opts::I()->acore_db_auth_port,
@@ -33,8 +33,9 @@ class Services
             'password' => Opts::I()->acore_db_auth_pass,
             'charset' => 'UTF8',
         ));
-        $mgrChar = $this->getKernel()->getContainer()->get("char_db.char_db_mgr");
-        $mgrChar->createCharEm($this->realmAlias, array(
+        $this->emAuth = $this->mgrAuth->getAuthEm($this->realmAlias);
+        $this->mgrChar = $this->getKernel()->getContainer()->get("char_db.char_db_mgr");
+        $this->mgrChar->createCharEm($this->realmAlias, array(
             'driver' => 'pdo_mysql',
             'host' => Opts::I()->acore_db_char_host,
             'port' => Opts::I()->acore_db_char_port,
@@ -43,8 +44,8 @@ class Services
             'password' => Opts::I()->acore_db_char_pass,
             'charset' => 'UTF8',
         ));
-        $mgrWorld = $this->getKernel()->getContainer()->get("world_db.world_db_mgr");
-        $mgrWorld->createWorldEm($this->realmAlias, array(
+        $this->mgrWorld = $this->getKernel()->getContainer()->get("world_db.world_db_mgr");
+        $this->mgrWorld->createWorldEm($this->realmAlias, array(
             'driver' => 'pdo_mysql',
             'host' => Opts::I()->acore_db_world_host,
             'port' => Opts::I()->acore_db_world_port,
@@ -67,15 +68,15 @@ class Services
     {
         $inst = static::I();
         echo Common::EXPANSION_WOTLK;
-        $inst->getAzthAccountMgr();
-        //$acc = $inst->getAzthAccountRepo();
-        $inst->getAzthAccountSoap();
-        $inst->getAzthCharactersMgr();
+        $inst->getAccountMgr();
+        //$acc = $inst->getAccountRepo();
+        $inst->getAccountSoap();
+        $inst->getCharactersMgr();
 
-        //$char = $inst->getAzthCharactersRepo();
-        $inst->getAzthCharactersSoap();
-        $inst->getAzthGameMailSoap();
-        $soap = $inst->getAzthServerSoap();
+        //$char = $inst->getCharactersRepo();
+        $inst->getCharactersSoap();
+        $inst->getGameMailSoap();
+        $soap = $inst->getServerSoap();
 
         echo $soap->serverInfo();
         echo "<br>";
@@ -108,18 +109,16 @@ class Services
      * 
      * @return \ACore\Account\Services\AccountMgr
      */
-    public function getAzthAccountMgr()
+    public function getAccountMgr()
     {
-        $mgr = $this->getKernel()->getContainer()->get("account.account_mgr");
-        $mgr->getAuthEm($this->realmAlias); // configure db connection
-        return $mgr;
+        return $this->mgrAuth->getAuthEm($this->realmAlias); // configure db connection
     }
 
     /**
      * 
      * @return \ACore\Character\Services\CharacterMgr
      */
-    public function getAzthCharactersMgr()
+    public function getCharactersMgr()
     {
         $mgr = $this->getKernel()->getContainer()->get("character.character_mgr");
         $mgr->getCharEm($this->realmAlias); // configure db connection
@@ -130,16 +129,16 @@ class Services
      * 
      * @return \ACore\Account\Repository\AccountRepository
      */
-    public function getAzthAccountRepo()
+    public function getAccountRepo()
     {
-        return $this->getKernel()->getContainer()->get("account.account_mgr")->getAccountRepo($this->realmAlias);
+        return $this->getKernel()->getContainer()->get("account.account_mgr")->getAccountRepo($this->emAuth);
     }
 
     /**
      * 
      * @return \ACore\Account\Repository\AccountBannedRepository
      */
-    public function getAzthAccountBannedRepo()
+    public function getAccountBannedRepo()
     {
         return $this->getKernel()->getContainer()->get("account.account_mgr")->getAccountBannedRepo($this->realmAlias);
     }
@@ -148,7 +147,7 @@ class Services
      * 
      * @return \ACore\Character\Repository\CharacterRepository
      */
-    public function getAzthCharactersRepo()
+    public function getCharactersRepo()
     {
         return $this->getKernel()->getContainer()->get("character.character_mgr")->getCharacterRepo($this->realmAlias);
     }
@@ -157,7 +156,7 @@ class Services
      * 
      * @return \ACore\Character\Repository\CharacterBannedRepository
      */
-    public function getAzthCharactersBannedRepo()
+    public function getCharactersBannedRepo()
     {
         return $this->getKernel()->getContainer()->get("character.character_mgr")->getCharacterBannedRepo($this->realmAlias);
     }
@@ -166,7 +165,7 @@ class Services
      * 
      * @return \ACore\Account\Services\AccountSoapMgr
      */
-    public function getAzthAccountSoap()
+    public function getAccountSoap()
     {
         $mgr = $this->getKernel()->getContainer()->get("account.account_soap_mgr");
         $mgr->configure($this->soapParams);
@@ -177,7 +176,7 @@ class Services
      * 
      * @return \ACore\Character\Services\CharacterSoapMgr
      */
-    public function getAzthCharactersSoap()
+    public function getCharactersSoap()
     {
         $mgr = $this->getKernel()->getContainer()->get("character.character_soap_mgr");
         $mgr->configure($this->soapParams);
@@ -188,7 +187,7 @@ class Services
      * 
      * @return \ACore\GameMail\Services\MailMgr
      */
-    public function getAzthGameMailSoap()
+    public function getGameMailSoap()
     {
         $mgr = $this->getKernel()->getContainer()->get("game_mail.mail_mgr");
         $mgr->configure($this->soapParams);
@@ -199,7 +198,7 @@ class Services
      * 
      * @return \ACore\Server\Services\ServerSoapMgr
      */
-    public function getAzthServerSoap()
+    public function getServerSoap()
     {
         $mgr = $this->getKernel()->getContainer()->get("server.server_soap_mgr");
         $mgr->configure($this->soapParams);
@@ -208,7 +207,7 @@ class Services
 }
 
 
-add_action('init', function() {
+add_action('init', function () {
     //Services::basicWorkingTests();
     //die();
 });

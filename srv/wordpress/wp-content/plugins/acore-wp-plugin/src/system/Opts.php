@@ -16,14 +16,17 @@ class Opts {
     public $acore_soap_user="";
     public $acore_soap_pass="";
     public $acore_db_char_host="";
+    public $acore_db_char_port="";
     public $acore_db_char_user="";
     public $acore_db_char_pass="";
     public $acore_db_char_name="";
     public $acore_db_auth_host="";
+    public $acore_db_auth_port="";
     public $acore_db_auth_user="";
     public $acore_db_auth_pass="";
     public $acore_db_auth_name="";
     public $acore_db_world_host="";
+    public $acore_db_world_port="";
     public $acore_db_world_user="";
     public $acore_db_world_pass="";
     public $acore_db_world_name="";

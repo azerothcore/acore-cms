@@ -45,8 +45,14 @@ class SInfoWidget extends \WP_Widget {
                 } else {
                     echo $string;
                 }
-                
-            ?> </div><?php
+
+                $accountCount = SInfoApi::AccountCount();
+
+                ?>
+                <br/>
+                <br/>
+                <p>Total Accounts created: <?=$accountCount?></p>
+        </div><?php
         echo $args['after_widget'];
     }
 
