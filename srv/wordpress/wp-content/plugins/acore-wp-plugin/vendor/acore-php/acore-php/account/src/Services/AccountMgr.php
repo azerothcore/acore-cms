@@ -23,10 +23,10 @@ class AccountMgr {
 
     /**
      * 
-     * @param type $alias
+     * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Account\Repository\AccountBannedRepository
      */
-    public function getAccountBannedRepo($alias) {
-        return $this->getAuthEm($alias)->getRepository(AccountBannedEntity::class);
+    public function getAccountBannedRepo($em) {
+        return $em->getRepository(AccountBannedEntity::class);
     }
 }

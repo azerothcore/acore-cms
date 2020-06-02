@@ -34,6 +34,7 @@ class Services
             'charset' => 'UTF8',
         ));
         $this->emAuth = $this->mgrAuth->getAuthEm($this->realmAlias);
+
         $this->mgrChar = $this->getKernel()->getContainer()->get("char_db.char_db_mgr");
         $this->mgrChar->createCharEm($this->realmAlias, array(
             'driver' => 'pdo_mysql',
@@ -44,6 +45,8 @@ class Services
             'password' => Opts::I()->acore_db_char_pass,
             'charset' => 'UTF8',
         ));
+        $this->emChar = $this->mgrChar->getCharEm($this->realmAlias);
+
         $this->mgrWorld = $this->getKernel()->getContainer()->get("world_db.world_db_mgr");
         $this->mgrWorld->createWorldEm($this->realmAlias, array(
             'driver' => 'pdo_mysql',
@@ -54,6 +57,7 @@ class Services
             'password' => Opts::I()->acore_db_world_pass,
             'charset' => 'UTF8',
         ));
+        $this->emWorld = $this->mgrWorld->getWorldEm($this->realmAlias);
 
         $this->soapParams = array(
             "host" => Opts::I()->acore_soap_host,
@@ -111,7 +115,7 @@ class Services
      */
     public function getAccountMgr()
     {
-        return $this->mgrAuth->getAuthEm($this->realmAlias); // configure db connection
+        return $this->mgrAuth->getAuthEm($this->realmAlias);
     }
 
     /**
@@ -120,9 +124,7 @@ class Services
      */
     public function getCharactersMgr()
     {
-        $mgr = $this->getKernel()->getContainer()->get("character.character_mgr");
-        $mgr->getCharEm($this->realmAlias); // configure db connection
-        return $mgr;
+        return $this->mgrChar->getCharEm($this->realmAlias);
     }
 
     /**
@@ -140,7 +142,7 @@ class Services
      */
     public function getAccountBannedRepo()
     {
-        return $this->getKernel()->getContainer()->get("account.account_mgr")->getAccountBannedRepo($this->realmAlias);
+        return $this->getKernel()->getContainer()->get("account.account_mgr")->getAccountBannedRepo($this->emAuth);
     }
 
     /**
@@ -149,7 +151,7 @@ class Services
      */
     public function getCharactersRepo()
     {
-        return $this->getKernel()->getContainer()->get("character.character_mgr")->getCharacterRepo($this->realmAlias);
+        return $this->getKernel()->getContainer()->get("character.character_mgr")->getCharacterRepo($this->emChar);
     }
 
     /**
@@ -158,7 +160,7 @@ class Services
      */
     public function getCharactersBannedRepo()
     {
-        return $this->getKernel()->getContainer()->get("character.character_mgr")->getCharacterBannedRepo($this->realmAlias);
+        return $this->getKernel()->getContainer()->get("character.character_mgr")->getCharacterBannedRepo($this->emChar);
     }
 
     /**
