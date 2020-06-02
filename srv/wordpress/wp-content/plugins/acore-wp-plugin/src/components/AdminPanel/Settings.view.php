@@ -51,7 +51,7 @@ class SettingsView {
                 <input type="text" name="acore_soap_user" value="<?= Opts::I()->acore_soap_user; ?>" size="20" >
             </p>
             <p>Soap Pass: 
-                <input type="text" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20" >
+                <input type="password" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20" >
             </p>
 
             <hr />
@@ -66,7 +66,7 @@ class SettingsView {
                 <input type="text" name="acore_db_auth_user" value="<?= Opts::I()->acore_db_auth_user; ?>" size="20" >
             </p>
             <p>Database Auth Pass: 
-                <input type="text" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" >
+                <input type="password" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" >
             </p>
             <p>Database Auth Name: 
                 <input type="text" name="acore_db_auth_name" value="<?= Opts::I()->acore_db_auth_name; ?>" size="20" >
@@ -84,7 +84,7 @@ class SettingsView {
                 <input type="text" name="acore_db_char_user" value="<?= Opts::I()->acore_db_char_user; ?>" size="20" >
             </p>
             <p>Database Characters Pass: 
-                <input type="text" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" >
+                <input type="password" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" >
             </p>
             <p>Database Characters Name: 
                 <input type="text" name="acore_db_char_name" value="<?= Opts::I()->acore_db_char_name; ?>" size="20" >
@@ -102,7 +102,7 @@ class SettingsView {
                 <input type="text" name="acore_db_world_user" value="<?= Opts::I()->acore_db_world_user; ?>" size="20" >
             </p>
             <p>Database World Pass: 
-                <input type="text" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" >
+                <input type="password" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" >
             </p>
             <p>Database World Name: 
                 <input type="text" name="acore_db_world_name" value="<?= Opts::I()->acore_db_world_name; ?>" size="20" >

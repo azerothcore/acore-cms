@@ -29,7 +29,7 @@ add_action('wp_authenticate', function ($username, $password) {
     if (!empty($username) && !empty($password)) {
 
         // we disable auth by email on site for now
-        // [TODO] maybe implement
+        // [TODO] consider a better fix
         if (strpos($username, '@') !== false) {
             return;
         }

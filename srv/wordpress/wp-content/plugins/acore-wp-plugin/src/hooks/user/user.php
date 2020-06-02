@@ -7,7 +7,7 @@ use \ACore\Services;
 
 /**
  * We cannot make it global since users from other sites could not have
- * an azerothshard account
+ * an account
  * @param type $user_id
  * @param \WP_User $old_user_data
  */
