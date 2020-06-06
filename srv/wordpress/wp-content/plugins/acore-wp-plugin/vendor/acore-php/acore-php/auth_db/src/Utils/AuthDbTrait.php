@@ -31,19 +31,15 @@ trait AuthDbTrait {
      * 
      * @return DoctrineDbMgr
      */
-    public function createAuthEm($alias) {
-        $this->authEm[$alias] = $this->authDb->createEm($alias, "auth");
+    public function createAuthEm($alias, $params) {
+        $this->authEm[$alias] = $this->authDb->createEm($params);
     }
 
     /**
      * 
      * @return \Doctrine\ORM\EntityManager
      */
-    public function getAuthEm($alias) {
-        if (!isset($this->authEm[$alias])) {
-            $this->createAuthEm($alias);
-        }
-        
+    public function getAuthEm($alias) {        
         return $this->authEm[$alias];
     }
 

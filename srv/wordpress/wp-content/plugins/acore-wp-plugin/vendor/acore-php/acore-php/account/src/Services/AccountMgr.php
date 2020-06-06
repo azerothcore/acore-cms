@@ -14,19 +14,19 @@ class AccountMgr {
 
     /**
      * 
-     * @param type $alias
+     * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Account\Repository\AccountRepository
      */
-    public function getAccountRepo($alias) {
-        return $this->getAuthEm($alias)->getRepository(AccountEntity::class);
+    public function getAccountRepo($em) {
+        return $em->getRepository(AccountEntity::class);
     }
 
     /**
      * 
-     * @param type $alias
+     * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Account\Repository\AccountBannedRepository
      */
-    public function getAccountBannedRepo($alias) {
-        return $this->getAuthEm($alias)->getRepository(AccountBannedEntity::class);
+    public function getAccountBannedRepo($em) {
+        return $em->getRepository(AccountBannedEntity::class);
     }
 }

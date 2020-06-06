@@ -31,19 +31,15 @@ trait WorldDbTrait {
      * 
      * @return DoctrineDbMgr
      */
-    public function createWorldEm($alias) {
-        $this->worldEm[$alias] = $this->worldDb->createEm($alias, "world");
+    public function createWorldEm($alias, $params) {
+        $this->worldEm[$alias] = $this->worldDb->createEm($params);
     }
 
     /**
      * 
      * @return \Doctrine\ORM\EntityManager
      */
-    public function getWorldEm($alias) {
-        if (!isset($this->worldEm[$alias])) {
-            $this->createWorldEm($alias);
-        }
-        
+    public function getWorldEm($alias) {        
         return $this->worldEm[$alias];
     }
 

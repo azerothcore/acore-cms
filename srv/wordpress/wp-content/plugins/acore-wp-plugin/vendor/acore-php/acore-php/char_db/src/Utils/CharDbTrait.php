@@ -31,19 +31,15 @@ trait CharDbTrait {
      * 
      * @return DoctrineDbMgr
      */
-    public function createCharEm($alias) {
-        $this->charEm[$alias] = $this->charDb->createEm($alias, "char");
+    public function createCharEm($alias, $params) {
+        $this->charEm[$alias] = $this->charDb->createEm($params);
     }
 
     /**
      * 
      * @return \Doctrine\ORM\EntityManager
      */
-    public function getCharEm($alias) {
-        if (!isset($this->charEm[$alias])) {
-            $this->createCharEm($alias);
-        }
-        
+    public function getCharEm($alias) {       
         return $this->charEm[$alias];
     }
 

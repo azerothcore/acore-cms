@@ -13,5 +13,4 @@ class ServerMgr {
     public function serverInfo() {
         return $this->executeCommand('.server info');
     }
-
 }

@@ -7,6 +7,7 @@ use \ACore\Services;
 
 /**
  * Fires before user profile update errors are returned.
+ * It's called when an user is added to a blog or updated (not at very first registration)
  *
  * @since 2.8.0
  *
@@ -16,20 +17,48 @@ use \ACore\Services;
  */
 function user_profile_update_errors($errors, $update, $user)
 {
+    if (strpos($user->user_login, '@') !== false) {
+        $errors->add('invalid_username', printf(__('Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
+        return $errors;
+    }
+
     $accRepo = Services::I()->getAccountRepo();
 
-    $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
-
-    if ($update) {
-        if ($user->user_login != $gameUser->username)
-            $errors->add('invalid_email', __('This email has been already used'));
+    if (!$update) {
+        $gameUser = $accRepo->findOneByUsername($user->user_login);
+    } else {
+        $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
     }
+
+    if ($user->user_login != $gameUser->username)
+        $errors->add('invalid_email', __('This email has been already used', 'acore-wp-plugin'));
 }
 
+add_action('user_profile_update_errors', __NAMESPACE__ . '\user_profile_update_errors', 10, 3);
 
-add_action('user_profile_update_errors', __NAMESPACE__ . '\user_profile_update_errors');
+function user_registration_errors($errors, $sanitized_user_login, $user_email)
+{
+    if (strpos($sanitized_user_login, '@') !== false) {
+        $errors->add('invalid_username', printf(__('Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
+        return $errors;
+    }
+
+    $accRepo = Services::I()->getAccountRepo();
+
+    $gameUserByLogin = $accRepo->findOneByUsername($sanitized_user_login);
+
+    $gameUserByEmail = $accRepo->findOneBy(array('email' => $user_email));
+
+    if ($sanitized_user_login != $gameUserByEmail->username || $gameUserByLogin->email != $user_email)
+        $errors->add('invalid_email', __('This email has been already used', 'acore-wp-plugin'));
+
+    return $errors;
+}
+add_filter('registration_errors', __NAMESPACE__ . '\user_registration_errors', 10, 3);
 
 /**
+ * This is called when an user is updated
+ * 
  * We cannot make it global since users from other sites could not have
  * an account
  * @param type $user_id
@@ -52,8 +81,6 @@ function user_profile_update($user_id, $old_user_data)
 
         $accRepo = Services::I()->getAccountRepo();
 
-        $acc
-
         $accRepo->query("UPDATE account SET email= '" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
     }
 
@@ -61,33 +88,11 @@ function user_profile_update($user_id, $old_user_data)
         /* @var $result \Exception */
         $result = $soap->setAccountPassword($user->user_login, $_POST['pass1']);
         if ($result instanceof \Exception)
-            die("Game server error: " . $result->getMessage());
+            die(printf(__("Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
     }
 }
 
 add_action('profile_update', __NAMESPACE__ . '\user_profile_update', 10, 2);
-
-add_action('personal_options_update', 'my_save_extra_profile_fields');
-add_action('edit_user_profile_update', 'my_save_extra_profile_fields');
-
-function my_save_extra_profile_fields($user_id)
-{
-
-    if (!current_user_can('edit_user', $user_id))
-        return false;
-
-    /* Copy and paste this line for additional fields. Make sure to change 'paypal_account' to the field ID. */
-    update_usermeta($user_id, 'paypal_account', $_POST['paypal_account']);
-}
-
-
-function prevent_email_domain($user_login, $user_email, $errors)
-{
-    if (strpos($user_email, '@baddomain.com') != -1) {
-        $errors->add('bad_email_domain', '<strong>ERROR</strong>: This email domain is not allowed.');
-    }
-}
-add_action('register_post', 'prevent_email_domain', 10, 3);
 
 /**
  *
@@ -98,8 +103,9 @@ function user_password_reset($user, $new_pass)
 {
     $soap = Services::I()->getAccountSoap();
 
-    if ($result = $soap->setAccountPassword($user->user_login, $new_pass) instanceof \Exception)
-        die("Game server error: " . $result->getMessage());
+    $result = $soap->setAccountPassword($user->user_login, $new_pass);
+    if ($result instanceof \Exception)
+        die(printf(__("Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
 }
 
 add_action('password_reset', __NAMESPACE__ . '\user_password_reset', 10, 2);

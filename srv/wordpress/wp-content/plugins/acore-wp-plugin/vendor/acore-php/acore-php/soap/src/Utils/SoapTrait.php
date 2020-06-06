@@ -24,8 +24,8 @@ trait SoapTrait {
         $this->soap = $soap;
     }
     
-    public function configure($alias) {
-        $this->soap->configure($alias);
+    public function configure($params) {
+        $this->soap->configure($params);
     }
 
     public function executeCommand($command) {

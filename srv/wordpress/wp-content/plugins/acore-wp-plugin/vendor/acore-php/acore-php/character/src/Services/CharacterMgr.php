@@ -14,20 +14,20 @@ class CharacterMgr {
 
     /**
      * 
-     * @param type $alias
+     * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Character\Repository\CharacterRepository
      */
-    public function getCharacterRepo($alias) {
-        return $this->getCharEm($alias)->getRepository(CharacterEntity::class);
+    public function getCharacterRepo($em) {
+        return $em->getRepository(CharacterEntity::class);
     }
     
     /**
      * 
-     * @param type $alias
+     * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Character\Repository\CharacterBannedRepository
      */
-    public function getCharacterBannedRepo($alias) {
-        return $this->getCharEm($alias)->getRepository(CharacterBannedEntity::class);
+    public function getCharacterBannedRepo($em) {
+        return $em->getRepository(CharacterBannedEntity::class);
     }
 
 }

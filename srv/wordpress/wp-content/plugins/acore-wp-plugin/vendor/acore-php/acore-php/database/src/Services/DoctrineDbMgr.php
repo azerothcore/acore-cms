@@ -36,8 +36,8 @@ class DoctrineDbMgr {
      * @param type $paths
      * @return DoctrineDbMgr
      */
-    public function createEm($alias,$type) {
-        $this->connectionParams = $this->container->getParameter("database")["connections"][$alias][$type];
+    public function createEm($params) {
+        $this->connectionParams = $params;
         
         $this->em = EntityManager::create($this->connectionParams, $this->config);
 
