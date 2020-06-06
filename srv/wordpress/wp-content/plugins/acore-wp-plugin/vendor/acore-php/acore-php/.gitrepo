@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/azerothcore/acore-php-framework
 	branch = master
-	commit = 44037ec623b5a7bccc731f19bc1b648007b21fcf
-	parent = 51f597ef9d940145e2ee66c1c301fc2b68bb7b02
+	commit = 7d27d0a3d6e79e113b7a8e222ea972823a109b16
+	parent = 3516c77dc81763f7d5b32b71dd450447556bcded
 	method = merge
 	cmdver = 0.4.1
