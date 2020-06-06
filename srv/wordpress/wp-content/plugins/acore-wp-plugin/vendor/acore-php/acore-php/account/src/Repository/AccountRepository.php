@@ -69,4 +69,17 @@ class AccountRepository extends Repository {
         return $this->find($id);
     }
 
+    /**
+     * Finds a single entity by a set of criteria.
+     *
+     * @param array      $criteria
+     * @param array|null $orderBy
+     * 
+     * @return \ACore\Account\Entity\AccountEntity
+     */
+    public function findOneBy($criteria, $orderBy = null) {
+        return parent::findOneBy($criteria, $orderBy);
+    }
+
+
 }
