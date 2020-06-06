@@ -18,12 +18,12 @@ function subrepoUpdate() {
 
     if [[ ! -f "$folder/.gitrepo" ]]; then
          git subrepo init "$folder" -r "$repo"
+    else
+        # try-catch
+        set +e
+        git subrepo clone "$repo" "$folder" -b "$branch"
+        set -e
     fi
-
-    # try-catch
-    set +e
-    git subrepo clone "$repo" "$folder" -b "$branch"
-    set -e
 
     git subrepo clean "$folder"
     git subrepo pull "$folder"
