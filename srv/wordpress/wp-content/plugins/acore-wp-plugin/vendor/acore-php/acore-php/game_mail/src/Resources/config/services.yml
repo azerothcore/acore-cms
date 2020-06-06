@@ -1,0 +1,6 @@
+services:
+    game_mail.mail_mgr:
+        class: ACore\GameMail\Services\MailMgr
+        calls:
+          - [ setContainer,['@service_container'] ]
+          - [ setSoap, ['@soap.soap_mgr'] ]
