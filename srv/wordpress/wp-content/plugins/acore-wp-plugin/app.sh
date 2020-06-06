@@ -12,4 +12,4 @@ echo "> Pulling and update all subrepos"
 
 subrepoUpdate https://github.com/azerothcoore/git-utils  master apps/git-utils
 
-subrepoUpdate https://gitlab.com/azerothcore/acore-php-framework master vendor/acore-php/acore-php
+subrepoUpdate https://github.com/azerothcore/acore-php-framework master vendor/acore-php/acore-php
