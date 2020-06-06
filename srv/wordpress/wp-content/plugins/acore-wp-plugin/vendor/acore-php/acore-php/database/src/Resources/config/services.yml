@@ -1,6 +1,0 @@
-services:
-    database.doctrine_db:
-        class: ACore\Database\Services\DoctrineDbMgr
-        calls:
-          - [ setContainer,['@service_container'] ]
-        shared: false

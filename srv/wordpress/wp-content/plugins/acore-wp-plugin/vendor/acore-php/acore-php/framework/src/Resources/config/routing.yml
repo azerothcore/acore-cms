@@ -1,7 +1,0 @@
-Character:
-    resource: '@ACoreCharacter/Resources/config/routing.yml'
-Creature:
-    resource: '@ACoreCreature/Resources/config/routing.yml'
-#Account:
-#    resource: '@ACoreAccount/Resources/config/routing.yml'
-
