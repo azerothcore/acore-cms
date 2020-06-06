@@ -10,8 +10,8 @@ source "$ROOT_PATH/apps/git-utils/subrepo.sh"
 
 echo "> Pulling and update all subrepos"
 
-subrepoUpdate https://github.com/azerothcoore/git-utils  master apps/git-utils
+subrepoUpdate https://github.com/azerothcore/git-utils  master apps/git-utils
 
-subrepoUpdate https://github.com/azerothcoore/git-utils  master srv/wordpress/wp-content/plugins/acore-wp-plugin/apps/git-utils
+subrepoUpdate https://github.com/azerothcore/git-utils  master srv/wordpress/wp-content/plugins/acore-wp-plugin/apps/git-utils
 
 subrepoUpdate https://gitlab.com/azerothcore/acore-php-framework master srv/wordpress/wp-content/plugins/acore-wp-plugin/vendor/acore-php/acore-php
