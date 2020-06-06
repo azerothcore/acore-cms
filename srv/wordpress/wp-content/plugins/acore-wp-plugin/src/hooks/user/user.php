@@ -18,7 +18,7 @@ use \ACore\Services;
 function user_profile_update_errors($errors, $update, $user)
 {
     if (strpos($user->user_login, '@') !== false) {
-        $errors->add('invalid_username', printf(__('Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
+        $errors->add('invalid_username', printf(__('ACore Error: Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
         return $errors;
     }
 
@@ -30,8 +30,8 @@ function user_profile_update_errors($errors, $update, $user)
         $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
     }
 
-    if ($user->user_login != $gameUser->username)
-        $errors->add('invalid_email', __('This email has been already used', 'acore-wp-plugin'));
+    if ($user->user_login != $gameUser->getUsername())
+        $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
 }
 
 add_action('user_profile_update_errors', __NAMESPACE__ . '\user_profile_update_errors', 10, 3);
@@ -39,7 +39,7 @@ add_action('user_profile_update_errors', __NAMESPACE__ . '\user_profile_update_e
 function user_registration_errors($errors, $sanitized_user_login, $user_email)
 {
     if (strpos($sanitized_user_login, '@') !== false) {
-        $errors->add('invalid_username', printf(__('Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
+        $errors->add('invalid_username', printf(__('ACore Error: Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
         return $errors;
     }
 
@@ -49,8 +49,11 @@ function user_registration_errors($errors, $sanitized_user_login, $user_email)
 
     $gameUserByEmail = $accRepo->findOneBy(array('email' => $user_email));
 
-    if ($sanitized_user_login != $gameUserByEmail->username || $gameUserByLogin->email != $user_email)
-        $errors->add('invalid_email', __('This email has been already used', 'acore-wp-plugin'));
+    if ($gameUserByLogin)
+        $errors->add('invalid_email', __('ACore Error: This username has been already taken', 'acore-wp-plugin'));
+
+    if ($gameUserByEmail)
+        $errors->add('invalid_email', __('ACore Error: This email has been already taken', 'acore-wp-plugin'));
 
     return $errors;
 }
@@ -88,7 +91,7 @@ function user_profile_update($user_id, $old_user_data)
         /* @var $result \Exception */
         $result = $soap->setAccountPassword($user->user_login, $_POST['pass1']);
         if ($result instanceof \Exception)
-            die(printf(__("Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
+            die(printf(__("ACore Error: Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
     }
 }
 
@@ -105,7 +108,7 @@ function user_password_reset($user, $new_pass)
 
     $result = $soap->setAccountPassword($user->user_login, $new_pass);
     if ($result instanceof \Exception)
-        die(printf(__("Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
+        die(printf(__("ACore Error: Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
 }
 
 add_action('password_reset', __NAMESPACE__ . '\user_password_reset', 10, 2);
