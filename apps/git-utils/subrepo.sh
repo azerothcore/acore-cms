@@ -16,7 +16,7 @@ function subrepoUpdate() {
     branch=$2
     folder=$3
 
-    if [[ !-f "$folder/.gitrepo" ]]; then
+    if [[ ! -f "$folder/.gitrepo" ]]; then
          git subrepo init "$folder" -r "$repo"
     fi
 
