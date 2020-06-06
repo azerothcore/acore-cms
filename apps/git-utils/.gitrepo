@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/azerothcore/git-utils
 	branch = master
-	commit = 11a565fb07d69fa261331dafd37497ce753cb581
+	commit = f84dd24fed5073817c4f4b22a88b31cdf29f8703
 	method = merge
 	cmdver = 0.4.1
-	parent = d78d9bc95aed5685b3c35bc93b87a4257ab5ef72
+	parent = af3798090eaf23aac2d4c8a388333311971f5020
