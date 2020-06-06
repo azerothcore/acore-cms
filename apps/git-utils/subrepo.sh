@@ -18,6 +18,7 @@ function subrepoUpdate() {
 
     if [[ ! -f "$folder/.gitrepo" ]]; then
          git subrepo init "$folder" -r "$repo"
+         git subrepo push "$folder" -s
     else
         # try-catch
         set +e
