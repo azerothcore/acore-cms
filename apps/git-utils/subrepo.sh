@@ -16,9 +16,11 @@ function subrepoUpdate() {
     branch=$2
     folder=$3
 
-    if [[ ! -f "$folder/.gitrepo" ]]; then
-         git subrepo init "$folder" -r "$repo"
-         git subrepo push "$folder"
+    toClone=$(git ls-remote --heads "$repo" "$branch" | wc -l)
+
+    if [[ toClone -eq 0 ]]; then
+        git subrepo init "$folder" -r "$repo" -b "$branch"
+        git subrepo push "$folder"
     else
         # try-catch
         set +e
