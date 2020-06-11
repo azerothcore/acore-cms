@@ -4,28 +4,31 @@ namespace ACore\Soap\Services;
 
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
-class SoapMgr {
-    
+class SoapMgr
+{
     use ContainerAwareTrait;
 
     private $params = null;
 
-    public function configure($params) {
+    public function configure($params)
+    {
         $this->params = $params;
     }
 
-    public function isConfigured() {
+    public function isConfigured()
+    {
         return $this->params != null;
     }
 
-    public function executeCommand($command) {
+    public function executeCommand($command)
+    {
         if (!$this->params) {
             throw new \Exception("Soap service is not configured, please use configure() function before!");
         }
 
-        $soap = new \SoapClient(NULL, Array(
+        $soap = new \SoapClient(null, array(
             'location' => $this->params["protocol"] . '://' . $this->params["host"] . ':' . $this->params["port"] . '/',
-            'uri' => 'urn:TC',
+            'uri' => 'urn:AC',
             'style' => SOAP_RPC,
             'login' => $this->params["user"],
             'password' => $this->params["pass"],
@@ -40,5 +43,4 @@ class SoapMgr {
             return $e;
         }
     }
-
 }
