@@ -30,8 +30,9 @@ function user_profile_update_errors($errors, $update, $user)
         $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
     }
 
-    if ($user->user_login != $gameUser->getUsername())
+    if (strtoupper($user->user_login) != strtoupper($gameUser->getUsername())) {
         $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
+    }
 }
 
 add_action('user_profile_update_errors', __NAMESPACE__ . '\user_profile_update_errors', 10, 3);
@@ -49,11 +50,13 @@ function user_registration_errors($errors, $sanitized_user_login, $user_email)
 
     $gameUserByEmail = $accRepo->findOneBy(array('email' => $user_email));
 
-    if ($gameUserByLogin)
+    if ($gameUserByLogin) {
         $errors->add('invalid_email', __('ACore Error: This username has been already taken', 'acore-wp-plugin'));
+    }
 
-    if ($gameUserByEmail)
+    if ($gameUserByEmail) {
         $errors->add('invalid_email', __('ACore Error: This email has been already taken', 'acore-wp-plugin'));
+    }
 
     return $errors;
 }
@@ -61,7 +64,7 @@ add_filter('registration_errors', __NAMESPACE__ . '\user_registration_errors', 1
 
 /**
  * This is called when an user is updated
- * 
+ *
  * We cannot make it global since users from other sites could not have
  * an account
  * @param type $user_id
@@ -72,8 +75,9 @@ function user_profile_update($user_id, $old_user_data)
     $user = get_userdata($user_id)->data;
     $soap = Services::I()->getAccountSoap();
 
-    if (!is_user_logged_in())
+    if (!is_user_logged_in()) {
         return;
+    }
 
     // Update user email
     if ($user->user_email != $old_user_data->user_email) {
@@ -90,8 +94,9 @@ function user_profile_update($user_id, $old_user_data)
     if (isset($_POST['pass1']) && $_POST['pass1'] != '') {
         /* @var $result \Exception */
         $result = $soap->setAccountPassword($user->user_login, $_POST['pass1']);
-        if ($result instanceof \Exception)
+        if ($result instanceof \Exception) {
             die(printf(__("ACore Error: Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
+        }
     }
 }
 
@@ -107,8 +112,9 @@ function user_password_reset($user, $new_pass)
     $soap = Services::I()->getAccountSoap();
 
     $result = $soap->setAccountPassword($user->user_login, $new_pass);
-    if ($result instanceof \Exception)
+    if ($result instanceof \Exception) {
         die(printf(__("ACore Error: Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
+    }
 }
 
 add_action('password_reset', __NAMESPACE__ . '\user_password_reset', 10, 2);
@@ -161,7 +167,6 @@ add_action('wp_authenticate', function ($username, $password) {
         }
 
         if (!\username_exists($username)) {
-
             $accRepo = Services::I()->getAccountRepo();
 
             $userInfo = $accRepo->verifyAccount($username, $password);
