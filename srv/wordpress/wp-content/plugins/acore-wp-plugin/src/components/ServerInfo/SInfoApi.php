@@ -2,15 +2,15 @@
 
 namespace ACore;
 
-use \ACore\Services;
+use \ACore\ACoreServices;
 
 class SInfoApi {
     public static function serverInfo() {
-        return Services::I()->getServerSoap()->executeCommand("server info");
+        return ACoreServices::I()->getServerSoap()->executeCommand("server info");
     }
 
     public static function AccountCount() {
-        return Services::I()->getAccountRepo()->count([]);
+        return ACoreServices::I()->getAccountRepo()->count([]);
     }
 }
 

@@ -5,7 +5,7 @@ namespace ACore;
 use ACore\Defines\Common;
 use ACore\Opts;
 
-class Services
+class ACoreServices
 {
 
     private static $instance;
@@ -210,6 +210,6 @@ class Services
 
 
 add_action('init', function () {
-    //Services::basicWorkingTests();
+    //ACoreServices::basicWorkingTests();
     //die();
 });

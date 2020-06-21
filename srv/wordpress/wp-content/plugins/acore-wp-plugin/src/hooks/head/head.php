@@ -7,7 +7,7 @@ function getHead()
 {
     ob_start();
 ?>
-    <link rel="stylesheet" href="<?php echo AZTH_URI_WPLG ?>src/css/style.css">
+    <link rel="stylesheet" href="<?php echo ACORE_URL_PLG ?>src/css/style.css">
 
     <!-- wowhead -->
     <!--<script type="text/javascript" src="//wow.zamimg.com/widgets/power.js"></script><script>var wowhead_tooltips = { "colorlinks": true, "iconizelinks": true, "renamelinks": true }</script>-->
