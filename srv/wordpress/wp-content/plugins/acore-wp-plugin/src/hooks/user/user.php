@@ -2,8 +2,11 @@
 
 namespace ACore;
 
+require_once(ACORE_PATH_PLG . "/src/services/UserService.php");
+
 use \ACore\Defines\Common;
-use \ACore\Services;
+use \ACore\Defines\Conf;
+use \ACore\ACoreServices;
 
 /**
  * Fires before user profile update errors are returned.
@@ -18,11 +21,13 @@ use \ACore\Services;
 function user_profile_update_errors($errors, $update, $user)
 {
     if (strpos($user->user_login, '@') !== false) {
-        $errors->add('invalid_username', printf(__('ACore Error: Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
+        $errors->add('invalid_username', sprintf(__('ACore Error: Username cannot contain: %s', 'acore-wp-plugin'), "@"));
         return $errors;
     }
 
-    $accRepo = Services::I()->getAccountRepo();
+    validateComplexPassword($errors);
+
+    $accRepo = ACoreServices::I()->getAccountRepo();
 
     if (!$update) {
         $gameUser = $accRepo->findOneByUsername($user->user_login);
@@ -40,11 +45,13 @@ add_action('user_profile_update_errors', __NAMESPACE__ . '\user_profile_update_e
 function user_registration_errors($errors, $sanitized_user_login, $user_email)
 {
     if (strpos($sanitized_user_login, '@') !== false) {
-        $errors->add('invalid_username', printf(__('ACore Error: Username cannot contain: %1%s', 'acore-wp-plugin'), "@"));
+        $errors->add('invalid_username', sprintf(__('ACore Error: Username cannot contain: %s', 'acore-wp-plugin'), "@"));
         return $errors;
     }
 
-    $accRepo = Services::I()->getAccountRepo();
+    validateComplexPassword($errors);
+
+    $accRepo = ACoreServices::I()->getAccountRepo();
 
     $gameUserByLogin = $accRepo->findOneByUsername($sanitized_user_login);
 
@@ -73,7 +80,7 @@ add_filter('registration_errors', __NAMESPACE__ . '\user_registration_errors', 1
 function user_profile_update($user_id, $old_user_data)
 {
     $user = get_userdata($user_id)->data;
-    $soap = Services::I()->getAccountSoap();
+    $soap = ACoreServices::I()->getAccountSoap();
 
     if (!is_user_logged_in()) {
         return;
@@ -86,7 +93,7 @@ function user_profile_update($user_id, $old_user_data)
         if ($result instanceof \Exception)
             die("Game server error: " . $result->getMessage());*/
 
-        $accRepo = Services::I()->getAccountRepo();
+        $accRepo = ACoreServices::I()->getAccountRepo();
 
         $accRepo->query("UPDATE account SET email= '" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
     }
@@ -95,12 +102,16 @@ function user_profile_update($user_id, $old_user_data)
         /* @var $result \Exception */
         $result = $soap->setAccountPassword($user->user_login, $_POST['pass1']);
         if ($result instanceof \Exception) {
-            die(printf(__("ACore Error: Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
+            die(sprintf(__("ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
         }
     }
 }
 
 add_action('profile_update', __NAMESPACE__ . '\user_profile_update', 10, 2);
+
+do_action('validate_password_reset', function (\WP_Error $errors, \WP_User $user) {
+    validateComplexPassword($errors);
+}, 10, 2);
 
 /**
  *
@@ -109,11 +120,11 @@ add_action('profile_update', __NAMESPACE__ . '\user_profile_update', 10, 2);
  */
 function user_password_reset($user, $new_pass)
 {
-    $soap = Services::I()->getAccountSoap();
+    $soap = ACoreServices::I()->getAccountSoap();
 
     $result = $soap->setAccountPassword($user->user_login, $new_pass);
     if ($result instanceof \Exception) {
-        die(printf(__("ACore Error: Game server error: %1%s", 'acore-wp-plugin'), $result->getMessage()));
+        die(sprintf(__("ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
     }
 }
 
@@ -127,7 +138,7 @@ function after_delete($user_id)
     $email = $user_obj->user_email;
     $username = $user_obj->user_login;
 
-    $soap = Services::I()->getAccountSoap();
+    $soap = ACoreServices::I()->getAccountSoap();
 
     $soap->deleteAccount($username);
 }
@@ -141,12 +152,12 @@ add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_login', function ($user_login, $user) {
     $password = $_POST['pwd'];
 
-    $accRepo = Services::I()->getAccountRepo();
+    $accRepo = ACoreServices::I()->getAccountRepo();
 
     if (!$accRepo->findOneByUsername($user_login)) {
-        $soap = Services::I()->getAccountSoap();
+        $soap = ACoreServices::I()->getAccountSoap();
 
-        $soap->createAccountFull($user->user_login, $password, $user->user_email, \ACore\Defines\Common::EXPANSION_WOTLK);
+        $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
 
         $soap->setAccountPassword($user->user_login, $password);
 
@@ -167,7 +178,7 @@ add_action('wp_authenticate', function ($username, $password) {
         }
 
         if (!\username_exists($username)) {
-            $accRepo = Services::I()->getAccountRepo();
+            $accRepo = ACoreServices::I()->getAccountRepo();
 
             $userInfo = $accRepo->verifyAccount($username, $password);
 
@@ -193,3 +204,27 @@ add_action('wp_authenticate', function ($username, $password) {
         }
     }
 }, 30, 2);
+
+
+
+function validateComplexPassword($errors)
+{
+
+    $password = (isset($_POST['pass1']) && trim($_POST['pass1'])) ? $_POST['pass1'] : null;
+
+    if (empty($password) || ($errors->get_error_data('pass')))
+        return $errors;
+
+    $passwordValidation = UserService::validatePassword($password);
+
+    if ($passwordValidation !== true) {
+        $errors->add("pass", "<strong>ERROR</strong>: " . $passwordValidation . ".");
+    }
+
+    return $errors;
+}
+
+add_filter('random_password', function ($pass) {
+    $pass = substr($pass, 0, Conf::PASSWORD_LENGTH);
+    return $pass;
+}, 10, 1);
