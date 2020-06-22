@@ -55,6 +55,13 @@ class AccountEntity {
      * @ORM\Column(name="email", type="string")
      */
     protected $email;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="email", type="string")
+     */
+    protected $expansion;
     
 
     
