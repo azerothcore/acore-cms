@@ -2,6 +2,8 @@
 
 namespace ACore;
 
+use ACore\ACoreServices;
+
 class ItemSku {
 
     public $itemId;

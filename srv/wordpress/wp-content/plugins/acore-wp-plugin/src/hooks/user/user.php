@@ -7,6 +7,7 @@ require_once(ACORE_PATH_PLG . "/src/services/UserService.php");
 use \ACore\Defines\Common;
 use \ACore\Defines\Conf;
 use \ACore\ACoreServices;
+use \ACore\Account\Entity\AccountAccessEntity;
 
 /**
  * Fires before user profile update errors are returned.
@@ -157,9 +158,17 @@ add_action('wp_login', function ($user_login, $user) {
     if (!$accRepo->findOneByUsername($user_login)) {
         $soap = ACoreServices::I()->getAccountSoap();
 
-        $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
+        
 
-        $soap->setAccountPassword($user->user_login, $password);
+        $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
+
+        if ($res !== true)
+            die($res->getMessage());
+
+        $res = $soap->setAccountPassword($user->user_login, $password);
+
+        if ($res !== true)
+            die($res->getMessage());
 
         //workaround since soap doesn't work
         $accRepo->query("UPDATE account SET email= '" . $user->user_email . "', reg_mail='" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
@@ -205,8 +214,11 @@ add_action('wp_authenticate', function ($username, $password) {
     }
 }, 30, 2);
 
-
-
+/**
+ * Helper function used to validate user password based on azerothcore limits
+ * for in different Wordpress actions
+ * 
+ */
 function validateComplexPassword($errors)
 {
 
@@ -224,7 +236,118 @@ function validateComplexPassword($errors)
     return $errors;
 }
 
+/**
+ * AzerothCore supports a limited length password
+ * So the wordpress automatic generated password 
+ * must be truncated
+ */
 add_filter('random_password', function ($pass) {
     $pass = substr($pass, 0, Conf::PASSWORD_LENGTH);
     return $pass;
 }, 10, 1);
+
+
+/**
+ * User extra fields
+ */
+add_action('show_user_profile', __NAMESPACE__ . '\extra_user_profile_fields');
+add_action('edit_user_profile', __NAMESPACE__ . '\extra_user_profile_fields');
+
+function extra_user_profile_fields($user)
+{ 
+    $accRepo = ACoreServices::I()->getAccountRepo();
+    $gameUser = $accRepo->findOneByUsername($user->user_login);
+    $userExpansion = $gameUser->getExpansion();
+
+    $curUser = \wp_get_current_user();
+
+    
+    $curGameUser = $curUser->ID != $user->ID ? $accRepo->findOneByUsername($user->user_login) : $gameUser;
+
+    if (!in_array($userExpansion,Common::EXPANSIONS))
+        $userExpansion = Common::EXPANSION_WOTLK;
+
+    ?>
+    <h3><?php _e("AzerothCore Fields", "blank"); ?></h3>
+
+    <table class="form-table">
+        <tr>
+            <th><label for="acore-user-game-expansion"><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
+            <td>
+                <select id="acore-user-game-expansion" name="acore-user-game-expansion">
+                    <?php 
+                    foreach (Common::EXPANSIONS as $key => $value) {
+                        ?><option value=<?=$value?> <?=$userExpansion == $value ? "selected" : ""?>><?=$key?></option>
+                  <?
+                    }
+                  ?>
+                </select>
+                <span class="description"><?php _e("Game expansion to enable", 'acore-wp-plugin'); ?></span>
+            </td>
+        </tr>
+        <?php 
+            ?>
+            <tr>
+                <th><label for="acore-user-account-access"><?php _e("Account Level", 'acore-wp-plugin'); ?></label></th>
+                <td>
+                    <select id="acore-user-account-access" name="acore-user-account-access">
+                        <?php 
+                        foreach (Common::ACCOUNT_LEVELS as $key => $value) {
+                            ?><option value=<?=$value?> <?=$userExpansion == $value ? "selected" : ""?>><?=$key?></option>
+                    <?
+                        }
+                    ?>
+                    </select>
+                    <span class="description"><?php _e("In-Game account level", 'acore-wp-plugin'); ?></span>
+                </td>
+            </tr>
+            <?php
+        ?>
+    </table>
+
+    <h3><?php _e("Other fields...", "blank"); // needed to avoid mess them up with wordpress fields ?></h3>
+<?php 
+}
+
+add_action( 'personal_options_update',  __NAMESPACE__ . '\save_extra_user_profile_fields' );
+add_action( 'edit_user_profile_update',  __NAMESPACE__ . '\save_extra_user_profile_fields' );
+
+function save_extra_user_profile_fields( $user_id ) {
+    if ( !current_user_can( 'edit_user', $user_id ) ) { 
+        return false; 
+    }
+
+    $user = get_user_by('id', $user_id);
+    $accRepo = ACoreServices::I()->getAccountRepo();
+    $accMgr = ACoreServices::I()->getAccountMgr();
+    /**
+     * @var \ACore\Account\Entity\AccountEntity
+     */
+    $gameUser = $accRepo->findOneByUsername($user->user_login);
+    if (!$gameUser)
+        throw new \Exception(__("Game account doesn't exist!","acore-wp-plugin"));
+
+
+    $expansion = $_POST['acore-user-game-expansion'];
+
+    if (!in_array($expansion,Common::EXPANSIONS))
+        throw new \Exception(__("Invalid Expansion!", "acore-wp-plugin"));
+
+    if ($expansion != $gameUser->getExpansion()) {
+        $gameUser->setExpansion($expansion);
+
+        $accMgr->persist($gameUser);
+        $accMgr->flush();
+    }
+
+    if (false) {
+        $accessEntity = new AccountAccessEntity();
+        $accessEntity->setId($gameUser->getId());
+        $accessEntity->setGmLevel(0);
+        $accessEntity->setRealmID(-1);
+
+        $accMgr->persist($accessEntity);
+        $accMgr->flush();
+    }
+}
+

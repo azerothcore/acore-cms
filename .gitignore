@@ -13,6 +13,7 @@
 /srv/wordpress/wp-content/plugins/*
 !/srv/wordpress/wp-content/plugins/askimet
 !/srv/wordpress/wp-content/plugins/acore-wp-plugin
+!/srv/wordpress/wp-content/plugins/wp-graph*
 !/srv/wordpress/wp-content/themes/
 /srv/wordpress/wp-content/themes/*
 !/srv/wordpress/wp-content/themes/twenty*

@@ -2,7 +2,7 @@
 
 namespace ACore;
 
-use ACore\ACore\ACoreServices;
+use ACore\ACoreServices;
 
 class WC_CharChange extends \ACore\Lib\WpClass {
 

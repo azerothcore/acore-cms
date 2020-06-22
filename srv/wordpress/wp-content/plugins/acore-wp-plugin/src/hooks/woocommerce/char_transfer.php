@@ -2,6 +2,8 @@
 
 namespace ACore;
 
+use ACore\ACoreServices;
+
 class WC_CharTransfer extends \ACore\Lib\WpClass {
 
     private static $skuList = array(

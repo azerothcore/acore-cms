@@ -60,7 +60,7 @@ add_filter('upload_mimes', function($mimetypes, $user) {
 /*
   ENABLE ADMIN BAR
  */
-add_filter('woocommerce_disable_admin_bar', __NAMESPACE__ . 'wc_disable_admin_bar', 10, 1);
+add_filter('woocommerce_disable_admin_bar', __NAMESPACE__ . '\wc_disable_admin_bar', 10, 1);
 
 function wc_disable_admin_bar($prevent_admin_access) {
     //if (!current_user_can('example_role')) {
@@ -69,7 +69,7 @@ function wc_disable_admin_bar($prevent_admin_access) {
     return false;
 }
 
-add_filter('woocommerce_prevent_admin_access', __NAMESPACE__ . 'wc_prevent_admin_access', 10, 1);
+add_filter('woocommerce_prevent_admin_access', __NAMESPACE__ . '\wc_prevent_admin_access', 10, 1);
 
 function wc_prevent_admin_access($prevent_admin_access) {
     //if (!current_user_can('example_role')) {
@@ -100,13 +100,7 @@ function wc_checkout_fields($fields) {
     unset($fields['billing']['billing_state']);
     unset($fields['billing']['billing_phone']);
     //unset($fields['order']['order_comments']);
-    unset($fields['billing']['billing_address_2']);
-    unset($fields['billing']['billing_postcode']);
-    unset($fields['billing']['billing_company']);
-    unset($fields['billing']['billing_last_name']);
     unset($fields['billing']['billing_email']);
-    unset($fields['billing']['billing_city']);
     return $fields;
 }
-
-add_filter('woocommerce_checkout_fields', __NAMESPACE__ . 'wc_checkout_fields', 20);
+add_filter('woocommerce_checkout_fields', __NAMESPACE__ . '\wc_checkout_fields', 20);
