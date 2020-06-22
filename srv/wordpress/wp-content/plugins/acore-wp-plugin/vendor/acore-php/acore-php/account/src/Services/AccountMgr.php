@@ -5,9 +5,11 @@ namespace ACore\Account\Services;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use ACore\Account\Entity\AccountEntity;
 use ACore\Account\Entity\AccountBannedEntity;
+use ACore\Account\Entity\AccountAccessEntity;
 use ACore\AuthDb\Utils\AuthDbTrait;
 
-class AccountMgr {
+class AccountMgr
+{
 
     use AuthDbTrait;
     use ContainerAwareTrait;
@@ -17,7 +19,8 @@ class AccountMgr {
      * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Account\Repository\AccountRepository
      */
-    public function getAccountRepo($em) {
+    public function getAccountRepo($em)
+    {
         return $em->getRepository(AccountEntity::class);
     }
 
@@ -26,7 +29,18 @@ class AccountMgr {
      * @param \Doctrine\ORM\EntityManager $em
      * @return \ACore\Account\Repository\AccountBannedRepository
      */
-    public function getAccountBannedRepo($em) {
+    public function getAccountBannedRepo($em)
+    {
         return $em->getRepository(AccountBannedEntity::class);
+    }
+
+    /**
+     * 
+     * @param \Doctrine\ORM\EntityManager $em
+     * @return \ACore\Account\Repository\AccountAccessEntity
+     */
+    public function getAccountAccessRepo($em)
+    {
+        return $em->getRepository(AccountAccessEntity::class);
     }
 }
