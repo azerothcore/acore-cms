@@ -2,6 +2,7 @@
 
 namespace ACore\Account\Entity;
 
+use ACore\Account\Entity\AccountAccessEntity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -55,7 +56,20 @@ class AccountEntity {
      * @ORM\Column(name="email", type="string")
      */
     protected $email;
-    
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="expansion", type="integer")
+     */
+    protected $expansion;
+
+
+    /**
+     *
+     * @ORM\OneToMany(targetEntity="\ACore\Account\Entity\AccountAccessEntity", mappedBy="id")
+     */
+    private $access;
 
     
     public function getId() {
@@ -111,5 +125,19 @@ class AccountEntity {
         $this->email = $email;
         return $this;
     }
+
+    public function getExpansion() {
+        return $this->expansion;
+    }
+
+    public function setExpansion($expansion) {
+        $this->expansion = $expansion;
+        return $this;
+    }
+
+    public function getAccess() {
+        return $this->access;
+    }
+
 
 }

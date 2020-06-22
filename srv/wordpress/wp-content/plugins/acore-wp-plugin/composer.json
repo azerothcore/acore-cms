@@ -22,7 +22,7 @@
         "php": ">=5.5.9",
         "symfony/symfony": "3.2.*",
         "doctrine/lexer": "^1.0",
-        "doctrine/orm": "^2.6.4",
+        "doctrine/orm": "^2.7.3",
         "doctrine/doctrine-bundle": "^1.6",
         "doctrine/doctrine-cache-bundle": "^1.2",
         "symfony/swiftmailer-bundle": "^2.3.10",

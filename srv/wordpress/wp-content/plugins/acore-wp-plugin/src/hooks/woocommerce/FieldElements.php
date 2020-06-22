@@ -2,6 +2,8 @@
 
 namespace ACore;
 
+use ACore\ACoreServices;
+
 class FieldElements {
 
     public static function charList($username) {
@@ -9,15 +11,20 @@ class FieldElements {
         $accRepo = $ACoreSrv->getAccountRepo();
         $charRepo = $ACoreSrv->getCharactersRepo();
 
+        $account = $accRepo->findOneByUsername($username);
+        if (!$account) {
+          // if the account does not exist in the core database
+          echo '<br><br><span style="color: red;">You have not an active WoW account!</span><br>';
+          return;
+        }
 
-
-        $accountId = $accRepo->findOneByUsername($username)->getId();
+        $accountId = $account->getId();
         $characters = $charRepo->findByAccount($accountId);
         $charBanRepo = $ACoreSrv->getCharactersBannedRepo();
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
 
         if ($accBanRepo->isActiveById($accountId)) {
-            echo "Your account is banned!<br>";
+            echo '<br><br><span style="color: red;">Your account is banned!</span><br>';
             return;
         }
 

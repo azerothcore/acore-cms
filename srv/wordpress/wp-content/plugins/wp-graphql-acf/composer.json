@@ -1,0 +1,34 @@
+{
+  "name": "wp-graphql/wp-graphql-acf",
+  "description": "Advanced Custom Fields bindings for wp-graphql",
+  "type": "wordpress-plugin",
+  "license": "GPL-3.0+",
+  "authors": [{
+    "name": "jasonbahl",
+    "email": "jasonbahl@mac.com"
+  }],
+  "config": {
+    "optimize-autoloader": true
+  },
+  "autoload": {
+    "psr-4": {
+      "WPGraphQL\\ACF\\": "src/"
+    },
+    "classmap": [
+      "src/"
+    ]
+  },
+  "scripts": {
+    "install-wp-tests": "bash bin/install-wp-tests.sh",
+    "test": "vendor/bin/codecept run",
+    "functional-test": "vendor/bin/codecept run functional",
+    "acceptance-test": "vendor/bin/codecept run acceptance",
+    "wpunit-test": "vendor/bin/codecept run wpunit"
+  },
+  "require-dev": {
+    "lucatume/wp-browser": "^2.2.",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0",
+    "wp-coding-standards/wpcs": "^2.1",
+    "phpcompatibility/phpcompatibility-wp": "^2.0"
+  }
+}
