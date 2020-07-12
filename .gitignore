@@ -25,9 +25,11 @@
 !/conf/nginx-conf
 !/conf/php-conf
 
-# you can use this file to override specific configurations
-# for docker
-docker-compose.override.yml
+
+docker-compose.*.yml
+!docker-compose.default.yml
+
+.env.local
 
 #
 # OS specific
@@ -102,3 +104,8 @@ package-lock.json
 .texlipse
 
 
+#
+# AzerothShard
+# 
+
+data/sql

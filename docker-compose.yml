@@ -52,9 +52,6 @@ services:
       - ./var/logs:/var/log/nginx
     extra_hosts:
       - "web.local:127.0.0.1"
-    ports: 
-      - "80:80"
-      - "443:80"
     expose:
       - "80"
       - "443"

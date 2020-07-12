@@ -1,0 +1,19 @@
+{
+    "name": "@acore/jsdocker-compose",
+    "version": "0.1.0",
+    "main": "dist/main.js",
+    "bin": {
+        "jsdocker-compose": "./src/cli.js"
+    },
+    "scripts": {
+        "build": "webpack"
+    },
+    "dependencies": {
+        "commander": "^5.1.0",
+        "dotenv": "^8.2.0"
+    },
+    "devDependencies": {
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.12"
+    }
+}

@@ -1,21 +1,30 @@
 {
     "name": "acore-cms",
     "version": "1.0.0",
-    "author":  {
+    "engines": {
+        "node": "14.*"
+    },
+    "author": {
         "name": "AzerothCore",
         "url": "https://azerothcore.org"
+    },
+    "config": {
+        "docker_extra_file": "docker-compose.default.yml"
     },
     "contributors": [
         "Yehonal"
     ],
     "license": "AGPL3",
     "scripts": {
-        "docker:start": "docker-compose up || docker-compose stop",
-        "docker:start:d": "docker-compose up -d || docker-compose stop",
-        "docker:shell": "docker-compose up -d && docker-compose exec php bash || docker-compose stop",
-        "docker:remove": "docker-compose down --volumes --remove-orphans",
-        "docker:stop": "docker-compose stop",
+        "docker:start": "node apps/jsdocker-compose/dist/main.js run:fg",
+        "docker:start:d": "node apps/jsdocker-compose/dist/main.js run:bg",
+        "docker:shell": "node apps/jsdocker-compose/dist/main.js run:shell",
+        "docker:remove": "node apps/jsdocker-compose/dist/main.js remove",
+        "docker:stop": "node apps/jsdocker-compose/dist/main.js stop",
         "docker:db:export": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_export.sh",
         "docker:db:import": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_import.sh"
+    },
+    "devDependencies": {
+        "@types/node": "^14.0.13"
     }
 }
