@@ -62,8 +62,6 @@ function buildServicesCmd() {
  * @param {Array} scArgs - arguments for runCmd
  * @param {object} options - configuration object
  * @param {string} options.service - name of service where execute commands
- * @param {boolean} options.hasDb - if true, enable some db checks
- * @param {string} options.dbService - name of database service
  * @param {string} options.runCmd - prefix of command to run fg/bg parameters
  * @param {boolean} options.remove - run a docker-compose down command after command graceful exit
  * @param {boolean} options.stop - run a docker-compose stop after command graceful exit
@@ -73,8 +71,6 @@ async function main(
     scArgs,
     {
         service = conf.docker_service_name,
-        hasDb = conf.docker_has_db,
-        dbService = conf.docker_db_service_name,
         runCmd = conf.docker_run_command,
         remove = false,
         stop = false,
@@ -93,11 +89,7 @@ async function main(
         exitArgs = ' docker-compose stop';
     }
 
-    const dockerUp = `docker-compose ${upArgs} up -d --no-build --remove-orphans ${
-        hasDb
-            ? ` && docker-compose exec ${dbService} ${path.join(conf.docker_jsdc_dir, 'waitForMySQL.sh')}`
-            : ''
-        }`;
+    const dockerUp = `docker-compose ${upArgs} up -d --no-build --remove-orphans`;
     var cmd = '';
 
     var toBuild = false;

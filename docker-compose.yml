@@ -17,6 +17,8 @@ services:
       MYSQL_PASSWORD: wordpress
     networks:
       - local-private-net
+    healthcheck:
+        test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
   php:
     restart: unless-stopped
     build:

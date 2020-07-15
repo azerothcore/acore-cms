@@ -1,10 +1,6 @@
 module.exports = {
     /**@type {string} name of the main service to run*/
     docker_service_name: process.env.DOCKER_SERVICE_NAME || "node-server",
-    /**@type {string} enable some checks for db*/
-    docker_has_db: process.env.DOCKER_HAS_DB === "true" || false,
-    /**@type {string} name of the db service*/
-    docker_db_service_name: process.env.DOCKER_DB_SERVICE_NAME || "db",
     /**@type {string} inject ssh key in build arguments*/
     docker_inject_sshkey: process.env.DOCKER_INJECT_SSHKEY === "true" || false,
     /**@type {string} profix for command to run*/

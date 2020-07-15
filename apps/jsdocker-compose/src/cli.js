@@ -5,8 +5,6 @@ const conf = require('./conf')
 function addDefaultOptions(command) {
     command
         .option('-s, --service <name>', 'Name of main service', conf.docker_service_name)
-        .option('-d, --has-db', conf.docker_has_db)
-        .option('--db-service <name>', 'Name of db service', conf.docker_db_service_name);
     return command;
 }
 

@@ -9,13 +9,14 @@ RUN apt-get update -y \
      libpng-dev \
      zlib1g-dev \
      libgd3 \
-     libgd-dev \
-  && apt-get clean -y \
-  && docker-php-ext-install soap \
-  && docker-php-ext-install mbstring 
+     libonig-dev \
+     libgd-dev
+RUN apt-get clean -y
+RUN docker-php-ext-install soap
+RUN docker-php-ext-install mbstring 
 RUN docker-php-ext-install pdo_mysql
 RUN docker-php-ext-install mysqli
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+RUN docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/
 RUN docker-php-ext-install -j$(nproc) gd
 
 # Install Composer
