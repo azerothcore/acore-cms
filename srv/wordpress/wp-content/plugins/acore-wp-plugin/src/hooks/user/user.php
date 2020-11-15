@@ -242,8 +242,7 @@ function validateComplexPassword($errors)
  * must be truncated
  */
 add_filter('random_password', function ($pass) {
-    $pass = substr($pass, 0, Conf::PASSWORD_LENGTH);
-    return $pass;
+    return substr($pass, 0, Conf::PASSWORD_LENGTH-1);
 }, 10, 1);
 
 
