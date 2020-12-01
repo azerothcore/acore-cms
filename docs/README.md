@@ -2,15 +2,29 @@
 
 ACore CMS based on wordpress.
 
-## Docker container
+- [Requirements](https://github.com/azerothcore/acore-cms#requirements)
+- [Usage](https://github.com/azerothcore/acore-cms#usage)
+- [Configure and connect the CMS to AC](https://github.com/azerothcore/acore-cms/docs/configure-cms.md)
 
-If you do not have docker, [install it](https://docs.docker.com/compose/install/).
+## Requirements
+
+- Docker & docker-compose
+- Nodejs & npm
+
+If you do not have **docker**, [install it](https://docs.docker.com/compose/install/).
+
 On a Linux distro, you can install it via package manager, in a debian-based for example you can just run:
 ```
 $ sudo apt install docker docker-composer
 ```
 
-Well, now you should be able to run it using:
+About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
+
+## Usage
+### Docker container
+
+
+If you installed the requirements you can be able to run the application using:
 ```
 $ docker-compose up
 ```
@@ -19,6 +33,10 @@ or using npm:
 ```
 $ npm run docker:start
 ```
+
+Now you can see the website in [http://localhost:81/](http://localhost:81/).
+
+If you want to change the port, you can change it from `docker-comopse.yaml` line 61.
 
 ### CLI commands available
 

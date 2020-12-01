@@ -57,6 +57,8 @@ services:
     expose:
       - "80"
       - "443"
+    ports:
+      - "81:80"
     networks:
       - local-private-net
       - local-shared-net
