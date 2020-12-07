@@ -45,6 +45,8 @@ DOCKER_PORT=80
 
 Be sure that your port 80 is not already used by another service like Apache2, nginx etc.
 
+Note: if you change this after the wordpress installation remember to change also the siteurl and related wordpress parameters in `wp_options` table.
+
 ### CLI commands available
 
 ```
