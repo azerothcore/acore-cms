@@ -103,7 +103,7 @@ function user_profile_update($user_id, $old_user_data)
         /* @var $result \Exception */
         $result = $soap->setAccountPassword($user->user_login, $_POST['pass1']);
         if ($result instanceof \Exception) {
-            die(sprintf(__("ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
+            die(sprintf(__("#2 ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
         }
     }
 }
@@ -121,11 +121,13 @@ do_action('validate_password_reset', function (\WP_Error $errors, \WP_User $user
  */
 function user_password_reset($user, $new_pass)
 {
+    create_account_if_not_exists($user, $new_pass);
+
     $soap = ACoreServices::I()->getAccountSoap();
 
     $result = $soap->setAccountPassword($user->user_login, $new_pass);
     if ($result instanceof \Exception) {
-        die(sprintf(__("ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
+        die(sprintf(__("#1 ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
     }
 }
 
@@ -147,32 +149,44 @@ function after_delete($user_id)
 add_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 
+function create_account_if_not_exists($user, $password): void {
+  $accRepo = ACoreServices::I()->getAccountRepo();
+
+  if (!$accRepo->findOneByUsername($user->user_login)) {
+      $soap = ACoreServices::I()->getAccountSoap();
+
+      $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
+
+      if ($res !== true) {
+          die($res->getMessage());
+      }
+
+      $res = $soap->setAccountPassword($user->user_login, $password);
+
+      if (!!$res !== true && $res->getMessage()) {
+          die($res->getMessage());
+      }
+
+      // workaround since soap doesn't work
+      $accRepo->query("UPDATE account SET email= '" . $user->user_email . "', reg_mail='" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
+  }
+}
+
+// this requires the plugin "Auto Login New User After Registration"
+add_action( 'user_register',  function ($user_id) {
+    // check if the plugin is enabled and the related fields email and passwrd are available
+    if (get_option("alnuar_add_password_fields") == true && isset($_POST['password1'])) {
+        $user = get_user_by( 'id', $user_id );
+        $user_password = $_POST['password1'];
+        create_account_if_not_exists($user, $user_password);
+    }
+});
+
 
 // If login but game account doesn't exist
 // then create it
 add_action('wp_login', function ($user_login, $user) {
-    $password = $_POST['pwd'];
-
-    $accRepo = ACoreServices::I()->getAccountRepo();
-
-    if (!$accRepo->findOneByUsername($user_login)) {
-        $soap = ACoreServices::I()->getAccountSoap();
-
-        
-
-        $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
-
-        if ($res !== true)
-            die($res->getMessage());
-
-        $res = $soap->setAccountPassword($user->user_login, $password);
-
-        if ($res !== true)
-            die($res->getMessage());
-
-        //workaround since soap doesn't work
-        $accRepo->query("UPDATE account SET email= '" . $user->user_email . "', reg_mail='" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
-    }
+    create_account_if_not_exists($user_login, $_POST['pwd']);
 }, 10, 2);
 
 
@@ -285,6 +299,7 @@ function extra_user_profile_fields($user)
             </td>
         </tr>
         <?php 
+            /*
             ?>
             <tr>
                 <th><label for="acore-user-account-access"><?php _e("Account Level", 'acore-wp-plugin'); ?></label></th>
@@ -301,6 +316,7 @@ function extra_user_profile_fields($user)
                 </td>
             </tr>
             <?php
+            */
         ?>
     </table>
 
