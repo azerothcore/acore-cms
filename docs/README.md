@@ -47,6 +47,8 @@ Be sure that your port 80 is not already used by another service like Apache2, n
 
 Note: if you change this after the wordpress installation remember to change also the siteurl and related wordpress parameters in `wp_options` table.
 
+**WARNING: if you run this in production, comment the phpmyadmin section in dcker-compose to not expose the phpmyadmin service to any user or change the mysql credentials**
+
 ### CLI commands available
 
 ```
