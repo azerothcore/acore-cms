@@ -29,14 +29,26 @@ If you installed the requirements you can be able to run the application using:
 $ docker-compose up
 ```
 
-or using npm:
+It will download the related dependencies of the containers and start the acore-cms, next time you will need to just start the acore cms you can use:
 ```
 $ npm run docker:start
 ```
 
 Now you can see the website in [http://localhost:81/](http://localhost:81/).
 
-If you want to change the port, you can change it from `docker-comopse.yaml` line 61.
+If you want to change the port, you can change it from `docker-comopse.yaml` changing the following properties under `web.local` from:
+```
+    ports:
+      - "81:80"
+```
+
+to:
+```
+    ports:
+      - "80:80"
+```
+
+Be sure that your port 80 is not already used by another service like Apache2, nginx etc.
 
 ### CLI commands available
 
