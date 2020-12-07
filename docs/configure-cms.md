@@ -39,8 +39,28 @@ I recommend you to install the plugin `Manage Notification E-mails` to manage in
 
 ### Enable the shop
 
+To add the shop in your website selling items and services you have to:
+- install and configure WooCommerce plugin using `Admin Panel -> Plugins -> Add new` (you can skip the configuration and remove all the shipment options).
+Now the pages like `Cart, Shop, Checkout` will be created and added into your menu, you can edit them from `Pages`.
+Remember to set the right currency and manage all the related woocommerce settings.
+- create a product going to `Admin Panel -> Product -> Create new product`
+  - be sure to put the product as "Virtual"
+  - put a price in the `General` section
+  - set the SKU as `itemsend_28773` to sell the item 28773 (Gorehowl)
+- well, you are selling items but there are no payments method you can install the plugin `WooCommerce PayPal Checkout Payment Gateway` to add PayPal but you can also add other plugins to add more payment method (example: `Woocommerce Stripe Gateway`).  
+After the installation remember to enable `Paypal standard` from `Admin Panel -> Woocommerce -> Settings -> Payments` and enable PayPal standard, later click on `Manage` and add your email to receive the payments.
+- **(optional)** install the plugin `myCred` to add **"virtual points"** in your website, this will allow you to define a relation between money and your virtual point, so any user can buy items in the shopt through virtual points and buy virtual points with €/$
+
+![Shop](shop.png)
+
+Besides items you can also sell:
+- Character Rename (using as SKU `char-change-name`)
+- Change Race (using as SKU `char-change-race`)
+- Change Faction (using as SKU `char-change-faction`)
 
 ### Troubleshooting
+
+For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#web` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
 
 Errors:
 - **During the registration I get some PDO errors**  
