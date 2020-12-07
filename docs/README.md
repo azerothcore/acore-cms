@@ -36,16 +36,11 @@ $ npm run docker:start
 
 Now you can see the website in [http://localhost:81/](http://localhost:81/).
 
-If you want to change the port, you can change it from `docker-comopse.yaml` changing the following properties under `web.local` from:
-```
-    ports:
-      - "81:80"
-```
+If you want to change the port, you can change it from `.env` through the parameter `DOCKER_PORT`.
 
-to:
+Example:
 ```
-    ports:
-      - "80:80"
+DOCKER_PORT=80
 ```
 
 Be sure that your port 80 is not already used by another service like Apache2, nginx etc.
