@@ -60,7 +60,7 @@ Besides items you can also sell:
 
 ### Troubleshooting
 
-For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#web` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
+For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#acore-cms` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
 
 Errors:
 - **During the registration I get some PDO errors**  
