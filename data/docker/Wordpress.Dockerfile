@@ -10,12 +10,15 @@ RUN apt-get update -y \
      zlib1g-dev \
      libgd3 \
      libonig-dev \
-     libgd-dev
+     libgd-dev \
+     libicu-dev
 RUN apt-get clean -y
 RUN docker-php-ext-install soap
 RUN docker-php-ext-install mbstring 
 RUN docker-php-ext-install pdo_mysql
 RUN docker-php-ext-install mysqli
+RUN docker-php-ext-configure intl
+RUN docker-php-ext-install intl
 RUN docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/
 RUN docker-php-ext-install -j$(nproc) gd
 

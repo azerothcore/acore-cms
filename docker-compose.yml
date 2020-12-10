@@ -57,6 +57,8 @@ services:
     expose:
       - "80"
       - "443"
+    ports:
+      - "127.0.0.1:${DOCKER_PORT:-8080}:80"
     networks:
       - local-private-net
       - local-shared-net
