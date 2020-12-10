@@ -16,7 +16,7 @@ If during the registration it fails it can depend on the permissions of the acce
 See the **Troubleshooting** section for more details. 
 
 
-### Register account on the game server
+### - Register account on the game server
 
 Wordpress by default does not allow the registration from any user so you first need to enable the registration going to `Settings -> General` and check next to `Membership` the option `Anyone can register`.
 
@@ -37,7 +37,7 @@ I recommend you to install the plugin `Manage Notification E-mails` to manage in
 
 **If you get some error during the registration of the user see below the troubleshooting section.**
 
-### Enable the shop
+### - Enable the shop
 
 To add the shop in your website selling items and services you have to:
 - install and configure WooCommerce plugin using `Admin Panel -> Plugins -> Add new` (you can skip the configuration and remove all the shipment options).
@@ -58,7 +58,7 @@ Besides items you can also sell:
 - Change Race (using as SKU `char-change-race`)
 - Change Faction (using as SKU `char-change-faction`)
 
-### Troubleshooting
+## Troubleshooting
 
 For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#acore-cms` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
 
