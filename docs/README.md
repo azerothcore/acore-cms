@@ -4,7 +4,7 @@ ACore CMS based on wordpress.
 
 - [Requirements](https://github.com/azerothcore/acore-cms#requirements)
 - [Usage](https://github.com/azerothcore/acore-cms#usage)
-- [Configure and connect the CMS to AC](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
+- [Connect the CMS to AC and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
 
 ## Requirements
 
