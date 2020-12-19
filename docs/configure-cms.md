@@ -66,7 +66,7 @@ Errors:
 - **During the registration I get some PDO errors**  
 - **Host is not allowed to connect to this mysql**
 
-For both, the problem is probably related to the permissions of the access to your local mysql database.
+For both, the problem is probably related to the permissions of the access to your local mysql database.  
 **How to solve:** edit the mysql permission and create a new user.
 
 Edit the mysql permission of mysql using:
