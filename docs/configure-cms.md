@@ -58,6 +58,8 @@ Besides items you can also sell:
 - Change Race (using as SKU `char-change-race`)
 - Change Faction (using as SKU `char-change-faction`)
 
+**Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
+
 ## Troubleshooting
 
 For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#acore-cms` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
