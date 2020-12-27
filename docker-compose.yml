@@ -10,7 +10,13 @@ services:
       - ./data:/data/
       - ./apps:/apps/
       - ./conf:/conf/
+    env_file:
+      # environment variables are retrieved by this file
+      # NOTE: you can add more variables to the .env file but
+      # you cannot override the .env.docker ones (by design)
+      - .env.docker
     environment:
+      DOCKER_CONTAINER: 1
       MYSQL_ROOT_PASSWORD: flkdsjalfh
       MYSQL_DATABASE: wordpress
       MYSQL_USER: wordpress
@@ -35,7 +41,13 @@ services:
         source: ${DOCKER_CONF_PHP_PATH:-./conf/dist/php-conf/upload.ini}
         target: /usr/local/etc/php/conf.d/upload.ini
       - ./srv/wordpress:/var/www/html
+    env_file:
+      # environment variables are retrieved by this file
+      # NOTE: you can add more variables to the .env file but
+      # you cannot override the .env.docker ones (by design)
+      - .env.docker
     environment:
+      DOCKER_CONTAINER: 1
       WORDPRESS_DB_HOST: wp-db:3306
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: wordpress
@@ -49,7 +61,12 @@ services:
     restart: unless-stopped
     image: nginx
     env_file:
-      .env
+      # environment variables are retrieved by this file
+      # NOTE: you can add more variables to the .env file but
+      # you cannot override the .env.docker ones (by design)
+      - .env.docker
+    environment:
+      DOCKER_CONTAINER: 1
     depends_on:
       - php
     volumes:
