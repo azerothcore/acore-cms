@@ -58,6 +58,8 @@ Besides items you can also sell:
 - Change Race (using as SKU `char-change-race`)
 - Change Faction (using as SKU `char-change-faction`)
 
+**Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
+
 ## Troubleshooting
 
 For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#acore-cms` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
@@ -66,7 +68,7 @@ Errors:
 - **During the registration I get some PDO errors**  
 - **Host is not allowed to connect to this mysql**
 
-For both, the problem is probably related to the permissions of the access to your local mysql database.
+For both, the problem is probably related to the permissions of the access to your local mysql database.  
 **How to solve:** edit the mysql permission and create a new user.
 
 Edit the mysql permission of mysql using:
