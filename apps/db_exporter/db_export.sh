@@ -13,7 +13,7 @@ CHMODE=0; \
 TEXTDUMPS=0; \
 PARSEDUMP=1; \
 FULL=0; \
-DUMPOPTS='--skip-comments --skip-set-charset --routines --extended-insert --order-by-primary --single-transaction --quick';"
+DUMPOPTS='--no-tablespaces --skip-comments --skip-set-charset --routines --extended-insert --order-by-primary --single-transaction --quick';"
 
 
 function export() {

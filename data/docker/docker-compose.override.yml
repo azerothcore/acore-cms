@@ -1,0 +1,35 @@
+#
+# You can copy/paste this file within the root directory of this project (beside the docker-compose.yml)
+# to override the docker-composer.yml configurations
+# More info here: https://docs.docker.com/compose/extends
+#
+
+version: '3.7'
+services:
+  # pre-configured phpadmin container
+  # CAUTION: !!!do not expose this container to the public!!!
+  phpmyadmin:
+    restart: unless-stopped
+    depends_on:
+      - wp-db
+    image: phpmyadmin/phpmyadmin
+    env_file:
+      .env
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: wp-db
+      PMA_USER: wordpress
+      PMA_PASSWORD: wordpress
+      PMA_ROOT_PASSWORD: flkdsjalfh
+    # entrypoint: "echo 'Service phpmyadmin disabled by default'"
+    ports:
+      - ${DOCKER_PMA_HTTP_PORTS:-8080:80}
+    expose:
+      - "80"
+      - "443"
+      - "62000"
+    links:
+      - "wp-db:wp-db"
+    networks:
+      - local-private-net
+      - local-shared-net

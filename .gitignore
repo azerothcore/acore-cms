@@ -22,14 +22,12 @@
 
 /conf/*
 !/conf/dist
-!/conf/nginx-conf
-!/conf/php-conf
 
 
-docker-compose.*.yml
+/docker-compose.*.yml
 !docker-compose.default.yml
 
-.env.local
+.env
 
 #
 # OS specific
@@ -109,3 +107,4 @@ package-lock.json
 # 
 
 data/sql
+
