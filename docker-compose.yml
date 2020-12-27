@@ -23,13 +23,16 @@ services:
     restart: unless-stopped
     build:
       context: .
-      dockerfile: data/docker/Wordpress.Dockerfile 
+      dockerfile: data/docker/Wordpress.Dockerfile
+      args:
+        USER_ID: ${DOCKER_USER_ID:-1000}
+        GROUP_ID: ${DOCKER_GROUP_ID:-1000}
     depends_on:
       - wp-db
     working_dir: "/var/www/html"
     volumes:
       - type: bind
-        source: ./conf/dist/php-conf/upload.ini
+        source: ${DOCKER_CONF_PHP_PATH:-./conf/dist/php-conf/upload.ini}
         target: /usr/local/etc/php/conf.d/upload.ini
       - ./srv/wordpress:/var/www/html
     environment:
@@ -37,7 +40,7 @@ services:
       WORDPRESS_DB_USER: wordpress
       WORDPRESS_DB_PASSWORD: wordpress
       PHP_OPCACHE_VALIDATE_TIMESTAMPS: 1
-      PHP_OPCACHE_MAX_ACCELERATED_FILES: 100000
+      _OPCACHE_MAX_ACCELERATED_FILES: 100000
       PHP_OPCACHE_MEMORY_CONSUMPTION: 64
       PHP_OPCACHE_MAX_WASTED_PERCENTAGE: 5
     networks:
@@ -45,40 +48,23 @@ services:
   web.local:
     restart: unless-stopped
     image: nginx
+    env_file:
+      .env
     depends_on:
       - php
     volumes:
-      - ./conf/dist/nginx-conf:/etc/nginx/conf.d/
-      - ./conf/dist/certs/:/etc/nginx/certs/
+      - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
+      - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
       - ./srv/wordpress:/var/www/html
       - ./var/logs:/var/log/nginx
     extra_hosts:
       - "web.local:127.0.0.1"
-    expose:
-      - "80"
-      - "443"
     ports:
-      - "127.0.0.1:${DOCKER_PORT:-8080}:80"
-    networks:
-      - local-private-net
-      - local-shared-net
-  phpmyadmin:
-    restart: unless-stopped
-    depends_on:
-      - wp-db
-    image: phpmyadmin/phpmyadmin
-    environment:
-      PMA_ARBITRARY: 1
-      PMA_HOST: wp-db
-      PMA_USER: wordpress
-      PMA_PASSWORD: wordpress
-      PMA_ROOT_PASSWORD: flkdsjalfh
+      - ${DOCKER_HTTP_PORTS:-80:80}
+      - ${DOCKER_HTTPS_PORTS:-443:443}
     expose:
       - "80"
       - "443"
-      - "62000"
-    links:
-      - "wp-db:wp-db"
     networks:
       - local-private-net
       - local-shared-net

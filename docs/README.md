@@ -96,23 +96,37 @@ Import the sql files under /data/sql folder inside the mysql database of the cur
 
 ## Configure docker
 
-acore-cms uses our `jsdocker-compose` tool to run docker-compose services, it's an advanced tool that comes with a fully configurable CLI.
+If you need to change some docker configuration (such as the exposed port or the configuration paths) you can create an `.env`
+within the root of this project. This file is git-ignored and will be used by docker-compose to set some internal variables to
+configure the containers.
+The available configurations are available at the end of the `.env.docker` file where you can find some commented variables that you can copy/paste 
+within the just created `.env` file and uncomment them to set them up.
 
-You can override some docker-compose options using the " -f" options: [official documentation](https://docs.docker.com/compose/reference/overview/#use--f-to-specify-name-and-path-of-one-or-more-compose-files)
 
-To do it with our scripts you can create an .env.local file inside the root directory of this project. All variables specified inside the .env.local will override the variables existing inside the default .env file, so for instance you can copy and change the following variable:
+### Using docker-compose.override.yml to extend the default one
 
-```
-# override extra arguments for docker
-DOCKER_EXTRA_ARGS=" -f docker-compose.default.yml"
-```
+If the .env variables that we provide are not enough for your configuration needs, you can always use the official ["docker-compose override" strategy](https://docs.docker.com/compose/extends/).
 
-To something like:
+We've provided a sample `docker-compose.override.yml` file within the `/data/` directory that includes a phpmyadmin container. You can copy/paste that file
+within the root directory of this project (it is git-ignored) and configure it as you prefer. Make sure to read the official docker-compose documentation first
+to exactly understand how to use it.
 
-```
-DOCKER_EXTRA_ARGS=" -f docker-compose.override.yml"
-```
 
-Finally you can create your `docker-compose.override.yml` file with your own settings
+## How to export/import database with the integrated tool
+
+Acore-cms integrates a script under `/apps/db_exporter` folder that helps you to export the entire database in a SQL dump format.
+This script uses the /conf/dist/conf.sh file to configure the db credentials. If you need to change those configurations, you can just
+copy/paste that file inside the /conf/ folder to override default values (the files in that directory are git-ignored).
+
+NOTE: by default sql files will be exported inside the /data/sql folder
+
+### database export
+
+`npm run docker:db:export`
+
+### database import
+
+`npm run docker:db:import`
+
 
 

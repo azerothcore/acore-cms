@@ -12,15 +12,17 @@
         "docker_extra_file": "docker-compose.default.yml"
     },
     "contributors": [
-        "Yehonal"
+        "Yehonal",
+        "Helias"
     ],
     "license": "AGPL3",
     "scripts": {
-        "docker:start": "node apps/jsdocker-compose/dist/main.js run:fg",
-        "docker:start:d": "node apps/jsdocker-compose/dist/main.js run:bg",
-        "docker:shell": "node apps/jsdocker-compose/dist/main.js run:shell",
-        "docker:remove": "node apps/jsdocker-compose/dist/main.js remove",
-        "docker:stop": "node apps/jsdocker-compose/dist/main.js stop",
+        "docker:start": "docker-compose up",
+        "docker:start:d": "docker-compose up -d",
+        "docker:shell": "docker-compose exec php bash",
+        "docker:remove": "docker-compose down -rmi",
+        "docker:stop": "docker-compose stop",
+        "docker:logs": "docker-compose logs --tail=200 --follow",
         "docker:db:export": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_export.sh",
         "docker:db:import": "docker-compose up -d wp-db && docker-compose exec wp-db /apps/db_exporter/db_import.sh"
     },
