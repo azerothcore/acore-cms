@@ -36,7 +36,7 @@ function user_profile_update_errors($errors, $update, $user)
         $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
     }
 
-    if (strtoupper($user->user_login) != strtoupper($gameUser->getUsername())) {
+    if ($gameUser && strtoupper($user->user_login) != strtoupper($gameUser->getUsername())) {
         $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
     }
 }
