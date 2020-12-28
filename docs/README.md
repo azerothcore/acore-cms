@@ -36,17 +36,17 @@ $ npm run docker:start
 
 Now you can see the website in [http://localhost:80/](http://localhost:80/).
 
+Make sure that your port 80 is not already used by another service like Apache2, nginx etc.
+
 If you want to change the port, you can change it from `.env` through the parameter `DOCKER_HTTP_PORTS` and `DOCKER_HTTPS_PORTS`.
 
 Example:
 ```
-DOCKER_HTTP_PORTS=80:80
+DOCKER_HTTP_PORTS=8080:80
 DOCKER_HTTPS_PORTS=443:443
 ```
 
 The env variables above are used to configure the ports within the docker-compose file. To understand how port configurations work in docker-compose, please take a look at the [official documentation](https://github.com/compose-spec/compose-spec/blob/master/spec.md#ports)
-
-Be sure that your port 80 is not already used by another service like Apache2, nginx etc.
 
 **Note**: if you change this after the wordpress installation remember to change also the siteurl and related wordpress parameters in `wp_options` table.
 
