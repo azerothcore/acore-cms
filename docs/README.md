@@ -34,7 +34,7 @@ It will download the related dependencies of the containers and start the acore-
 $ npm run docker:start
 ```
 
-Now you can see the website in [http://localhost:81/](http://localhost:81/).
+Now you can see the website in [http://localhost:80/](http://localhost:80/).
 
 If you want to change the port, you can change it from `.env` through the parameter `DOCKER_HTTP_PORTS` and `DOCKER_HTTPS_PORTS`.
 
