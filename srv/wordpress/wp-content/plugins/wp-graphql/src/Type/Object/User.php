@@ -14,13 +14,15 @@ class User {
 
 	/**
 	 * Registers the User type
+	 *
+	 * @return void
 	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'User',
 			[
 				'description' => __( 'A User object', 'wp-graphql' ),
-				'interfaces'  => [ 'Node', 'UniformResourceIdentifiable' ],
+				'interfaces'  => [ 'Node', 'UniformResourceIdentifiable', 'Commenter', 'DatabaseIdentifier' ],
 				'fields'      => [
 					'id'                => [
 						'description' => __( 'The globally unique identifier for the user object.', 'wp-graphql' ),
@@ -97,8 +99,9 @@ class User {
 						'description' => __( 'The preferred language locale set for the user. Value derived from get_user_locale().', 'wp-graphql' ),
 					],
 					'userId'            => [
-						'type'        => 'Int',
-						'description' => __( 'The Id of the user. Equivalent to WP_User->ID', 'wp-graphql' ),
+						'type'              => 'Int',
+						'description'       => __( 'The Id of the user. Equivalent to WP_User->ID', 'wp-graphql' ),
+						'deprecationReason' => __( 'Deprecated in favor of the databaseId field', 'wp-graphql' ),
 					],
 					'isRestricted'      => [
 						'type'        => 'Boolean',
@@ -142,7 +145,7 @@ class User {
 
 							$avatar = DataSource::resolve_avatar( $user->userId, $avatar_args );
 
-							return ( ! empty( $avatar ) && true === $avatar->foundAvatar ) ? $avatar : null;
+							return isset( $avatar->foundAvatar ) && true === $avatar->foundAvatar ? $avatar : null;
 						},
 					],
 				],

@@ -5,6 +5,12 @@ namespace WPGraphQL\Type\Enum;
 use WPGraphQL\Type\WPEnumType;
 
 class UsersConnectionSearchColumnEnum {
+
+	/**
+	 * Register the UsersConnectionSearchColumnEnum Type to the Schema
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		global $wp_roles;
 		$all_roles      = $wp_roles->roles;
@@ -24,7 +30,7 @@ class UsersConnectionSearchColumnEnum {
 
 		if ( ! empty( $roles ) && is_array( $roles ) ) {
 			register_graphql_enum_type(
-				'UserRoleEnum',
+				'UsersConnectionSearchColumnEnum',
 				[
 					'description' => __( 'Names of available user roles', 'wp-graphql' ),
 					'values'      => $roles,

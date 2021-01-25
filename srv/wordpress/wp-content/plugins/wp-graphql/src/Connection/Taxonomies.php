@@ -7,6 +7,12 @@ use WPGraphQL\Model\PostType;
 use WPGraphQL\Model\Term;
 
 class Taxonomies {
+
+	/**
+	 * Registers connections to the Taxonomy type
+	 *
+	 * @return void
+	 */
 	public static function register_connections() {
 
 		register_graphql_connection(
@@ -36,8 +42,8 @@ class Taxonomies {
 								return null;
 							}
 							$resolver = new TaxonomyConnectionResolver( $source, $args, $context, $info );
-							$resolver->setQueryArg( 'name', $source->taxonomyName );
-							return $resolver->get_connection();
+							$resolver->set_query_arg( 'name', $source->taxonomyName );
+							return $resolver->one_to_one()->get_connection();
 						},
 					]
 				);

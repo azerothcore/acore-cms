@@ -2,8 +2,8 @@
 
 namespace WPGraphQL\Type\Object;
 
+use WP_Post_Type;
 use WPGraphQL\Model\Post;
-use WPGraphQL\Model\Term;
 use WPGraphQL\Registry\TypeRegistry;
 
 /**
@@ -16,14 +16,20 @@ class PostObject {
 	/**
 	 * Registers a post_type WPObject type to the schema.
 	 *
-	 * @param \WP_Post_Type $post_type_object Post type.
-	 * @param TypeRegistry  $type_registry    The Type Registry
+	 * @param WP_Post_Type $post_type_object Post type.
+	 * @param TypeRegistry $type_registry    The Type Registry
+	 *
+	 * @return void
 	 */
-	public static function register_post_object_types( $post_type_object, $type_registry ) {
+	public static function register_post_object_types( WP_Post_Type $post_type_object, TypeRegistry $type_registry ) {
 
 		$single_name = $post_type_object->graphql_single_name;
 
-		$interfaces = [ 'Node', 'ContentNode', 'UniformResourceIdentifiable' ];
+		$interfaces = [ 'Node', 'ContentNode', 'DatabaseIdentifier', 'NodeWithTemplate' ];
+
+		if ( true === $post_type_object->public ) {
+			$interfaces[] = 'UniformResourceIdentifiable';
+		}
 
 		if ( post_type_supports( $post_type_object->name, 'title' ) ) {
 			$interfaces[] = 'NodeWithTitle';
@@ -70,6 +76,10 @@ class PostObject {
 			true
 		) ) {
 			$interfaces[] = 'HierarchicalContentNode';
+		}
+
+		if ( true === $post_type_object->show_in_nav_menus ) {
+			$interfaces[] = 'MenuItemLinkable';
 		}
 
 		register_graphql_object_type(
@@ -152,7 +162,7 @@ class PostObject {
 							}
 
 							$url = wp_get_attachment_image_src( $source->ID, $size );
-							if ( empty( $url[0] ) ) {
+							if ( ! is_array( $url ) || ! isset( $url[0] ) ) {
 								return null;
 							}
 
@@ -207,6 +217,32 @@ class PostObject {
 							return ! empty( $size ) ? $image->sourceUrlsBySize[ $size ] : $image->sourceUrl;
 						},
 					],
+					'fileSize'     => [
+						'type'        => 'Int',
+						'description' => __( 'The filesize in bytes of the resource', 'wp-graphql' ),
+						'args'        => [
+							'size' => [
+								'type'        => 'MediaItemSizeEnum',
+								'description' => __( 'Size of the MediaItem to return', 'wp-graphql' ),
+							],
+						],
+						'resolve'     => function( $image, $args, $context, $info ) {
+
+							// @codingStandardsIgnoreLine.
+							$size = null;
+							if ( isset( $args['size'] ) ) {
+								$size = ( 'full' === $args['size'] ) ? 'large' : $args['size'];
+							}
+
+							$sourceUrl     = ! empty( $size ) ? $image->sourceUrlsBySize[ $size ] : $image->mediaItemUrl;
+							$path_parts    = pathinfo( $sourceUrl );
+							$original_file = get_attached_file( absint( $image->databaseId ) );
+							$filesize_path = ! empty( $original_file ) ? path_join( dirname( $original_file ), $path_parts['basename'] ) : null;
+
+							return ! empty( $filesize_path ) ? filesize( $filesize_path ) : null;
+
+						},
+					],
 					'mimeType'     => [
 						'type'        => 'String',
 						'description' => __( 'The mime type of the mediaItem', 'wp-graphql' ),
@@ -223,8 +259,8 @@ class PostObject {
 	/**
 	 * Registers common post type fields on schema type corresponding to provided post type object.
 	 *
-	 * @param \WP_Post_Type $post_type_object Post type.
-	 * @param TypeRegistry  $type_registry    The Type Registry
+	 * @param WP_Post_Type $post_type_object Post type.
+	 * @param TypeRegistry $type_registry    The Type Registry
 	 *
 	 * @return array
 	 */
@@ -254,160 +290,18 @@ class PostObject {
 			$fields['isFrontPage'] = [
 				'type'        => [ 'non_null' => 'Bool' ],
 				'description' => __( 'Whether this page is set to the static front page.', 'wp-graphql' ),
-				'resolve'     => function( Post $page ) {
-					return isset( $page->isFrontPage ) ? (bool) $page->isFrontPage : false;
-				},
+			];
+
+			$fields['isPostsPage'] = [
+				'type'        => [ 'non_null' => 'Bool' ],
+				'description' => __( 'Whether this page is set to the blog posts page.', 'wp-graphql' ),
 			];
 		}
 
-		/**
-		 * For Post Types that don't have relationships to
-		 * taxonomies, we should deprecate fields to query taxonomies
-		 */
-		$connected_taxonomies = get_object_taxonomies( $post_type_object->name );
-		if ( is_array( $connected_taxonomies ) && ! empty( $connected_taxonomies ) ) {
-			$fields['terms']     = [
-				'type'        => [
-					'list_of' => 'TermObjectUnion',
-				],
-				'args'        => [
-					'taxonomies' => [
-						'type'        => [
-							'list_of' => 'TaxonomyEnum',
-						],
-						'description' => __( 'Select which taxonomies to limit the results to', 'wp-graphql' ),
-					],
-				],
-				'description' => __( 'Terms connected to the object', 'wp-graphql' ),
-				'resolve'     => function( $source, $args ) {
-					// @TODO eventually use a loader here to grab the taxonomies and pass them through the term model.
-					/**
-					 * If the $arg for taxonomies is populated, use it as the $allowed_taxonomies
-					 * otherwise use the default $allowed_taxonomies passed down
-					 */
-					$taxonomies = [];
-					if ( ! empty( $args['taxonomies'] ) && is_array( $args['taxonomies'] ) ) {
-						$taxonomies = $args['taxonomies'];
-					} else {
-						$connected_taxonomies = get_object_taxonomies( $source->post_type, 'names' );
-						foreach ( $connected_taxonomies as $taxonomy ) {
-							if ( in_array( $taxonomy, \WPGraphQL::get_allowed_taxonomies(), true ) ) {
-								$taxonomies[] = $taxonomy;
-							}
-						}
-					}
-
-					$tax_terms = [];
-					if ( ! empty( $taxonomies ) ) {
-						$term_query = new \WP_Term_Query(
-							[
-								'taxonomy'   => $taxonomies,
-								'object_ids' => $source->ID,
-							]
-						);
-
-						$fetched_terms = $term_query->get_terms();
-						$tax_terms     = [];
-						if ( ! empty( $fetched_terms ) ) {
-							foreach ( $fetched_terms as $tax_term ) {
-								$tax_terms[ $tax_term->term_id ] = new Term( $tax_term );
-							}
-						}
-					}
-
-					return ! empty( $tax_terms ) && is_array( $tax_terms ) ? $tax_terms : null;
-				},
-			];
-			$fields['termNames'] = [
-				'type'        => [ 'list_of' => 'String' ],
-				'args'        => [
-					'taxonomies' => [
-						'type'        => [
-							'list_of' => 'TaxonomyEnum',
-						],
-						'description' => __( 'Select which taxonomies to limit the results to', 'wp-graphql' ),
-					],
-				],
-				'description' => __( 'Terms connected to the object', 'wp-graphql' ),
-				'resolve'     => function( $source, $args ) {
-					/**
-					 * If the $arg for taxonomies is populated, use it as the $allowed_taxonomies
-					 * otherwise use the default $allowed_taxonomies passed down
-					 */
-					$taxonomies = [];
-					if ( ! empty( $args['taxonomies'] ) && is_array( $args['taxonomies'] ) ) {
-						$taxonomies = $args['taxonomies'];
-					} else {
-						$connected_taxonomies = get_object_taxonomies( $source->post_type, 'names' );
-						foreach ( $connected_taxonomies as $taxonomy ) {
-							if ( in_array( $taxonomy, \WPGraphQL::get_allowed_taxonomies(), true ) ) {
-								$taxonomies[] = $taxonomy;
-							}
-						}
-					}
-
-					$tax_terms = [];
-					if ( ! empty( $taxonomies ) ) {
-						$term_query = new \WP_Term_Query(
-							[
-								'taxonomy'   => $taxonomies,
-								'object_ids' => [ $source->ID ],
-							]
-						);
-
-						$tax_terms = $term_query->get_terms();
-
-					}
-					$term_names = ! empty( $tax_terms ) && is_array( $tax_terms ) ? wp_list_pluck( $tax_terms, 'name' ) : [];
-
-					return ! empty( $term_names ) ? $term_names : null;
-				},
-			];
-			$fields['termSlugs'] = [
-				'type'        => [ 'list_of' => 'String' ],
-				'args'        => [
-					'taxonomies' => [
-						'type'        => [
-							'list_of' => 'TaxonomyEnum',
-						],
-						'description' => __( 'Select which taxonomies to limit the results to', 'wp-graphql' ),
-					],
-				],
-				'description' => __( 'Terms connected to the object', 'wp-graphql' ),
-				'resolve'     => function( $source, $args ) {
-					/**
-					 * If the $arg for taxonomies is populated, use it as the $allowed_taxonomies
-					 * otherwise use the default $allowed_taxonomies passed down
-					 */
-					$taxonomies = [];
-					if ( ! empty( $args['taxonomies'] ) && is_array( $args['taxonomies'] ) ) {
-						$taxonomies = $args['taxonomies'];
-					} else {
-						$connected_taxonomies = get_object_taxonomies( $source->post_type, 'names' );
-						foreach ( $connected_taxonomies as $taxonomy ) {
-							if ( in_array( $taxonomy, \WPGraphQL::get_allowed_taxonomies(), true ) ) {
-								$taxonomies[] = $taxonomy;
-							}
-						}
-					}
-
-					$tax_terms = [];
-					if ( ! empty( $taxonomies ) ) {
-
-						$term_query = new \WP_Term_Query(
-							[
-								'taxonomy'   => $taxonomies,
-								'object_ids' => [ $source->ID ],
-							]
-						);
-
-						$tax_terms = $term_query->get_terms();
-
-					}
-					$term_slugs = ! empty( $tax_terms ) && is_array( $tax_terms ) ? wp_list_pluck( $tax_terms, 'slug' ) : [];
-
-					return ! empty( $term_slugs ) ? $term_slugs : null;
-				},
+		if ( 'post' === $post_type_object->name ) {
+			$fields['isSticky'] = [
+				'type'        => [ 'non_null' => 'Bool' ],
+				'description' => __( 'Whether this page is sticky', 'wp-graphql' ),
 			];
 		}
 
@@ -424,39 +318,9 @@ class PostObject {
 			$fields['parent']['deprecationReason']    = __( 'This content type is not hierarchical and typcially will not have a parent', 'wp-graphql' );
 		}
 
-		$fields['template'] = [
-			'description' => __( 'The template assigned to the node', 'wp-graphql' ),
-			'type'        => 'ContentTemplateUnion',
-			'resolve'     => function( Post $post_object, $args, $context, $info ) use ( $post_type_object, $type_registry ) {
-
-				$registered_templates = wp_get_theme()->get_post_templates();
-				if ( ! isset( $registered_templates[ $post_object->post_type ] ) ) {
-					return null;
-				}
-
-				$set_template = get_post_meta( $post_object->ID, '_wp_page_template', true );
-
-				$template_name = get_page_template_slug( $post_object->ID );
-
-				$template = [
-					'__typename'   => 'DefaultTemplate',
-					'templateName' => ! empty( $template_name ) ? $template_name : 'Default',
-				];
-
-				if ( ! empty( $registered_templates[ $post_object->post_type ][ $set_template ] ) ) {
-					$name     = ucwords( $registered_templates[ $post_object->post_type ][ $set_template ] );
-					$name     = preg_replace( '/[^\w]/', '', $name );
-					$template = [
-						'__typename'   => $name . 'Template',
-						'templateName' => ucwords( $registered_templates[ $post_object->post_type ][ $set_template ] ),
-					];
-				}
-
-				return $template;
-			},
-		];
-
 		return $fields;
 
 	}
 }
+
+

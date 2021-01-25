@@ -2,12 +2,10 @@
 
 namespace WPGraphQL\Data\Connection;
 
+use Exception;
 use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
-use WPGraphQL\Model\Comment;
-use WPGraphQL\Model\Post;
-use WPGraphQL\Model\User;
 use WPGraphQL\Types;
 
 /**
@@ -19,7 +17,7 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 
 	/**
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function get_query_args() {
 
@@ -38,11 +36,6 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 		 * Set the default comment_status for Comment Queries to be "comment_approved"
 		 */
 		$query_args['status'] = 'approve';
-
-		/**
-		 * Set the default comment_parent for Comment Queries to be "0" to only get top level comments
-		 */
-		$query_args['parent'] = 0;
 
 		/**
 		 * Set the number, ensuring it doesn't exceed the amount set as the $max_query_amount
@@ -114,25 +107,6 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 		$query_args['graphql_args'] = $this->args;
 
 		/**
-		 * Handle setting dynamic $query_args based on the source (higher level query)
-		 */
-		if ( true === is_object( $this->source ) ) {
-			switch ( true ) {
-				case $this->source instanceof Post:
-					$query_args['post_id'] = absint( $this->source->ID );
-					break;
-				case $this->source instanceof User:
-					$query_args['user_id'] = absint( $this->source->userId );
-					break;
-				case $this->source instanceof Comment:
-					$query_args['parent'] = absint( $this->source->commentId );
-					break;
-				default:
-					break;
-			}
-		}
-
-		/**
 		 * We only want to query IDs because deferred resolution will resolve the full
 		 * objects.
 		 */
@@ -145,7 +119,7 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 		 * @param array       $query_args array of query_args being passed to the
 		 * @param mixed       $source     source passed down from the resolve tree
 		 * @param array       $args       array of arguments input in the field as part of the GraphQL query
-		 * @param AppContext  $context    object passed down zthe resolve tree
+		 * @param AppContext  $context    object passed down the resolve tree
 		 * @param ResolveInfo $info       info about fields passed down the resolve tree
 		 *
 		 * @since 0.0.6
@@ -161,7 +135,7 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 	 * Return the instance of the WP_Comment_Query
 	 *
 	 * @return mixed|\WP_Comment_Query
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function get_query() {
 		return new \WP_Comment_Query( $this->query_args );
@@ -178,7 +152,7 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 
 	/**
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function get_ids() {
 		return ! empty( $this->query->get_comments() ) ? $this->query->get_comments() : [];

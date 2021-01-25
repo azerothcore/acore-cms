@@ -171,8 +171,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return array|IXR_Error|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -369,8 +369,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param int $post_id Post ID.
-	 * @param array $fields Custom fields.
+	 * @param int   $post_id Post ID.
+	 * @param array $fields  Custom fields.
 	 */
 	public function set_custom_fields( $post_id, $fields ) {
 		$post_id = (int) $post_id;
@@ -436,8 +436,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param int $term_id Term ID.
-	 * @param array $fields Custom fields.
+	 * @param int   $term_id Term ID.
+	 * @param array $fields  Custom fields.
 	 */
 	public function set_term_custom_fields( $term_id, $fields ) {
 		$term_id = (int) $term_id;
@@ -743,8 +743,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares taxonomy data for return in an XML-RPC object.
 	 *
-	 * @param object $taxonomy The unprepared taxonomy data.
-	 * @param array $fields    The subset of taxonomy fields to return.
+	 * @param WP_Taxonomy $taxonomy The unprepared taxonomy data.
+	 * @param array       $fields   The subset of taxonomy fields to return.
 	 * @return array The prepared taxonomy data.
 	 */
 	protected function _prepare_taxonomy( $taxonomy, $fields ) {
@@ -757,19 +757,19 @@ class wp_xmlrpc_server extends IXR_Server {
 			'_builtin'     => (bool) $taxonomy->_builtin,
 		);
 
-		if ( in_array( 'labels', $fields ) ) {
+		if ( in_array( 'labels', $fields, true ) ) {
 			$_taxonomy['labels'] = (array) $taxonomy->labels;
 		}
 
-		if ( in_array( 'cap', $fields ) ) {
+		if ( in_array( 'cap', $fields, true ) ) {
 			$_taxonomy['cap'] = (array) $taxonomy->cap;
 		}
 
-		if ( in_array( 'menu', $fields ) ) {
+		if ( in_array( 'menu', $fields, true ) ) {
 			$_taxonomy['show_in_menu'] = (bool) $_taxonomy->show_in_menu;
 		}
 
-		if ( in_array( 'object_type', $fields ) ) {
+		if ( in_array( 'object_type', $fields, true ) ) {
 			$_taxonomy['object_type'] = array_unique( (array) $taxonomy->object_type );
 		}
 
@@ -798,13 +798,13 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// For integers which may be larger than XML-RPC supports ensure we return strings.
-		$_term['term_id']          = strval( $_term['term_id'] );
-		$_term['term_group']       = strval( $_term['term_group'] );
-		$_term['term_taxonomy_id'] = strval( $_term['term_taxonomy_id'] );
-		$_term['parent']           = strval( $_term['parent'] );
+		$_term['term_id']          = (string) $_term['term_id'];
+		$_term['term_group']       = (string) $_term['term_group'];
+		$_term['term_taxonomy_id'] = (string) $_term['term_taxonomy_id'];
+		$_term['parent']           = (string) $_term['parent'];
 
 		// Count we are happy to return as an integer because people really shouldn't use terms that much.
-		$_term['count'] = intval( $_term['count'] );
+		$_term['count'] = (int) $_term['count'];
 
 		// Get term meta.
 		$_term['custom_fields'] = $this->get_term_custom_fields( $_term['term_id'] );
@@ -856,7 +856,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 */
 	protected function _prepare_post( $post, $fields ) {
 		// Holds the data for this post. built up based on $fields.
-		$_post = array( 'post_id' => strval( $post['ID'] ) );
+		$_post = array( 'post_id' => (string) $post['ID'] );
 
 		// Prepare common post fields.
 		$post_fields = array(
@@ -872,11 +872,11 @@ class wp_xmlrpc_server extends IXR_Server {
 			'post_password'     => $post['post_password'],
 			'post_excerpt'      => $post['post_excerpt'],
 			'post_content'      => $post['post_content'],
-			'post_parent'       => strval( $post['post_parent'] ),
+			'post_parent'       => (string) $post['post_parent'],
 			'post_mime_type'    => $post['post_mime_type'],
 			'link'              => get_permalink( $post['ID'] ),
 			'guid'              => $post['guid'],
-			'menu_order'        => intval( $post['menu_order'] ),
+			'menu_order'        => (int) $post['menu_order'],
 			'comment_status'    => $post['comment_status'],
 			'ping_status'       => $post['ping_status'],
 			'sticky'            => ( 'post' === $post['post_type'] && is_sticky( $post['ID'] ) ),
@@ -902,16 +902,16 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// Merge requested $post_fields fields into $_post.
-		if ( in_array( 'post', $fields ) ) {
+		if ( in_array( 'post', $fields, true ) ) {
 			$_post = array_merge( $_post, $post_fields );
 		} else {
 			$requested_fields = array_intersect_key( $post_fields, array_flip( $fields ) );
 			$_post            = array_merge( $_post, $requested_fields );
 		}
 
-		$all_taxonomy_fields = in_array( 'taxonomies', $fields );
+		$all_taxonomy_fields = in_array( 'taxonomies', $fields, true );
 
-		if ( $all_taxonomy_fields || in_array( 'terms', $fields ) ) {
+		if ( $all_taxonomy_fields || in_array( 'terms', $fields, true ) ) {
 			$post_type_taxonomies = get_object_taxonomies( $post['post_type'], 'names' );
 			$terms                = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
 			$_post['terms']       = array();
@@ -920,11 +920,11 @@ class wp_xmlrpc_server extends IXR_Server {
 			}
 		}
 
-		if ( in_array( 'custom_fields', $fields ) ) {
+		if ( in_array( 'custom_fields', $fields, true ) ) {
 			$_post['custom_fields'] = $this->get_custom_fields( $post['ID'] );
 		}
 
-		if ( in_array( 'enclosure', $fields ) ) {
+		if ( in_array( 'enclosure', $fields, true ) ) {
 			$_post['enclosure'] = array();
 			$enclosures         = (array) get_post_meta( $post['ID'], 'enclosure' );
 			if ( ! empty( $enclosures ) ) {
@@ -969,22 +969,22 @@ class wp_xmlrpc_server extends IXR_Server {
 			'supports'     => get_all_post_type_supports( $post_type->name ),
 		);
 
-		if ( in_array( 'labels', $fields ) ) {
+		if ( in_array( 'labels', $fields, true ) ) {
 			$_post_type['labels'] = (array) $post_type->labels;
 		}
 
-		if ( in_array( 'cap', $fields ) ) {
+		if ( in_array( 'cap', $fields, true ) ) {
 			$_post_type['cap']          = (array) $post_type->cap;
 			$_post_type['map_meta_cap'] = (bool) $post_type->map_meta_cap;
 		}
 
-		if ( in_array( 'menu', $fields ) ) {
+		if ( in_array( 'menu', $fields, true ) ) {
 			$_post_type['menu_position'] = (int) $post_type->menu_position;
 			$_post_type['menu_icon']     = $post_type->menu_icon;
 			$_post_type['show_in_menu']  = (bool) $post_type->show_in_menu;
 		}
 
-		if ( in_array( 'taxonomies', $fields ) ) {
+		if ( in_array( 'taxonomies', $fields, true ) ) {
 			$_post_type['taxonomies'] = get_object_taxonomies( $post_type->name, 'names' );
 		}
 
@@ -1003,13 +1003,13 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares media item data for return in an XML-RPC object.
 	 *
-	 * @param object $media_item     The unprepared media item data.
-	 * @param string $thumbnail_size The image size to use for the thumbnail URL.
+	 * @param WP_Post $media_item     The unprepared media item data.
+	 * @param string  $thumbnail_size The image size to use for the thumbnail URL.
 	 * @return array The prepared media item data.
 	 */
 	protected function _prepare_media_item( $media_item, $thumbnail_size = 'thumbnail' ) {
 		$_media_item = array(
-			'attachment_id'    => strval( $media_item->ID ),
+			'attachment_id'    => (string) $media_item->ID,
 			'date_created_gmt' => $this->_convert_date_gmt( $media_item->post_date_gmt, $media_item->post_date ),
 			'parent'           => $media_item->post_parent,
 			'link'             => wp_get_attachment_url( $media_item->ID ),
@@ -1032,9 +1032,9 @@ class wp_xmlrpc_server extends IXR_Server {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param array  $_media_item    An array of media item data.
-		 * @param object $media_item     Media item object.
-		 * @param string $thumbnail_size Image size.
+		 * @param array   $_media_item    An array of media item data.
+		 * @param WP_Post $media_item     Media item object.
+		 * @param string  $thumbnail_size Image size.
 		 */
 		return apply_filters( 'xmlrpc_prepare_media_item', $_media_item, $media_item, $thumbnail_size );
 	}
@@ -1042,7 +1042,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares page data for return in an XML-RPC object.
 	 *
-	 * @param object $page The unprepared page data.
+	 * @param WP_Post $page The unprepared page data.
 	 * @return array The prepared page data.
 	 */
 	protected function _prepare_page( $page ) {
@@ -1122,7 +1122,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares comment data for return in an XML-RPC object.
 	 *
-	 * @param object $comment The unprepared comment data.
+	 * @param WP_Comment $comment The unprepared comment data.
 	 * @return array The prepared comment data.
 	 */
 	protected function _prepare_comment( $comment ) {
@@ -1131,7 +1131,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( '0' == $comment->comment_approved ) {
 			$comment_status = 'hold';
-		} elseif ( 'spam' == $comment->comment_approved ) {
+		} elseif ( 'spam' === $comment->comment_approved ) {
 			$comment_status = 'spam';
 		} elseif ( '1' == $comment->comment_approved ) {
 			$comment_status = 'approve';
@@ -1174,7 +1174,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @return array The prepared user data.
 	 */
 	protected function _prepare_user( $user, $fields ) {
-		$_user = array( 'user_id' => strval( $user->ID ) );
+		$_user = array( 'user_id' => (string) $user->ID );
 
 		$user_fields = array(
 			'username'     => $user->user_login,
@@ -1190,10 +1190,10 @@ class wp_xmlrpc_server extends IXR_Server {
 			'roles'        => $user->roles,
 		);
 
-		if ( in_array( 'all', $fields ) ) {
+		if ( in_array( 'all', $fields, true ) ) {
 			$_user = array_merge( $_user, $user_fields );
 		} else {
-			if ( in_array( 'basic', $fields ) ) {
+			if ( in_array( 'basic', $fields, true ) ) {
 				$basic_fields = array( 'username', 'email', 'registered', 'display_name', 'nicename' );
 				$fields       = array_merge( $fields, $basic_fields );
 			}
@@ -1307,6 +1307,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @since 3.4.0
 	 *
 	 * @param int $count Number to compare to one.
+	 * @return bool True if the number is greater than one, false otherwise.
 	 */
 	private function _is_greater_than_one( $count ) {
 		return $count > 1;
@@ -1515,7 +1516,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			if ( isset( $post_data['terms'] ) && is_array( $post_data['terms'] ) ) {
 				$taxonomies = array_keys( $post_data['terms'] );
 
-				// Validating term ids.
+				// Validating term IDs.
 				foreach ( $taxonomies as $taxonomy ) {
 					if ( ! array_key_exists( $taxonomy, $post_type_taxonomies ) ) {
 						return new IXR_Error( 401, __( 'Sorry, one of the given taxonomies is not supported by the post type.' ) );
@@ -1577,7 +1578,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 					$term_names = $post_data['terms_names'][ $taxonomy ];
 					foreach ( $term_names as $term_name ) {
-						if ( in_array( $term_name, $ambiguous_terms ) ) {
+						if ( in_array( $term_name, $ambiguous_terms, true ) ) {
 							return new IXR_Error( 401, __( 'Ambiguous term name used in a hierarchical taxonomy. Please use term ID instead.' ) );
 						}
 
@@ -1646,7 +1647,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			}
 		}
 
-		return strval( $post_ID );
+		return (string) $post_ID;
 	}
 
 	/**
@@ -2093,7 +2094,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$this->set_term_custom_fields( $term['term_id'], $content_struct['custom_fields'] );
 		}
 
-		return strval( $term['term_id'] );
+		return (string) $term['term_id'];
 	}
 
 	/**
@@ -3379,7 +3380,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$cat_id = wp_insert_category( $new_category, true );
 		if ( is_wp_error( $cat_id ) ) {
-			if ( 'term_exists' == $cat_id->get_error_code() ) {
+			if ( 'term_exists' === $cat_id->get_error_code() ) {
 				return (int) $cat_id->get_error_data();
 			} else {
 				return new IXR_Error( 500, __( 'Sorry, the category could not be created.' ) );
@@ -3757,7 +3758,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$statuses = get_comment_statuses();
 			$statuses = array_keys( $statuses );
 
-			if ( ! in_array( $content_struct['status'], $statuses ) ) {
+			if ( ! in_array( $content_struct['status'], $statuses, true ) ) {
 				return new IXR_Error( 401, __( 'Invalid comment status.' ) );
 			}
 
@@ -3788,7 +3789,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$comment['comment_author_email'] = $content_struct['author_email'];
 		}
 
-		$result = wp_update_comment( $comment );
+		$result = wp_update_comment( $comment, true );
 		if ( is_wp_error( $result ) ) {
 			return new IXR_Error( 500, $result->get_error_message() );
 		}
@@ -3875,13 +3876,24 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 403, __( 'Sorry, comments are closed for this item.' ) );
 		}
 
-		if ( empty( $content_struct['content'] ) ) {
-			return new IXR_Error( 403, __( 'Comment is required.' ) );
+		if (
+			'publish' === get_post_status( $post_id ) &&
+			! current_user_can( 'edit_post', $post_id ) &&
+			post_password_required( $post_id )
+		) {
+			return new IXR_Error( 403, __( 'Sorry, you are not allowed to comment on this post.' ) );
+		}
+
+		if (
+			'private' === get_post_status( $post_id ) &&
+			! current_user_can( 'read_post', $post_id )
+		) {
+			return new IXR_Error( 403, __( 'Sorry, you are not allowed to comment on this post.' ) );
 		}
 
 		$comment = array(
 			'comment_post_ID' => $post_id,
-			'comment_content' => $content_struct['content'],
+			'comment_content' => trim( $content_struct['content'] ),
 		);
 
 		if ( $logged_in ) {
@@ -3912,7 +3924,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$comment['user_ID'] = 0;
 
 			if ( get_option( 'require_name_email' ) ) {
-				if ( 6 > strlen( $comment['comment_author_email'] ) || '' == $comment['comment_author'] ) {
+				if ( strlen( $comment['comment_author_email'] ) < 6 || '' === $comment['comment_author'] ) {
 					return new IXR_Error( 403, __( 'Comment author name and email are required.' ) );
 				} elseif ( ! is_email( $comment['comment_author_email'] ) ) {
 					return new IXR_Error( 403, __( 'A valid email address is required.' ) );
@@ -3921,6 +3933,13 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		$comment['comment_parent'] = isset( $content_struct['comment_parent'] ) ? absint( $content_struct['comment_parent'] ) : 0;
+
+		/** This filter is documented in wp-includes/comment.php */
+		$allow_empty = apply_filters( 'allow_empty_comment', false, $comment );
+
+		if ( ! $allow_empty && '' === $comment['comment_content'] ) {
+			return new IXR_Error( 403, __( 'Comment is required.' ) );
+		}
 
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.newComment' );
@@ -4292,7 +4311,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		do_action( 'xmlrpc_call', 'wp.getMediaItem' );
 
 		$attachment = get_post( $attachment_id );
-		if ( ! $attachment ) {
+		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
 			return new IXR_Error( 404, __( 'Invalid attachment ID.' ) );
 		}
 
@@ -5565,7 +5584,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		 */
 		do_action( 'xmlrpc_call_success_mw_newPost', $post_ID, $args ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.NotLowercase
 
-		return strval( $post_ID );
+		return (string) $post_ID;
 	}
 
 	/**
@@ -5573,8 +5592,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param integer $post_ID   Post ID.
-	 * @param array   $enclosure Enclosure data.
+	 * @param int   $post_ID   Post ID.
+	 * @param array $enclosure Enclosure data.
 	 */
 	public function add_enclosure_if_new( $post_ID, $enclosure ) {
 		if ( is_array( $enclosure ) && isset( $enclosure['url'] ) && isset( $enclosure['length'] ) && isset( $enclosure['type'] ) ) {
@@ -5603,7 +5622,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int $post_ID Post ID.
+	 * @param int    $post_ID      Post ID.
 	 * @param string $post_content Post Content for attachment.
 	 */
 	public function attach_uploads( $post_ID, $post_content ) {
@@ -5656,7 +5675,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$postdata = get_post( $post_ID, ARRAY_A );
 
 		/*
-		 * If there is no post data for the give post id, stop now and return an error.
+		 * If there is no post data for the give post ID, stop now and return an error.
 		 * Otherwise a new post will be created (which was the old behavior).
 		 */
 		if ( ! $postdata || empty( $postdata['ID'] ) ) {
@@ -5668,7 +5687,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// Use wp.editPost to edit post types other than post and page.
-		if ( ! in_array( $postdata['post_type'], array( 'post', 'page' ) ) ) {
+		if ( ! in_array( $postdata['post_type'], array( 'post', 'page' ), true ) ) {
 			return new IXR_Error( 401, __( 'Invalid post type.' ) );
 		}
 
@@ -5720,7 +5739,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		$page_template = null;
-		if ( ! empty( $content_struct['wp_page_template'] ) && 'page' == $post_type ) {
+		if ( ! empty( $content_struct['wp_page_template'] ) && 'page' === $post_type ) {
 			$page_template = $content_struct['wp_page_template'];
 		}
 
@@ -5847,7 +5866,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$tags_input = isset( $content_struct['mt_keywords'] ) ? $content_struct['mt_keywords'] : null;
 
 		if ( 'publish' === $post_status || 'private' === $post_status ) {
-			if ( 'page' == $post_type && ! current_user_can( 'publish_pages' ) ) {
+			if ( 'page' === $post_type && ! current_user_can( 'publish_pages' ) ) {
 				return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish this page.' ) );
 			} elseif ( ! current_user_can( 'publish_posts' ) ) {
 				return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish this post.' ) );
@@ -5991,7 +6010,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'metaWeblog.getPost' );
 
-		if ( '' != $postdata['post_date'] ) {
+		if ( '' !== $postdata['post_date'] ) {
 			$post_date         = $this->_convert_date( $postdata['post_date'] );
 			$post_date_gmt     = $this->_convert_date_gmt( $postdata['post_date_gmt'], $postdata['post_date'] );
 			$post_modified     = $this->_convert_date( $postdata['post_modified'] );
@@ -6020,8 +6039,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			// Get the author info.
 			$author = get_userdata( $postdata['post_author'] );
 
-			$allow_comments = ( 'open' == $postdata['comment_status'] ) ? 1 : 0;
-			$allow_pings    = ( 'open' == $postdata['ping_status'] ) ? 1 : 0;
+			$allow_comments = ( 'open' === $postdata['comment_status'] ) ? 1 : 0;
+			$allow_pings    = ( 'open' === $postdata['ping_status'] ) ? 1 : 0;
 
 			// Consider future posts as published.
 			if ( 'future' === $postdata['post_status'] ) {
@@ -6172,8 +6191,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			// Get the post author info.
 			$author = get_userdata( $entry['post_author'] );
 
-			$allow_comments = ( 'open' == $entry['comment_status'] ) ? 1 : 0;
-			$allow_pings    = ( 'open' == $entry['ping_status'] ) ? 1 : 0;
+			$allow_comments = ( 'open' === $entry['comment_status'] ) ? 1 : 0;
+			$allow_pings    = ( 'open' === $entry['ping_status'] ) ? 1 : 0;
 
 			// Consider future posts as published.
 			if ( 'future' === $entry['post_status'] ) {
@@ -6554,7 +6573,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		do_action( 'xmlrpc_call', 'mt.getPostCategories' );
 
 		$categories = array();
-		$catids     = wp_get_post_categories( intval( $post_ID ) );
+		$catids     = wp_get_post_categories( (int) $post_ID );
 		// First listed category will be the primary category.
 		$isPrimary = true;
 		foreach ( $catids as $catid ) {
@@ -6681,7 +6700,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$trackback_pings = array();
 		foreach ( $comments as $comment ) {
-			if ( 'trackback' == $comment->comment_type ) {
+			if ( 'trackback' === $comment->comment_type ) {
 				$content           = $comment->comment_content;
 				$title             = substr( $content, 8, ( strpos( $content, '</strong>' ) - 8 ) );
 				$trackback_pings[] = array(
@@ -6811,7 +6830,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$post_ID = (int) $blah[1];
 		} elseif ( isset( $urltest['fragment'] ) ) {
 			// An #anchor is there, it's either...
-			if ( intval( $urltest['fragment'] ) ) {
+			if ( (int) $urltest['fragment'] ) {
 				// ...an integer #XXXX (simplest case),
 				$post_ID = (int) $urltest['fragment'];
 			} elseif ( preg_match( '/post-[0-9]+/', $urltest['fragment'] ) ) {
@@ -7028,7 +7047,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		$pingbacks = array();
 		foreach ( $comments as $comment ) {
-			if ( 'pingback' == $comment->comment_type ) {
+			if ( 'pingback' === $comment->comment_type ) {
 				$pingbacks[] = $comment->comment_author_url;
 			}
 		}

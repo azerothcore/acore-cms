@@ -3,6 +3,12 @@
 namespace WPGraphQL\Type\Object;
 
 class MediaSize {
+
+	/**
+	 * Register the MediaSize
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'MediaSize',
@@ -32,6 +38,23 @@ class MediaSize {
 							return ! empty( $image['mime-type'] ) ? $image['mime-type'] : null;
 						},
 					],
+					'fileSize'  => [
+						'type'        => 'Int',
+						'description' => __( 'The filesize of the resource', 'wp-graphql' ),
+						'resolve'     => function( $image, $args, $context, $info ) {
+
+							$src_url = null;
+
+							if ( ! empty( $image['ID'] ) && ! empty( $image['file'] ) ) {
+								$original_file = get_attached_file( absint( $image['ID'] ) );
+								$filesize_path = ! empty( $original_file ) ? path_join( dirname( $original_file ), $image['file'] ) : null;
+								return ! empty( $filesize_path ) ? filesize( $filesize_path ) : null;
+							}
+
+							return null;
+
+						},
+					],
 					'sourceUrl' => [
 						'type'        => 'String',
 						'description' => __( 'The url of the for the referenced size', 'wp-graphql' ),
@@ -41,7 +64,7 @@ class MediaSize {
 
 							if ( ! empty( $image['ID'] ) ) {
 								$src = wp_get_attachment_image_src( absint( $image['ID'] ), $image['name'] );
-								if ( ! empty( $src[0] ) ) {
+								if ( is_array( $src ) && isset( $src[0] ) && ! empty( $src[0] ) ) {
 									$src_url = $src[0];
 								}
 							} else {

@@ -263,9 +263,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		unset( $count_args['number'], $count_args['offset'] );
 
-		$total_terms = wp_count_terms( $this->taxonomy, $count_args );
+		$total_terms = wp_count_terms( $count_args );
 
-		// wp_count_terms() can return a falsy value when the term has no children.
+		// wp_count_terms() can return a falsey value when the term has no children.
 		if ( ! $total_terms ) {
 			$total_terms = 0;
 		}
@@ -719,7 +719,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return object $prepared_term Term object.
+	 * @return object Term object.
 	 */
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = new stdClass;
@@ -776,7 +776,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Term         $item    Term object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response $response Response object.
+	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 
@@ -828,7 +828,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$response->add_links( $this->prepare_links( $item ) );
 
 		/**
-		 * Filters a term item returned from the API.
+		 * Filters a term item returned from the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
@@ -1081,7 +1081,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the terms controller.
+		 * Filters collection parameters for the terms controller.
 		 *
 		 * The dynamic part of the filter `$this->taxonomy` refers to the taxonomy
 		 * slug for the controller.

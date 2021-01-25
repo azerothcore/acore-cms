@@ -3,6 +3,12 @@
 namespace WPGraphQL\Type\Object;
 
 class MediaDetails {
+
+	/**
+	 * Register the MediaDetails type to the Schema
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'MediaDetails',
@@ -44,6 +50,7 @@ class MediaDetails {
 							return ! empty( $media_details['image_meta'] ) ? $media_details['image_meta'] : null;
 						},
 					],
+
 				],
 			]
 		);

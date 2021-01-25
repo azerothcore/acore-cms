@@ -11,7 +11,7 @@ class AccountSoapMgr {
     use SoapTrait;
 
     /**
-     * 
+     *
      * @param type $name
      * @param type $password
      * @param type $email
@@ -48,7 +48,7 @@ class AccountSoapMgr {
     }
 
     /**
-     * This is a static mail that won't change 
+     * This is a static mail that won't change
      * @param type $username
      * @param type $email
      * @return type

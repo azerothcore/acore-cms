@@ -39,6 +39,8 @@ class UserConnectionResolver extends AbstractConnectionResolver {
 	 * @throws \Exception
 	 */
 	public function get_query_args() {
+		$query_args = [];
+
 		/**
 		 * Prepare for later use
 		 */
@@ -87,14 +89,6 @@ class UserConnectionResolver extends AbstractConnectionResolver {
 		 * Only query the IDs and let deferred resolution query the nodes
 		 */
 		$query_args['fields'] = 'ID';
-
-		/**
-		 * If the request is not authenticated, limit the query to users that have
-		 * published posts, as they're considered publicly facing users.
-		 */
-		if ( ! is_user_logged_in() ) {
-			$query_args['has_published_posts'] = true;
-		}
 
 		/**
 		 * Map the orderby inputArgs to the WP_User_Query
