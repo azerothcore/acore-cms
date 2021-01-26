@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace GraphQL\Server;
 
+use GraphQL\Error\DebugFlag;
 use GraphQL\Error\FormattedError;
 use GraphQL\Error\InvariantViolation;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Executor\Promise\Promise;
 use GraphQL\Utils\Utils;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Throwable;
 use function is_array;
@@ -50,12 +51,12 @@ class StandardServer
      * (e.g. during schema instantiation).
      *
      * @param Throwable $error
-     * @param bool      $debug
+     * @param int       $debug
      * @param bool      $exitWhenDone
      *
      * @api
      */
-    public static function send500Error($error, $debug = false, $exitWhenDone = false)
+    public static function send500Error($error, $debug = DebugFlag::NONE, $exitWhenDone = false)
     {
         $response = [
             'errors' => [FormattedError::createFromException($error, $debug)],
@@ -146,7 +147,7 @@ class StandardServer
      * @api
      */
     public function processPsrRequest(
-        ServerRequestInterface $request,
+        RequestInterface $request,
         ResponseInterface $response,
         StreamInterface $writableBodyStream
     ) {
@@ -163,7 +164,7 @@ class StandardServer
      *
      * @api
      */
-    public function executePsrRequest(ServerRequestInterface $request)
+    public function executePsrRequest(RequestInterface $request)
     {
         $parsedBody = $this->helper->parsePsrRequest($request);
 

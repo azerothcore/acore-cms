@@ -11,6 +11,8 @@ class MediaItemMeta {
 
 	/**
 	 * Register the MediaItemMeta Type
+	 *
+	 * @return void
 	 */
 	public static function register_type() {
 		register_graphql_object_type(
@@ -40,7 +42,7 @@ class MediaItemMeta {
 						'type' => 'String',
 					],
 					'focalLength'      => [
-						'type'    => 'Int',
+						'type'    => 'Float',
 						'resolve' => function( $meta, $args, $context, $info ) {
 							return ! empty( $meta['focal_length'] ) ? $meta['focal_length'] : null;
 						},

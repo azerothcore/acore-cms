@@ -82,20 +82,28 @@ this["wp"] = this["wp"] || {}; this["wp"]["priorityQueue"] =
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 451);
+/******/ 	return __webpack_require__(__webpack_require__.s = 500);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 451:
+/***/ 500:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+// ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, "createQueue", function() { return /* binding */ build_module_createQueue; });
 
 // CONCATENATED MODULE: ./node_modules/@wordpress/priority-queue/build-module/request-idle-callback.js
 /**
- * @return {typeof window.requestIdleCallback|typeof window.requestAnimationFrame|((callback:(timestamp:number)=>void)=>void)}
+ * @typedef {( timeOrDeadline: IdleDeadline | number ) => void} Callback
+ */
+
+/**
+ * @return {(callback: Callback) => void} RequestIdleCallback
  */
 function createRequestIdleCallback() {
   if (typeof window === 'undefined') {
@@ -111,7 +119,6 @@ function createRequestIdleCallback() {
 /* harmony default export */ var request_idle_callback = (createRequestIdleCallback());
 
 // CONCATENATED MODULE: ./node_modules/@wordpress/priority-queue/build-module/index.js
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createQueue", function() { return build_module_createQueue; });
 /**
  * Internal dependencies
  */
@@ -141,12 +148,19 @@ function createRequestIdleCallback() {
  */
 
 /**
+ * Reset the queue.
+ *
+ * @typedef {()=>void} WPPriorityQueueReset
+ */
+
+/**
  * Priority queue instance.
  *
  * @typedef {Object} WPPriorityQueue
  *
  * @property {WPPriorityQueueAdd}   add   Add callback to queue for context.
  * @property {WPPriorityQueueFlush} flush Flush queue for context.
+ * @property {WPPriorityQueueReset} reset Reset queue.
  */
 
 /**
@@ -169,7 +183,7 @@ function createRequestIdleCallback() {
  * queue.add( ctx2, () => console.log( 'This will be printed second' ) );
  *```
  *
- * @return {WPPriorityQueue} Queue object with `add` and `flush` methods.
+ * @return {WPPriorityQueue} Queue object with `add`, `flush` and `reset` methods.
  */
 
 var build_module_createQueue = function createQueue() {
@@ -181,8 +195,6 @@ var build_module_createQueue = function createQueue() {
   var isRunning = false;
   /**
    * Callback to process as much queue as time permits.
-   *
-   * @type {IdleRequestCallback & FrameRequestCallback}
    *
    * @param {IdleDeadline|number} deadline Idle callback deadline object, or
    *                                       animation frame timestamp.
@@ -261,10 +273,23 @@ var build_module_createQueue = function createQueue() {
     callback();
     return true;
   };
+  /**
+   * Reset the queue without running the pending callbacks.
+   *
+   * @type {WPPriorityQueueReset}
+   */
+
+
+  var reset = function reset() {
+    waitingList = [];
+    elementsMap = new WeakMap();
+    isRunning = false;
+  };
 
   return {
     add: add,
-    flush: flush
+    flush: flush,
+    reset: reset
   };
 };
 

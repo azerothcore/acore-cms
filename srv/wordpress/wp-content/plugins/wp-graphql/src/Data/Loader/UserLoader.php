@@ -1,6 +1,7 @@
 <?php
 namespace WPGraphQL\Data\Loader;
 
+use Exception;
 use WPGraphQL\Model\User;
 
 /**
@@ -9,6 +10,21 @@ use WPGraphQL\Model\User;
  * @package WPGraphQL\Data\Loader
  */
 class UserLoader extends AbstractDataLoader {
+
+	/**
+	 * @param mixed $entry The User Role object
+	 * @param mixed $key The Key to identify the user role by
+	 *
+	 * @return mixed|User
+	 * @throws Exception
+	 */
+	protected function get_model( $entry, $key ) {
+		if ( $entry instanceof \WP_User ) {
+			return new User( $entry );
+		} else {
+			return null;
+		}
+	}
 
 	/**
 	 * Given array of keys, loads and returns a map consisting of keys from `keys` array and loaded
@@ -23,7 +39,7 @@ class UserLoader extends AbstractDataLoader {
 	 * @param array $keys
 	 *
 	 * @return array
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function loadKeys( array $keys ) {
 
@@ -61,13 +77,8 @@ class UserLoader extends AbstractDataLoader {
 		foreach ( $keys as $key ) {
 			$user = get_user_by( 'id', $key );
 			if ( $user instanceof \WP_User ) {
-				$user_model = new User( $user );
-				if ( ! isset( $user_model->fields ) || empty( $user_model->fields ) ) {
-					$loaded_users[ $user->ID ] = null;
-				} else {
-					$loaded_users[ $user->ID ] = $user_model;
-				}
-			} elseif ( ! isset( $all_users[0] ) ) {
+				$loaded_users[ $key ] = $user;
+			} elseif ( ! isset( $loaded_users[0] ) ) {
 				$loaded_users[0] = null;
 			}
 		}

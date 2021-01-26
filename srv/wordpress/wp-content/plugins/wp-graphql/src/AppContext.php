@@ -3,11 +3,11 @@
 namespace WPGraphQL;
 
 use GraphQL\Error\UserError;
+use WP_User;
 use WPGraphQL\Data\Loader\CommentAuthorLoader;
 use WPGraphQL\Data\Loader\CommentLoader;
 use WPGraphQL\Data\Loader\EnqueuedScriptLoader;
 use WPGraphQL\Data\Loader\EnqueuedStylesheetLoader;
-use WPGraphQL\Data\Loader\MenuItemLoader;
 use WPGraphQL\Data\Loader\PluginLoader;
 use WPGraphQL\Data\Loader\PostObjectLoader;
 use WPGraphQL\Data\Loader\PostTypeLoader;
@@ -16,7 +16,8 @@ use WPGraphQL\Data\Loader\TermObjectLoader;
 use WPGraphQL\Data\Loader\ThemeLoader;
 use WPGraphQL\Data\Loader\UserLoader;
 use WPGraphQL\Data\Loader\UserRoleLoader;
-use WPGraphQL\Model\Term;
+use WPGraphQL\Data\NodeResolver;
+use WPGraphQL\Registry\TypeRegistry;
 
 /**
  * Class AppContext
@@ -41,28 +42,33 @@ class AppContext {
 	/**
 	 * Stores the WP_User object of the current user
 	 *
-	 * @var \WP_User $viewer
+	 * @var WP_User $viewer
 	 */
 	public $viewer;
 
 	/**
+	 * @var TypeRegistry
+	 */
+	public $type_registry;
+
+	/**
 	 * Stores everything from the $_REQUEST global
 	 *
-	 * @var \mixed $request
+	 * @var mixed $request
 	 */
 	public $request;
 
 	/**
 	 * Stores additional $config properties
 	 *
-	 * @var \mixed $config
+	 * @var mixed $config
 	 */
 	public $config;
 
 	/**
 	 * Passes context about the current connection being resolved
 	 *
-	 * @var mixed| String | null
+	 * @var mixed|String|null
 	 */
 	public $currentConnection = null;
 
@@ -81,6 +87,13 @@ class AppContext {
 	public $loaders = [];
 
 	/**
+	 * Instance of the NodeResolver class to resolve nodes by URI
+	 *
+	 * @var NodeResolver
+	 */
+	public $node_resolver;
+
+	/**
 	 * AppContext constructor.
 	 */
 	public function __construct() {
@@ -93,9 +106,8 @@ class AppContext {
 			'comment'             => new CommentLoader( $this ),
 			'enqueued_script'     => new EnqueuedScriptLoader( $this ),
 			'enqueued_stylesheet' => new EnqueuedStylesheetLoader( $this ),
-			'nav_menu_item'       => new MenuItemLoader( $this ),
-			'nav_menu'            => new TermObjectLoader( $this ),
 			'plugin'              => new PluginLoader( $this ),
+			'nav_menu_item'       => new PostObjectLoader( $this ),
 			'post'                => new PostObjectLoader( $this ),
 			'post_type'           => new PostTypeLoader( $this ),
 			'taxonomy'            => new TaxonomyLoader( $this ),
@@ -114,6 +126,13 @@ class AppContext {
 		 * @params AppContext $this The AppContext
 		 */
 		$this->loaders = apply_filters( 'graphql_data_loaders', $loaders, $this );
+
+		/**
+		 * This sets up the NodeResolver to allow nodes to be resolved by URI
+		 *
+		 * @param AppContext $app_context The AppContext instance
+		 */
+		$this->node_resolver = new NodeResolver( $this );
 
 		/**
 		 * This filters the config for the AppContext.

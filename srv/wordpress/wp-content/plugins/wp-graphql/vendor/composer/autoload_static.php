@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
+class ComposerStaticInit9de0b597b3b512e12655fec9ae8c1974
 {
     public static $prefixLengthsPsr4 = array (
         'W' => 
@@ -29,6 +29,7 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
     );
 
     public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'GraphQLRelay\\Connection\\ArrayConnection' => __DIR__ . '/..' . '/ivome/graphql-relay-php/src/Connection/ArrayConnection.php',
         'GraphQLRelay\\Connection\\Connection' => __DIR__ . '/..' . '/ivome/graphql-relay-php/src/Connection/Connection.php',
         'GraphQLRelay\\Mutation\\Mutation' => __DIR__ . '/..' . '/ivome/graphql-relay-php/src/Mutation/Mutation.php',
@@ -37,17 +38,19 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'GraphQLRelay\\Relay' => __DIR__ . '/..' . '/ivome/graphql-relay-php/src/Relay.php',
         'GraphQL\\Deferred' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Deferred.php',
         'GraphQL\\Error\\ClientAware' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/ClientAware.php',
-        'GraphQL\\Error\\Debug' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/Debug.php',
+        'GraphQL\\Error\\DebugFlag' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/DebugFlag.php',
         'GraphQL\\Error\\Error' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/Error.php',
         'GraphQL\\Error\\FormattedError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/FormattedError.php',
         'GraphQL\\Error\\InvariantViolation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/InvariantViolation.php',
         'GraphQL\\Error\\SyntaxError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/SyntaxError.php',
         'GraphQL\\Error\\UserError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/UserError.php',
         'GraphQL\\Error\\Warning' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/Warning.php',
+        'GraphQL\\Exception\\InvalidArgument' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Exception/InvalidArgument.php',
         'GraphQL\\Executor\\ExecutionContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutionContext.php',
         'GraphQL\\Executor\\ExecutionResult' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutionResult.php',
         'GraphQL\\Executor\\Executor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Executor.php',
         'GraphQL\\Executor\\ExecutorImplementation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutorImplementation.php',
+        'GraphQL\\Executor\\Promise\\Adapter\\AmpPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/AmpPromiseAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/ReactPromiseAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\SyncPromise' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/SyncPromise.php',
         'GraphQL\\Executor\\Promise\\Adapter\\SyncPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/SyncPromiseAdapter.php',
@@ -127,7 +130,6 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'GraphQL\\Language\\Token' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Language/Token.php',
         'GraphQL\\Language\\Visitor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Language/Visitor.php',
         'GraphQL\\Language\\VisitorOperation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Language/VisitorOperation.php',
-        'GraphQL\\Schema' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Schema.php',
         'GraphQL\\Server\\Helper' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Server/Helper.php',
         'GraphQL\\Server\\OperationParams' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Server/OperationParams.php',
         'GraphQL\\Server\\RequestError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Server/RequestError.php',
@@ -169,10 +171,12 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'GraphQL\\Type\\SchemaConfig' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Type/SchemaConfig.php',
         'GraphQL\\Type\\SchemaValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Type/SchemaValidationContext.php',
         'GraphQL\\Type\\TypeKind' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Type/TypeKind.php',
+        'GraphQL\\Type\\Validation\\InputObjectCircularRefs' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Type/Validation/InputObjectCircularRefs.php',
         'GraphQL\\Utils\\AST' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/AST.php',
         'GraphQL\\Utils\\ASTDefinitionBuilder' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/ASTDefinitionBuilder.php',
         'GraphQL\\Utils\\BlockString' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/BlockString.php',
         'GraphQL\\Utils\\BreakingChangesFinder' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/BreakingChangesFinder.php',
+        'GraphQL\\Utils\\BuildClientSchema' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/BuildClientSchema.php',
         'GraphQL\\Utils\\BuildSchema' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/BuildSchema.php',
         'GraphQL\\Utils\\MixedStore' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/MixedStore.php',
         'GraphQL\\Utils\\PairSet' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/PairSet.php',
@@ -182,6 +186,7 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'GraphQL\\Utils\\TypeInfo' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/TypeInfo.php',
         'GraphQL\\Utils\\Utils' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/Utils.php',
         'GraphQL\\Utils\\Value' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Utils/Value.php',
+        'GraphQL\\Validator\\ASTValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/ASTValidationContext.php',
         'GraphQL\\Validator\\DocumentValidator' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/DocumentValidator.php',
         'GraphQL\\Validator\\Rules\\CustomValidationRule' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/CustomValidationRule.php',
         'GraphQL\\Validator\\Rules\\DisableIntrospection' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/DisableIntrospection.php',
@@ -201,12 +206,13 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'GraphQL\\Validator\\Rules\\NoUnusedVariables' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/NoUnusedVariables.php',
         'GraphQL\\Validator\\Rules\\OverlappingFieldsCanBeMerged' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/OverlappingFieldsCanBeMerged.php',
         'GraphQL\\Validator\\Rules\\PossibleFragmentSpreads' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/PossibleFragmentSpreads.php',
-        'GraphQL\\Validator\\Rules\\ProvidedNonNullArguments' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ProvidedNonNullArguments.php',
+        'GraphQL\\Validator\\Rules\\ProvidedRequiredArguments' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ProvidedRequiredArguments.php',
         'GraphQL\\Validator\\Rules\\ProvidedRequiredArgumentsOnDirectives' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ProvidedRequiredArgumentsOnDirectives.php',
         'GraphQL\\Validator\\Rules\\QueryComplexity' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/QueryComplexity.php',
         'GraphQL\\Validator\\Rules\\QueryDepth' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/QueryDepth.php',
         'GraphQL\\Validator\\Rules\\QuerySecurityRule' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/QuerySecurityRule.php',
         'GraphQL\\Validator\\Rules\\ScalarLeafs' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ScalarLeafs.php',
+        'GraphQL\\Validator\\Rules\\SingleFieldSubscription' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/SingleFieldSubscription.php',
         'GraphQL\\Validator\\Rules\\UniqueArgumentNames' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/UniqueArgumentNames.php',
         'GraphQL\\Validator\\Rules\\UniqueDirectivesPerLocation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/UniqueDirectivesPerLocation.php',
         'GraphQL\\Validator\\Rules\\UniqueFragmentNames' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/UniqueFragmentNames.php',
@@ -216,14 +222,21 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'GraphQL\\Validator\\Rules\\ValidationRule' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ValidationRule.php',
         'GraphQL\\Validator\\Rules\\ValuesOfCorrectType' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ValuesOfCorrectType.php',
         'GraphQL\\Validator\\Rules\\VariablesAreInputTypes' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesAreInputTypes.php',
-        'GraphQL\\Validator\\Rules\\VariablesDefaultValueAllowed' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesDefaultValueAllowed.php',
         'GraphQL\\Validator\\Rules\\VariablesInAllowedPosition' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesInAllowedPosition.php',
+        'GraphQL\\Validator\\SDLValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/SDLValidationContext.php',
         'GraphQL\\Validator\\ValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/ValidationContext.php',
+        'WPGraphQL\\Admin\\Admin' => __DIR__ . '/../..' . '/src/Admin/Admin.php',
+        'WPGraphQL\\Admin\\GraphiQL\\GraphiQL' => __DIR__ . '/../..' . '/src/Admin/GraphiQL/GraphiQL.php',
+        'WPGraphQL\\Admin\\Settings\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings/Settings.php',
+        'WPGraphQL\\Admin\\Settings\\SettingsRegistry' => __DIR__ . '/../..' . '/src/Admin/Settings/SettingsRegistry.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
+        'WPGraphQL\\Connection\\Commenter' => __DIR__ . '/../..' . '/src/Connection/Commenter.php',
         'WPGraphQL\\Connection\\Comments' => __DIR__ . '/../..' . '/src/Connection/Comments.php',
         'WPGraphQL\\Connection\\ContentTypes' => __DIR__ . '/../..' . '/src/Connection/ContentTypes.php',
         'WPGraphQL\\Connection\\EnqueuedScripts' => __DIR__ . '/../..' . '/src/Connection/EnqueuedScripts.php',
         'WPGraphQL\\Connection\\EnqueuedStylesheets' => __DIR__ . '/../..' . '/src/Connection/EnqueuedStylesheets.php',
+        'WPGraphQL\\Connection\\MediaItems' => __DIR__ . '/../..' . '/src/Connection/MediaItems.php',
+        'WPGraphQL\\Connection\\MenuItemLinkableConnection' => __DIR__ . '/../..' . '/src/Connection/MenuItemLinkableConnection.php',
         'WPGraphQL\\Connection\\MenuItems' => __DIR__ . '/../..' . '/src/Connection/MenuItems.php',
         'WPGraphQL\\Connection\\Menus' => __DIR__ . '/../..' . '/src/Connection/Menus.php',
         'WPGraphQL\\Connection\\Plugins' => __DIR__ . '/../..' . '/src/Connection/Plugins.php',
@@ -259,7 +272,6 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Data\\Loader\\CommentLoader' => __DIR__ . '/../..' . '/src/Data/Loader/CommentLoader.php',
         'WPGraphQL\\Data\\Loader\\EnqueuedScriptLoader' => __DIR__ . '/../..' . '/src/Data/Loader/EnqueuedScriptLoader.php',
         'WPGraphQL\\Data\\Loader\\EnqueuedStylesheetLoader' => __DIR__ . '/../..' . '/src/Data/Loader/EnqueuedStylesheetLoader.php',
-        'WPGraphQL\\Data\\Loader\\MenuItemLoader' => __DIR__ . '/../..' . '/src/Data/Loader/MenuItemLoader.php',
         'WPGraphQL\\Data\\Loader\\PluginLoader' => __DIR__ . '/../..' . '/src/Data/Loader/PluginLoader.php',
         'WPGraphQL\\Data\\Loader\\PostObjectLoader' => __DIR__ . '/../..' . '/src/Data/Loader/PostObjectLoader.php',
         'WPGraphQL\\Data\\Loader\\PostTypeLoader' => __DIR__ . '/../..' . '/src/Data/Loader/PostTypeLoader.php',
@@ -312,6 +324,7 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Request' => __DIR__ . '/../..' . '/src/Request.php',
         'WPGraphQL\\Router' => __DIR__ . '/../..' . '/src/Router.php',
         'WPGraphQL\\Server\\WPHelper' => __DIR__ . '/../..' . '/src/Server/WPHelper.php',
+        'WPGraphQL\\Telemetry\\Tracker' => __DIR__ . '/../..' . '/src/Telemetry/Tracker.php',
         'WPGraphQL\\Type\\Enum\\AvatarRatingEnum' => __DIR__ . '/../..' . '/src/Type/Enum/AvatarRatingEnum.php',
         'WPGraphQL\\Type\\Enum\\CommentsConnectionOrderbyEnum' => __DIR__ . '/../..' . '/src/Type/Enum/CommentsConnectionOrderbyEnum.php',
         'WPGraphQL\\Type\\Enum\\ContentNodeIdTypeEnum' => __DIR__ . '/../..' . '/src/Type/Enum/ContentNodeIdTypeEnum.php',
@@ -319,7 +332,9 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Type\\Enum\\ContentTypeIdTypeEnum' => __DIR__ . '/../..' . '/src/Type/Enum/ContentTypeIdTypeEnum.php',
         'WPGraphQL\\Type\\Enum\\MediaItemSizeEnum' => __DIR__ . '/../..' . '/src/Type/Enum/MediaItemSizeEnum.php',
         'WPGraphQL\\Type\\Enum\\MediaItemStatusEnum' => __DIR__ . '/../..' . '/src/Type/Enum/MediaItemStatusEnum.php',
+        'WPGraphQL\\Type\\Enum\\MenuItemNodeIdTypeEnum' => __DIR__ . '/../..' . '/src/Type/Enum/MenuItemNodeIdTypeEnum.php',
         'WPGraphQL\\Type\\Enum\\MenuLocationEnum' => __DIR__ . '/../..' . '/src/Type/Enum/MenuLocationEnum.php',
+        'WPGraphQL\\Type\\Enum\\MenuNodeIdTypeEnum' => __DIR__ . '/../..' . '/src/Type/Enum/MenuNodeIdTypeEnum.php',
         'WPGraphQL\\Type\\Enum\\MimeTypeEnum' => __DIR__ . '/../..' . '/src/Type/Enum/MimeTypeEnum.php',
         'WPGraphQL\\Type\\Enum\\OrderEnum' => __DIR__ . '/../..' . '/src/Type/Enum/OrderEnum.php',
         'WPGraphQL\\Type\\Enum\\PostObjectFieldFormatEnum' => __DIR__ . '/../..' . '/src/Type/Enum/PostObjectFieldFormatEnum.php',
@@ -341,10 +356,14 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Type\\Input\\MenuItemsConnectionWhereArgs' => __DIR__ . '/../..' . '/src/Type/Input/MenuItemsConnectionWhereArgs.php',
         'WPGraphQL\\Type\\Input\\PostObjectsConnectionOrderbyInput' => __DIR__ . '/../..' . '/src/Type/Input/PostObjectsConnectionOrderbyInput.php',
         'WPGraphQL\\Type\\Input\\UsersConnectionOrderbyInput' => __DIR__ . '/../..' . '/src/Type/Input/UsersConnectionOrderbyInput.php',
+        'WPGraphQL\\Type\\InterfaceType\\CommenterInterface' => __DIR__ . '/../..' . '/src/Type/InterfaceType/CommenterInterface.php',
         'WPGraphQL\\Type\\InterfaceType\\ContentNode' => __DIR__ . '/../..' . '/src/Type/InterfaceType/ContentNode.php',
         'WPGraphQL\\Type\\InterfaceType\\ContentTemplate' => __DIR__ . '/../..' . '/src/Type/InterfaceType/ContentTemplate.php',
+        'WPGraphQL\\Type\\InterfaceType\\DatabaseIdentifier' => __DIR__ . '/../..' . '/src/Type/InterfaceType/DatabaseIdentifier.php',
         'WPGraphQL\\Type\\InterfaceType\\EnqueuedAsset' => __DIR__ . '/../..' . '/src/Type/InterfaceType/EnqueuedAsset.php',
         'WPGraphQL\\Type\\InterfaceType\\HierarchicalContentNode' => __DIR__ . '/../..' . '/src/Type/InterfaceType/HierarchicalContentNode.php',
+        'WPGraphQL\\Type\\InterfaceType\\HierarchicalTermNode' => __DIR__ . '/../..' . '/src/Type/InterfaceType/HierarchicalTermNode.php',
+        'WPGraphQL\\Type\\InterfaceType\\MenuItemLinkable' => __DIR__ . '/../..' . '/src/Type/InterfaceType/MenuItemLinkable.php',
         'WPGraphQL\\Type\\InterfaceType\\Node' => __DIR__ . '/../..' . '/src/Type/InterfaceType/Node.php',
         'WPGraphQL\\Type\\InterfaceType\\NodeWithAuthor' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithAuthor.php',
         'WPGraphQL\\Type\\InterfaceType\\NodeWithComments' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithComments.php',
@@ -353,6 +372,7 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Type\\InterfaceType\\NodeWithFeaturedImage' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithFeaturedImage.php',
         'WPGraphQL\\Type\\InterfaceType\\NodeWithPageAttributes' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithPageAttributes.php',
         'WPGraphQL\\Type\\InterfaceType\\NodeWithRevisions' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithRevisions.php',
+        'WPGraphQL\\Type\\InterfaceType\\NodeWithTemplate' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithTemplate.php',
         'WPGraphQL\\Type\\InterfaceType\\NodeWithTitle' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithTitle.php',
         'WPGraphQL\\Type\\InterfaceType\\NodeWithTrackbacks' => __DIR__ . '/../..' . '/src/Type/InterfaceType/NodeWithTrackbacks.php',
         'WPGraphQL\\Type\\InterfaceType\\TermNode' => __DIR__ . '/../..' . '/src/Type/InterfaceType/TermNode.php',
@@ -361,7 +381,6 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Type\\Object\\Comment' => __DIR__ . '/../..' . '/src/Type/Object/Comment.php',
         'WPGraphQL\\Type\\Object\\CommentAuthor' => __DIR__ . '/../..' . '/src/Type/Object/CommentAuthor.php',
         'WPGraphQL\\Type\\Object\\ContentType' => __DIR__ . '/../..' . '/src/Type/Object/ContentType.php',
-        'WPGraphQL\\Type\\Object\\EditLock' => __DIR__ . '/../..' . '/src/Type/Object/EditLock.php',
         'WPGraphQL\\Type\\Object\\EnqueuedScript' => __DIR__ . '/../..' . '/src/Type/Object/EnqueuedScript.php',
         'WPGraphQL\\Type\\Object\\EnqueuedStylesheet' => __DIR__ . '/../..' . '/src/Type/Object/EnqueuedStylesheet.php',
         'WPGraphQL\\Type\\Object\\MediaDetails' => __DIR__ . '/../..' . '/src/Type/Object/MediaDetails.php',
@@ -382,9 +401,7 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Type\\Object\\Theme' => __DIR__ . '/../..' . '/src/Type/Object/Theme.php',
         'WPGraphQL\\Type\\Object\\User' => __DIR__ . '/../..' . '/src/Type/Object/User.php',
         'WPGraphQL\\Type\\Object\\UserRole' => __DIR__ . '/../..' . '/src/Type/Object/UserRole.php',
-        'WPGraphQL\\Type\\Union\\CommentAuthorUnion' => __DIR__ . '/../..' . '/src/Type/Union/CommentAuthorUnion.php',
         'WPGraphQL\\Type\\Union\\ContentRevisionUnion' => __DIR__ . '/../..' . '/src/Type/Union/ContentRevisionUnion.php',
-        'WPGraphQL\\Type\\Union\\ContentTemplateUnion' => __DIR__ . '/../..' . '/src/Type/Union/ContentTemplateUnion.php',
         'WPGraphQL\\Type\\Union\\MenuItemObjectUnion' => __DIR__ . '/../..' . '/src/Type/Union/MenuItemObjectUnion.php',
         'WPGraphQL\\Type\\Union\\PostObjectUnion' => __DIR__ . '/../..' . '/src/Type/Union/PostObjectUnion.php',
         'WPGraphQL\\Type\\Union\\TermObjectUnion' => __DIR__ . '/../..' . '/src/Type/Union/TermObjectUnion.php',
@@ -395,7 +412,11 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
         'WPGraphQL\\Type\\WPScalar' => __DIR__ . '/../..' . '/src/Type/WPScalar.php',
         'WPGraphQL\\Type\\WPUnionType' => __DIR__ . '/../..' . '/src/Type/WPUnionType.php',
         'WPGraphQL\\Types' => __DIR__ . '/../..' . '/src/Types.php',
+        'WPGraphQL\\Utils\\DebugLog' => __DIR__ . '/../..' . '/src/Utils/DebugLog.php',
         'WPGraphQL\\Utils\\InstrumentSchema' => __DIR__ . '/../..' . '/src/Utils/InstrumentSchema.php',
+        'WPGraphQL\\Utils\\Preview' => __DIR__ . '/../..' . '/src/Utils/Preview.php',
+        'WPGraphQL\\Utils\\QueryLog' => __DIR__ . '/../..' . '/src/Utils/QueryLog.php',
+        'WPGraphQL\\Utils\\Tracing' => __DIR__ . '/../..' . '/src/Utils/Tracing.php',
         'WPGraphQL\\Utils\\Utils' => __DIR__ . '/../..' . '/src/Utils/Utils.php',
         'WPGraphQL\\WPSchema' => __DIR__ . '/../..' . '/src/WPSchema.php',
     );
@@ -403,9 +424,9 @@ class ComposerStaticInit6a60c514af8340de6d9c420b08b70c28
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit6a60c514af8340de6d9c420b08b70c28::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit6a60c514af8340de6d9c420b08b70c28::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit6a60c514af8340de6d9c420b08b70c28::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit9de0b597b3b512e12655fec9ae8c1974::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit9de0b597b3b512e12655fec9ae8c1974::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit9de0b597b3b512e12655fec9ae8c1974::$classMap;
 
         }, null, ClassLoader::class);
     }

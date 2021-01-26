@@ -2,46 +2,61 @@
 
 namespace WPGraphQL\Data;
 
+use Exception;
 use GraphQL\Error\UserError;
+use WP;
+use WPGraphQL\AppContext;
 use WPGraphQL\Model\Post;
-use WPGraphQL\Model\Term;
-use WPGraphQL\Model\User;
+use WPGraphQL\Model\PostType;
 
 class NodeResolver {
 
+	/**
+	 * @var WP
+	 */
 	protected $wp;
 
 	/**
-	 * NodeResolver constructor.
+	 * @var AppContext
 	 */
-	public function __construct() {
+	protected $context;
+
+	/**
+	 * NodeResolver constructor.
+	 *
+	 * @param AppContext $context
+	 *
+	 * @return void
+	 */
+	public function __construct( AppContext $context ) {
 		global $wp;
-		$this->wp = $wp;
+		$this->wp      = $wp;
+		$this->context = $context;
 	}
 
 	/**
 	 * Given the URI of a resource, this method attempts to resolve it and return the
 	 * appropriate related object
 	 *
-	 * @param array|string $uri              The path to be used as an identifier for the resource.
-	 * @param string       $extra_query_vars Any extra query vars to consider
+	 * @param string       $uri              The path to be used as an identifier for the
+	 *                                             resource.
+	 * @param mixed|array|string $extra_query_vars Any extra query vars to consider
 	 *
-	 * @throws \Exception
-	 *
-	 * @return mixed|Term|Post|User|null
+	 * @return mixed
+	 * @throws Exception
 	 */
-	public function resolve_uri( $uri, $extra_query_vars = '' ) {
+	public function resolve_uri( string $uri, $extra_query_vars = '' ) {
 
 		global $wp_rewrite;
 
-		$parsed_url = parse_url( $uri );
+		$parsed_url = wp_parse_url( $uri );
 
 		if ( isset( $parsed_url['host'] ) ) {
 			if ( ! in_array(
 				$parsed_url['host'],
 				[
-					parse_url( site_url() )['host'],
-					parse_url( home_url() )['host'],
+					wp_parse_url( site_url() )['host'],
+					wp_parse_url( home_url() )['host'],
 				],
 				true
 			) ) {
@@ -49,29 +64,30 @@ class NodeResolver {
 			}
 		}
 
+		$this->wp->query_vars = [];
+		$post_type_query_vars = [];
+
 		if ( isset( $parsed_url['query'] ) && '/' === $parsed_url['path'] ) {
-			$uri   = $parsed_url['query'];
-			$query = $parsed_url['query'];
+			$uri = $parsed_url['query'];
 		} elseif ( isset( $parsed_url['path'] ) ) {
 			$uri = $parsed_url['path'];
 		}
 
-		$this->wp->query_vars = [];
-		$post_type_query_vars = [];
-
 		if ( is_array( $extra_query_vars ) ) {
-			$this->wp->extra_query_vars = &$extra_query_vars;
+			$this->wp->query_vars = &$extra_query_vars;
 		} elseif ( ! empty( $extra_query_vars ) ) {
 			parse_str( $extra_query_vars, $this->wp->extra_query_vars );
 		}
+
+		$this->wp->query_vars['uri'] = $uri;
 		// Process PATH_INFO, REQUEST_URI, and 404 for permalinks.
 
 		// Fetch the rewrite rules.
 		$rewrite = $wp_rewrite->wp_rewrite_rules();
-
+		$error   = '404';
 		if ( ! empty( $rewrite ) ) {
 			// If we match a rewrite rule, this will be cleared.
-			$error                   = '404';
+			$error                   = null;
 			$this->wp->did_permalink = true;
 
 			$pathinfo         = isset( $uri ) ? $uri : '';
@@ -79,19 +95,29 @@ class NodeResolver {
 			$pathinfo         = str_replace( '%', '%25', $pathinfo );
 
 			list( $req_uri ) = explode( '?', $pathinfo );
-			$home_path       = trim( parse_url( home_url(), PHP_URL_PATH ), '/' );
+			$home_path       = trim( wp_parse_url( home_url(), PHP_URL_PATH ), '/' );
 			$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
 
 			// Trim path info from the end and the leading home path from the
 			// front. For path info requests, this leaves us with the requesting
 			// filename, if any. For 404 requests, this leaves us with the
 			// requested permalink.
-			$req_uri  = str_replace( $pathinfo, '', $req_uri );
-			$req_uri  = trim( $req_uri, '/' );
-			$req_uri  = preg_replace( $home_path_regex, '', $req_uri );
-			$req_uri  = trim( $req_uri, '/' );
-			$pathinfo = trim( $pathinfo, '/' );
-			$pathinfo = preg_replace( $home_path_regex, '', $pathinfo );
+			$query        = '';
+			$matches      = null;
+			$req_uri      = str_replace( $pathinfo, '', $req_uri );
+			$req_uri      = trim( $req_uri, '/' );
+			$replaced_uri = preg_replace( $home_path_regex, '', $req_uri );
+
+			if ( ! empty( $replaced_uri ) ) {
+				$req_uri = $replaced_uri;
+			}
+
+			$req_uri           = trim( $req_uri, '/' );
+			$pathinfo          = trim( $pathinfo, '/' );
+			$replaced_pathinfo = preg_replace( $home_path_regex, '', $pathinfo );
+			if ( ! empty( $replaced_pathinfo ) ) {
+				$pathinfo = $replaced_pathinfo;
+			}
 			$pathinfo = trim( $pathinfo, '/' );
 
 			// The requested permalink is in $pathinfo for path info requests and
@@ -139,10 +165,10 @@ class NodeResolver {
 
 							$post_status_obj = get_post_status_object( $page->post_status );
 							if (
-								! $post_status_obj->public &&
-								! $post_status_obj->protected &&
-								! $post_status_obj->private &&
-								$post_status_obj->exclude_from_search
+								( ! isset( $post_status_obj->public ) || ! $post_status_obj->public ) &&
+								( ! isset( $post_status_obj->protected ) || ! $post_status_obj->protected ) &&
+								( ! isset( $post_status_obj->private ) || ! $post_status_obj->private ) &&
+								( ! isset( $post_status_obj->exclude_from_search ) || $post_status_obj->exclude_from_search )
 							) {
 								continue;
 							}
@@ -163,15 +189,9 @@ class NodeResolver {
 				// Substitute the substring matches into the query.
 				$query = addslashes( \WP_MatchesMapRegex::apply( $query, $matches ) );
 
-				$this->wp->matched_query = $query;
-
 				// Parse the query.
 				parse_str( $query, $perma_query_vars );
 
-				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' === $error ) {
-					unset( $error );
-				}
 			}
 		}
 
@@ -182,15 +202,15 @@ class NodeResolver {
 		 * to executing the query. Needed to allow custom rewrite rules using your own arguments
 		 * to work, or any other custom query variables you want to be publicly available.
 		 *
-		 * @since 1.5.0
-		 *
 		 * @param string[] $public_query_vars The array of whitelisted query variable names.
+		 *
+		 * @since 1.5.0
 		 */
 		$this->wp->public_query_vars = apply_filters( 'query_vars', $this->wp->public_query_vars );
 
 		foreach ( get_post_types( [ 'show_in_graphql' => true ], 'objects' ) as $post_type => $t ) {
 
-			if ( true === $t->show_in_graphql && $t->query_var ) {
+			if ( isset( $t->show_in_graphql ) && true === $t->show_in_graphql && $t->query_var ) {
 				$post_type_query_vars[ $t->query_var ] = $post_type;
 			}
 		}
@@ -204,10 +224,6 @@ class NodeResolver {
 
 			if ( isset( $this->wp->extra_query_vars[ $wpvar ] ) ) {
 				$this->wp->query_vars[ $wpvar ] = $this->wp->extra_query_vars[ $wpvar ];
-			} elseif ( isset( $_GET[ $wpvar ] ) && isset( $_POST[ $wpvar ] ) && $_GET[ $wpvar ] !== $_POST[ $wpvar ] ) {
-				wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
-			} elseif ( isset( $_POST[ $wpvar ] ) ) {
-				$this->wp->query_vars[ $wpvar ] = $_POST[ $wpvar ];
 			} elseif ( isset( $_GET[ $wpvar ] ) ) {
 				$this->wp->query_vars[ $wpvar ] = $_GET[ $wpvar ];
 			} elseif ( isset( $perma_query_vars[ $wpvar ] ) ) {
@@ -271,9 +287,9 @@ class NodeResolver {
 		/**
 		 * Filters the array of parsed query variables.
 		 *
-		 * @since 2.1.0
-		 *
 		 * @param array $query_vars The array of requested query variables.
+		 *
+		 * @since 2.1.0
 		 */
 		$this->wp->query_vars = apply_filters( 'request', $this->wp->query_vars );
 
@@ -283,98 +299,108 @@ class NodeResolver {
 
 		$node = null;
 
+		// If the request is for the homepage, determine
+		if ( '/' === $uri ) {
+
+			$page_id       = get_option( 'page_on_front', 0 );
+			$show_on_front = get_option( 'show_on_front', 'posts' );
+
+			if ( 'page' === $show_on_front && ! empty( $page_id ) ) {
+
+				if ( empty( $page_id ) ) {
+					return null;
+				}
+				$page = get_post( $page_id );
+
+				if ( empty( $page ) ) {
+					return null;
+				}
+
+				return new Post( $page );
+
+			} else {
+
+				if ( isset( $this->wp->query_vars['nodeType'] ) && 'Page' === $this->wp->query_vars['nodeType'] ) {
+					return null;
+				}
+
+				return $this->context->get_loader( 'post_type' )->load_deferred( 'post' );
+			}
+		}
+
 		if ( isset( $this->wp->query_vars['page_id'] ) ) {
-
-			$allowed_post_types = \WPGraphQL::get_allowed_post_types();
-
-			$post_type = 'page';
-			if ( isset( $this->wp->query_vars['post_type'] ) && in_array( $this->wp->query_vars['post_type'], $allowed_post_types, true ) ) {
-				$post_type = $this->wp->query_vars['post_type'];
-			}
-
-			$args  = [
-				'page_id'             => absint( $this->wp->query_vars['page_id'] ),
-				'post_type'           => $post_type,
-				'post_status'         => 'publish',
-				'posts_per_page'      => 1,
-				'ignore_sticky_posts' => true,
-				'no_found_rows'       => true,
-			];
-			$posts = new \WP_Query( $args );
-
-			return ! empty( $posts->posts[0] ) ? new Post( $posts->posts[0] ) : null;
-
+			return absint( $this->wp->query_vars['page_id'] ) ? $this->context->get_loader( 'post' )->load_deferred( absint( $this->wp->query_vars['page_id'] ) ) : null;
 		} elseif ( isset( $this->wp->query_vars['p'] ) ) {
-
-			$allowed_post_types = \WPGraphQL::get_allowed_post_types();
-
-			$post_type = 'post';
-			if ( isset( $this->wp->query_vars['post_type'] ) && in_array( $this->wp->query_vars['post_type'], $allowed_post_types, true ) ) {
-				$post_type = $this->wp->query_vars['post_type'];
-			}
-
-			$args  = [
-				'p'                   => absint( $this->wp->query_vars['p'] ),
-				'post_type'           => $post_type,
-				'post_status'         => 'publish',
-				'posts_per_page'      => 1,
-				'ignore_sticky_posts' => true,
-				'no_found_rows'       => true,
-			];
-			$posts = new \WP_Query( $args );
-
-			return ! empty( $posts->posts[0] ) ? new Post( $posts->posts[0] ) : null;
-
+			return absint( $this->wp->query_vars['p'] ) ? $this->context->get_loader( 'post' )->load_deferred( absint( $this->wp->query_vars['p'] ) ) : null;
 		} elseif ( isset( $this->wp->query_vars['name'] ) ) {
 
-			$allowed_post_types = \WPGraphQL::get_allowed_post_types();
+			// Target post types with a public URI.
+			$allowed_post_types = get_post_types( [
+				'show_in_graphql' => true,
+				'public'          => true,
+			] );
 
 			$post_type = 'post';
 			if ( isset( $this->wp->query_vars['post_type'] ) && in_array( $this->wp->query_vars['post_type'], $allowed_post_types, true ) ) {
 				$post_type = $this->wp->query_vars['post_type'];
 			}
+			// @phpstan-ignore-next-line
+			$post = get_page_by_path( $this->wp->query_vars['name'], 'OBJECT', $post_type );
 
-			$args  = [
-				'name'                => $this->wp->query_vars['name'],
-				'post_type'           => $post_type,
-				'post_status'         => 'publish',
-				'posts_per_page'      => 1,
-				'ignore_sticky_posts' => true,
-				'no_found_rows'       => true,
-			];
-			$posts = new \WP_Query( $args );
-
-			return ! empty( $posts->posts[0] ) ? new Post( $posts->posts[0] ) : null;
+			return isset( $post->ID ) ? $this->context->get_loader( 'post' )->load_deferred( $post->ID ) : null;
 
 		} elseif ( isset( $this->wp->query_vars['cat'] ) ) {
 			$node = get_term( absint( $this->wp->query_vars['cat'] ), 'category' );
 
-			return ! empty( $node ) ? new Term( $node ) : null;
+			return isset( $node->term_id ) ? $this->context->get_loader( 'term' )->load_deferred( (int) $node->term_id ) : null;
 
 		} elseif ( isset( $this->wp->query_vars['tag'] ) ) {
 			$node = get_term_by( 'slug', $this->wp->query_vars['tag'], 'post_tag' );
 
-			return ! empty( $node ) ? new Term( $node ) : null;
+			return isset( $node->term_id ) ? $this->context->get_loader( 'term' )->load_deferred( (int) $node->term_id ) : null;
 		} elseif ( isset( $this->wp->query_vars['pagename'] ) && ! empty( $this->wp->query_vars['pagename'] ) ) {
+
 			$post = get_page_by_path( $this->wp->query_vars['pagename'], 'OBJECT', get_post_types( [ 'show_in_graphql' => true ] ) );
 
-			return ! empty( $post ) ? new Post( $post ) : null;
+			if ( isset( $post->ID ) && (int) get_option( 'page_for_posts', 0 ) === $post->ID ) {
+				return $this->context->get_loader( 'post' )->load_deferred( $post->ID );
+			}
+
+			return ! empty( $post ) ? $this->context->get_loader( 'post' )->load_deferred( $post->ID ) : null;
 		} elseif ( isset( $this->wp->query_vars['author_name'] ) ) {
 			$user = get_user_by( 'slug', $this->wp->query_vars['author_name'] );
 
-			return new User( $user );
+			return isset( $user->ID ) ? $this->context->get_loader( 'user' )->load_deferred( $user->ID ) : null;
 		} elseif ( isset( $this->wp->query_vars['category_name'] ) ) {
 			$node = get_term_by( 'slug', $this->wp->query_vars['category_name'], 'category' );
 
-			return new Term( $node );
+			return isset( $node->term_id ) ? $this->context->get_loader( 'term' )->load_deferred( $node->term_id ) : null;
 
+		} elseif ( isset( $this->wp->query_vars['post_type'] ) ) {
+
+			// If the query is asking for a Page nodeType with the home uri, try and resolve it.
+			if ( '/' === $this->wp->query_vars['uri'] && ( isset( $this->wp->query_vars['nodeType'] ) && 'Page' === $this->wp->query_vars['nodeType'] ) ) {
+
+				// If the post type is not a page, but the uri is for the home page, we can return null now
+				if ( 'page' !== $this->wp->query_vars['post_type'] ) {
+					return null;
+				}
+
+				$page_on_front = get_option( 'page_on_front', 0 );
+				$post          = get_post( absint( $page_on_front ) );
+				return ! empty( $post ) ? $this->context->get_loader( 'post' )->load_deferred( $post->ID ) : null;
+			}
+
+			$post_type_object = get_post_type_object( $this->wp->query_vars['post_type'] );
+
+			return ! empty( $post_type_object ) ? $this->context->get_loader( 'post_type' )->load_deferred( $post_type_object->name ) : null;
 		} else {
 			$taxonomies = get_taxonomies( [ 'show_in_graphql' => true ], 'objects' );
 			foreach ( $taxonomies as $taxonomy ) {
 				if ( isset( $this->wp->query_vars[ $taxonomy->query_var ] ) ) {
 					$node = get_term_by( 'slug', $this->wp->query_vars[ $taxonomy->query_var ], $taxonomy->name );
 
-					return new Term( $node );
+					return isset( $node->term_id ) ? $this->context->get_loader( 'term' )->load_deferred( $node->term_id ) : null;
 				}
 			}
 		}

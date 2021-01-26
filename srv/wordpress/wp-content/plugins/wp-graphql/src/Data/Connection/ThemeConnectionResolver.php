@@ -15,7 +15,7 @@ use WPGraphQL\Data\DataSource;
 class ThemeConnectionResolver extends AbstractConnectionResolver {
 
 	/**
-	 * @return bool|int|mixed|null|string
+	 * @return mixed
 	 */
 	public function get_offset() {
 		$offset = null;
@@ -68,18 +68,6 @@ class ThemeConnectionResolver extends AbstractConnectionResolver {
 	}
 
 	/**
-	 * Load an individual node by ID
-	 *
-	 * @param $id
-	 *
-	 * @return mixed|null|\WPGraphQL\Model\Model
-	 * @throws \Exception
-	 */
-	public function get_node_by_id( $id ) {
-		return $this->loader->load( $id );
-	}
-
-	/**
 	 * Get the nodes from the query.
 	 *
 	 * We slice the array to match the amount of items that was asked for, as we over-fetched
@@ -123,7 +111,7 @@ class ThemeConnectionResolver extends AbstractConnectionResolver {
 	/**
 	 * Determine if the offset used for pagination is valid
 	 *
-	 * @param $offset
+	 * @param mixed $offset
 	 *
 	 * @return bool
 	 */
@@ -175,7 +163,7 @@ class ThemeConnectionResolver extends AbstractConnectionResolver {
 
 		$connection['nodes'] = ! empty( $nodes ) ? $nodes : null;
 
-		return ! empty( $themes_array ) ? $connection : null;
+		return ! empty( $themes_array ) ? $connection : [];
 	}
 
 }
