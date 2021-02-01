@@ -25,6 +25,8 @@ services:
       - local-private-net
     healthcheck:
         test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
   php:
     restart: unless-stopped
     build:
