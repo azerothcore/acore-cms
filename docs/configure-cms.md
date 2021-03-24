@@ -13,7 +13,7 @@ When your CMS is up you still need to connect it with your game server through t
 - Activated, go to `Settings -> Acore Settings Panel`, fill all the fields with the right credentials and save (if you have the game database in localhost use your LOCAL IP address instead of 127.0.0.1 or localhost)
 
 If during the registration it fails it can depend on the permissions of the access of your local mysql database, be sure to grant the permission to external connection (like the docker container with wordpress inside) can access to the mysql database.
-See the **Troubleshooting** section for more details. 
+See the **Troubleshooting** section for more details.
 
 
 ### - Register account on the game server
@@ -47,7 +47,7 @@ Remember to set the right currency and manage all the related woocommerce settin
   - be sure to put the product as "Virtual"
   - put a price in the `General` section
   - set the SKU as `itemsend_28773` to sell the item 28773 (Gorehowl)
-- well, you are selling items but there are no payments method you can install the plugin `WooCommerce PayPal Checkout Payment Gateway` to add PayPal but you can also add other plugins to add more payment method (example: `Woocommerce Stripe Gateway`).  
+- well, you are selling items but there are no payments method you can install the plugin `WooCommerce PayPal Checkout Payment Gateway` to add PayPal but you can also add other plugins to add more payment method (example: `Woocommerce Stripe Gateway`).
 After the installation remember to enable `Paypal standard` from `Admin Panel -> Woocommerce -> Settings -> Payments` and enable PayPal standard, later click on `Manage` and add your email to receive the payments.
 - **(optional)** install the plugin `myCred` to add **"virtual points"** in your website, this will allow you to define a relation between money and your virtual point, so any user can buy items in the shopt through virtual points and buy virtual points with €/$
 
@@ -55,8 +55,9 @@ After the installation remember to enable `Paypal standard` from `Admin Panel ->
 
 Besides items you can also sell:
 - Character Rename (using as SKU `char-change-name`)
-- Change Race (using as SKU `char-change-race`)
-- Change Faction (using as SKU `char-change-faction`)
+- Character Customization (using as SKU `char-change-customize`), include rename
+- Change Race (using as SKU `char-change-race`), include rename and customization
+- Change Faction (using as SKU `char-change-faction`), include rename and customization
 
 **Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
 
@@ -65,10 +66,10 @@ Besides items you can also sell:
 For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#acore-cms` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
 
 Errors:
-- **During the registration I get some PDO errors**  
+- **During the registration I get some PDO errors**
 - **Host is not allowed to connect to this mysql**
 
-For both, the problem is probably related to the permissions of the access to your local mysql database.  
+For both, the problem is probably related to the permissions of the access to your local mysql database.
 **How to solve:** edit the mysql permission and create a new user.
 
 Edit the mysql permission of mysql using:
@@ -85,11 +86,11 @@ CREATE USER 'acore'@'%' IDENTIFIED BY 'some_pass';
 GRANT ALL PRIVILEGES ON *.* TO 'acore'@'%' WITH GRANT OPTION;
 ```
 
-Update the configuration into Wordpress `Admin Panel -> Settings -> Acore Settings Panel` with the new user and do not set "localhost" but the LOCAL IP ADDRESS of your machine.  
+Update the configuration into Wordpress `Admin Panel -> Settings -> Acore Settings Panel` with the new user and do not set "localhost" but the LOCAL IP ADDRESS of your machine.
 
-  
---- 
-**Error**: could not be connect to the host (during the registration)  
+
+---
+**Error**: could not be connect to the host (during the registration)
 **How to solve**: check the SOAP configuration in `worldserver.conf` and into the CMS on `Admin Panel -> Settings -> Acore Settings Panel`.
-To check the SOAP credentials you can use the script [here](https://stackoverflow.com/questions/59382665/how-to-send-commands-using-soap-to-azerothcore-worldserver-console). 
+To check the SOAP credentials you can use the script [here](https://stackoverflow.com/questions/59382665/how-to-send-commands-using-soap-to-azerothcore-worldserver-console).
 

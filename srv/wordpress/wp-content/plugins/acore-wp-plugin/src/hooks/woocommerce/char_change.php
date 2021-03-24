@@ -10,7 +10,8 @@ class WC_CharChange extends \ACore\Lib\WpClass {
         "char-change", // used with variations
         "char-change-name",
         "char-change-faction",
-        "char-change-race"
+        "char-change-race",
+        "char-change-customize"
     );
 
     public static function init() {
@@ -71,14 +72,14 @@ class WC_CharChange extends \ACore\Lib\WpClass {
     }
 
     // 3) SAVE INTO ITEM DATA
-    // This code will store the custom fields ( for the product that is being added to cart ) into cart item data 
+    // This code will store the custom fields ( for the product that is being added to cart ) into cart item data
     // ( each cart item has their own data )
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
         if (!in_array($product->get_sku(), self::$skuList)) {
             return $cart_item_data;
         }
-        
+
         if (isset($_REQUEST['acore_char_sel'])) {
             $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
             $cart_item_data['acore_item_sku'] = $product->get_sku();
@@ -180,6 +181,13 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                             $res = $soap->changeRace($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change race on $charName - " . $res->getMessage());
+                            }
+                            break;
+                        case "char-change-customize":
+                            $charName = self::getCharName($item["acore_char_sel"]);
+                            $res = $soap->charCustomization($charName);
+                            if ($res instanceof \Exception) {
+                                throw new \Exception("There was an error with character customization on $charName - " . $res->getMessage());
                             }
                             break;
                     }
