@@ -14,7 +14,8 @@ RUN apt-get update -y \
      libgd3 \
      libonig-dev \
      libgd-dev \
-     libicu-dev
+     libicu-dev \
+     libgmp-dev
 RUN apt-get clean -y
 RUN docker-php-ext-install soap
 RUN docker-php-ext-install mbstring
@@ -24,6 +25,7 @@ RUN docker-php-ext-configure intl
 RUN docker-php-ext-install intl
 RUN docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/
 RUN docker-php-ext-install -j$(nproc) gd
+RUN docker-php-ext-install gmp
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
