@@ -8,7 +8,7 @@ class AccountRepository extends Repository {
 
     /**
      * Verify account and returns user info
-     * 
+     *
      * @param type $username
      * @param type $password
      * @return Account
@@ -16,13 +16,23 @@ class AccountRepository extends Repository {
     public function verifyAccount($username, $password) {
         $authDb = $this->getEntityManager();
 
-        $enc_password = sha1(strtoupper($username) . ':' . strtoupper($password));
-        
+        // get salt
+        $qb=$authDb->createQueryBuilder();
+        $query=$qb->select("a.salt")
+                        ->from("ACore\Account\Entity\AccountEntity","a")
+                        ->where($qb->expr()->eq("LOWER(a.username)",":username"))
+                        ->setParameter("username", strtolower($username))
+                        ->getQuery();
+        $salt = $query->getOneOrNullResult();
+
+        // calculate "verifier"
+        $enc_password = $this->CalculateSRP6Verifier($username, $password, $salt["salt"]);
+
         $qb=$authDb->createQueryBuilder();
         $query=$qb->select("a")
                         ->from("ACore\Account\Entity\AccountEntity","a")
                         ->where($qb->expr()->eq("LOWER(a.username)",":username"))
-                        ->andWhere("a.sha_pass_hash = :password")
+                        ->andWhere("a.verifier = :password")
                         ->setParameter("username", strtolower($username))
                         ->setParameter("password", $enc_password)
                         ->getQuery();
@@ -30,8 +40,35 @@ class AccountRepository extends Repository {
         return $query->getOneOrNullResult();
     }
 
+    private function CalculateSRP6Verifier($username, $password, $salt)
+    {
+        // algorithm constants
+        $g = gmp_init(7);
+        $N = gmp_init('894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7', 16);
+
+        // calculate first hash
+        $h1 = sha1(strtoupper($username . ':' . $password), TRUE);
+
+        // calculate second hash
+        $h2 = sha1($salt.$h1, TRUE);
+
+        // convert to integer (little-endian)
+        $h2 = gmp_import($h2, 1, GMP_LSW_FIRST);
+
+        // g^h2 mod N
+        $verifier = gmp_powm($g, $h2, $N);
+
+        // convert back to a byte array (little-endian)
+        $verifier = gmp_export($verifier, 1, GMP_LSW_FIRST);
+
+        // pad to 32 bytes, remember that zeros go on the end in little-endian!
+        $verifier = str_pad($verifier, 32, chr(0), STR_PAD_RIGHT);
+
+        return $verifier;
+    }
+
     /**
-     * 
+     *
      * @param type $username
      * @param type $ip
      * @param boolean $lock true|false
@@ -51,7 +88,7 @@ class AccountRepository extends Repository {
 
     /**
      * API Alias
-     * 
+     *
      * @param string $username
      * @return \ACore\Account\Entity\AccountEntity
      */
@@ -61,7 +98,7 @@ class AccountRepository extends Repository {
 
     /**
      * API Alias
-     * 
+     *
      * @param int $id
      * @return \ACore\Account\Entity\AccountEntity
      */
@@ -74,7 +111,7 @@ class AccountRepository extends Repository {
      *
      * @param array      $criteria
      * @param array|null $orderBy
-     * 
+     *
      * @return \ACore\Account\Entity\AccountEntity
      */
     public function findOneBy($criteria, $orderBy = null) {

@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * ACore\Account\Entity\AccountEntity
- * 
+ *
  * @ORM\Entity(repositoryClass="ACore\Account\Repository\AccountRepository")
  * @ORM\Table(name="account")
  */
@@ -28,13 +28,21 @@ class AccountEntity {
      * @ORM\Column(name="username", type="string")
      */
     protected $username;
-    
+
     /**
      * @var string
      *
-     * @ORM\Column(name="sha_pass_hash", type="string")
+     * @ORM\Column(name="verifier", type="string")
      */
-    protected $sha_pass_hash;
+    protected $verifier;
+
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="salt", type="string")
+     */
+    protected $salt;
 
     /**
      * @var boolean
@@ -42,7 +50,7 @@ class AccountEntity {
      * @ORM\Column(name="locked", type="boolean")
      */
     protected $locked;
-    
+
     /**
      * @var string
      *
@@ -71,7 +79,7 @@ class AccountEntity {
      */
     private $access;
 
-    
+
     public function getId() {
         return $this->id;
     }
@@ -89,15 +97,6 @@ class AccountEntity {
         $this->username = $username;
         return $this;
     }
-    
-    public function getShaPassHash() {
-        return $this->sha_pass_hash;
-    }
-
-    public function setShaPassHash($sha_pass_hash) {
-        $this->sha_pass_hash = $sha_pass_hash;
-        return $this;
-    }
 
     public function isLocked() {
         return $this->locked == 0 ? false : true;
@@ -107,7 +106,7 @@ class AccountEntity {
         $this->locked = $locked;
         return $this;
     }
-    
+
     public function getLastIp() {
         return $this->last_ip;
     }
