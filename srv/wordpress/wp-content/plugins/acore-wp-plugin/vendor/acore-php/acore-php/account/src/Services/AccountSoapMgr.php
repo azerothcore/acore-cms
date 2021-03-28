@@ -83,4 +83,9 @@ class AccountSoapMgr {
         return $this->executeCommand('account delete ' . $username);
     }
 
+    // CarbonCopy tickets - https://github.com/55Honey/Acore_CarbonCopy/
+    public function addCCTickets($accoutName, $quantity) {
+        return $this->executeCommand("CCACCOUNTTICKETS $accoutName $quantity");
+    }
+
 }
