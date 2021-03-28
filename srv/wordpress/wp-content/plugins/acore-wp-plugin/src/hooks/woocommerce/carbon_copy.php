@@ -7,7 +7,7 @@ use ACore\ACoreServices;
 class WC_CarbonCopy extends \ACore\Lib\WpClass {
 
     private static $skuList = array(
-        "carboncopy_tickets"
+        "carboncopy-tickets"
     );
 
     public static function init() {
@@ -98,7 +98,7 @@ class WC_CarbonCopy extends \ACore\Lib\WpClass {
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     switch ($item["acore_item_sku"]) {
-                        case "carboncopy_tickets":
+                        case "carboncopy-tickets":
                             $current_user = wp_get_current_user();
 
                             $res = $soap->addCCTickets($current_user->user_login, $item["qty"]);
