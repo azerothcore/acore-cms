@@ -5,7 +5,7 @@ namespace ACore\Character\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * 
+ *
  * @ORM\Entity(repositoryClass="ACore\Character\Repository\CharacterRepository")
  * @ORM\Table(name="characters")
  */
@@ -34,6 +34,20 @@ class CharacterEntity {
      */
     protected $name;
 
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="deleteInfos_Name", type="string")
+     */
+    protected $deleteInfos_Name;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="deleteInfos_Account", type="string")
+     */
+    protected $deleteInfosAccount;
+
     public function getGuid() {
         return $this->guid;
     }
@@ -54,6 +68,10 @@ class CharacterEntity {
 
     public function getName() {
         return $this->name;
+    }
+
+    public function getDeletedName() {
+        return $this->deleteInfos_Name;
     }
 
     public function setName($name) {
