@@ -30,7 +30,7 @@ class FieldElements {
         }
 
         if ($deleted && count($deletedCharacters) == 0) {
-            echo '<br><span style="color: red;">You have no characters deleted to restore.</span><br><br><br>';
+            echo '<br><span style="color: red;">You have no deleted characters to restore.</span><br><br><br>';
             return;
         }
 
