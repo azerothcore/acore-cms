@@ -12,7 +12,7 @@ class CharacterRepository extends Repository {
 
     /**
      * API Alias
-     * 
+     *
      * @param int $guid
      * @return \ACore\Character\Entity\CharacterEntity
      */
@@ -22,7 +22,7 @@ class CharacterRepository extends Repository {
 
     /**
      * API Alias
-     * 
+     *
      * @param int $accountId
      * @return array()
      */
@@ -32,7 +32,17 @@ class CharacterRepository extends Repository {
 
     /**
      * API Alias
-     * 
+     *
+     * @param int $accountId
+     * @return array()
+     */
+    public function findByDeleteInfos_Account($accountId) {
+        return parent::findByDeleteInfos_Account($accountId);
+    }
+
+    /**
+     * API Alias
+     *
      * @param string $name
      * @return array()
      */
@@ -42,7 +52,7 @@ class CharacterRepository extends Repository {
 
     /**
      * API Alias
-     * 
+     *
      * @param string $name
      * @return \ACore\Character\Entity\CharacterEntity
      */

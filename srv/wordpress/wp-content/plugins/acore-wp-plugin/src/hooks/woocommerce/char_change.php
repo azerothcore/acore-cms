@@ -11,7 +11,8 @@ class WC_CharChange extends \ACore\Lib\WpClass {
         "char-change-name",
         "char-change-faction",
         "char-change-race",
-        "char-change-customize"
+        "char-change-customize",
+        "char-restore-delete"
     );
 
     public static function init() {
@@ -34,7 +35,7 @@ class WC_CharChange extends \ACore\Lib\WpClass {
         $current_user = wp_get_current_user();
 
         if ($current_user) {
-            FieldElements::charList($current_user->user_login);
+            FieldElements::charList($current_user->user_login, self::isDeletedSKU($product->get_sku()));
         }
     }
 
@@ -63,7 +64,7 @@ class WC_CharChange extends \ACore\Lib\WpClass {
 
         $char = $charRepo->findOneByGuid($guid);
 
-        if (!$char || $char->getAccount() != $accountId) {
+        if (!$char || ($char->getAccount() != $accountId && !self::isDeletedSKU($product->get_sku()))) {
             \wc_add_notice(__('This character is not available in your account!', 'acore-wp-plugin'), 'error');
             return false;
         }
@@ -108,7 +109,9 @@ class WC_CharChange extends \ACore\Lib\WpClass {
 
             $char = $charRepo->findOneByGuid($charId);
 
-            $charName = $char ? $char->getName() : "The character <$charId> doesn't exist!";
+            $charName = $char
+            ? (self::isDeletedSKU($cart_item['acore_item_sku']) ? $char->getDeletedName() : $char->getName())
+            : "The character <$charId> doesn't exist!";
 
             $custom_items[] = array("name" => 'Character', "value" => $charName);
         }
@@ -190,6 +193,13 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                                 throw new \Exception("There was an error with character customization on $charName - " . $res->getMessage());
                             }
                             break;
+                        case "char-restore-delete":
+                            $charName = self::getCharName($item["acore_char_sel"], true);
+                            $res = $soap->charRestore($charName);
+                            if ($res instanceof \Exception) {
+                                throw new \Exception("There was an error with character restore delete on $charName - " . $res->getMessage());
+                            }
+                            break;
                     }
                 }
             }
@@ -198,15 +208,20 @@ class WC_CharChange extends \ACore\Lib\WpClass {
         }
     }
 
-    private static function getCharName($charId) {
+    private static function getCharName($charId, $deleted = false) {
         $charRepo = ACoreServices::I()->getCharactersRepo();
         $char = $charRepo->findOneByGuid($charId);
-        if (!$char || !$char->getName()) { // even name is empty ( deleted char )
+
+        if (!$char || (!$char->getName() && !$deleted) || ($deleted && !$char->getDeletedName())) { // even name is empty ( deleted char )
             $current_user = wp_get_current_user();
             throw new \Exception("Char $charId doesn't exists! account: " . $current_user->user_login);
         }
 
-        return $char->getName();
+        return $deleted ? $char->getDeletedName() : $char->getName();
+    }
+
+    private static function isDeletedSKU($sku) {
+        return $sku === 'char-restore-delete';
     }
 
 }

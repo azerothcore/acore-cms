@@ -6,7 +6,7 @@ use ACore\ACoreServices;
 
 class FieldElements {
 
-    public static function charList($username) {
+    public static function charList($username, $deleted = false) {
         $ACoreSrv = ACoreServices::I();
         $accRepo = $ACoreSrv->getAccountRepo();
         $charRepo = $ACoreSrv->getCharactersRepo();
@@ -20,6 +20,7 @@ class FieldElements {
 
         $accountId = $account->getId();
         $characters = $charRepo->findByAccount($accountId);
+        $deletedCharacters = $charRepo->findByDeleteInfos_Account($accountId);
         $charBanRepo = $ACoreSrv->getCharactersBannedRepo();
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
 
@@ -28,19 +29,31 @@ class FieldElements {
             return;
         }
 
+        if ($deleted && count($deletedCharacters) == 0) {
+            echo '<br><span style="color: red;">You have no deleted characters to restore.</span><br><br><br>';
+            return;
+        }
+
         $bannedChars = array();
         ?>
-        <label for="acore_char_sel">Select the character: </label> 
+        <label for="acore_char_sel">Select the character: </label>
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
             <?php
-            foreach ($characters as $key => $value):
-                if ($charBanRepo->isActiveByGuid($value->getGuid())) {
-                    $bannedChars[] = $value->getName();
-                    continue;
-                }
 
-                echo '<option value="' . $value->getGuid() . '">' . $value->getName() . '</option>'; //close your tags!!
-            endforeach;
+            if (!$deleted) {
+                foreach ($characters as $key => $value):
+                    if ($charBanRepo->isActiveByGuid($value->getGuid())) {
+                        $bannedChars[] = $value->getName();
+                        continue;
+                    }
+                    echo '<option value="' . $value->getGuid() . '">' . $value->getName() . '</option>';
+                endforeach;
+            } else {
+                foreach ($deletedCharacters as $key => $value):
+                    echo '<option value="' . $value->getGuid() . '">' . $value->getDeletedName() . '</option>';
+                endforeach;
+            }
+
             ?>
         </select>
         <br>
@@ -53,7 +66,7 @@ class FieldElements {
 
     public static function destCharacter($label) {
         ?>
-        <label for="acore_char_dest"><?= $label ?></label> 
+        <label for="acore_char_dest"><?= $label ?></label>
         <input type="text" placeholder="Character name..." id="acore_char_dest" class="acore_char_dest" name="acore_char_dest">
         <br>
         <?php
@@ -61,7 +74,7 @@ class FieldElements {
 
     public static function destAccount() {
         ?>
-        <label for="acore_dest_account">Destination account: </label> 
+        <label for="acore_dest_account">Destination account: </label>
         <input required type="text" id="acore_dest_account" class="acore_dest_account" name="acore_dest_account">
         <br>
         <?php

@@ -21,8 +21,13 @@ class CharacterSoapMgr {
     public function changeRace($charName) {
         return $this->executeCommand(".character changerace $charName");
     }
+
     public function charCustomization($charName) {
         return $this->executeCommand(".character customize $charName");
+    }
+
+    public function charRestore($charName) {
+        return $this->executeCommand(".character deleted restore $charName");
     }
 
 }
