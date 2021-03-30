@@ -58,6 +58,7 @@ Besides items you can also sell:
 - Character Customization (using as SKU `char-change-customize`), include rename
 - Change Race (using as SKU `char-change-race`), include rename and customization
 - Change Faction (using as SKU `char-change-faction`), include rename and customization
+- Carbon Copy tickets (using as SKU `carboncopy-tickets`), this works only if you have the [CarbonCopy lua script](https://github.com/55Honey/Acore_CarbonCopy/).
 
 **Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
 
