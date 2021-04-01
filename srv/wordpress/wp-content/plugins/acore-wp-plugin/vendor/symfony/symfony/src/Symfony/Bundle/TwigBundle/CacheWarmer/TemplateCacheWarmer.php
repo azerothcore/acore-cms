@@ -11,7 +11,8 @@
 
 namespace Symfony\Bundle\TwigBundle\CacheWarmer;
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Psr\Container\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 use Twig\Environment;
 use Twig\Error\Error;
@@ -21,7 +22,7 @@ use Twig\Error\Error;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class TemplateCacheWarmer implements CacheWarmerInterface
+class TemplateCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInterface
 {
     private $container;
     private $twig;
@@ -30,8 +31,7 @@ class TemplateCacheWarmer implements CacheWarmerInterface
     /**
      * TemplateCacheWarmer constructor.
      *
-     * @param ContainerInterface|Environment $container
-     * @param \Traversable                   $iterator
+     * @param ContainerInterface $container
      */
     public function __construct($container, \Traversable $iterator)
     {
@@ -40,8 +40,9 @@ class TemplateCacheWarmer implements CacheWarmerInterface
             $this->container = $container;
         } elseif ($container instanceof Environment) {
             $this->twig = $container;
+            @trigger_error(sprintf('Using a "%s" as first argument of %s is deprecated since Symfony 3.4 and will be unsupported in version 4.0. Use a %s instead.', Environment::class, __CLASS__, ContainerInterface::class), \E_USER_DEPRECATED);
         } else {
-            throw new \InvalidArgumentException(sprintf('%s only accepts instance of Symfony\Component\DependencyInjection\ContainerInterface or Environment as first argument.', __CLASS__));
+            throw new \InvalidArgumentException(sprintf('"%s" only accepts instance of Psr\Container\ContainerInterface as first argument.', __CLASS__));
         }
 
         $this->iterator = $iterator;
@@ -72,5 +73,15 @@ class TemplateCacheWarmer implements CacheWarmerInterface
     public function isOptional()
     {
         return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedServices()
+    {
+        return [
+            'twig' => Environment::class,
+        ];
     }
 }

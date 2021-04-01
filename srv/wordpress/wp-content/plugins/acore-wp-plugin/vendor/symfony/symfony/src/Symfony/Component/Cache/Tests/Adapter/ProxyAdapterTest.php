@@ -21,28 +21,27 @@ use Symfony\Component\Cache\CacheItem;
  */
 class ProxyAdapterTest extends AdapterTestCase
 {
-    protected $skippedTests = array(
+    protected $skippedTests = [
         'testDeferredSaveWithoutCommit' => 'Assumes a shared cache which ArrayAdapter is not.',
         'testSaveWithoutExpire' => 'Assumes a shared cache which ArrayAdapter is not.',
-    );
+        'testPrune' => 'ProxyAdapter just proxies',
+    ];
 
     public function createCachePool($defaultLifetime = 0)
     {
         return new ProxyAdapter(new ArrayAdapter(), '', $defaultLifetime);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage OK bar
-     */
     public function testProxyfiedItem()
     {
+        $this->expectException('Exception');
+        $this->expectExceptionMessage('OK bar');
         $item = new CacheItem();
         $pool = new ProxyAdapter(new TestingArrayAdapter($item));
 
         $proxyItem = $pool->getItem('foo');
 
-        $this->assertFalse($proxyItem === $item);
+        $this->assertNotSame($item, $proxyItem);
         $pool->save($proxyItem->set('bar'));
     }
 }

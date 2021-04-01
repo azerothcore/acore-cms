@@ -32,7 +32,7 @@ class ParameterNotFoundException extends InvalidArgumentException
      * @param string[]    $alternatives         Some parameter name alternatives
      * @param string|null $nonNestedAlternative The alternative parameter name when the user expected dot notation for nested parameters
      */
-    public function __construct($key, $sourceId = null, $sourceKey = null, \Exception $previous = null, array $alternatives = array(), $nonNestedAlternative = null)
+    public function __construct($key, $sourceId = null, $sourceKey = null, \Exception $previous = null, array $alternatives = [], $nonNestedAlternative = null)
     {
         $this->key = $key;
         $this->sourceId = $sourceId;
@@ -56,7 +56,7 @@ class ParameterNotFoundException extends InvalidArgumentException
         }
 
         if ($this->alternatives) {
-            if (1 == count($this->alternatives)) {
+            if (1 == \count($this->alternatives)) {
                 $this->message .= ' Did you mean this: "';
             } else {
                 $this->message .= ' Did you mean one of these: "';

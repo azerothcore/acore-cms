@@ -37,25 +37,10 @@ use Symfony\Component\Validator\Validator\RecursiveValidator;
  */
 class ValidatorBuilder implements ValidatorBuilderInterface
 {
-    /**
-     * @var array
-     */
-    private $initializers = array();
-
-    /**
-     * @var array
-     */
-    private $xmlMappings = array();
-
-    /**
-     * @var array
-     */
-    private $yamlMappings = array();
-
-    /**
-     * @var array
-     */
-    private $methodMappings = array();
+    private $initializers = [];
+    private $xmlMappings = [];
+    private $yamlMappings = [];
+    private $methodMappings = [];
 
     /**
      * @var Reader|null
@@ -83,7 +68,7 @@ class ValidatorBuilder implements ValidatorBuilderInterface
     private $translator;
 
     /**
-     * @var null|string
+     * @var string|null
      */
     private $translationDomain;
 
@@ -228,7 +213,7 @@ class ValidatorBuilder implements ValidatorBuilderInterface
      */
     public function setMetadataFactory(MetadataFactoryInterface $metadataFactory)
     {
-        if (count($this->xmlMappings) > 0 || count($this->yamlMappings) > 0 || count($this->methodMappings) > 0 || null !== $this->annotationReader) {
+        if (\count($this->xmlMappings) > 0 || \count($this->yamlMappings) > 0 || \count($this->methodMappings) > 0 || null !== $this->annotationReader) {
             throw new ValidatorException('You cannot set a custom metadata factory after adding custom mappings. You should do either of both.');
         }
 
@@ -286,7 +271,7 @@ class ValidatorBuilder implements ValidatorBuilderInterface
      */
     public function getLoaders()
     {
-        $loaders = array();
+        $loaders = [];
 
         foreach ($this->xmlMappings as $xmlMapping) {
             $loaders[] = new XmlFileLoader($xmlMapping);
@@ -318,9 +303,9 @@ class ValidatorBuilder implements ValidatorBuilderInterface
             $loaders = $this->getLoaders();
             $loader = null;
 
-            if (count($loaders) > 1) {
+            if (\count($loaders) > 1) {
                 $loader = new LoaderChain($loaders);
-            } elseif (1 === count($loaders)) {
+            } elseif (1 === \count($loaders)) {
                 $loader = $loaders[0];
             }
 

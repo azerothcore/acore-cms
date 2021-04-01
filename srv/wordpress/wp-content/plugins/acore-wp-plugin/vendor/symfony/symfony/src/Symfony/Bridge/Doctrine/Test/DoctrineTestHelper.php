@@ -14,8 +14,8 @@ namespace Symfony\Bridge\Doctrine\Test;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\ORM\Configuration;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -28,13 +28,11 @@ class DoctrineTestHelper
     /**
      * Returns an entity manager for testing.
      *
-     * @param Configuration|null $config
-     *
      * @return EntityManager
      */
     public static function createTestEntityManager(Configuration $config = null)
     {
-        if (!extension_loaded('pdo_sqlite')) {
+        if (!\extension_loaded('pdo_sqlite')) {
             TestCase::markTestSkipped('Extension pdo_sqlite is required.');
         }
 
@@ -42,10 +40,10 @@ class DoctrineTestHelper
             $config = self::createTestConfiguration();
         }
 
-        $params = array(
+        $params = [
             'driver' => 'pdo_sqlite',
             'memory' => true,
-        );
+        ];
 
         return EntityManager::create($params, $config);
     }
@@ -56,9 +54,9 @@ class DoctrineTestHelper
     public static function createTestConfiguration()
     {
         $config = new Configuration();
-        $config->setEntityNamespaces(array('SymfonyTestsDoctrine' => 'Symfony\Bridge\Doctrine\Tests\Fixtures'));
+        $config->setEntityNamespaces(['SymfonyTestsDoctrine' => 'Symfony\Bridge\Doctrine\Tests\Fixtures']);
         $config->setAutoGenerateProxyClasses(true);
-        $config->setProxyDir(\sys_get_temp_dir());
+        $config->setProxyDir(sys_get_temp_dir());
         $config->setProxyNamespace('SymfonyTests\Doctrine');
         $config->setMetadataDriverImpl(new AnnotationDriver(new AnnotationReader()));
         $config->setQueryCacheImpl(new ArrayCache());

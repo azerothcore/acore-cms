@@ -19,31 +19,33 @@ use Symfony\Component\Cache\Adapter\PhpArrayAdapter;
  */
 class PhpArrayAdapterWithFallbackTest extends AdapterTestCase
 {
-    protected $skippedTests = array(
+    protected $skippedTests = [
         'testGetItemInvalidKeys' => 'PhpArrayAdapter does not throw exceptions on invalid key.',
         'testGetItemsInvalidKeys' => 'PhpArrayAdapter does not throw exceptions on invalid key.',
         'testHasItemInvalidKeys' => 'PhpArrayAdapter does not throw exceptions on invalid key.',
         'testDeleteItemInvalidKeys' => 'PhpArrayAdapter does not throw exceptions on invalid key.',
         'testDeleteItemsInvalidKeys' => 'PhpArrayAdapter does not throw exceptions on invalid key.',
-        'testDefaultLifeTime' => 'PhpArrayAdapter does not allow configuring a default lifetime.',
-    );
+        'testPrune' => 'PhpArrayAdapter just proxies',
+    ];
 
-    private static $file;
+    protected static $file;
 
-    public static function setupBeforeClass()
+    public static function setUpBeforeClass()
     {
         self::$file = sys_get_temp_dir().'/symfony-cache/php-array-adapter-test.php';
     }
 
     protected function tearDown()
     {
+        $this->createCachePool()->clear();
+
         if (file_exists(sys_get_temp_dir().'/symfony-cache')) {
             FilesystemAdapterTest::rmdir(sys_get_temp_dir().'/symfony-cache');
         }
     }
 
-    public function createCachePool()
+    public function createCachePool($defaultLifetime = 0)
     {
-        return new PhpArrayAdapter(self::$file, new FilesystemAdapter('php-array-fallback'));
+        return new PhpArrayAdapter(self::$file, new FilesystemAdapter('php-array-fallback', $defaultLifetime));
     }
 }

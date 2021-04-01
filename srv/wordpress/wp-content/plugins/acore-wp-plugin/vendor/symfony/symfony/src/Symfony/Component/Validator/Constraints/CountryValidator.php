@@ -29,14 +29,14 @@ class CountryValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Country) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Country');
+            throw new UnexpectedTypeException($constraint, Country::class);
         }
 
         if (null === $value || '' === $value) {
             return;
         }
 
-        if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 

@@ -32,7 +32,7 @@ class GenericMetadata implements MetadataInterface
      *           class' serialized representation. Do not access it. Use
      *           {@link getConstraints()} and {@link findConstraints()} instead.
      */
-    public $constraints = array();
+    public $constraints = [];
 
     /**
      * @var array
@@ -41,7 +41,7 @@ class GenericMetadata implements MetadataInterface
      *           class' serialized representation. Do not access it. Use
      *           {@link findConstraints()} instead.
      */
-    public $constraintsByGroup = array();
+    public $constraintsByGroup = [];
 
     /**
      * The strategy for cascading objects.
@@ -80,12 +80,12 @@ class GenericMetadata implements MetadataInterface
      */
     public function __sleep()
     {
-        return array(
+        return [
             'constraints',
             'constraintsByGroup',
             'cascadingStrategy',
             'traversalStrategy',
-        );
+        ];
     }
 
     /**
@@ -95,8 +95,8 @@ class GenericMetadata implements MetadataInterface
     {
         $constraints = $this->constraints;
 
-        $this->constraints = array();
-        $this->constraintsByGroup = array();
+        $this->constraints = [];
+        $this->constraintsByGroup = [];
 
         foreach ($constraints as $constraint) {
             $this->addConstraint(clone $constraint);
@@ -114,8 +114,6 @@ class GenericMetadata implements MetadataInterface
      *  - {@link TraversalStrategy::IMPLICIT} if $traverse is enabled
      *  - {@link TraversalStrategy::NONE} if $traverse is disabled
      *
-     * @param Constraint $constraint The constraint to add
-     *
      * @return $this
      *
      * @throws ConstraintDefinitionException When trying to add the
@@ -124,14 +122,10 @@ class GenericMetadata implements MetadataInterface
     public function addConstraint(Constraint $constraint)
     {
         if ($constraint instanceof Traverse) {
-            throw new ConstraintDefinitionException(sprintf(
-                'The constraint "%s" can only be put on classes. Please use '.
-                '"Symfony\Component\Validator\Constraints\Valid" instead.',
-                get_class($constraint)
-            ));
+            throw new ConstraintDefinitionException(sprintf('The constraint "%s" can only be put on classes. Please use "Symfony\Component\Validator\Constraints\Valid" instead.', \get_class($constraint)));
         }
 
-        if ($constraint instanceof Valid) {
+        if ($constraint instanceof Valid && null === $constraint->groups) {
             $this->cascadingStrategy = CascadingStrategy::CASCADE;
 
             if ($constraint->traverse) {
@@ -183,7 +177,7 @@ class GenericMetadata implements MetadataInterface
      */
     public function hasConstraints()
     {
-        return count($this->constraints) > 0;
+        return \count($this->constraints) > 0;
     }
 
     /**
@@ -195,7 +189,7 @@ class GenericMetadata implements MetadataInterface
     {
         return isset($this->constraintsByGroup[$group])
             ? $this->constraintsByGroup[$group]
-            : array();
+            : [];
     }
 
     /**

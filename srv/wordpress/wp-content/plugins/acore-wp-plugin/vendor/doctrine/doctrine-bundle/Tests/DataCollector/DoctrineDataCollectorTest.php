@@ -3,6 +3,7 @@
 namespace Doctrine\Bundle\DoctrineBundle\Tests\DataCollector;
 
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -16,6 +17,10 @@ class DoctrineDataCollectorTest extends TestCase
 
     public function testCollectEntities()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $manager   = $this->getMockBuilder('Doctrine\ORM\EntityManager')->disableOriginalConstructor()->getMock();
         $config    = $this->getMockBuilder('Doctrine\ORM\Configuration')->getMock();
         $factory   = $this->getMockBuilder('Doctrine\Common\Persistence\Mapping\AbstractClassMetadataFactory')
@@ -29,11 +34,9 @@ class DoctrineDataCollectorTest extends TestCase
             ->method('getConfiguration')
             ->will($this->returnValue($config));
 
-        if (method_exists($config, 'isSecondLevelCacheEnabled')) {
-            $config->expects($this->once())
-                ->method('isSecondLevelCacheEnabled')
-                ->will($this->returnValue(false));
-        }
+        $config->expects($this->once())
+            ->method('isSecondLevelCacheEnabled')
+            ->will($this->returnValue(false));
 
         $metadatas = [
             $this->createEntityMetadata(self::FIRST_ENTITY),
@@ -58,11 +61,13 @@ class DoctrineDataCollectorTest extends TestCase
         $logger->queries[] = [
             'sql' => 'SELECT * FROM foo WHERE bar = :bar',
             'params' => [':bar' => 1],
+            'types' => null,
             'executionMS' => 32,
         ];
         $logger->queries[] = [
             'sql' => 'SELECT * FROM foo WHERE bar = :bar',
             'params' => [':bar' => 2],
+            'types' => null,
             'executionMS' => 25,
         ];
         $collector         = $this->createCollector([]);
@@ -76,6 +81,7 @@ class DoctrineDataCollectorTest extends TestCase
         $logger->queries[] = [
             'sql' => 'SELECT * FROM bar',
             'params' => [],
+            'types' => null,
             'executionMS' => 25,
         ];
         $collector->collect(new Request(), new Response());
@@ -106,7 +112,7 @@ class DoctrineDataCollectorTest extends TestCase
      */
     private function createCollector(array $managers)
     {
-        $registry = $this->getMockBuilder('Doctrine\Common\Persistence\ManagerRegistry')->getMock();
+        $registry = $this->getMockBuilder('Doctrine\Persistence\ManagerRegistry')->getMock();
         $registry
             ->expects($this->any())
             ->method('getConnectionNames')

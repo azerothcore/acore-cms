@@ -4,16 +4,17 @@ namespace Doctrine\Bundle\DoctrineBundle\Tests\DependencyInjection;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
 use Doctrine\Bundle\DoctrineBundle\Tests\Builder\BundleConfigurationBuilder;
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
+use Doctrine\Common\Persistence\ManagerRegistry as DeprecatedManagerRegistry;
+use Doctrine\Common\Persistence\ObjectManager as DeprecatedObjectManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Connection as DriverConnection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Version;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bridge\Doctrine\Messenger\DoctrineClearEntityManagerWorkerSubscriber;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\DoctrineProvider;
 use Symfony\Component\DependencyInjection\Compiler\ResolveChildDefinitionsPass;
-use Symfony\Component\DependencyInjection\Compiler\ResolveDefinitionTemplatesPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -22,8 +23,17 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 class DoctrineExtensionTest extends TestCase
 {
+    /**
+     * https://github.com/doctrine/orm/pull/7953 needed, otherwise ORM classes we define services for trigger deprecations
+     *
+     * @group legacy
+     */
     public function testAutowiringAlias()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
         $config    = BundleConfigurationBuilder::createBuilderWithBaseValues()->build();
@@ -33,8 +43,9 @@ class DoctrineExtensionTest extends TestCase
         $expectedAliases = [
             DriverConnection::class => 'database_connection',
             Connection::class => 'database_connection',
+            DeprecatedManagerRegistry::class => 'doctrine',
+            DeprecatedObjectManager::class => 'doctrine.orm.entity_manager',
             ManagerRegistry::class => 'doctrine',
-            ObjectManager::class => 'doctrine.orm.entity_manager',
             EntityManagerInterface::class => 'doctrine.orm.entity_manager',
         ];
 
@@ -49,6 +60,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testPublicServicesAndAliases()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
         $config    = BundleConfigurationBuilder::createBuilderWithBaseValues()->build();
@@ -100,6 +115,10 @@ class DoctrineExtensionTest extends TestCase
      */
     public function testOrmRequiresDbal()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $extension = new DoctrineExtension();
 
         $extension->load([['orm' => ['auto_mapping' => true]]], $this->getContainer());
@@ -145,11 +164,11 @@ class DoctrineExtensionTest extends TestCase
      */
     public function testAutomapping(array $entityManagers)
     {
-        $extension = new DoctrineExtension();
-
-        if (! method_exists($extension, 'fixManagersAutoMappings')) {
-            $this->markTestSkipped('Auto mapping with multiple managers available with Symfony ~2.6');
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
         }
+
+        $extension = new DoctrineExtension();
 
         $container = $this->getContainer([
             'YamlBundle',
@@ -242,6 +261,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testDependencyInjectionConfigurationDefaults()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
         $config    = BundleConfigurationBuilder::createBuilderWithBaseValues()->build();
@@ -259,7 +282,7 @@ class DoctrineExtensionTest extends TestCase
         $this->assertEquals('11211', $container->getParameter('doctrine.orm.cache.memcache_port'));
         $this->assertEquals('Memcache', $container->getParameter('doctrine.orm.cache.memcache_instance.class'));
         $this->assertEquals('Doctrine\Common\Cache\XcacheCache', $container->getParameter('doctrine.orm.cache.xcache.class'));
-        $this->assertEquals('Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain', $container->getParameter('doctrine.orm.metadata.driver_chain.class'));
+        $this->assertEquals('Doctrine\Persistence\Mapping\Driver\MappingDriverChain', $container->getParameter('doctrine.orm.metadata.driver_chain.class'));
         $this->assertEquals('Doctrine\ORM\Mapping\Driver\AnnotationDriver', $container->getParameter('doctrine.orm.metadata.annotation.class'));
         $this->assertEquals('Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver', $container->getParameter('doctrine.orm.metadata.xml.class'));
         $this->assertEquals('Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver', $container->getParameter('doctrine.orm.metadata.yml.class'));
@@ -303,12 +326,7 @@ class DoctrineExtensionTest extends TestCase
 
         $definition = $container->getDefinition('doctrine.orm.default_entity_manager');
         $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getClass());
-        if (method_exists($definition, 'getFactory')) {
-            $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
-        } else {
-            $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getFactoryClass());
-            $this->assertEquals('create', $definition->getFactoryMethod());
-        }
+        $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
 
         $this->assertEquals(['default' => 'doctrine.orm.default_entity_manager'], $container->getParameter('doctrine.entity_managers'), 'Set of the existing EntityManagers names is incorrect.');
         $this->assertEquals('%doctrine.entity_managers%', $container->getDefinition('doctrine')->getArgument(2), 'Set of the existing EntityManagers names is incorrect.');
@@ -326,22 +344,30 @@ class DoctrineExtensionTest extends TestCase
         $this->assertEquals('doctrine.orm.default_query_cache', (string) $calls[2][1][0]);
         $this->assertEquals('doctrine.orm.default_result_cache', (string) $calls[3][1][0]);
 
-        if (version_compare(Version::VERSION, '2.3.0-DEV') >= 0) {
-            $this->assertEquals('doctrine.orm.naming_strategy.default', (string) $calls[10][1][0]);
-            $this->assertEquals('doctrine.orm.quote_strategy.default', (string) $calls[11][1][0]);
-        }
-        if (version_compare(Version::VERSION, '2.4.0-DEV') >= 0) {
-            $this->assertEquals('doctrine.orm.default_entity_listener_resolver', (string) $calls[12][1][0]);
-        }
+        $this->assertEquals('doctrine.orm.naming_strategy.default', (string) $calls[10][1][0]);
+        $this->assertEquals('doctrine.orm.quote_strategy.default', (string) $calls[11][1][0]);
+        $this->assertEquals('doctrine.orm.default_entity_listener_resolver', (string) $calls[12][1][0]);
 
         $definition = $container->getDefinition((string) $container->getAlias('doctrine.orm.default_metadata_cache'));
-        $this->assertEquals('%doctrine_cache.array.class%', $definition->getClass());
+        $this->assertEquals(DoctrineProvider::class, $definition->getClass());
+        $arguments = $definition->getArguments();
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertEquals('cache.doctrine.orm.default.metadata', (string) $arguments[0]);
+        $this->assertSame(ArrayAdapter::class, $container->getDefinition((string) $arguments[0])->getClass());
 
         $definition = $container->getDefinition((string) $container->getAlias('doctrine.orm.default_query_cache'));
-        $this->assertEquals('%doctrine_cache.array.class%', $definition->getClass());
+        $this->assertEquals(DoctrineProvider::class, $definition->getClass());
+        $arguments = $definition->getArguments();
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertEquals('cache.doctrine.orm.default.query', (string) $arguments[0]);
+        $this->assertSame(ArrayAdapter::class, $container->getDefinition((string) $arguments[0])->getClass());
 
         $definition = $container->getDefinition((string) $container->getAlias('doctrine.orm.default_result_cache'));
-        $this->assertEquals('%doctrine_cache.array.class%', $definition->getClass());
+        $this->assertEquals(DoctrineProvider::class, $definition->getClass());
+        $arguments = $definition->getArguments();
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertEquals('cache.doctrine.orm.default.result', (string) $arguments[0]);
+        $this->assertSame(ArrayAdapter::class, $container->getDefinition((string) $arguments[0])->getClass());
     }
 
     public function testUseSavePointsAddMethodCallToAddSavepointsToTheConnection()
@@ -349,13 +375,14 @@ class DoctrineExtensionTest extends TestCase
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
-        $extension->load([[
-            'dbal' => [
-                'connections' => [
-                    'default' => ['password' => 'foo', 'use_savepoints' => true],
+        $extension->load([
+            [
+                'dbal' => [
+                    'connections' => [
+                        'default' => ['password' => 'foo', 'use_savepoints' => true],
+                    ],
                 ],
             ],
-        ],
         ], $container);
 
         $calls = $container->getDefinition('doctrine.dbal.default_connection')->getMethodCalls();
@@ -366,6 +393,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testAutoGenerateProxyClasses()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
@@ -385,11 +416,15 @@ class DoctrineExtensionTest extends TestCase
 
         $extension->load([$config], $container);
 
-        $this->assertEquals(AbstractProxyFactory::AUTOGENERATE_EVAL, $container->getParameter('doctrine.orm.auto_generate_proxy_classes'));
+        $this->assertEquals(3 /* \Doctrine\Common\Proxy\AbstractProxyFactory::AUTOGENERATE_EVAL */, $container->getParameter('doctrine.orm.auto_generate_proxy_classes'));
     }
 
     public function testSingleEntityManagerWithDefaultConfiguration()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
@@ -400,12 +435,7 @@ class DoctrineExtensionTest extends TestCase
 
         $definition = $container->getDefinition('doctrine.orm.default_entity_manager');
         $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getClass());
-        if (method_exists($definition, 'getFactory')) {
-            $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
-        } else {
-            $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getFactoryClass());
-            $this->assertEquals('create', $definition->getFactoryMethod());
-        }
+        $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
 
         $this->assertDICConstructorArguments($definition, [
             new Reference('doctrine.dbal.default_connection'),
@@ -415,9 +445,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testSingleEntityManagerWithDefaultSecondLevelCacheConfiguration()
     {
-        if (version_compare(Version::VERSION, '2.5.0-DEV') < 0) {
-            $this->markTestSkipped(sprintf('Second Level cache not supported by this version of the ORM : %s', Version::VERSION));
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
         }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
@@ -430,12 +461,7 @@ class DoctrineExtensionTest extends TestCase
 
         $definition = $container->getDefinition('doctrine.orm.default_entity_manager');
         $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getClass());
-        if (method_exists($definition, 'getFactory')) {
-            $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
-        } else {
-            $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getFactoryClass());
-            $this->assertEquals('create', $definition->getFactoryMethod());
-        }
+        $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
 
         $this->assertDICConstructorArguments($definition, [
             new Reference('doctrine.dbal.default_connection'),
@@ -448,15 +474,16 @@ class DoctrineExtensionTest extends TestCase
 
     public function testSingleEntityManagerWithCustomSecondLevelCacheConfiguration()
     {
-        if (version_compare(Version::VERSION, '2.5.0-DEV') < 0) {
-            $this->markTestSkipped(sprintf('Second Level cache not supported by this version of the ORM : %s', Version::VERSION));
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
         }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
         $configurationArray = BundleConfigurationBuilder::createBuilderWithBaseValues()
             ->addSecondLevelCache([
-                'region_cache_driver' => ['type' => 'memcache'],
+                'region_cache_driver' => ['type' => 'service', 'id' => 'my_cache'],
                 'regions' => [
                     'hour_region' => ['lifetime' => 3600],
                 ],
@@ -469,12 +496,7 @@ class DoctrineExtensionTest extends TestCase
 
         $definition = $container->getDefinition('doctrine.orm.default_entity_manager');
         $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getClass());
-        if (method_exists($definition, 'getFactory')) {
-            $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
-        } else {
-            $this->assertEquals('%doctrine.orm.entity_manager.class%', $definition->getFactoryClass());
-            $this->assertEquals('create', $definition->getFactoryMethod());
-        }
+        $this->assertEquals(['%doctrine.orm.entity_manager.class%', 'create'], $definition->getFactory());
 
         $this->assertDICConstructorArguments($definition, [
             new Reference('doctrine.dbal.default_connection'),
@@ -487,6 +509,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testBundleEntityAliases()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
@@ -506,6 +532,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testOverwriteEntityAliases()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
@@ -525,6 +555,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testYamlBundleMappingDetection()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer('YamlBundle');
         $extension = new DoctrineExtension();
 
@@ -543,6 +577,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testXmlBundleMappingDetection()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer('XmlBundle');
         $extension = new DoctrineExtension();
 
@@ -570,6 +608,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testAnnotationsBundleMappingDetection()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer('AnnotationsBundle');
         $extension = new DoctrineExtension();
 
@@ -597,6 +639,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testOrmMergeConfigs()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer(['XmlBundle', 'AnnotationsBundle']);
         $extension = new DoctrineExtension();
 
@@ -654,6 +700,10 @@ class DoctrineExtensionTest extends TestCase
 
     public function testAnnotationsBundleMappingDetectionWithVendorNamespace()
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer('AnnotationsBundle', 'Vendor');
         $extension = new DoctrineExtension();
 
@@ -688,46 +738,180 @@ class DoctrineExtensionTest extends TestCase
 
         $config = BundleConfigurationBuilder::createBuilder()
             ->addBaseConnection()
-            ->addEntityManager([
-                'default_entity_manager' => 'default',
-                'entity_managers' => [
-                    'default' => [],
-                ],
-            ])
             ->build();
         $extension->load([$config], $container);
 
         $this->assertNotNull($middlewarePrototype = $container->getDefinition('messenger.middleware.doctrine_transaction'));
         $this->assertCount(1, $middlewarePrototype->getArguments());
+        $this->assertNotNull($middlewarePrototype = $container->getDefinition('messenger.middleware.doctrine_ping_connection'));
+        $this->assertCount(1, $middlewarePrototype->getArguments());
+        $this->assertNotNull($middlewarePrototype = $container->getDefinition('messenger.middleware.doctrine_close_connection'));
+        $this->assertCount(1, $middlewarePrototype->getArguments());
+
+        if (class_exists(DoctrineClearEntityManagerWorkerSubscriber::class)) {
+            $this->assertNotNull($subscriber = $container->getDefinition('doctrine.orm.messenger.event_subscriber.doctrine_clear_entity_manager'));
+            $this->assertCount(1, $subscriber->getArguments());
+        } else {
+            $this->assertFalse($container->hasDefinition('doctrine.orm.messenger.event_subscriber.doctrine_clear_entity_manager'));
+        }
     }
 
-    public function testCacheConfiguration()
+    /**
+     * @param array|string $cacheConfig
+     *
+     * @group legacy
+     * @dataProvider deprecatedCacheConfigurationProvider
+     */
+    public function testDeprecatedCacheConfiguration(string $expectedAliasName, string $expectedAliasTarget, string $cacheName, $cacheConfig) : void
     {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
         $container = $this->getContainer();
         $extension = new DoctrineExtension();
 
         $config = BundleConfigurationBuilder::createBuilder()
-             ->addBaseConnection()
-             ->addEntityManager([
-                 'metadata_cache_driver' => ['cache_provider' => 'metadata_cache'],
-                 'query_cache_driver' => ['cache_provider' => 'query_cache'],
-                 'result_cache_driver' => ['cache_provider' => 'result_cache'],
-             ])
+            ->addBaseConnection()
+            ->addEntityManager([$cacheName => $cacheConfig])
             ->build();
 
         $extension->load([$config], $container);
 
-        $this->assertTrue($container->hasAlias('doctrine.orm.default_metadata_cache'));
-        $alias = $container->getAlias('doctrine.orm.default_metadata_cache');
-        $this->assertEquals('doctrine_cache.providers.metadata_cache', (string) $alias);
+        $this->assertTrue($container->hasAlias($expectedAliasName));
+        $alias = $container->getAlias($expectedAliasName);
+        $this->assertEquals($expectedAliasTarget, (string) $alias);
+    }
 
-        $this->assertTrue($container->hasAlias('doctrine.orm.default_query_cache'));
-        $alias = $container->getAlias('doctrine.orm.default_query_cache');
-        $this->assertEquals('doctrine_cache.providers.query_cache', (string) $alias);
+    public static function deprecatedCacheConfigurationProvider() : array
+    {
+        return [
+            'metadata_cache_provider' => [
+                'expectedAliasName' => 'doctrine.orm.default_metadata_cache',
+                'expectedAliasTarget' => 'doctrine_cache.providers.metadata_cache',
+                'cacheName' => 'metadata_cache_driver',
+                'cacheConfig' => ['cache_provider' => 'metadata_cache'],
+            ],
+            'query_cache_provider' => [
+                'expectedAliasName' => 'doctrine.orm.default_query_cache',
+                'expectedAliasTarget' => 'doctrine_cache.providers.query_cache',
+                'cacheName' => 'query_cache_driver',
+                'cacheConfig' => ['cache_provider' => 'query_cache'],
+            ],
+            'result_cache_provider' => [
+                'expectedAliasName' => 'doctrine.orm.default_result_cache',
+                'expectedAliasTarget' => 'doctrine_cache.providers.result_cache',
+                'cacheName' => 'result_cache_driver',
+                'cacheConfig' => ['cache_provider' => 'result_cache'],
+            ],
 
-        $this->assertTrue($container->hasAlias('doctrine.orm.default_result_cache'));
-        $alias = $container->getAlias('doctrine.orm.default_result_cache');
-        $this->assertEquals('doctrine_cache.providers.result_cache', (string) $alias);
+            'metadata_cache_array' => [
+                'expectedAliasName' => 'doctrine.orm.default_metadata_cache',
+                'expectedAliasTarget' => 'doctrine_cache.providers.doctrine.orm.default_metadata_cache',
+                'cacheName' => 'metadata_cache_driver',
+                'cacheConfig' => 'array',
+            ],
+            'query_cache_array' => [
+                'expectedAliasName' => 'doctrine.orm.default_query_cache',
+                'expectedAliasTarget' => 'doctrine_cache.providers.doctrine.orm.default_query_cache',
+                'cacheName' => 'query_cache_driver',
+                'cacheConfig' => 'array',
+            ],
+            'result_cache_array' => [
+                'expectedAliasName' => 'doctrine.orm.default_result_cache',
+                'expectedAliasTarget' => 'doctrine_cache.providers.doctrine.orm.default_result_cache',
+                'cacheName' => 'result_cache_driver',
+                'cacheConfig' => 'array',
+            ],
+        ];
+    }
+
+    /**
+     * @param array|string $cacheConfig
+     *
+     * @dataProvider cacheConfigurationProvider
+     */
+    public function testCacheConfiguration(string $expectedAliasName, string $expectedAliasTarget, string $cacheName, $cacheConfig) : void
+    {
+        if (! interface_exists(EntityManagerInterface::class)) {
+            self::markTestSkipped('This test requires ORM');
+        }
+
+        $container = $this->getContainer();
+        $extension = new DoctrineExtension();
+
+        $config = BundleConfigurationBuilder::createBuilder()
+            ->addBaseConnection()
+            ->addEntityManager([$cacheName => $cacheConfig])
+            ->build();
+
+        $extension->load([$config], $container);
+
+        $this->assertTrue($container->hasAlias($expectedAliasName));
+        $alias = $container->getAlias($expectedAliasName);
+        $this->assertEquals($expectedAliasTarget, (string) $alias);
+    }
+
+    public static function cacheConfigurationProvider() : array
+    {
+        return [
+            'metadata_cache_default' => [
+                'expectedAliasName' => 'doctrine.orm.default_metadata_cache',
+                'expectedAliasTarget' => 'doctrine.orm.cache.provider.cache.doctrine.orm.default.metadata',
+                'cacheName' => 'metadata_cache_driver',
+                'cacheConfig' => ['type' => null],
+            ],
+            'query_cache_default' => [
+                'expectedAliasName' => 'doctrine.orm.default_query_cache',
+                'expectedAliasTarget' => 'doctrine.orm.cache.provider.cache.doctrine.orm.default.query',
+                'cacheName' => 'query_cache_driver',
+                'cacheConfig' => ['type' => null],
+            ],
+            'result_cache_default' => [
+                'expectedAliasName' => 'doctrine.orm.default_result_cache',
+                'expectedAliasTarget' => 'doctrine.orm.cache.provider.cache.doctrine.orm.default.result',
+                'cacheName' => 'result_cache_driver',
+                'cacheConfig' => ['type' => null],
+            ],
+
+            'metadata_cache_pool' => [
+                'expectedAliasName' => 'doctrine.orm.default_metadata_cache',
+                'expectedAliasTarget' => 'doctrine.orm.cache.provider.metadata_cache_pool',
+                'cacheName' => 'metadata_cache_driver',
+                'cacheConfig' => ['type' => 'pool', 'pool' => 'metadata_cache_pool'],
+            ],
+            'query_cache_pool' => [
+                'expectedAliasName' => 'doctrine.orm.default_query_cache',
+                'expectedAliasTarget' => 'doctrine.orm.cache.provider.query_cache_pool',
+                'cacheName' => 'query_cache_driver',
+                'cacheConfig' => ['type' => 'pool', 'pool' => 'query_cache_pool'],
+            ],
+            'result_cache_pool' => [
+                'expectedAliasName' => 'doctrine.orm.default_result_cache',
+                'expectedAliasTarget' => 'doctrine.orm.cache.provider.result_cache_pool',
+                'cacheName' => 'result_cache_driver',
+                'cacheConfig' => ['type' => 'pool', 'pool' => 'result_cache_pool'],
+            ],
+
+            'metadata_cache_service' => [
+                'expectedAliasName' => 'doctrine.orm.default_metadata_cache',
+                'expectedAliasTarget' => 'service_target_metadata',
+                'cacheName' => 'metadata_cache_driver',
+                'cacheConfig' => ['type' => 'service', 'id' => 'service_target_metadata'],
+            ],
+            'query_cache_service' => [
+                'expectedAliasName' => 'doctrine.orm.default_query_cache',
+                'expectedAliasTarget' => 'service_target_query',
+                'cacheName' => 'query_cache_driver',
+                'cacheConfig' => ['type' => 'service', 'id' => 'service_target_query'],
+            ],
+            'result_cache_service' => [
+                'expectedAliasName' => 'doctrine.orm.default_result_cache',
+                'expectedAliasTarget' => 'service_target_result',
+                'cacheName' => 'result_cache_driver',
+                'cacheConfig' => ['type' => 'service', 'id' => 'service_target_result'],
+            ],
+        ];
     }
 
     public function testShardManager()
@@ -765,7 +949,7 @@ class DoctrineExtensionTest extends TestCase
             $map[$bundle] = 'Fixtures\\Bundles\\' . ($vendor ? $vendor . '\\' : '') . $bundle . '\\' . $bundle;
         }
 
-        return new ContainerBuilder(new ParameterBag([
+        $container = new ContainerBuilder(new ParameterBag([
             'kernel.name' => 'app',
             'kernel.debug' => false,
             'kernel.bundles' => $map,
@@ -773,6 +957,13 @@ class DoctrineExtensionTest extends TestCase
             'kernel.environment' => 'test',
             'kernel.root_dir' => __DIR__ . '/../../', // src dir
         ]));
+
+        // Register dummy cache services so we don't have to load the FrameworkExtension
+        $container->setDefinition('cache.system', (new Definition(ArrayAdapter::class))->setPublic(true));
+        $container->setDefinition('cache.app', (new Definition(ArrayAdapter::class))->setPublic(true));
+        $container->setDefinition('my_pool', (new Definition(ArrayAdapter::class))->setPublic(true));
+
+        return $container;
     }
 
     private function assertDICConstructorArguments(Definition $definition, array $args)
@@ -829,7 +1020,7 @@ class DoctrineExtensionTest extends TestCase
 
     private function compileContainer(ContainerBuilder $container)
     {
-        $container->getCompilerPassConfig()->setOptimizationPasses([class_exists(ResolveChildDefinitionsPass::class) ? new ResolveChildDefinitionsPass() : new ResolveDefinitionTemplatesPass()]);
+        $container->getCompilerPassConfig()->setOptimizationPasses([new ResolveChildDefinitionsPass()]);
         $container->getCompilerPassConfig()->setRemovingPasses([]);
         $container->compile();
     }

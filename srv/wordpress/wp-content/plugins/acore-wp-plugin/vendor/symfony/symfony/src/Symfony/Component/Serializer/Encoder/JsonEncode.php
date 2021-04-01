@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Serializer\Encoder;
 
-use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
  * Encodes JSON data.
@@ -21,7 +21,6 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 class JsonEncode implements EncoderInterface
 {
     private $options;
-    private $lastError = JSON_ERROR_NONE;
 
     public function __construct($bitmask = 0)
     {
@@ -33,14 +32,23 @@ class JsonEncode implements EncoderInterface
      *
      * {@inheritdoc}
      */
-    public function encode($data, $format, array $context = array())
+    public function encode($data, $format, array $context = [])
     {
         $context = $this->resolveContext($context);
+        $options = $context['json_encode_options'];
 
-        $encodedJson = json_encode($data, $context['json_encode_options']);
+        try {
+            $encodedJson = json_encode($data, $options);
+        } catch (\JsonException $e) {
+            throw new NotEncodableValueException($e->getMessage(), 0, $e);
+        }
 
-        if (JSON_ERROR_NONE !== $this->lastError = json_last_error()) {
-            throw new UnexpectedValueException(json_last_error_msg());
+        if (\PHP_VERSION_ID >= 70300 && (\JSON_THROW_ON_ERROR & $options)) {
+            return $encodedJson;
+        }
+
+        if (\JSON_ERROR_NONE !== json_last_error() && (false === $encodedJson || !($options & \JSON_PARTIAL_OUTPUT_ON_ERROR))) {
+            throw new NotEncodableValueException(json_last_error_msg());
         }
 
         return $encodedJson;
@@ -57,12 +65,10 @@ class JsonEncode implements EncoderInterface
     /**
      * Merge default json encode options with context.
      *
-     * @param array $context
-     *
      * @return array
      */
-    private function resolveContext(array $context = array())
+    private function resolveContext(array $context = [])
     {
-        return array_merge(array('json_encode_options' => $this->options), $context);
+        return array_merge(['json_encode_options' => $this->options], $context);
     }
 }

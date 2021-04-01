@@ -25,15 +25,15 @@ trait ClassResolverTrait
     /**
      * Gets a class name for a given class or instance.
      *
-     * @param mixed $value
+     * @param object|string $value
      *
      * @return string
      *
-     * @throws InvalidArgumentException If the class does not exists
+     * @throws InvalidArgumentException If the class does not exist
      */
     private function getClass($value)
     {
-        if (is_string($value)) {
+        if (\is_string($value)) {
             if (!class_exists($value) && !interface_exists($value)) {
                 throw new InvalidArgumentException(sprintf('The class or interface "%s" does not exist.', $value));
             }
@@ -41,10 +41,10 @@ trait ClassResolverTrait
             return ltrim($value, '\\');
         }
 
-        if (!is_object($value)) {
-            throw new InvalidArgumentException(sprintf('Cannot create metadata for non-objects. Got: "%s"', gettype($value)));
+        if (!\is_object($value)) {
+            throw new InvalidArgumentException(sprintf('Cannot create metadata for non-objects. Got: "%s".', \gettype($value)));
         }
 
-        return get_class($value);
+        return \get_class($value);
     }
 }

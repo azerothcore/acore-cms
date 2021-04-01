@@ -1,6 +1,24 @@
 CHANGELOG
 =========
 
+3.4.0
+-----
+
+ * added `DebugCommand`
+ * deprecated `ChoiceLoaderInterface` implementation in `TimezoneType`
+ * added options "input" and "regions" to `TimezoneType`
+ * added an option to ``Symfony\Component\Form\FormRendererEngineInterface::setTheme()`` and
+   ``Symfony\Component\Form\FormRendererInterface::setTheme()`` to disable usage of default themes when rendering a form
+
+3.3.0
+-----
+
+ * deprecated using "choices" option in ``CountryType``, ``CurrencyType``, ``LanguageType``, ``LocaleType``, and
+   ``TimezoneType`` when "choice_loader" is not ``null``
+ * added `Symfony\Component\Form\FormErrorIterator::findByCodes()`
+ * added `getTypedExtensions`, `getTypes`, and `getTypeGuessers` to `Symfony\Component\Form\Test\FormIntegrationTestCase`
+ * added `FormPass`
+
 3.2.0
 -----
 
@@ -38,6 +56,11 @@ CHANGELOG
    with the Valid constraint
  * moved data trimming logic of TrimListener into StringUtil
  * [BC BREAK] When registering a type extension through the DI extension, the tag alias has to match the actual extended type.
+
+2.7.38
+------
+
+ * [BC BREAK] the `isFileUpload()` method was added to the `RequestHandlerInterface`
 
 2.7.0
 -----

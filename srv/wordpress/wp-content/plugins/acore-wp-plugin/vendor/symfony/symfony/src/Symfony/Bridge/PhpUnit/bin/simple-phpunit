@@ -11,54 +11,150 @@
  */
 
 // Please update when phpunit needs to be reinstalled with fresh deps:
-// Cache-Id-Version: 2016-10-20 14:00 UTC
+// Cache-Id: 2020-01-31 10:00 UTC
 
 error_reporting(-1);
 
-// PHPUnit 4.8 does not support PHP 7, while 5.1 requires PHP 5.6+
-$PHPUNIT_VERSION = \PHP_VERSION_ID >= 50600 ? getenv('SYMFONY_PHPUNIT_VERSION') ?: '5.4' : '4.8';
+$passthruOrFail = function ($command) {
+    passthru($command, $status);
+
+    if ($status) {
+        exit($status);
+    }
+};
+
+if (PHP_VERSION_ID >= 70200) {
+    // PHPUnit 6 is required for PHP 7.2+
+    $PHPUNIT_VERSION = getenv('SYMFONY_PHPUNIT_VERSION') ?: '6.5';
+} elseif (PHP_VERSION_ID >= 50600) {
+    // PHPUnit 4 does not support PHP 7
+    $PHPUNIT_VERSION = getenv('SYMFONY_PHPUNIT_VERSION') ?: '5.7';
+} else {
+    // PHPUnit 5.1 requires PHP 5.6+
+    $PHPUNIT_VERSION = '4.8';
+}
+
+$COMPOSER_JSON = getenv('COMPOSER') ?: 'composer.json';
+
+$root = __DIR__;
+while (!file_exists($root.'/'.$COMPOSER_JSON) || file_exists($root.'/DeprecationErrorHandler.php')) {
+    if ($root === dirname($root)) {
+        break;
+    }
+    $root = dirname($root);
+}
+
 $oldPwd = getcwd();
-$PHPUNIT_DIR = getenv('SYMFONY_PHPUNIT_DIR') ?: (__DIR__.'/.phpunit');
+$PHPUNIT_DIR = getenv('SYMFONY_PHPUNIT_DIR') ?: ($root.'/vendor/bin/.phpunit');
 $PHP = defined('PHP_BINARY') ? PHP_BINARY : 'php';
 $PHP = escapeshellarg($PHP);
 if ('phpdbg' === PHP_SAPI) {
     $PHP .= ' -qrr';
 }
 
-$COMPOSER = file_exists($COMPOSER = $oldPwd.'/composer.phar') || ($COMPOSER = rtrim('\\' === DIRECTORY_SEPARATOR ? preg_replace('/[\r\n].*/', '', `where.exe composer.phar`) : `which composer.phar`))
-    ? $PHP.' '.escapeshellarg($COMPOSER)
-    : 'composer';
+$defaultEnvs = array(
+    'COMPOSER' => 'composer.json',
+    'COMPOSER_VENDOR_DIR' => 'vendor',
+    'COMPOSER_BIN_DIR' => 'bin',
+);
 
-if (!file_exists("$PHPUNIT_DIR/phpunit-$PHPUNIT_VERSION/phpunit") || md5_file(__FILE__)."\n".getenv('SYMFONY_PHPUNIT_REMOVE') !== @file_get_contents("$PHPUNIT_DIR/.$PHPUNIT_VERSION.md5")) {
+foreach ($defaultEnvs as $envName => $envValue) {
+    if ($envValue !== getenv($envName)) {
+        putenv("$envName=$envValue");
+        $_SERVER[$envName] = $_ENV[$envName] = $envValue;
+    }
+}
+
+if (false === $COMPOSER = \getenv('COMPOSER_BINARY')) {
+    $COMPOSER = file_exists($COMPOSER = $oldPwd.'/composer.phar')
+        || ($COMPOSER = rtrim('\\' === DIRECTORY_SEPARATOR ? preg_replace('/[\r\n].*/', '', `where.exe composer.phar`) : `which composer.phar 2> /dev/null`))
+        || ($COMPOSER = rtrim('\\' === DIRECTORY_SEPARATOR ? preg_replace('/[\r\n].*/', '', `where.exe composer`) : `which composer 2> /dev/null`))
+        ? (file_get_contents($COMPOSER, false, null, 0, 18) === '#!/usr/bin/env php' ? $PHP : '').' '.escapeshellarg($COMPOSER) // detect shell wrappers by looking at the shebang
+        : 'composer';
+}
+
+if (false === $SYMFONY_PHPUNIT_REMOVE = getenv('SYMFONY_PHPUNIT_REMOVE')) {
+    $SYMFONY_PHPUNIT_REMOVE = 'phpspec/prophecy symfony/yaml';
+}
+
+if (!file_exists("$PHPUNIT_DIR/phpunit-$PHPUNIT_VERSION/phpunit") || md5_file(__FILE__)."\n".$SYMFONY_PHPUNIT_REMOVE !== @file_get_contents("$PHPUNIT_DIR/.$PHPUNIT_VERSION.md5")) {
     // Build a standalone phpunit without symfony/yaml nor prophecy by default
 
-    @mkdir($PHPUNIT_DIR);
+    @mkdir($PHPUNIT_DIR, 0777, true);
     chdir($PHPUNIT_DIR);
     if (file_exists("phpunit-$PHPUNIT_VERSION")) {
-        passthru(sprintf('\\' === DIRECTORY_SEPARATOR ? '(del /S /F /Q %s & rmdir %1$s) >nul': 'rm -rf %s', "phpunit-$PHPUNIT_VERSION"));
+        passthru(sprintf('\\' === DIRECTORY_SEPARATOR ? 'rmdir /S /Q %s > NUL': 'rm -rf %s', "phpunit-$PHPUNIT_VERSION.old"));
+        rename("phpunit-$PHPUNIT_VERSION", "phpunit-$PHPUNIT_VERSION.old");
+        passthru(sprintf('\\' === DIRECTORY_SEPARATOR ? 'rmdir /S /Q %s': 'rm -rf %s', "phpunit-$PHPUNIT_VERSION.old"));
     }
-    if (extension_loaded('openssl') && ini_get('allow_url_fopen') && !isset($_SERVER['http_proxy']) && !isset($_SERVER['https_proxy'])) {
-        stream_copy_to_stream(fopen("https://github.com/sebastianbergmann/phpunit/archive/$PHPUNIT_VERSION.zip", 'rb'), fopen("$PHPUNIT_VERSION.zip", 'wb'));
+
+    $info = array();
+    foreach (explode("\n", `$COMPOSER info --no-ansi -a -n phpunit/phpunit "$PHPUNIT_VERSION.*"`) as $line) {
+        $line = rtrim($line);
+
+        if (!$info && preg_match('/^versions +: /', $line)) {
+            $info['versions'] = explode(', ', ltrim(substr($line, 9), ': '));
+        } elseif (isset($info['requires'])) {
+            if ('' === $line) {
+                break;
+            }
+
+            $line = explode(' ', $line, 2);
+            $info['requires'][$line[0]] = $line[1];
+        } elseif ($info && 'requires' === $line) {
+            $info['requires'] = array();
+        }
+    }
+
+    if (in_array('--colors=never', $argv, true) || (isset($argv[$i = array_search('never', $argv, true) - 1]) && '--colors' === $argv[$i])) {
+        $COMPOSER .= ' --no-ansi';
     } else {
-        @unlink("$PHPUNIT_VERSION.zip");
-        passthru("wget https://github.com/sebastianbergmann/phpunit/archive/$PHPUNIT_VERSION.zip");
+        $COMPOSER .= ' --ansi';
     }
-    if (!class_exists('ZipArchive')) {
-        throw new \Exception('simple-phpunit requires the "zip" PHP extension to be installed and enabled in order to uncompress the downloaded PHPUnit packages.');
+
+    $info += array(
+        'versions' => array(),
+        'requires' => array('php' => '*'),
+    );
+
+    $stableVersions = array_filter($info['versions'], function($v) {
+        return !preg_match('/-dev$|^dev-/', $v);
+    });
+
+    if (!$stableVersions) {
+        $passthruOrFail("$COMPOSER create-project --ignore-platform-reqs --no-install --prefer-dist --no-scripts --no-plugins --no-progress -s dev phpunit/phpunit phpunit-$PHPUNIT_VERSION \"$PHPUNIT_VERSION.*\"");
+    } else {
+        $passthruOrFail("$COMPOSER create-project --ignore-platform-reqs --no-install --prefer-dist --no-scripts --no-plugins --no-progress phpunit/phpunit phpunit-$PHPUNIT_VERSION \"$PHPUNIT_VERSION.*\"");
     }
-    $zip = new ZipArchive();
-    $zip->open("$PHPUNIT_VERSION.zip");
-    $zip->extractTo(getcwd());
-    $zip->close();
+
+    @copy("phpunit-$PHPUNIT_VERSION/phpunit.xsd", 'phpunit.xsd');
     chdir("phpunit-$PHPUNIT_VERSION");
-    passthru("$COMPOSER remove --no-update ".(getenv('SYMFONY_PHPUNIT_REMOVE') ?: 'phpspec/prophecy symfony/yaml'));
-    if (5.1 <= $PHPUNIT_VERSION && $PHPUNIT_VERSION < 5.4) {
-        passthru("$COMPOSER require --no-update phpunit/phpunit-mock-objects \"~3.1.0\"");
+    if ($SYMFONY_PHPUNIT_REMOVE) {
+        $passthruOrFail("$COMPOSER remove --no-update ".$SYMFONY_PHPUNIT_REMOVE);
     }
-    passthru("$COMPOSER require --no-update symfony/phpunit-bridge \">=3.2@dev\"");
+    if (5.1 <= $PHPUNIT_VERSION && $PHPUNIT_VERSION < 5.4) {
+        $passthruOrFail("$COMPOSER require --no-update phpunit/phpunit-mock-objects \"~3.1.0\"");
+    }
+
+    if (preg_match('{\^((\d++\.)\d++)[\d\.]*$}', $info['requires']['php'], $phpVersion) && version_compare($phpVersion[2].'99', PHP_VERSION, '<')) {
+        $passthruOrFail("$COMPOSER config platform.php \"$phpVersion[1].99\"");
+    } else {
+        $passthruOrFail("$COMPOSER config --unset platform.php");
+    }
+    if (file_exists($path = $root.'/vendor/symfony/phpunit-bridge')) {
+        $passthruOrFail("$COMPOSER require --no-update symfony/phpunit-bridge \"*@dev\"");
+        $passthruOrFail("$COMPOSER config repositories.phpunit-bridge path ".escapeshellarg(str_replace('/', DIRECTORY_SEPARATOR, $path)));
+        if ('\\' === DIRECTORY_SEPARATOR) {
+            file_put_contents('composer.json', preg_replace('/^( {8})"phpunit-bridge": \{$/m', "$0\n$1    ".'"options": {"symlink": false},', file_get_contents('composer.json')));
+        }
+    } else {
+        $passthruOrFail("$COMPOSER require --no-update symfony/phpunit-bridge \"*\"");
+    }
     $prevRoot = getenv('COMPOSER_ROOT_VERSION');
-    putenv("COMPOSER_ROOT_VERSION=$PHPUNIT_VERSION");
-    $exit = proc_close(proc_open("$COMPOSER install --no-dev --prefer-dist --no-progress --ansi", array(), $p, getcwd(), null, array('bypass_shell' => true)));
+    putenv("COMPOSER_ROOT_VERSION=$PHPUNIT_VERSION.99");
+    $q = '\\' === DIRECTORY_SEPARATOR ? '"' : '';
+    // --no-suggest is not in the list to keep compat with composer 1.0, which is shipped with Ubuntu 16.04LTS
+    $exit = proc_close(proc_open("$q$COMPOSER install --no-dev --prefer-dist --no-progress$q", array(), $p, getcwd()));
     putenv('COMPOSER_ROOT_VERSION'.(false !== $prevRoot ? '='.$prevRoot : ''));
     if ($exit) {
         exit($exit);
@@ -68,14 +164,43 @@ if (!file_exists("$PHPUNIT_DIR/phpunit-$PHPUNIT_VERSION/phpunit") || md5_file(__
 
 define('PHPUNIT_COMPOSER_INSTALL', __DIR__.'/vendor/autoload.php');
 require PHPUNIT_COMPOSER_INSTALL;
+
+if (!class_exists('SymfonyBlacklistPhpunit', false)) {
+    class SymfonyBlacklistPhpunit {}
+}
+if (class_exists('PHPUnit_Util_Blacklist')) {
+    PHPUnit_Util_Blacklist::$blacklistedClassNames['SymfonyBlacklistPhpunit'] = 1;
+    PHPUnit_Util_Blacklist::$blacklistedClassNames['SymfonyBlacklistSimplePhpunit'] = 1;
+} elseif (method_exists('PHPUnit\Util\Blacklist', 'addDirectory')) {
+    eval(" // PHP 5.3 compat
+    (new PHPUnit\Util\BlackList())->getBlacklistedDirectories();
+    PHPUnit\Util\Blacklist::addDirectory(dirname((new ReflectionClass('SymfonyBlacklistPhpunit'))->getFileName()));
+    class_exists('SymfonyBlacklistSimplePhpunit', false) && PHPUnit\Util\Blacklist::addDirectory(dirname((new ReflectionClass('SymfonyBlacklistSimplePhpunit'))->getFileName()));
+    ");
+} else {
+    PHPUnit\Util\Blacklist::$blacklistedClassNames['SymfonyBlacklistPhpunit'] = 1;
+    PHPUnit\Util\Blacklist::$blacklistedClassNames['SymfonyBlacklistSimplePhpunit'] = 1;
+}
+
 Symfony\Bridge\PhpUnit\TextUI\Command::main();
 
 EOPHP
     );
     chdir('..');
-    file_put_contents(".$PHPUNIT_VERSION.md5", md5_file(__FILE__)."\n".getenv('SYMFONY_PHPUNIT_REMOVE'));
+    file_put_contents(".$PHPUNIT_VERSION.md5", md5_file(__FILE__)."\n".$SYMFONY_PHPUNIT_REMOVE);
     chdir($oldPwd);
 
+}
+
+global $argv, $argc;
+$argv = isset($_SERVER['argv']) ? $_SERVER['argv'] : array();
+$argc = isset($_SERVER['argc']) ? $_SERVER['argc'] : 0;
+
+if ($PHPUNIT_VERSION < 8.0) {
+    $argv = array_filter($argv, function ($v) use (&$argc) { if ('--do-not-cache-result' !== $v) return true; --$argc; return false; });
+} elseif (filter_var(getenv('SYMFONY_PHPUNIT_DISABLE_RESULT_CACHE'), FILTER_VALIDATE_BOOLEAN)) {
+    $argv[] = '--do-not-cache-result';
+    ++$argc;
 }
 
 $components = array();
@@ -132,15 +257,6 @@ if ($components) {
         }
     }
 
-    // Fixes for colors support on appveyor
-    // See https://github.com/appveyor/ci/issues/373
-    $colorFixes = array(
-        array("S\033[0m\033[0m\033[36m\033[1mS", "E\033[0m\033[0m\033[31m\033[1mE", "I\033[0m\033[0m\033[33m\033[1mI", "F\033[0m\033[0m\033[41m\033[37mF"),
-        array("SS", "EE", "II", "FF"),
-    );
-    $colorFixes[0] = array_merge($colorFixes[0], $colorFixes[0]);
-    $colorFixes[1] = array_merge($colorFixes[1], $colorFixes[1]);
-
     while ($runningProcs) {
         usleep(300000);
         $terminatedProcs = array();
@@ -156,20 +272,7 @@ if ($components) {
         foreach ($terminatedProcs as $component => $procStatus) {
             foreach (array('out', 'err') as $file) {
                 $file = "$component/phpunit.std$file";
-
-                if ('\\' === DIRECTORY_SEPARATOR) {
-                    $h = fopen($file, 'rb');
-                    while (false !== $line = fgets($h)) {
-                        echo str_replace($colorFixes[0], $colorFixes[1], preg_replace(
-                            '/(\033\[[0-9]++);([0-9]++m)(?:(.)(\033\[0m))?/',
-                            "$1m\033[$2$3$4$4",
-                            $line
-                        ));
-                    }
-                    fclose($h);
-                } else {
-                    readfile($file);
-                }
+                readfile($file);
                 unlink($file);
             }
 
@@ -177,7 +280,7 @@ if ($components) {
             // STATUS_STACK_BUFFER_OVERRUN (-1073740791/0xC0000409)
             // STATUS_ACCESS_VIOLATION (-1073741819/0xC0000005)
             // STATUS_HEAP_CORRUPTION (-1073740940/0xC0000374)
-            if ($procStatus && ('\\' !== DIRECTORY_SEPARATOR || !extension_loaded('apcu') || !ini_get('apc.enable_cli') || !in_array($procStatus, array(-1073740791, -1073741819, -1073740940)))) {
+            if ($procStatus && ('\\' !== DIRECTORY_SEPARATOR || !extension_loaded('apcu') || !filter_var(ini_get('apc.enable_cli'), FILTER_VALIDATE_BOOLEAN) || !in_array($procStatus, array(-1073740791, -1073741819, -1073740940)))) {
                 $exit = $procStatus;
                 echo "\033[41mKO\033[0m $component\n\n";
             } else {
@@ -186,27 +289,13 @@ if ($components) {
         }
     }
 } elseif (!isset($argv[1]) || 'install' !== $argv[1] || file_exists('install')) {
-    // Run regular phpunit in a subprocess
-
-    $errFile = tempnam(sys_get_temp_dir(), 'phpunit.stderr.');
-    if ($proc = proc_open(sprintf($cmd, '', ' 2> '.escapeshellarg($errFile)), array(1 => array('pipe', 'w')), $pipes)) {
-        stream_copy_to_stream($pipes[1], STDOUT);
-        fclose($pipes[1]);
-        $exit = proc_close($proc);
-
-        readfile($errFile);
-        unlink($errFile);
+    if (!class_exists('SymfonyBlacklistSimplePhpunit', false)) {
+        class SymfonyBlacklistSimplePhpunit {}
     }
-
-    if (!file_exists($component = array_pop($argv))) {
-        $component = basename($oldPwd);
-    }
-
-    if ($exit) {
-        echo "\033[41mKO\033[0m $component\n\n";
-    } else {
-        echo "\033[32mOK\033[0m $component\n\n";
-    }
+    array_splice($argv, 1, 0, array('--colors=always'));
+    $_SERVER['argv'] = $argv;
+    $_SERVER['argc'] = ++$argc;
+    include "$PHPUNIT_DIR/phpunit-$PHPUNIT_VERSION/phpunit";
 }
 
 exit($exit);

@@ -30,7 +30,7 @@ class Logger extends BaseLogger implements DebugLoggerInterface
             return $logger->getLogs();
         }
 
-        return array();
+        return [];
     }
 
     /**
@@ -43,6 +43,16 @@ class Logger extends BaseLogger implements DebugLoggerInterface
         }
 
         return 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        if (($logger = $this->getDebugLogger()) && method_exists($logger, 'clear')) {
+            $logger->clear();
+        }
     }
 
     /**
@@ -63,5 +73,7 @@ class Logger extends BaseLogger implements DebugLoggerInterface
                 return $handler;
             }
         }
+
+        return null;
     }
 }

@@ -61,9 +61,22 @@ EOT
 
         $ifExists = $input->getOption('if-exists');
 
-        $params = $connection->getParams();
+        $driverOptions = [];
+        $params        = $connection->getParams();
+
+        if (isset($params['driverOptions'])) {
+            $driverOptions = $params['driverOptions'];
+        }
+
+        // Since doctrine/dbal 2.11 master has been replaced by primary
+        if (isset($params['primary'])) {
+            $params                  = $params['primary'];
+            $params['driverOptions'] = $driverOptions;
+        }
+
         if (isset($params['master'])) {
-            $params = $params['master'];
+            $params                  = $params['master'];
+            $params['driverOptions'] = $driverOptions;
         }
 
         if (isset($params['shards'])) {
@@ -74,7 +87,7 @@ EOT
                 foreach ($shards as $shard) {
                     if ($shard['id'] === (int) $input->getOption('shard')) {
                         // Select sharded database
-                        $params = $shard;
+                        $params = array_merge($params, $shard);
                         unset($params['id']);
                         break;
                     }
@@ -116,6 +129,8 @@ EOT
             } else {
                 $output->writeln(sprintf('<info>Database <comment>%s</comment> for connection named <comment>%s</comment> doesn\'t exist. Skipped.</info>', $name, $connectionName));
             }
+
+            return 0;
         } catch (Exception $e) {
             $output->writeln(sprintf('<error>Could not drop database <comment>%s</comment> for connection named <comment>%s</comment></error>', $name, $connectionName));
             $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));

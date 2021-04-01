@@ -2,29 +2,44 @@
 
 namespace Doctrine\Bundle\DoctrineBundle\Tests\Command;
 
-use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\Bundle\DoctrineBundle\Tests\DependencyInjection\Fixtures\TestKernel;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
-use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Symfony\Component\HttpKernel\Kernel;
 
+/**
+ * @group legacy
+ */
 class ImportMappingDoctrineCommandTest extends TestCase
 {
-    /** @var Kernel|null */
+    /** @var TestKernel|null */
     private $kernel;
 
     /** @var CommandTester|null */
     private $commandTester;
 
+    public static function setUpBeforeClass()
+    {
+        if (interface_exists(EntityManagerInterface::class)) {
+            return;
+        }
+
+        self::markTestSkipped('This test requires ORM');
+    }
+
     protected function setup()
     {
-        $this->kernel = new ImportMappingTestingKernel();
+        $this->kernel = new class() extends TestKernel {
+            public function registerBundles() : iterable
+            {
+                yield from parent::registerBundles();
+                yield new ImportMappingTestFooBundle();
+            }
+        };
+
         $this->kernel->boot();
 
         $connection = $this->kernel->getContainer()
@@ -83,10 +98,10 @@ class ImportMappingDoctrineCommandTest extends TestCase
     {
         $this->commandTester->execute([
             'name' => 'Some\Namespace\Entity',
-            '--path' => $this->kernel->getRootDir() . '/config/doctrine',
+            '--path' => $this->kernel->getProjectDir() . '/config/doctrine',
         ]);
 
-        $expectedMetadataPath = $this->kernel->getRootDir() . '/config/doctrine/Product.orm.xml';
+        $expectedMetadataPath = $this->kernel->getProjectDir() . '/config/doctrine/Product.orm.xml';
         $this->assertFileExists($expectedMetadataPath);
         $this->assertContains('"Some\Namespace\Entity\Product"', file_get_contents($expectedMetadataPath), 'Metadata contains correct namespace');
     }
@@ -95,63 +110,19 @@ class ImportMappingDoctrineCommandTest extends TestCase
     {
         $this->commandTester->execute([
             'name' => 'Some\Namespace\Entity',
-            '--path' => $this->kernel->getRootDir() . '/src/Entity',
+            '--path' => $this->kernel->getProjectDir() . '/src/Entity',
             'mapping-type' => 'annotation',
         ]);
 
-        $expectedMetadataPath = $this->kernel->getRootDir() . '/src/Entity/Product.php';
+        $expectedMetadataPath = $this->kernel->getProjectDir() . '/src/Entity/Product.php';
         $this->assertFileExists($expectedMetadataPath);
         $this->assertContains('namespace Some\Namespace\Entity;', file_get_contents($expectedMetadataPath), 'Metadata contains correct namespace');
     }
 }
 
-class ImportMappingTestingKernel extends Kernel
-{
-    public function __construct()
-    {
-        parent::__construct('test', true);
-    }
-
-    public function registerBundles()
-    {
-        return [
-            new FrameworkBundle(),
-            new DoctrineBundle(),
-            new ImportMappingTestFooBundle(),
-        ];
-    }
-
-    public function registerContainerConfiguration(LoaderInterface $loader)
-    {
-        $loader->load(function (ContainerBuilder $container) {
-            $container->loadFromExtension('framework', ['secret' => 'F00']);
-
-            $container->loadFromExtension('doctrine', [
-                'dbal' => [
-                    'driver' => 'pdo_sqlite',
-                    'path' => $this->getCacheDir() . '/testing.db',
-                ],
-                'orm' => [],
-            ]);
-
-            // Register a NullLogger to avoid getting the stderr default logger of FrameworkBundle
-            $container->register('logger', NullLogger::class);
-        });
-    }
-
-    public function getRootDir()
-    {
-        if ($this->rootDir === null) {
-            $this->rootDir = sys_get_temp_dir() . '/sf_kernel_' . md5(mt_rand());
-        }
-
-        return $this->rootDir;
-    }
-}
-
 class ImportMappingTestFooBundle extends Bundle
 {
-    public function getPath()
+    public function getPath() : string
     {
         return sys_get_temp_dir() . '/import_mapping_bundle';
     }

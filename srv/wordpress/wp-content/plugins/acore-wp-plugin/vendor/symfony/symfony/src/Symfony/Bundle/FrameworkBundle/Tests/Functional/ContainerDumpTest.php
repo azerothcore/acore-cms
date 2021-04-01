@@ -14,18 +14,18 @@ namespace Symfony\Bundle\FrameworkBundle\Tests\Functional;
 /**
  * Checks that the container compiles correctly when all the bundle features are enabled.
  */
-class ContainerDumpTest extends WebTestCase
+class ContainerDumpTest extends AbstractWebTestCase
 {
     public function testContainerCompilationInDebug()
     {
-        $client = $this->createClient(array('test_case' => 'ContainerDump', 'root_config' => 'config.yml'));
+        $client = $this->createClient(['test_case' => 'ContainerDump', 'root_config' => 'config.yml']);
 
         $this->assertTrue($client->getContainer()->has('serializer'));
     }
 
     public function testContainerCompilation()
     {
-        $client = $this->createClient(array('test_case' => 'ContainerDump', 'root_config' => 'config.yml', 'debug' => false));
+        $client = $this->createClient(['test_case' => 'ContainerDump', 'root_config' => 'config.yml', 'debug' => false]);
 
         $this->assertTrue($client->getContainer()->has('serializer'));
     }

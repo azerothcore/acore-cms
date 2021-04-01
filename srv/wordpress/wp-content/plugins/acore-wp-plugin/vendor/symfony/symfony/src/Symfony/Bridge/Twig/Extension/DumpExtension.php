@@ -32,19 +32,19 @@ class DumpExtension extends AbstractExtension
     public function __construct(ClonerInterface $cloner, HtmlDumper $dumper = null)
     {
         $this->cloner = $cloner;
-        $this->dumper = $dumper ?: new HtmlDumper();
+        $this->dumper = $dumper;
     }
 
     public function getFunctions()
     {
-        return array(
-            new TwigFunction('dump', array($this, 'dump'), array('is_safe' => array('html'), 'needs_context' => true, 'needs_environment' => true)),
-        );
+        return [
+            new TwigFunction('dump', [$this, 'dump'], ['is_safe' => ['html'], 'needs_context' => true, 'needs_environment' => true]),
+        ];
     }
 
     public function getTokenParsers()
     {
-        return array(new DumpTokenParser());
+        return [new DumpTokenParser()];
     }
 
     public function getName()
@@ -55,24 +55,25 @@ class DumpExtension extends AbstractExtension
     public function dump(Environment $env, $context)
     {
         if (!$env->isDebug()) {
-            return;
+            return null;
         }
 
-        if (2 === func_num_args()) {
-            $vars = array();
+        if (2 === \func_num_args()) {
+            $vars = [];
             foreach ($context as $key => $value) {
                 if (!$value instanceof Template) {
                     $vars[$key] = $value;
                 }
             }
 
-            $vars = array($vars);
+            $vars = [$vars];
         } else {
-            $vars = func_get_args();
+            $vars = \func_get_args();
             unset($vars[0], $vars[1]);
         }
 
         $dump = fopen('php://memory', 'r+b');
+        $this->dumper = $this->dumper ?: new HtmlDumper();
         $this->dumper->setCharset($env->getCharset());
 
         foreach ($vars as $value) {

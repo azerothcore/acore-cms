@@ -12,10 +12,10 @@
 namespace Symfony\Bundle\FrameworkBundle\Tests\Routing;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 use Symfony\Bundle\FrameworkBundle\Routing\RedirectableUrlMatcher;
 use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 
 class RedirectableUrlMatcherTest extends TestCase
 {
@@ -25,32 +25,28 @@ class RedirectableUrlMatcherTest extends TestCase
         $coll->add('foo', new Route('/foo/'));
 
         $matcher = new RedirectableUrlMatcher($coll, $context = new RequestContext());
-        $parameters = $matcher->match('/foo');
-        if ('foo' === $parameters['_route']) {
-            $parameters['_route'] = null; // FC with behavior on 3.4
-        }
 
-        $this->assertEquals(array(
+        $this->assertEquals([
                 '_controller' => 'Symfony\Bundle\FrameworkBundle\Controller\RedirectController::urlRedirectAction',
                 'path' => '/foo/',
                 'permanent' => true,
                 'scheme' => null,
                 'httpPort' => $context->getHttpPort(),
                 'httpsPort' => $context->getHttpsPort(),
-                '_route' => null,
-            ),
-            $parameters
+                '_route' => 'foo',
+            ],
+            $matcher->match('/foo')
         );
     }
 
     public function testSchemeRedirect()
     {
         $coll = new RouteCollection();
-        $coll->add('foo', new Route('/foo', array(), array(), array(), '', array('https')));
+        $coll->add('foo', new Route('/foo', [], [], [], '', ['https']));
 
         $matcher = new RedirectableUrlMatcher($coll, $context = new RequestContext());
 
-        $this->assertEquals(array(
+        $this->assertEquals([
                 '_controller' => 'Symfony\Bundle\FrameworkBundle\Controller\RedirectController::urlRedirectAction',
                 'path' => '/foo',
                 'permanent' => true,
@@ -58,7 +54,7 @@ class RedirectableUrlMatcherTest extends TestCase
                 'httpPort' => $context->getHttpPort(),
                 'httpsPort' => $context->getHttpsPort(),
                 '_route' => 'foo',
-            ),
+            ],
             $matcher->match('/foo')
         );
     }

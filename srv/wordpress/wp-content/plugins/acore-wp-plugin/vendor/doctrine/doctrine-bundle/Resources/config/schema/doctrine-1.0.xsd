@@ -36,6 +36,7 @@
         <xsd:attribute name="schema-filter" type="xsd:string" />
         <xsd:attribute name="logging" type="xsd:string" default="false" />
         <xsd:attribute name="profiling" type="xsd:string" default="false" />
+        <xsd:attribute name="profiling-collect-backtrace" type="xsd:string" default="false" />
         <xsd:attribute name="server-version" type="xsd:string" />
         <xsd:attribute name="use-savepoints" type="xsd:boolean" />
         <xsd:attributeGroup ref="driver-config" />
@@ -93,11 +94,11 @@
     </xsd:complexType>
 
     <xsd:complexType name="option">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
+        <xsd:complexContent>
+            <xsd:extension base="xsd:anyType">
                 <xsd:attribute name="key" type="xsd:string" use="required" />
             </xsd:extension>
-        </xsd:simpleContent>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="connection">
@@ -164,6 +165,7 @@
 
         <xsd:attribute name="type" type="xsd:string" />
         <xsd:attribute name="id" type="xsd:string" />
+        <xsd:attribute name="pool" type="xsd:string" />
         <xsd:attribute name="namespace" type="xsd:string" />
     </xsd:complexType>
 

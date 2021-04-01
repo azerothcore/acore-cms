@@ -21,7 +21,6 @@ class RunSqlDoctrineCommand extends RunSqlCommand
 
         $this
             ->setName('doctrine:query:sql')
-            ->addOption('connection', null, InputOption::VALUE_OPTIONAL, 'The connection to use for this command')
             ->setHelp(<<<EOT
 The <info>%command.name%</info> command executes the given SQL query and
 outputs the results:
@@ -29,6 +28,12 @@ outputs the results:
 <info>php %command.full_name% "SELECT * FROM users"</info>
 EOT
         );
+
+        if ($this->getDefinition()->hasOption('connection')) {
+            return;
+        }
+
+        $this->addOption('connection', null, InputOption::VALUE_OPTIONAL, 'The connection to use for this command');
     }
 
     /**
@@ -37,6 +42,10 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         DoctrineCommandHelper::setApplicationConnection($this->getApplication(), $input->getOption('connection'));
+
+        // compatibility with doctrine/dbal 2.11+
+        // where this option is also present and unsupported before we are not switching to use a ConnectionProvider
+        $input->setOption('connection', null);
 
         return parent::execute($input, $output);
     }

@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "ADP": [
             "ADP",
@@ -221,6 +220,10 @@
             "CLP",
             "chilensk peso"
         ],
+        "CNH": [
+            "CNH",
+            "kinesisk yuan (offshore)"
+        ],
         "CNY": [
             "CN¥",
             "kinesisk yuan"
@@ -399,7 +402,7 @@
         ],
         "HKD": [
             "HK$",
-            "Hongkong dollar"
+            "hongkongsk dollar"
         ],
         "HNL": [
             "HNL",
@@ -599,6 +602,10 @@
         ],
         "MRO": [
             "MRO",
+            "mauritansk ouguiya (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "mauritansk ouguiya"
         ],
         "MTL": [
@@ -691,7 +698,7 @@
         ],
         "PEN": [
             "PEN",
-            "peruviansk sol"
+            "peruansk sol"
         ],
         "PES": [
             "PES",
@@ -819,6 +826,10 @@
         ],
         "STD": [
             "STD",
+            "dobra fra Sao Tome og Principe (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "dobra fra Sao Tome og Principe"
         ],
         "SUR": [
@@ -906,7 +917,7 @@
             "ugandisk shilling"
         ],
         "USD": [
-            "$",
+            "US$",
             "amerikansk dollar"
         ],
         "USN": [
@@ -935,6 +946,10 @@
         ],
         "VEF": [
             "VEF",
+            "venezuelansk bolivar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "venezuelansk bolivar"
         ],
         "VND": [

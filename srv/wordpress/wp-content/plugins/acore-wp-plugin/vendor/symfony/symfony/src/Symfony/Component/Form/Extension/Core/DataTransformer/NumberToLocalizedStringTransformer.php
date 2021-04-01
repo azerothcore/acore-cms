@@ -78,6 +78,11 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
 
     private $scale;
 
+    /**
+     * @param int|null  $scale
+     * @param bool|null $grouping
+     * @param int|null  $roundingMode
+     */
     public function __construct($scale = null, $grouping = false, $roundingMode = self::ROUND_HALF_UP)
     {
         if (null === $grouping) {
@@ -100,8 +105,8 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
      *
      * @return string Localized value
      *
-     * @throws TransformationFailedException If the given value is not numeric
-     *                                       or if the value can not be transformed.
+     * @throws TransformationFailedException if the given value is not numeric
+     *                                       or if the value can not be transformed
      */
     public function transform($value)
     {
@@ -120,8 +125,8 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
             throw new TransformationFailedException($formatter->getErrorMessage());
         }
 
-        // Convert fixed spaces to normal ones
-        $value = str_replace("\xc2\xa0", ' ', $value);
+        // Convert non-breaking and narrow non-breaking spaces to normal ones
+        $value = str_replace(["\xc2\xa0", "\xe2\x80\xaf"], ' ', $value);
 
         return $value;
     }
@@ -133,21 +138,21 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
      *
      * @return int|float The numeric value
      *
-     * @throws TransformationFailedException If the given value is not a string
-     *                                       or if the value can not be transformed.
+     * @throws TransformationFailedException if the given value is not a string
+     *                                       or if the value can not be transformed
      */
     public function reverseTransform($value)
     {
-        if (!is_string($value)) {
+        if (null !== $value && !\is_string($value)) {
             throw new TransformationFailedException('Expected a string.');
         }
 
-        if ('' === $value) {
-            return;
+        if (null === $value || '' === $value) {
+            return null;
         }
 
-        if ('NaN' === $value) {
-            throw new TransformationFailedException('"NaN" is not a valid number');
+        if (\in_array($value, ['NaN', 'NAN', 'nan'], true)) {
+            throw new TransformationFailedException('"NaN" is not a valid number.');
         }
 
         $position = 0;
@@ -166,7 +171,7 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
         if (false !== strpos($value, $decSep)) {
             $type = \NumberFormatter::TYPE_DOUBLE;
         } else {
-            $type = PHP_INT_SIZE === 8
+            $type = \PHP_INT_SIZE === 8
                 ? \NumberFormatter::TYPE_INT64
                 : \NumberFormatter::TYPE_INT32;
         }
@@ -177,19 +182,17 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
             throw new TransformationFailedException($formatter->getErrorMessage());
         }
 
-        if ($result >= PHP_INT_MAX || $result <= -PHP_INT_MAX) {
-            throw new TransformationFailedException('I don\'t have a clear idea what infinity looks like');
+        if ($result >= \PHP_INT_MAX || $result <= -\PHP_INT_MAX) {
+            throw new TransformationFailedException('I don\'t have a clear idea what infinity looks like.');
         }
 
-        if (is_int($result) && $result === (int) $float = (float) $result) {
-            $result = $float;
-        }
+        $result = $this->castParsedValue($result);
 
         if (false !== $encoding = mb_detect_encoding($value, null, true)) {
             $length = mb_strlen($value, $encoding);
             $remainder = mb_substr($value, $position, $length, $encoding);
         } else {
-            $length = strlen($value);
+            $length = \strlen($value);
             $remainder = substr($value, $position, $length);
         }
 
@@ -201,9 +204,7 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
             $remainder = trim($remainder, " \t\n\r\0\x0b\xc2\xa0");
 
             if ('' !== $remainder) {
-                throw new TransformationFailedException(
-                    sprintf('The number contains unrecognized characters: "%s"', $remainder)
-                );
+                throw new TransformationFailedException(sprintf('The number contains unrecognized characters: "%s".', $remainder));
             }
         }
 
@@ -228,6 +229,18 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
         $formatter->setAttribute(\NumberFormatter::GROUPING_USED, $this->grouping);
 
         return $formatter;
+    }
+
+    /**
+     * @internal
+     */
+    protected function castParsedValue($value)
+    {
+        if (\is_int($value) && $value === (int) $float = (float) $value) {
+            return $float;
+        }
+
+        return $value;
     }
 
     /**
@@ -259,17 +272,17 @@ class NumberToLocalizedStringTransformer implements DataTransformerInterface
                     $number = $number > 0 ? floor($number) : ceil($number);
                     break;
                 case self::ROUND_HALF_EVEN:
-                    $number = round($number, 0, PHP_ROUND_HALF_EVEN);
+                    $number = round($number, 0, \PHP_ROUND_HALF_EVEN);
                     break;
                 case self::ROUND_HALF_UP:
-                    $number = round($number, 0, PHP_ROUND_HALF_UP);
+                    $number = round($number, 0, \PHP_ROUND_HALF_UP);
                     break;
                 case self::ROUND_HALF_DOWN:
-                    $number = round($number, 0, PHP_ROUND_HALF_DOWN);
+                    $number = round($number, 0, \PHP_ROUND_HALF_DOWN);
                     break;
             }
 
-            $number /= $roundingCoef;
+            $number = 1 === $roundingCoef ? (int) $number : $number / $roundingCoef;
         }
 
         return $number;

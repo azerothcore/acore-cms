@@ -29,9 +29,10 @@ class PdoCasterTest extends TestCase
     public function testCastPdo()
     {
         $pdo = new \PDO('sqlite::memory:');
-        $pdo->setAttribute(\PDO::ATTR_STATEMENT_CLASS, array('PDOStatement', array($pdo)));
+        $pdo->setAttribute(\PDO::ATTR_STATEMENT_CLASS, ['PDOStatement', [$pdo]]);
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $cast = PdoCaster::castPdo($pdo, array(), new Stub(), false);
+        $cast = PdoCaster::castPdo($pdo, [], new Stub(), false);
 
         $this->assertInstanceOf('Symfony\Component\VarDumper\Caster\EnumStub', $cast["\0~\0attributes"]);
 
@@ -45,7 +46,7 @@ array:2 [
   "\x00~\x00inTransaction" => false
   "\x00~\x00attributes" => array:9 [
     "CASE" => NATURAL
-    "ERRMODE" => SILENT
+    "ERRMODE" => EXCEPTION
     "PERSISTENT" => false
     "DRIVER_NAME" => "sqlite"
     "ORACLE_NULLS" => NATURAL

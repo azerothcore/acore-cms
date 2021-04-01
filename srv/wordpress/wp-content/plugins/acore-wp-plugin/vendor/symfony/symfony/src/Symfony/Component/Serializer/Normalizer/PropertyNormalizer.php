@@ -30,12 +30,14 @@ namespace Symfony\Component\Serializer\Normalizer;
  */
 class PropertyNormalizer extends AbstractObjectNormalizer
 {
+    private $cache = [];
+
     /**
      * {@inheritdoc}
      */
     public function supportsNormalization($data, $format = null)
     {
-        return parent::supportsNormalization($data, $format) && $this->supports(get_class($data));
+        return parent::supportsNormalization($data, $format) && (isset($this->cache[$type = \get_class($data)]) ? $this->cache[$type] : $this->cache[$type] = $this->supports($type));
     }
 
     /**
@@ -43,7 +45,7 @@ class PropertyNormalizer extends AbstractObjectNormalizer
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
-        return parent::supportsDenormalization($data, $type, $format) && $this->supports($type);
+        return parent::supportsDenormalization($data, $type, $format) && (isset($this->cache[$type]) ? $this->cache[$type] : $this->cache[$type] = $this->supports($type));
     }
 
     /**
@@ -58,11 +60,13 @@ class PropertyNormalizer extends AbstractObjectNormalizer
         $class = new \ReflectionClass($class);
 
         // We look for at least one non-static property
-        foreach ($class->getProperties() as $property) {
-            if (!$property->isStatic()) {
-                return true;
+        do {
+            foreach ($class->getProperties() as $property) {
+                if (!$property->isStatic()) {
+                    return true;
+                }
             }
-        }
+        } while ($class = $class->getParentClass());
 
         return false;
     }
@@ -70,14 +74,14 @@ class PropertyNormalizer extends AbstractObjectNormalizer
     /**
      * {@inheritdoc}
      */
-    protected function isAllowedAttribute($classOrObject, $attribute, $format = null, array $context = array())
+    protected function isAllowedAttribute($classOrObject, $attribute, $format = null, array $context = [])
     {
         if (!parent::isAllowedAttribute($classOrObject, $attribute, $format, $context)) {
             return false;
         }
 
         try {
-            $reflectionProperty = new \ReflectionProperty(is_string($classOrObject) ? $classOrObject : get_class($classOrObject), $attribute);
+            $reflectionProperty = $this->getReflectionProperty($classOrObject, $attribute);
             if ($reflectionProperty->isStatic()) {
                 return false;
             }
@@ -91,18 +95,31 @@ class PropertyNormalizer extends AbstractObjectNormalizer
     /**
      * {@inheritdoc}
      */
-    protected function extractAttributes($object, $format = null, array $context = array())
+    protected function extractAttributes($object, $format = null, array $context = [])
     {
         $reflectionObject = new \ReflectionObject($object);
-        $attributes = array();
+        $attributes = [];
+        $checkPropertyInitialization = \PHP_VERSION_ID >= 70400;
 
-        foreach ($reflectionObject->getProperties() as $property) {
-            if (!$this->isAllowedAttribute($object, $property->name)) {
-                continue;
+        do {
+            foreach ($reflectionObject->getProperties() as $property) {
+                if ($checkPropertyInitialization) {
+                    if (!$property->isPublic()) {
+                        $property->setAccessible(true);
+                    }
+
+                    if (!$property->isInitialized($object)) {
+                        continue;
+                    }
+                }
+
+                if (!$this->isAllowedAttribute($reflectionObject->getName(), $property->name, $format, $context)) {
+                    continue;
+                }
+
+                $attributes[] = $property->name;
             }
-
-            $attributes[] = $property->name;
-        }
+        } while ($reflectionObject = $reflectionObject->getParentClass());
 
         return $attributes;
     }
@@ -110,12 +127,12 @@ class PropertyNormalizer extends AbstractObjectNormalizer
     /**
      * {@inheritdoc}
      */
-    protected function getAttributeValue($object, $attribute, $format = null, array $context = array())
+    protected function getAttributeValue($object, $attribute, $format = null, array $context = [])
     {
         try {
-            $reflectionProperty = new \ReflectionProperty(get_class($object), $attribute);
+            $reflectionProperty = $this->getReflectionProperty($object, $attribute);
         } catch (\ReflectionException $reflectionException) {
-            return;
+            return null;
         }
 
         // Override visibility
@@ -129,10 +146,10 @@ class PropertyNormalizer extends AbstractObjectNormalizer
     /**
      * {@inheritdoc}
      */
-    protected function setAttributeValue($object, $attribute, $value, $format = null, array $context = array())
+    protected function setAttributeValue($object, $attribute, $value, $format = null, array $context = [])
     {
         try {
-            $reflectionProperty = new \ReflectionProperty(get_class($object), $attribute);
+            $reflectionProperty = $this->getReflectionProperty($object, $attribute);
         } catch (\ReflectionException $reflectionException) {
             return;
         }
@@ -147,5 +164,27 @@ class PropertyNormalizer extends AbstractObjectNormalizer
         }
 
         $reflectionProperty->setValue($object, $value);
+    }
+
+    /**
+     * @param string|object $classOrObject
+     * @param string        $attribute
+     *
+     * @return \ReflectionProperty
+     *
+     * @throws \ReflectionException
+     */
+    private function getReflectionProperty($classOrObject, $attribute)
+    {
+        $reflectionClass = new \ReflectionClass($classOrObject);
+        while (true) {
+            try {
+                return $reflectionClass->getProperty($attribute);
+            } catch (\ReflectionException $e) {
+                if (!$reflectionClass = $reflectionClass->getParentClass()) {
+                    throw $e;
+                }
+            }
+        }
     }
 }

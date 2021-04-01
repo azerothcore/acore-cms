@@ -23,6 +23,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Inflector\Inflector;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use ReflectionClass;
 use const E_USER_DEPRECATED;
 use function str_replace;
 use function trigger_error;
@@ -505,11 +506,13 @@ public function __construct(<params>)
     /**
      * Sets the class fields visibility for the entity (can either be private or protected).
      *
-     * @param bool $visibility
+     * @param string $visibility
      *
      * @return void
      *
      * @throws \InvalidArgumentException
+     *
+     * @psalm-param self::FIELD_VISIBLE_*
      */
     public function setFieldVisibility($visibility)
     {
@@ -920,9 +923,11 @@ public function __construct(<params>)
     /**
      * @param ClassMetadataInfo $metadata
      *
-     * @return array
+     * @return ReflectionClass[]
      *
      * @throws \ReflectionException
+     *
+     * @psalm-return array<trait-string, ReflectionClass>
      */
     protected function getTraits(ClassMetadataInfo $metadata)
     {
@@ -1153,7 +1158,7 @@ public function __construct(<params>)
     /**
      * @param ClassMetadataInfo $metadata
      *
-     * @return string
+     * @return string|null
      */
     protected function generateDiscriminatorMapAnnotation(ClassMetadataInfo $metadata)
     {

@@ -17,7 +17,7 @@ use Symfony\Component\Workflow\Marking;
 /**
  * GraphvizDumper dumps a workflow as a graphviz file.
  *
- * You can convert the generated dot file with the dot utility (http://www.graphviz.org/):
+ * You can convert the generated dot file with the dot utility (https://graphviz.org/):
  *
  *   dot -Tpng workflow.dot > workflow.png
  *
@@ -26,11 +26,12 @@ use Symfony\Component\Workflow\Marking;
  */
 class GraphvizDumper implements DumperInterface
 {
-    protected static $defaultOptions = array(
-        'graph' => array('ratio' => 'compress', 'rankdir' => 'LR'),
-        'node' => array('fontsize' => 9, 'fontname' => 'Arial', 'color' => '#333333', 'fillcolor' => 'lightblue', 'fixedsize' => true, 'width' => 1),
-        'edge' => array('fontsize' => 9, 'fontname' => 'Arial', 'color' => '#333333', 'arrowhead' => 'normal', 'arrowsize' => 0.5),
-    );
+    // All values should be strings
+    protected static $defaultOptions = [
+        'graph' => ['ratio' => 'compress', 'rankdir' => 'LR'],
+        'node' => ['fontsize' => '9', 'fontname' => 'Arial', 'color' => '#333333', 'fillcolor' => 'lightblue', 'fixedsize' => '1', 'width' => '1'],
+        'edge' => ['fontsize' => '9', 'fontname' => 'Arial', 'color' => '#333333', 'arrowhead' => 'normal', 'arrowsize' => '0.5'],
+    ];
 
     /**
      * {@inheritdoc}
@@ -43,7 +44,7 @@ class GraphvizDumper implements DumperInterface
      *  * node: The default options for nodes (places + transitions)
      *  * edge: The default options for edges
      */
-    public function dump(Definition $definition, Marking $marking = null, array $options = array())
+    public function dump(Definition $definition, Marking $marking = null, array $options = [])
     {
         $places = $this->findPlaces($definition, $marking);
         $transitions = $this->findTransitions($definition);
@@ -63,10 +64,10 @@ class GraphvizDumper implements DumperInterface
      */
     protected function findPlaces(Definition $definition, Marking $marking = null)
     {
-        $places = array();
+        $places = [];
 
         foreach ($definition->getPlaces() as $place) {
-            $attributes = array();
+            $attributes = [];
             if ($place === $definition->getInitialPlace()) {
                 $attributes['style'] = 'filled';
             }
@@ -74,9 +75,9 @@ class GraphvizDumper implements DumperInterface
                 $attributes['color'] = '#FF0000';
                 $attributes['shape'] = 'doublecircle';
             }
-            $places[$place] = array(
+            $places[$place] = [
                 'attributes' => $attributes,
-            );
+            ];
         }
 
         return $places;
@@ -87,13 +88,13 @@ class GraphvizDumper implements DumperInterface
      */
     protected function findTransitions(Definition $definition)
     {
-        $transitions = array();
+        $transitions = [];
 
         foreach ($definition->getTransitions() as $transition) {
-            $transitions[] = array(
-                'attributes' => array('shape' => 'box', 'regular' => true),
+            $transitions[] = [
+                'attributes' => ['shape' => 'box', 'regular' => true],
                 'name' => $transition->getName(),
-            );
+            ];
         }
 
         return $transitions;
@@ -120,8 +121,8 @@ class GraphvizDumper implements DumperInterface
     {
         $code = '';
 
-        foreach ($transitions as $place) {
-            $code .= sprintf("  transition_%s [label=\"%s\", shape=box%s];\n", $this->dotize($place['name']), $place['name'], $this->addAttributes($place['attributes']));
+        foreach ($transitions as $i => $place) {
+            $code .= sprintf("  transition_%d [label=\"%s\", shape=box%s];\n", $this->dotize($i), $place['name'], $this->addAttributes($place['attributes']));
         }
 
         return $code;
@@ -132,22 +133,24 @@ class GraphvizDumper implements DumperInterface
      */
     protected function findEdges(Definition $definition)
     {
-        $dotEdges = array();
+        $dotEdges = [];
 
-        foreach ($definition->getTransitions() as $transition) {
+        foreach ($definition->getTransitions() as $i => $transition) {
             foreach ($transition->getFroms() as $from) {
-                $dotEdges[] = array(
+                $dotEdges[] = [
                     'from' => $from,
                     'to' => $transition->getName(),
                     'direction' => 'from',
-                );
+                    'transition_number' => $i,
+                ];
             }
             foreach ($transition->getTos() as $to) {
-                $dotEdges[] = array(
+                $dotEdges[] = [
                     'from' => $transition->getName(),
                     'to' => $to,
                     'direction' => 'to',
-                );
+                    'transition_number' => $i,
+                ];
             }
         }
 
@@ -162,12 +165,17 @@ class GraphvizDumper implements DumperInterface
         $code = '';
 
         foreach ($edges as $edge) {
-            $code .= sprintf("  %s_%s -> %s_%s [style=\"solid\"];\n",
-                'from' === $edge['direction'] ? 'place' : 'transition',
-                $this->dotize($edge['from']),
-                'from' === $edge['direction'] ? 'transition' : 'place',
-                $this->dotize($edge['to'])
-            );
+            if ('from' === $edge['direction']) {
+                $code .= sprintf("  place_%s -> transition_%d [style=\"solid\"];\n",
+                    $this->dotize($edge['from']),
+                    $this->dotize($edge['transition_number'])
+                );
+            } else {
+                $code .= sprintf("  transition_%d -> place_%s [style=\"solid\"];\n",
+                    $this->dotize($edge['transition_number']),
+                    $this->dotize($edge['to'])
+                );
+            }
         }
 
         return $code;
@@ -203,7 +211,7 @@ class GraphvizDumper implements DumperInterface
 
     private function addAttributes(array $attributes)
     {
-        $code = array();
+        $code = [];
 
         foreach ($attributes as $k => $v) {
             $code[] = sprintf('%s="%s"', $k, $v);
@@ -214,7 +222,7 @@ class GraphvizDumper implements DumperInterface
 
     private function addOptions(array $options)
     {
-        $code = array();
+        $code = [];
 
         foreach ($options as $k => $v) {
             $code[] = sprintf('%s="%s"', $k, $v);

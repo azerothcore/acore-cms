@@ -12,12 +12,10 @@ class WorkflowValidatorTest extends TestCase
 {
     use WorkflowBuilderTrait;
 
-    /**
-     * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
-     * @expectedExceptionMessage The marking store of workflow "foo" can not store many places.
-     */
     public function testSinglePlaceWorkflowValidatorAndComplexWorkflow()
     {
+        $this->expectException('Symfony\Component\Workflow\Exception\InvalidDefinitionException');
+        $this->expectExceptionMessage('The marking store of workflow "foo" can not store many places.');
         $definition = $this->createComplexWorkflowDefinition();
 
         (new WorkflowValidator(true))->validate($definition, 'foo');
@@ -29,19 +27,17 @@ class WorkflowValidatorTest extends TestCase
 
         (new WorkflowValidator(true))->validate($definition, 'foo');
 
-        // the test simply ensures that the validation does not fail (i.e. it does not throw any exceptions)
+        // the test ensures that the validation does not fail (i.e. it does not throw any exceptions)
         $this->addToAssertionCount(1);
     }
 
-    /**
-     * @expectedException \Symfony\Component\Workflow\Exception\InvalidDefinitionException
-     * @expectedExceptionMessage All transitions for a place must have an unique name. Multiple transitions named "t1" where found for place "a" in workflow "foo".
-     */
     public function testWorkflowWithInvalidNames()
     {
+        $this->expectException('Symfony\Component\Workflow\Exception\InvalidDefinitionException');
+        $this->expectExceptionMessage('All transitions for a place must have an unique name. Multiple transitions named "t1" where found for place "a" in workflow "foo".');
         $places = range('a', 'c');
 
-        $transitions = array();
+        $transitions = [];
         $transitions[] = new Transition('t0', 'c', 'b');
         $transitions[] = new Transition('t1', 'a', 'b');
         $transitions[] = new Transition('t1', 'a', 'c');
@@ -55,7 +51,7 @@ class WorkflowValidatorTest extends TestCase
     {
         $places = range('a', 'd');
 
-        $transitions = array();
+        $transitions = [];
         $transitions[] = new Transition('t1', 'a', 'b');
         $transitions[] = new Transition('t1', 'b', 'c');
         $transitions[] = new Transition('t1', 'd', 'c');
@@ -64,7 +60,7 @@ class WorkflowValidatorTest extends TestCase
 
         (new WorkflowValidator())->validate($definition, 'foo');
 
-        // the test simply ensures that the validation does not fail (i.e. it does not throw any exceptions)
+        // the test ensures that the validation does not fail (i.e. it does not throw any exceptions)
         $this->addToAssertionCount(1);
     }
 }

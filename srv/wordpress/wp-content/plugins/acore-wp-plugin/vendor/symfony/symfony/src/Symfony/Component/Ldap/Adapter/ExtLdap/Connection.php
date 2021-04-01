@@ -107,6 +107,10 @@ class Connection extends AbstractConnection
                 $value['referrals'] = $options['referrals'];
             }
 
+            if (!isset($value['network_timeout'])) {
+                $value['network_timeout'] = ini_get('default_socket_timeout');
+            }
+
             return $value;
         });
 
@@ -134,18 +138,18 @@ class Connection extends AbstractConnection
         }
 
         if (false === $this->connection) {
-            throw new LdapException(sprintf('Could not connect to Ldap server: %s', ldap_error($this->connection)));
+            throw new LdapException('Could not connect to Ldap server: '.ldap_error($this->connection));
         }
 
-        if ('tls' === $this->config['encryption'] && false === ldap_start_tls($this->connection)) {
-            throw new LdapException(sprintf('Could not initiate TLS connection: %s', ldap_error($this->connection)));
+        if ('tls' === $this->config['encryption'] && false === @ldap_start_tls($this->connection)) {
+            throw new LdapException('Could not initiate TLS connection: '.ldap_error($this->connection));
         }
     }
 
     private function disconnect()
     {
-        if ($this->connection && is_resource($this->connection)) {
-            ldap_close($this->connection);
+        if ($this->connection && \is_resource($this->connection)) {
+            ldap_unbind($this->connection);
         }
 
         $this->connection = null;

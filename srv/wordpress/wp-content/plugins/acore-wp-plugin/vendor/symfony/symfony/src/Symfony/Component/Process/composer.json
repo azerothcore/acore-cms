@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9"
+        "php": "^5.5.9|>=7.0.8"
     },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Process\\": "" },
@@ -24,10 +24,5 @@
             "/Tests/"
         ]
     },
-    "minimum-stability": "dev",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.2-dev"
-        }
-    }
+    "minimum-stability": "dev"
 }

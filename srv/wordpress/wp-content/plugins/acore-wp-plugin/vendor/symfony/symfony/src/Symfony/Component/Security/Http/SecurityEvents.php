@@ -14,12 +14,13 @@ namespace Symfony\Component\Security\Http;
 final class SecurityEvents
 {
     /**
-     * The INTERACTIVE_LOGIN event occurs after a user is logged in
-     * interactively for authentication based on http, cookies or X509.
+     * The INTERACTIVE_LOGIN event occurs after a user has actively logged
+     * into your website. It is important to distinguish this action from
+     * non-interactive authentication methods, such as:
+     *   - authentication based on your session.
+     *   - authentication using a HTTP basic or HTTP digest header.
      *
      * @Event("Symfony\Component\Security\Http\Event\InteractiveLoginEvent")
-     *
-     * @var string
      */
     const INTERACTIVE_LOGIN = 'security.interactive_login';
 
@@ -28,8 +29,6 @@ final class SecurityEvents
      * before exit from an already switched user.
      *
      * @Event("Symfony\Component\Security\Http\Event\SwitchUserEvent")
-     *
-     * @var string
      */
     const SWITCH_USER = 'security.switch_user';
 }

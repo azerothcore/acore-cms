@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.73",
     "Names": {
         "ADP": [
             "ADP",
@@ -225,6 +224,10 @@
             "CLP",
             "Čileanski pezos"
         ],
+        "CNH": [
+            "CNH",
+            "Kineski juan (ostrvski)"
+        ],
         "CNY": [
             "CN¥",
             "Kineski juan"
@@ -279,7 +282,7 @@
         ],
         "DJF": [
             "DJF",
-            "Džibutanski franak"
+            "Džibutski franak"
         ],
         "DKK": [
             "DKK",
@@ -619,7 +622,11 @@
         ],
         "MRO": [
             "MRO",
-            "Mauritanijska ogija"
+            "Mauritanijska ogija (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
+            "Mauritanska ogija"
         ],
         "MTL": [
             "MTL",
@@ -759,11 +766,11 @@
         ],
         "ROL": [
             "ROL",
-            "Rumunski lej"
+            "Rumunski lej (1952–2006)"
         ],
         "RON": [
             "RON",
-            "Rumunski lej (1952–2006)"
+            "Rumunski lej"
         ],
         "RSD": [
             "RSD",
@@ -815,7 +822,7 @@
         ],
         "SHP": [
             "SHP",
-            "Sv. jelenska funta"
+            "Svete Jelene funta"
         ],
         "SIT": [
             "SIT",
@@ -847,6 +854,10 @@
         ],
         "STD": [
             "STD",
+            "Saotomska dobra (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Saotomska dobra"
         ],
         "SUR": [
@@ -967,6 +978,10 @@
         ],
         "VEF": [
             "VEF",
+            "Venecuelanski bolivar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Venecuelanski bolivar"
         ],
         "VND": [

@@ -12,7 +12,6 @@ cache:
   - C:\tools\php -> .appveyor.yml
   - C:\tools\cacert -> .appveyor.yml
   - C:\tools\composer -> .appveyor.yml
-  - C:\tools\ocular -> .appveyor.yml
   - '%LOCALAPPDATA%\Composer\files -> composer.json'
 
 ## Build matrix for lowest and highest possible targets
@@ -21,26 +20,22 @@ environment:
   - db: mssql
     driver: sqlsrv
     db_version: sql2008r2sp2
-    coverage: yes
     php: 7.3
   - db: mssql
     driver: sqlsrv
     db_version: sql2012sp1
     php: 7.3
-    coverage: yes
   - db: mssql
     driver: sqlsrv
     db_version: sql2017
-    coverage: no
     php: 7.3
   - db: mssql
     driver: pdo_sqlsrv
     db_version: sql2017
     php: 7.3
-    coverage: yes
 
 init:
-  - SET PATH=C:\Program Files\OpenSSL;c:\tools\php;C:\tools\composer;C:\tools\ocular;%PATH%
+  - SET PATH=C:\Program Files\OpenSSL;c:\tools\php;C:\tools\composer;%PATH%
   - SET COMPOSER_NO_INTERACTION=1
   - SET ANSICON=121x90 (121x90)
 
@@ -79,15 +74,14 @@ install:
           $destination = "c:\tools\php\ext\php_pdo_sqlsrv-$($DLLVersion)-$($env:php)-nts-vc15-x64.zip"
           Invoke-WebRequest $source -OutFile $destination
           7z x -y php_pdo_sqlsrv-$($DLLVersion)-$($env:php)-nts-vc15-x64.zip > $null
-          $DLLVersion = (Invoke-WebRequest "https://pecl.php.net/rest/r/xdebug/stable.txt").Content
-          $source = "https://xdebug.org/files/php_xdebug-$($DLLVersion)-$($env:php)-vc15-nts-x86_64.dll"
-          $destination = "c:\tools\php\ext\php_xdebug.dll"
-          Invoke-WebRequest $source -OutFile $destination
+          $DLLVersion = (Invoke-WebRequest "https://pecl.php.net/rest/r/pcov/stable.txt").Content
+          Invoke-WebRequest https://windows.php.net/downloads/pecl/releases/pcov/$($DLLVersion)/php_pcov-$($DLLVersion)-7.3-nts-vc15-$($env:platform).zip -OutFile pcov.zip
+          7z x -y pcov.zip > $null
           Remove-Item c:\tools\php\* -include .zip
           cd c:\tools\php
           Add-Content php.ini "`nextension=php_sqlsrv.dll"
           Add-Content php.ini "`nextension=php_pdo_sqlsrv.dll"
-          Add-Content php.ini "`nzend_extension=php_xdebug.dll"
+          Add-Content php.ini "`nextension=php_pcov.dll"
           Add-Content php.ini "`n"
 
           # download Composer
@@ -97,15 +91,6 @@ install:
           if (!(Test-Path c:\tools\composer\composer.phar)) {
             appveyor-retry appveyor DownloadFile https://getcomposer.org/composer.phar -Filename C:\tools\composer\composer.phar
             Set-Content -path 'C:\tools\composer\composer.bat' -Value ('@php C:\tools\composer\composer.phar %*')
-          }
-
-          # download Scrutinizer's Ocular
-          if (!(Test-Path C:\tools\ocular)) {
-            New-Item -path c:\tools -name ocular -itemtype directory
-          }
-          if (!(Test-Path c:\tools\ocular\ocular.phar)) {
-            appveyor-retry appveyor DownloadFile https://github.com/scrutinizer-ci/ocular/releases/download/1.5.2/ocular.phar -Filename C:\tools\ocular\ocular.phar
-            Set-Content -path 'C:\tools\ocular\ocular.bat' -Value ('@php C:\tools\ocular\ocular.phar %*')
           }
 
           # download CA bundle
@@ -137,18 +122,12 @@ test_script:
         $env:phpunit_config = "tests\appveyor\$($env:db).$($env:driver).appveyor.xml"
       }
 
-      if ($env:coverage -eq "yes") {
-        vendor\bin\phpunit -c $($env:phpunit_config) --coverage-clover clover.xml
-      } else {
-        vendor\bin\phpunit -c $($env:phpunit_config)
-      }
+      vendor\bin\phpunit -c $($env:phpunit_config) --coverage-clover clover.xml
 
       if ($LastExitCode -ne 0) {
         $host.SetShouldExit($LastExitCode)
       }
 
 after_test:
-  - ps: >-
-      if ($env:coverage -eq "yes") {
-        appveyor-retry ocular code-coverage:upload --format=php-clover clover.xml
-      }
+  - appveyor DownloadFile https://codecov.io/bash -FileName codecov.sh
+  - bash codecov.sh -f clover.xml

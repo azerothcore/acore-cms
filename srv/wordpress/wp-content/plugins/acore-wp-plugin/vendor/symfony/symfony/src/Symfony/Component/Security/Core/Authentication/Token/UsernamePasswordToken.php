@@ -11,7 +11,8 @@
 
 namespace Symfony\Component\Security\Core\Authentication\Token;
 
-use Symfony\Component\Security\Core\Role\RoleInterface;
+use Symfony\Component\Security\Core\Role\Role;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * UsernamePasswordToken implements a username and password token.
@@ -24,16 +25,14 @@ class UsernamePasswordToken extends AbstractToken
     private $providerKey;
 
     /**
-     * Constructor.
-     *
-     * @param string|object            $user        The username (like a nickname, email address, etc.), or a UserInterface instance or an object implementing a __toString method
-     * @param mixed                    $credentials This usually is the password of the user
-     * @param string                   $providerKey The provider key
-     * @param (RoleInterface|string)[] $roles       An array of roles
+     * @param string|\Stringable|UserInterface $user        The username (like a nickname, email address, etc.) or a UserInterface instance
+     * @param mixed                            $credentials
+     * @param string                           $providerKey
+     * @param (Role|string)[]                  $roles
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($user, $credentials, $providerKey, array $roles = array())
+    public function __construct($user, $credentials, $providerKey, array $roles = [])
     {
         parent::__construct($roles);
 
@@ -45,7 +44,7 @@ class UsernamePasswordToken extends AbstractToken
         $this->credentials = $credentials;
         $this->providerKey = $providerKey;
 
-        parent::setAuthenticated(count($roles) > 0);
+        parent::setAuthenticated(\count($roles) > 0);
     }
 
     /**
@@ -93,7 +92,9 @@ class UsernamePasswordToken extends AbstractToken
      */
     public function serialize()
     {
-        return serialize(array($this->credentials, $this->providerKey, parent::serialize()));
+        $serialized = [$this->credentials, $this->providerKey, parent::serialize(true)];
+
+        return $this->doSerialize($serialized, \func_num_args() ? func_get_arg(0) : null);
     }
 
     /**
@@ -101,7 +102,7 @@ class UsernamePasswordToken extends AbstractToken
      */
     public function unserialize($serialized)
     {
-        list($this->credentials, $this->providerKey, $parentStr) = unserialize($serialized);
+        list($this->credentials, $this->providerKey, $parentStr) = \is_array($serialized) ? $serialized : unserialize($serialized);
         parent::unserialize($parentStr);
     }
 }

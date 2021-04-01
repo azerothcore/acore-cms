@@ -11,48 +11,47 @@
 
 namespace Symfony\Bundle\SecurityBundle\DataCollector;
 
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
+use Symfony\Bundle\SecurityBundle\Debug\TraceableFirewallListener;
+use Symfony\Bundle\SecurityBundle\Security\FirewallMap;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
-use Symfony\Component\Security\Core\Role\RoleInterface;
-use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
-use Symfony\Component\Security\Core\Authorization\DebugAccessDecisionManager;
-use Symfony\Component\VarDumper\Cloner\Data;
+use Symfony\Component\Security\Core\Authorization\TraceableAccessDecisionManager;
+use Symfony\Component\Security\Core\Role\Role;
+use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
+use Symfony\Component\Security\Core\Role\RoleInterface;
+use Symfony\Component\Security\Core\Role\SwitchUserRole;
+use Symfony\Component\Security\Http\Firewall\SwitchUserListener;
 use Symfony\Component\Security\Http\FirewallMapInterface;
-use Symfony\Bundle\SecurityBundle\Security\FirewallMap;
+use Symfony\Component\Security\Http\Logout\LogoutUrlGenerator;
+use Symfony\Component\VarDumper\Caster\ClassStub;
+use Symfony\Component\VarDumper\Cloner\Data;
 
 /**
- * SecurityDataCollector.
- *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class SecurityDataCollector extends DataCollector
+class SecurityDataCollector extends DataCollector implements LateDataCollectorInterface
 {
     private $tokenStorage;
     private $roleHierarchy;
     private $logoutUrlGenerator;
     private $accessDecisionManager;
     private $firewallMap;
+    private $firewall;
+    private $hasVarDumper;
 
-    /**
-     * Constructor.
-     *
-     * @param TokenStorageInterface|null          $tokenStorage
-     * @param RoleHierarchyInterface|null         $roleHierarchy
-     * @param LogoutUrlGenerator|null             $logoutUrlGenerator
-     * @param AccessDecisionManagerInterface|null $accessDecisionManager
-     * @param FirewallMapInterface|null           $firewallMap
-     */
-    public function __construct(TokenStorageInterface $tokenStorage = null, RoleHierarchyInterface $roleHierarchy = null, LogoutUrlGenerator $logoutUrlGenerator = null, AccessDecisionManagerInterface $accessDecisionManager = null, FirewallMapInterface $firewallMap = null)
+    public function __construct(TokenStorageInterface $tokenStorage = null, RoleHierarchyInterface $roleHierarchy = null, LogoutUrlGenerator $logoutUrlGenerator = null, AccessDecisionManagerInterface $accessDecisionManager = null, FirewallMapInterface $firewallMap = null, TraceableFirewallListener $firewall = null)
     {
         $this->tokenStorage = $tokenStorage;
         $this->roleHierarchy = $roleHierarchy;
         $this->logoutUrlGenerator = $logoutUrlGenerator;
         $this->accessDecisionManager = $accessDecisionManager;
         $this->firewallMap = $firewallMap;
+        $this->firewall = $firewall;
+        $this->hasVarDumper = class_exists(ClassStub::class);
     }
 
     /**
@@ -61,37 +60,51 @@ class SecurityDataCollector extends DataCollector
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
         if (null === $this->tokenStorage) {
-            $this->data = array(
+            $this->data = [
                 'enabled' => false,
                 'authenticated' => false,
+                'impersonated' => false,
+                'impersonator_user' => null,
+                'impersonation_exit_path' => null,
                 'token' => null,
                 'token_class' => null,
                 'logout_url' => null,
                 'user' => '',
-                'roles' => array(),
-                'inherited_roles' => array(),
+                'roles' => [],
+                'inherited_roles' => [],
                 'supports_role_hierarchy' => null !== $this->roleHierarchy,
-            );
+            ];
         } elseif (null === $token = $this->tokenStorage->getToken()) {
-            $this->data = array(
+            $this->data = [
                 'enabled' => true,
                 'authenticated' => false,
+                'impersonated' => false,
+                'impersonator_user' => null,
+                'impersonation_exit_path' => null,
                 'token' => null,
                 'token_class' => null,
                 'logout_url' => null,
                 'user' => '',
-                'roles' => array(),
-                'inherited_roles' => array(),
+                'roles' => [],
+                'inherited_roles' => [],
                 'supports_role_hierarchy' => null !== $this->roleHierarchy,
-            );
+            ];
         } else {
-            $inheritedRoles = array();
+            $inheritedRoles = [];
             $assignedRoles = $token->getRoles();
+
+            $impersonatorUser = null;
+            foreach ($assignedRoles as $role) {
+                if ($role instanceof SwitchUserRole) {
+                    $impersonatorUser = $role->getSource()->getUsername();
+                    break;
+                }
+            }
 
             if (null !== $this->roleHierarchy) {
                 $allRoles = $this->roleHierarchy->getReachableRoles($assignedRoles);
                 foreach ($allRoles as $role) {
-                    if (!in_array($role, $assignedRoles, true)) {
+                    if (!\in_array($role, $assignedRoles, true)) {
                         $inheritedRoles[] = $role;
                     }
                 }
@@ -106,36 +119,42 @@ class SecurityDataCollector extends DataCollector
                 // fail silently when the logout URL cannot be generated
             }
 
-            $this->data = array(
+            $extractRoles = function ($role) {
+                if (!$role instanceof RoleInterface && !$role instanceof Role) {
+                    throw new \InvalidArgumentException(sprintf('Roles must be instances of "%s" or "%s" ("%s" given).', RoleInterface::class, Role::class, \is_object($role) ? \get_class($role) : \gettype($role)));
+                }
+
+                return $role->getRole();
+            };
+
+            $this->data = [
                 'enabled' => true,
                 'authenticated' => $token->isAuthenticated(),
-                'token' => $this->cloneVar($token),
-                'token_class' => get_class($token),
+                'impersonated' => null !== $impersonatorUser,
+                'impersonator_user' => $impersonatorUser,
+                'impersonation_exit_path' => null,
+                'token' => $token,
+                'token_class' => $this->hasVarDumper ? new ClassStub(\get_class($token)) : \get_class($token),
                 'logout_url' => $logoutUrl,
                 'user' => $token->getUsername(),
-                'roles' => $this->cloneVar(array_map(function (RoleInterface $role) { return $role->getRole(); }, $assignedRoles)),
-                'inherited_roles' => $this->cloneVar(array_unique(array_map(function (RoleInterface $role) { return $role->getRole(); }, $inheritedRoles))),
+                'roles' => array_map($extractRoles, $assignedRoles),
+                'inherited_roles' => array_unique(array_map($extractRoles, $inheritedRoles)),
                 'supports_role_hierarchy' => null !== $this->roleHierarchy,
-            );
+            ];
         }
 
         // collect voters and access decision manager information
-        if ($this->accessDecisionManager instanceof DebugAccessDecisionManager) {
-            $this->data['access_decision_log'] = array_map(function ($decision) {
-                $decision['object'] = $this->cloneVar($decision['object']);
-
-                return $decision;
-            }, $this->accessDecisionManager->getDecisionLog());
-
+        if ($this->accessDecisionManager instanceof TraceableAccessDecisionManager) {
+            $this->data['access_decision_log'] = $this->accessDecisionManager->getDecisionLog();
             $this->data['voter_strategy'] = $this->accessDecisionManager->getStrategy();
 
             foreach ($this->accessDecisionManager->getVoters() as $voter) {
-                $this->data['voters'][] = get_class($voter);
+                $this->data['voters'][] = $this->hasVarDumper ? new ClassStub(\get_class($voter)) : \get_class($voter);
             }
         } else {
-            $this->data['access_decision_log'] = array();
+            $this->data['access_decision_log'] = [];
             $this->data['voter_strategy'] = 'unknown';
-            $this->data['voters'] = array();
+            $this->data['voters'] = [];
         }
 
         // collect firewall context information
@@ -143,7 +162,7 @@ class SecurityDataCollector extends DataCollector
         if ($this->firewallMap instanceof FirewallMap) {
             $firewallConfig = $this->firewallMap->getFirewallConfig($request);
             if (null !== $firewallConfig) {
-                $this->data['firewall'] = array(
+                $this->data['firewall'] = [
                     'name' => $firewallConfig->getName(),
                     'allows_anonymous' => $firewallConfig->allowsAnonymous(),
                     'request_matcher' => $firewallConfig->getRequestMatcher(),
@@ -155,10 +174,38 @@ class SecurityDataCollector extends DataCollector
                     'access_denied_handler' => $firewallConfig->getAccessDeniedHandler(),
                     'access_denied_url' => $firewallConfig->getAccessDeniedUrl(),
                     'user_checker' => $firewallConfig->getUserChecker(),
-                    'listeners' => $this->cloneVar($firewallConfig->getListeners()),
-                );
+                    'listeners' => $firewallConfig->getListeners(),
+                ];
+
+                // generate exit impersonation path from current request
+                if ($this->data['impersonated'] && null !== $switchUserConfig = $firewallConfig->getSwitchUser()) {
+                    $exitPath = $request->getRequestUri();
+                    $exitPath .= null === $request->getQueryString() ? '?' : '&';
+                    $exitPath .= sprintf('%s=%s', urlencode($switchUserConfig['parameter']), SwitchUserListener::EXIT_VALUE);
+
+                    $this->data['impersonation_exit_path'] = $exitPath;
+                }
             }
         }
+
+        // collect firewall listeners information
+        $this->data['listeners'] = [];
+        if ($this->firewall) {
+            $this->data['listeners'] = $this->firewall->getWrappedListeners();
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reset()
+    {
+        $this->data = [];
+    }
+
+    public function lateCollect()
+    {
+        $this->data = $this->cloneVar($this->data);
     }
 
     /**
@@ -184,7 +231,7 @@ class SecurityDataCollector extends DataCollector
     /**
      * Gets the roles of the user.
      *
-     * @return array The roles
+     * @return array|Data
      */
     public function getRoles()
     {
@@ -194,7 +241,7 @@ class SecurityDataCollector extends DataCollector
     /**
      * Gets the inherited roles of the user.
      *
-     * @return array The inherited roles
+     * @return array|Data
      */
     public function getInheritedRoles()
     {
@@ -223,9 +270,33 @@ class SecurityDataCollector extends DataCollector
     }
 
     /**
+     * @return bool
+     */
+    public function isImpersonated()
+    {
+        return $this->data['impersonated'];
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getImpersonatorUser()
+    {
+        return $this->data['impersonator_user'];
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getImpersonationExitPath()
+    {
+        return $this->data['impersonation_exit_path'];
+    }
+
+    /**
      * Get the class name of the security token.
      *
-     * @return string The token
+     * @return string|Data|null The token
      */
     public function getTokenClass()
     {
@@ -235,7 +306,7 @@ class SecurityDataCollector extends DataCollector
     /**
      * Get the full security token class as Data object.
      *
-     * @return Data
+     * @return Data|null
      */
     public function getToken()
     {
@@ -243,9 +314,9 @@ class SecurityDataCollector extends DataCollector
     }
 
     /**
-     * Get the provider key (i.e. the name of the active firewall).
+     * Get the logout URL.
      *
-     * @return string The provider key
+     * @return string|null The logout URL
      */
     public function getLogoutUrl()
     {
@@ -255,7 +326,7 @@ class SecurityDataCollector extends DataCollector
     /**
      * Returns the FQCN of the security voters enabled in the application.
      *
-     * @return string[]
+     * @return string[]|Data
      */
     public function getVoters()
     {
@@ -275,7 +346,7 @@ class SecurityDataCollector extends DataCollector
     /**
      * Returns the log of the security decisions made by the access decision manager.
      *
-     * @return array
+     * @return array|Data
      */
     public function getAccessDecisionLog()
     {
@@ -285,11 +356,19 @@ class SecurityDataCollector extends DataCollector
     /**
      * Returns the configuration of the current firewall context.
      *
-     * @return array
+     * @return array|Data
      */
     public function getFirewall()
     {
         return $this->data['firewall'];
+    }
+
+    /**
+     * @return array|Data
+     */
+    public function getListeners()
+    {
+        return $this->data['listeners'];
     }
 
     /**

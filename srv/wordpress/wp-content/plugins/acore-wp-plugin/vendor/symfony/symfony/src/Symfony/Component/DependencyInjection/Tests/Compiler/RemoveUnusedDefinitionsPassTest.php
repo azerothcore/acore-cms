@@ -13,12 +13,12 @@ namespace Symfony\Component\DependencyInjection\Tests\Compiler;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Compiler\AnalyzeServiceReferencesPass;
-use Symfony\Component\DependencyInjection\Compiler\RepeatedPass;
 use Symfony\Component\DependencyInjection\Compiler\RemoveUnusedDefinitionsPass;
+use Symfony\Component\DependencyInjection\Compiler\RepeatedPass;
 use Symfony\Component\DependencyInjection\Compiler\ResolveParameterPlaceHoldersPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class RemoveUnusedDefinitionsPassTest extends TestCase
 {
@@ -35,7 +35,7 @@ class RemoveUnusedDefinitionsPassTest extends TestCase
         ;
         $container
             ->register('moo')
-            ->setArguments(array(new Reference('bar')))
+            ->setArguments([new Reference('bar')])
         ;
 
         $this->process($container);
@@ -54,7 +54,7 @@ class RemoveUnusedDefinitionsPassTest extends TestCase
         ;
         $container
             ->register('bar')
-            ->setArguments(array(new Reference('foo')))
+            ->setArguments([new Reference('foo')])
             ->setPublic(false)
         ;
 
@@ -73,7 +73,7 @@ class RemoveUnusedDefinitionsPassTest extends TestCase
         ;
         $container
             ->register('bar')
-            ->setArguments(array(new Definition(null, array(new Reference('foo')))))
+            ->setArguments([new Definition(null, [new Reference('foo')])])
         ;
 
         $this->process($container);
@@ -88,12 +88,12 @@ class RemoveUnusedDefinitionsPassTest extends TestCase
 
         $container
             ->register('foo', 'stdClass')
-            ->setFactory(array('stdClass', 'getInstance'))
+            ->setFactory(['stdClass', 'getInstance'])
             ->setPublic(false);
 
         $container
             ->register('bar', 'stdClass')
-            ->setFactory(array(new Reference('foo'), 'getInstance'))
+            ->setFactory([new Reference('foo'), 'getInstance'])
             ->setPublic(false);
 
         $container
@@ -113,7 +113,7 @@ class RemoveUnusedDefinitionsPassTest extends TestCase
         $container->setParameter('env(FOOBAR)', 'test');
         $container
             ->register('foo')
-            ->setArguments(array('%env(FOOBAR)%'))
+            ->setArguments(['%env(FOOBAR)%'])
             ->setPublic(false)
         ;
 
@@ -131,7 +131,7 @@ class RemoveUnusedDefinitionsPassTest extends TestCase
 
     protected function process(ContainerBuilder $container)
     {
-        $repeatedPass = new RepeatedPass(array(new AnalyzeServiceReferencesPass(), new RemoveUnusedDefinitionsPass()));
+        $repeatedPass = new RepeatedPass([new AnalyzeServiceReferencesPass(), new RemoveUnusedDefinitionsPass()]);
         $repeatedPass->process($container);
     }
 }

@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "aa": "Afar",
         "ab": "Abchasais",
@@ -61,7 +60,7 @@
         "bho": "Bhojpuri",
         "bi": "Bislama",
         "bik": "Bikol",
-        "bin": "Bini",
+        "bin": "Edo",
         "bjn": "Banjar",
         "bkm": "Kom",
         "bla": "Siksika",
@@ -86,6 +85,7 @@
         "car": "Carib",
         "cay": "Cayuga",
         "cch": "Atsam",
+        "ccp": "Chakma",
         "ce": "Deideanais",
         "ceb": "Cebuano",
         "cgg": "Chiga",
@@ -157,6 +157,7 @@
         "ewo": "Ewondo",
         "ext": "Cànan na h-Extremadura",
         "fa": "Peirsis",
+        "fa_AF": "Dari",
         "fan": "Fang",
         "fat": "Fanti",
         "ff": "Fulah",
@@ -312,6 +313,7 @@
         "ln": "Lingala",
         "lo": "Làtho",
         "lol": "Mongo",
+        "lou": "Crìtheol Louisiana",
         "loz": "Lozi",
         "lrc": "Luri Thuathach",
         "lt": "Liotuainis",

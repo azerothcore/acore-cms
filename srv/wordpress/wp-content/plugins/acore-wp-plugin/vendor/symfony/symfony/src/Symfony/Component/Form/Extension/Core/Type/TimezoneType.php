@@ -13,7 +13,10 @@ namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
+use Symfony\Component\Form\ChoiceList\Loader\CallbackChoiceLoader;
 use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
+use Symfony\Component\Form\Extension\Core\DataTransformer\DateTimeZoneToStringTransformer;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -25,20 +28,48 @@ class TimezoneType extends AbstractType implements ChoiceLoaderInterface
      * The choices are generated from the ICU function \DateTimeZone::listIdentifiers().
      *
      * @var ArrayChoiceList
+     *
+     * @deprecated since version 3.4, to be removed in 4.0
      */
     private $choiceList;
 
     /**
      * {@inheritdoc}
      */
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        if ('datetimezone' === $options['input']) {
+            $builder->addModelTransformer(new DateTimeZoneToStringTransformer($options['multiple']));
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'choice_loader' => function (Options $options) {
-                return $options['choices'] ? null : $this;
+                if ($options['choices']) {
+                    @trigger_error(sprintf('Using the "choices" option in %s has been deprecated since Symfony 3.3 and will be ignored in 4.0. Override the "choice_loader" option instead or set it to null.', __CLASS__), \E_USER_DEPRECATED);
+
+                    return null;
+                }
+
+                $regions = $options['regions'];
+
+                return new CallbackChoiceLoader(function () use ($regions) {
+                    return self::getTimezones($regions);
+                });
             },
             'choice_translation_domain' => false,
-        ));
+            'input' => 'string',
+            'regions' => \DateTimeZone::ALL,
+        ]);
+
+        $resolver->setAllowedValues('input', ['string', 'datetimezone']);
+
+        $resolver->setAllowedTypes('regions', 'int');
     }
 
     /**
@@ -46,7 +77,7 @@ class TimezoneType extends AbstractType implements ChoiceLoaderInterface
      */
     public function getParent()
     {
-        return __NAMESPACE__.'\ChoiceType';
+        return ChoiceType::class;
     }
 
     /**
@@ -59,25 +90,33 @@ class TimezoneType extends AbstractType implements ChoiceLoaderInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated since version 3.4, to be removed in 4.0
      */
     public function loadChoiceList($value = null)
     {
+        @trigger_error(sprintf('The "%s()" method is deprecated since Symfony 3.4 and will be removed in 4.0.', __METHOD__), \E_USER_DEPRECATED);
+
         if (null !== $this->choiceList) {
             return $this->choiceList;
         }
 
-        return $this->choiceList = new ArrayChoiceList(self::getTimezones(), $value);
+        return $this->choiceList = new ArrayChoiceList(self::getTimezones(\DateTimeZone::ALL), $value);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated since version 3.4, to be removed in 4.0
      */
     public function loadChoicesForValues(array $values, $value = null)
     {
+        @trigger_error(sprintf('The "%s()" method is deprecated since Symfony 3.4 and will be removed in 4.0.', __METHOD__), \E_USER_DEPRECATED);
+
         // Optimize
         $values = array_filter($values);
         if (empty($values)) {
-            return array();
+            return [];
         }
 
         // If no callable is set, values are the same as choices
@@ -90,13 +129,17 @@ class TimezoneType extends AbstractType implements ChoiceLoaderInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @deprecated since version 3.4, to be removed in 4.0
      */
     public function loadValuesForChoices(array $choices, $value = null)
     {
+        @trigger_error(sprintf('The "%s()" method is deprecated since Symfony 3.4 and will be removed in 4.0.', __METHOD__), \E_USER_DEPRECATED);
+
         // Optimize
         $choices = array_filter($choices);
         if (empty($choices)) {
-            return array();
+            return [];
         }
 
         // If no callable is set, choices are the same as values
@@ -110,19 +153,21 @@ class TimezoneType extends AbstractType implements ChoiceLoaderInterface
     /**
      * Returns a normalized array of timezone choices.
      *
+     * @param int $regions
+     *
      * @return array The timezone choices
      */
-    private static function getTimezones()
+    private static function getTimezones($regions)
     {
-        $timezones = array();
+        $timezones = [];
 
-        foreach (\DateTimeZone::listIdentifiers() as $timezone) {
+        foreach (\DateTimeZone::listIdentifiers($regions) as $timezone) {
             $parts = explode('/', $timezone);
 
-            if (count($parts) > 2) {
+            if (\count($parts) > 2) {
                 $region = $parts[0];
                 $name = $parts[1].' - '.$parts[2];
-            } elseif (count($parts) > 1) {
+            } elseif (\count($parts) > 1) {
                 $region = $parts[0];
                 $name = $parts[1];
             } else {
@@ -133,6 +178,6 @@ class TimezoneType extends AbstractType implements ChoiceLoaderInterface
             $timezones[$region][str_replace('_', ' ', $name)] = $timezone;
         }
 
-        return $timezones;
+        return 1 === \count($timezones) ? reset($timezones) : $timezones;
     }
 }

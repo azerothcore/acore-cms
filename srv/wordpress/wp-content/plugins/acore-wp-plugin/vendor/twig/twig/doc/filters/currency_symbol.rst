@@ -2,6 +2,7 @@
 ===================
 
 .. versionadded:: 2.12
+
     The ``currency_symbol`` filter was added in Twig 2.12.
 
 The ``currency_symbol`` filter returns the currency symbol given its three-letter
@@ -29,10 +30,10 @@ By default, the filter uses the current locale. You can pass it explicitly:
 
     .. code-block:: bash
 
-        $ composer req twig/intl-extra
+        $ composer require twig/intl-extra
 
     Then, use the ``twig/extra-bundle`` on Symfony projects or add the extension
-    explictly on the Twig environment::
+    explicitly on the Twig environment::
 
         use Twig\Extra\Intl\IntlExtension;
 

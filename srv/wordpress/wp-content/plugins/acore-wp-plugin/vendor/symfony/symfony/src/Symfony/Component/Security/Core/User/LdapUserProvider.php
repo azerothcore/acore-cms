@@ -12,11 +12,11 @@
 namespace Symfony\Component\Security\Core\User;
 
 use Symfony\Component\Ldap\Entry;
+use Symfony\Component\Ldap\Exception\ConnectionException;
+use Symfony\Component\Ldap\LdapInterface;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Ldap\Exception\ConnectionException;
-use Symfony\Component\Ldap\LdapInterface;
 
 /**
  * LdapUserProvider is a simple user provider on top of ldap.
@@ -36,16 +36,14 @@ class LdapUserProvider implements UserProviderInterface
     private $passwordAttribute;
 
     /**
-     * @param LdapInterface $ldap
-     * @param string        $baseDn
-     * @param string        $searchDn
-     * @param string        $searchPassword
-     * @param array         $defaultRoles
-     * @param string        $uidKey
-     * @param string        $filter
-     * @param string        $passwordAttribute
+     * @param string $baseDn
+     * @param string $searchDn
+     * @param string $searchPassword
+     * @param string $uidKey
+     * @param string $filter
+     * @param string $passwordAttribute
      */
-    public function __construct(LdapInterface $ldap, $baseDn, $searchDn = null, $searchPassword = null, array $defaultRoles = array(), $uidKey = 'sAMAccountName', $filter = '({uid_key}={username})', $passwordAttribute = null)
+    public function __construct(LdapInterface $ldap, $baseDn, $searchDn = null, $searchPassword = null, array $defaultRoles = [], $uidKey = 'sAMAccountName', $filter = '({uid_key}={username})', $passwordAttribute = null)
     {
         if (null === $uidKey) {
             $uidKey = 'sAMAccountName';
@@ -76,14 +74,14 @@ class LdapUserProvider implements UserProviderInterface
         }
 
         $entries = $search->execute();
-        $count = count($entries);
+        $count = \count($entries);
 
         if (!$count) {
             throw new UsernameNotFoundException(sprintf('User "%s" not found.', $username));
         }
 
         if ($count > 1) {
-            throw new UsernameNotFoundException('More than one user found');
+            throw new UsernameNotFoundException('More than one user found.');
         }
 
         $entry = $entries[0];
@@ -104,7 +102,7 @@ class LdapUserProvider implements UserProviderInterface
     public function refreshUser(UserInterface $user)
     {
         if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
         }
 
         return new User($user->getUsername(), null, $user->getRoles());
@@ -115,14 +113,13 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function supportsClass($class)
     {
-        return $class === 'Symfony\Component\Security\Core\User\User';
+        return 'Symfony\Component\Security\Core\User\User' === $class;
     }
 
     /**
      * Loads a user from an LDAP entry.
      *
      * @param string $username
-     * @param Entry  $entry
      *
      * @return User
      */
@@ -140,7 +137,7 @@ class LdapUserProvider implements UserProviderInterface
     /**
      * Fetches a required unique attribute value from an LDAP entry.
      *
-     * @param null|Entry $entry
+     * @param Entry|null $entry
      * @param string     $attribute
      */
     private function getAttributeValue(Entry $entry, $attribute)
@@ -151,7 +148,7 @@ class LdapUserProvider implements UserProviderInterface
 
         $values = $entry->getAttribute($attribute);
 
-        if (1 !== count($values)) {
+        if (1 !== \count($values)) {
             throw new InvalidArgumentException(sprintf('Attribute "%s" has multiple values.', $attribute));
         }
 

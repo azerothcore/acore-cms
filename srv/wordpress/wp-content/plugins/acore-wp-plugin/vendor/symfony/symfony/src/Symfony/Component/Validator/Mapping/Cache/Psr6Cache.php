@@ -21,9 +21,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
  */
 class Psr6Cache implements CacheInterface
 {
-    /**
-     * @var CacheItemPoolInterface
-     */
     private $cacheItemPool;
 
     public function __construct(CacheItemPoolInterface $cacheItemPool)
@@ -73,6 +70,11 @@ class Psr6Cache implements CacheInterface
      */
     private function escapeClassName($class)
     {
+        if (false !== strpos($class, '@')) {
+            // anonymous class: replace all PSR6-reserved characters
+            return str_replace(["\0", '\\', '/', '@', ':', '{', '}', '(', ')'], '.', $class);
+        }
+
         return str_replace('\\', '.', $class);
     }
 }

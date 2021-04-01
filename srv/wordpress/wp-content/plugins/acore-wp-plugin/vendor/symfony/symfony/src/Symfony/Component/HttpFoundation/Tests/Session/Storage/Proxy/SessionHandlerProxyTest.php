@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\Proxy\SessionHandlerProxy;
 class SessionHandlerProxyTest extends TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_Matcher
+     * @var \PHPUnit\Framework\MockObject\Matcher
      */
     private $mock;
 
@@ -50,7 +50,7 @@ class SessionHandlerProxyTest extends TestCase
     {
         $this->mock->expects($this->once())
             ->method('open')
-            ->will($this->returnValue(true));
+            ->willReturn(true);
 
         $this->assertFalse($this->proxy->isActive());
         $this->proxy->open('name', 'id');
@@ -61,7 +61,7 @@ class SessionHandlerProxyTest extends TestCase
     {
         $this->mock->expects($this->once())
             ->method('open')
-            ->will($this->returnValue(false));
+            ->willReturn(false);
 
         $this->assertFalse($this->proxy->isActive());
         $this->proxy->open('name', 'id');
@@ -72,7 +72,7 @@ class SessionHandlerProxyTest extends TestCase
     {
         $this->mock->expects($this->once())
             ->method('close')
-            ->will($this->returnValue(true));
+            ->willReturn(true);
 
         $this->assertFalse($this->proxy->isActive());
         $this->proxy->close();
@@ -83,7 +83,7 @@ class SessionHandlerProxyTest extends TestCase
     {
         $this->mock->expects($this->once())
             ->method('close')
-            ->will($this->returnValue(false));
+            ->willReturn(false);
 
         $this->assertFalse($this->proxy->isActive());
         $this->proxy->close();
@@ -121,4 +121,42 @@ class SessionHandlerProxyTest extends TestCase
 
         $this->proxy->gc(86400);
     }
+
+    /**
+     * @requires PHPUnit 5.1
+     */
+    public function testValidateId()
+    {
+        $mock = $this->getMockBuilder(TestSessionHandler::class)->getMock();
+        $mock->expects($this->once())
+            ->method('validateId');
+
+        $proxy = new SessionHandlerProxy($mock);
+        $proxy->validateId('id');
+
+        $this->assertTrue($this->proxy->validateId('id'));
+    }
+
+    /**
+     * @requires PHPUnit 5.1
+     */
+    public function testUpdateTimestamp()
+    {
+        $mock = $this->getMockBuilder(TestSessionHandler::class)->getMock();
+        $mock->expects($this->once())
+            ->method('updateTimestamp')
+            ->willReturn(false);
+
+        $proxy = new SessionHandlerProxy($mock);
+        $proxy->updateTimestamp('id', 'data');
+
+        $this->mock->expects($this->once())
+            ->method('write');
+
+        $this->proxy->updateTimestamp('id', 'data');
+    }
+}
+
+abstract class TestSessionHandler implements \SessionHandlerInterface, \SessionUpdateTimestampHandlerInterface
+{
 }

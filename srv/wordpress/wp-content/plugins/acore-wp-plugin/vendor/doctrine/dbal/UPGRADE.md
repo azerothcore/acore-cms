@@ -1,3 +1,310 @@
+# Upgrade to 2.12
+
+## Deprecated non-zero based positional parameter keys
+
+The usage of one-based and other non-zero-based keys when binding positional parameters is deprecated.
+
+It is recommended to not use any array keys so that the value of the parameter array complies with the [`list<>`](https://psalm.dev/docs/annotating_code/type_syntax/array_types/) type constraint.
+
+```php
+// This is valid (implicit zero-based parameter indexes)
+$conn->fetchNumeric('SELECT ?, ?', [1, 2]);
+
+// This is invalid (one-based parameter indexes)
+$conn->fetchNumeric('SELECT ?, ?', [1 => 1, 2 => 2]);
+
+// This is invalid (arbitrary parameter indexes)
+$conn->fetchNumeric('SELECT ?, ?', [-31 => 1, 5 => 2]);
+
+// This is invalid (non-sequential parameter indexes)
+$conn->fetchNumeric('SELECT ?, ?', [0 => 1, 3 => 2]);
+```
+
+## Deprecated skipping prepared statement parameters
+
+Some underlying drivers currently allow skipping prepared statement parameters. For instance:
+
+```php
+$conn->fetchOne('SELECT ?');
+// NULL
+```
+
+This behavior should not be relied upon and may change in future versions.
+
+## Deprecated colon prefix for prepared statement parameters
+
+The usage of the colon prefix when binding named parameters is deprecated.
+
+```php
+$sql  = 'SELECT * FROM users WHERE name = :name OR username = :username';
+$stmt = $conn->prepare($sql);
+
+// The usage of the leading colon is deprecated
+$stmt->bindValue(':name', $name);
+
+// Only the parameter name should be passed
+$stmt->bindValue('username', $username);
+
+$stmt->execute();
+```
+
+## PDO signature changes with php 8
+
+In php 8.0, the method signatures of two PDO classes which are extended by DBAL have changed. This affects the following classes:
+
+* `Doctrine\DBAL\Driver\PDOConnection`
+* `Doctrine\DBAL\Driver\PDOStatement`
+
+Code that extends either of the classes needs to be adjusted in order to function properly on php 8. The updated method signatures are:
+
+* `PDOConnection::query(?string $query = null, ?int $fetchMode = null, mixed ...$fetchModeArgs)`
+* `PDOStatement::setFetchMode($mode, ...$args)`
+* `PDOStatement::fetchAll($mode = null, ...$args)`
+
+# Upgrade to 2.11
+
+## Deprecated `Abstraction\Result` 
+
+The usage of the `Doctrine\DBAL\Abstraction\Result` interface is deprecated. In DBAL 3.0, the statement result at the wrapper level will be represented by the `Doctrine\DBAL\Result` class.
+
+## Deprecated the functionality of dropping client connections when dropping a database
+
+The corresponding `getDisallowDatabaseConnectionsSQL()` and `getCloseActiveDatabaseConnectionsSQL` methods
+of the `PostgreSqlPlatform` class have been deprecated.
+
+## Deprecated `Synchronizer` package
+
+The `Doctrine\DBAL\Schema\Synchronizer\SchemaSynchronizer` interface and all its implementations are deprecated.
+
+## Deprecated usage of wrapper-level components as implementations of driver-level interfaces
+
+The usage of the wrapper `Connection` and `Statement` classes as implementations of the `Driver\Connection` and `Driver\Statement` interfaces is deprecated.
+
+## Deprecations in the wrapper `Connection` class
+
+1. The `executeUpdate()` method has been deprecated in favor of `executeStatement()`. 
+2. The `query()` method has been deprecated in favor of `executeQuery()`. 
+3. The `exec()` method has been deprecated in favor of `executeStatement()`. 
+
+Note that `PrimaryReplicaConnection::query()` ensures connection to the primary instance while `executeQuery()` doesn't.
+
+Depending on the desired behavior:
+
+- If the statement doesn't have to be executed on the primary instance, use `executeQuery()`.
+- If the statement has to be executed on the primary instance and yields rows (e.g. `SELECT`), prepend `executeQuery()` with `ensureConnectedToPrimary()`.
+- Otherwise, use `executeStatement()`.
+
+## PDO-related classes outside of the PDO namespace are deprecated
+
+The following PDO-related classes outside of the PDO namespace have been deprecated in favor of their counterparts in the PDO namespace:
+
+- `PDOMySql\Driver` → `PDO\MySQL\Driver`
+- `PDOOracle\Driver` → `PDO\OCI\Driver`
+- `PDOPgSql\Driver` → `PDO\PgSQL\Driver`
+- `PDOSqlite\Driver` → `PDO\SQLite\Driver`
+- `PDOSqlsrv\Driver` → `PDO\SQLSrv\Driver`
+- `PDOSqlsrv\Connection` → `PDO\SQLSrv\Connection`
+- `PDOSqlsrv\Statement` → `PDO\SQLSrv\Statement`
+
+## Deprecations in driver-level exception handling
+
+1. The `ExceptionConverterDriver` interface and the usage of the `convertException()` method on the `Driver` objects are deprecated.
+2. The `driverException()` and `driverExceptionDuringQuery()` factory methods of the `DBALException` class are deprecated.
+3. Relying on the wrapper layer handling non-driver exceptions is deprecated.
+
+## `DBALException` factory method deprecations
+
+1. `DBALException::invalidPlatformType()` is deprecated as unused as of v2.7.0.
+2. `DBALException::invalidPdoInstance()` as passing a PDO instance via configuration is deprecated.
+
+## Deprecated `AbstractPlatform` methods.
+
+1. `fixSchemaElementName()`.
+2. `getSQLResultCasing()`.
+3. `prefersSequences()`.
+4. `supportsForeignKeyOnUpdate()`.
+
+## `ServerInfoAwareConnection::requiresQueryForServerVersion()` is deprecated.
+
+The `ServerInfoAwareConnection::requiresQueryForServerVersion()` method has been deprecated as an implementation detail which is the same for almost all supported drivers.
+
+## Connection and Statement constructors are marked internal
+
+1. Driver connection objects can be only created by the corresponding drivers.
+2. Wrapper connection objects can be only created by the driver manager.
+3. The driver and wrapper connection objects can be only created by the corresponding connection objects.
+
+Additionally, the `SQLSrv\LastInsertId` class has been marked internal.
+
+## The `PingableConnection` interface is deprecated
+
+The wrapper connection will automatically handle the lost connection if the driver supports reporting it.
+
+## `DriverException::getErrorCode()` is deprecated
+
+The `DriverException::getErrorCode()` is deprecated as redundant and inconsistently supported by drivers. Use `::getCode()` or `::getSQLState()` instead.
+
+## Non-interface driver methods have been marked internal
+
+The non-interface methods of driver-level classes have been marked internal:
+
+- `OCI8Connection::getExecuteMode()`
+- `OCI8Statement::convertPositionalToNamedPlaceholders()`
+
+## Deprecated `DBALException`
+
+The `Doctrine\DBAL\DBALException` class has been deprecated in favor of `Doctrine\DBAL\Exception`.
+
+## Inconsistently and ambiguously named driver-level classes are deprecated
+
+The following classes under the `Driver` namespace have been deprecated in favor of their consistently named counterparts:
+
+- `DriverException` → `Exception`
+- `AbstractDriverException` → `AbstractException`
+- `IBMDB2\DB2Driver` → `IBMDB2\Driver`
+- `IBMDB2\DB2Connection` → `IBMDB2\Connection`
+- `IBMDB2\DB2Statement` → `IBMDB2\Statement`
+- `Mysqli\MysqliConnection` → `Mysqli\Connection`
+- `Mysqli\MysqliStatement` → `Mysqli\Statement`
+- `OCI8\OCI8Connection` → `OCI8\Connection`
+- `OCI8\OCI8Statement` → `OCI8\Statement`
+- `SQLSrv\SQLSrvConnection` → `SQLSrv\Connection`
+- `SQLSrv\SQLSrvStatement` → `SQLSrv\Statement`
+- `PDOConnection` → `PDO\Connection`
+- `PDOStatement` → `PDO\Statement`
+
+All driver-specific exception classes have been deprecated:
+
+- `IBMDB2\DB2Exception`
+- `Mysqli\MysqliException`
+- `OCI8\OCI8Exception`
+- `PDOException`
+- `SQLSrv\SQLSrvException`
+
+A driver-level exception should be only identified as a subtype of `Driver\Exception`.
+Internal driver-level exception implementations may use `Driver\AbstractException` as the base class.
+Driver-specific exception handling has to be implemented either in the driver or based on the type of the `Driver` implementation.
+
+The `Driver\AbstractException` class has been marked internal.
+
+## `Connection::getParams()` has been marked internal
+
+Consumers of the Connection class should not rely on connection parameters stored in the connection object. If needed, they should be obtained from a different source, e.g. application configuration.
+
+## Deprecated `Doctrine\DBAL\Driver::getDatabase()`
+
+- The usage of `Doctrine\DBAL\Driver::getDatabase()` is deprecated. Please use `Doctrine\DBAL\Connection::getDatabase()` instead.
+- The behavior of the SQLite connection returning the database file path as the database is deprecated and shouldn't be relied upon.
+
+## Deprecated `Portability\Connection::PORTABILITY_{PLATFORM}` constants
+
+The platform-specific portability mode flags are meant to be used only by the portability layer internally to optimize
+the user-provided mode for the current database platform. 
+
+## Deprecated `MasterSlaveConnection` use `PrimaryReadReplicaConnection`
+
+The `Doctrine\DBAL\Connections\MasterSlaveConnection` class is renamed to `Doctrine\DBAL\Connections\PrimaryReadReplicaConnection`.
+In addition its configuration parameters `master`, `slaves` and `keepSlave` are renamed to `primary`, `replica` and `keepReplica`.
+
+Before:
+
+    $connection = DriverManager::getConnection(
+        'wrapperClass' => 'Doctrine\DBAL\Connections\MasterSlaveConnection',
+        'driver' => 'pdo_mysql',
+        'master' => array('user' => '', 'password' => '', 'host' => '', 'dbname' => ''),
+        'slaves' => array(
+            array('user' => 'replica1', 'password', 'host' => '', 'dbname' => ''),
+            array('user' => 'replica2', 'password', 'host' => '', 'dbname' => ''),
+        ),
+        'keepSlave' => true,
+    ));
+    $connection->connect('slave');
+    $connection->connect('master');
+    $connection->isConnectedToMaster();
+
+After:
+
+    $connection = DriverManager::getConnection(array(
+        'wrapperClass' => 'Doctrine\DBAL\Connections\PrimaryReadReplicaConnection',
+        'driver' => 'pdo_mysql',
+        'primary' => array('user' => '', 'password' => '', 'host' => '', 'dbname' => ''),
+        'replica' => array(
+            array('user' => 'replica1', 'password', 'host' => '', 'dbname' => ''),
+            array('user' => 'replica2', 'password', 'host' => '', 'dbname' => ''),
+        )
+        'keepReplica' => true,
+    ));
+    $connection->ensureConnectedToReplica();
+    $connection->ensureConnectedToPrimary();
+    $connection->isConnectedToPrimary();
+
+## Deprecated `ArrayStatement` and `ResultCacheStatement` classes.
+
+The `ArrayStatement` and `ResultCacheStatement` classes are deprecated. In a future major release they will be renamed and marked internal as implementation details of the caching layer.
+
+## Deprecated `ResultStatement` interface
+
+1. The `ResultStatement` interface is deprecated. Use the `Driver\Result` and `Abstraction\Result` interfaces instead.
+2. `ResultStatement::closeCursor()` is deprecated in favor of `Result::free()`.
+
+## Deprecated `FetchMode` and the corresponding methods
+
+1. The `FetchMode` class and the `setFetchMode()` method of the `Connection` and `Statement` interfaces are deprecated.
+2. The `Statement::fetch()` method is deprecated in favor of `Result::fetchNumeric()`, `::fetchAssociative()` and `::fetchOne()`.
+3. The `Statement::fetchAll()` method is deprecated in favor of `Result::fetchAllNumeric()`, `::fetchAllAssociative()` and `::fetchFirstColumn()`.
+4. The `Statement::fetchColumn()` method is deprecated in favor of `Result::fetchOne()`.
+5. The `Connection::fetchArray()` and `fetchAssoc()` method are deprecated in favor of `fetchNumeric()` and `fetchAssociative()` respectively.
+6. The `StatementIterator` class and the usage of a `Statement` object as `Traversable` is deprecated in favor of `Result::iterateNumeric()`, `::iterateAssociative()` and `::iterateColumn()`.
+7. Fetching data in mixed mode (`FetchMode::MIXED`) is deprecated.
+
+## Deprecated `Connection::project()`
+
+The `Connection::project()` method is deprecated. Implement data transformation outside of DBAL.
+
+## Deprecated `Statement::errorCode()` and `errorInfo()`
+
+The `Statement::errorCode()` and `errorInfo()` methods are deprecated. The error information is available via exceptions.
+
+## Deprecated `EchoSQLLogger`
+
+The `EchoSQLLogger` class is deprecated. Implement your logger with the desired logic.
+
+## Deprecated database platforms:
+
+1. PostgreSQL 9.3 and older
+2. MariaDB 10.0 and older
+3. SQL Server 2008 and older
+4. SQL Anywhere 12 and older
+5. Drizzle
+6. Azure SQL Database
+
+## Deprecated database drivers:
+
+1. PDO-based IBM DB2 driver
+2. Drizzle MySQL driver
+
+## Deprecated `Doctrine\DBAL\Sharding` package
+
+The sharding functionality in DBAL has been effectively unmaintained for a long time.
+
+## Deprecated `Doctrine\DBAL\Version` class
+
+The usage of the `Doctrine\DBAL\Version` class is deprecated as internal implementation detail. Please refrain from checking the DBAL version at runtime.
+
+## Deprecated `ExpressionBuilder` methods
+
+The usage of the `andX()` and `orX()` methods of the `ExpressionBuilder` class has been deprecated. Use `and()` and `or()` instead.
+
+## Deprecated `CompositeExpression` methods
+
+- The usage of the `add()` and `addMultiple()` methods of the `CompositeExpression` class has been deprecated. Use `with()` instead, which returns a new instance.
+In the future, the `add*()` methods will be removed and the class will be effectively immutable.
+- The usage of the `CompositeExpression` constructor has been deprecated. Use the `and()` / `or()` factory methods.
+
+## Deprecated calling `QueryBuilder` methods with an array argument
+
+Calling the `select()`, `addSelect()`, `groupBy()` and `addGroupBy()` methods with an array argument is deprecated.
+
 # Upgrade to 2.10
 
 ## Deprecated `Doctrine\DBAL\Event\ConnectionEventArgs` methods

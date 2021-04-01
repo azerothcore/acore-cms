@@ -112,7 +112,7 @@
     {% set profiler_markup_version = profiler_markup_version|default(1) %}
 
     {% if 'explain' == page %}
-        {{ render(controller('DoctrineBundle:Profiler:explain', {
+        {{ render(controller('Doctrine\\Bundle\\DoctrineBundle\\Controller\\ProfilerController::explainAction', {
             token: token,
             panel: 'db',
             connectionName: request.query.get('connection'),
@@ -148,7 +148,7 @@
 
     {% if profiler_markup_version > 1 %}
         <h2>Query Metrics</h2>
-    
+
         <div class="metrics">
             <div class="metric">
                 <span class="value">{{ collector.querycount }}</span>
@@ -159,17 +159,17 @@
                 <span class="value">{{ collector.groupedQueryCount }}</span>
                 <span class="label">Different statements</span>
             </div>
-    
+
             <div class="metric">
                 <span class="value">{{ '%0.2f'|format(collector.time * 1000) }} ms</span>
                 <span class="label">Query time</span>
             </div>
-    
+
             <div class="metric">
                 <span class="value">{{ collector.invalidEntityCount }}</span>
                 <span class="label">Invalid entities</span>
             </div>
-    
+
             {% if collector.cacheEnabled %}
                 <div class="metric">
                 	<span class="value">{{ collector.cacheHitsCount }}</span>
@@ -246,13 +246,19 @@
                                 <div class="text-small font-normal">
                                     <a href="#" {{ profiler_markup_version == 1 ? 'onclick="return toggleRunnableQuery(this);"' }} class="sf-toggle link-inverse" data-toggle-selector="#formatted-query-{{ i }}-{{ loop.parent.loop.index }}" data-toggle-alt-content="Hide formatted query">View formatted query</a>
 
-                                    &nbsp;&nbsp;
-
-                                    <a href="#" {{ profiler_markup_version == 1 ? 'onclick="return toggleRunnableQuery(this);"' }} class="sf-toggle link-inverse" data-toggle-selector="#original-query-{{ i }}-{{ loop.parent.loop.index }}" data-toggle-alt-content="Hide runnable query">View runnable query</a>
+                                    {% if query.runnable %}
+                                        &nbsp;&nbsp;
+                                        <a href="#" {{ profiler_markup_version == 1 ? 'onclick="return toggleRunnableQuery(this);"' }} class="sf-toggle link-inverse" data-toggle-selector="#original-query-{{ i }}-{{ loop.parent.loop.index }}" data-toggle-alt-content="Hide runnable query">View runnable query</a>
+                                    {% endif %}
 
                                     {% if query.explainable %}
                                         &nbsp;&nbsp;
                                         <a class="link-inverse" href="{{ path('_profiler', { panel: 'db', token: token, page: 'explain', connection: connection, query: i }) }}" onclick="return explain(this);" data-target-id="explain-{{ i }}-{{ loop.parent.loop.index }}">Explain query</a>
+                                    {% endif %}
+
+                                    {% if query.backtrace is defined %}
+                                        &nbsp;&nbsp;
+                                        <a href="#" class="sf-toggle link-inverse" data-toggle-selector="#backtrace-{{ i }}-{{ loop.parent.loop.index }}" data-toggle-alt-content="Hide query backtrace">View query backtrace</a>
                                     {% endif %}
                                 </div>
 
@@ -260,12 +266,48 @@
                                     {{ query.sql|doctrine_pretty_query }}
                                 </div>
 
-                                <div id="original-query-{{ i }}-{{ loop.parent.loop.index }}" class="sql-runnable hidden">
-                                    {{ (query.sql ~ ';')|doctrine_replace_query_parameters(query.params)|doctrine_pretty_query(highlight_only = true) }}
-                                </div>
+                                {% if query.runnable %}
+                                    <div id="original-query-{{ i }}-{{ loop.parent.loop.index }}" class="sql-runnable hidden">
+                                        {{ (query.sql ~ ';')|doctrine_replace_query_parameters(query.params)|doctrine_pretty_query(highlight_only = true) }}
+                                    </div>
+                                {% endif %}
 
                                 {% if query.explainable %}
                                     <div id="explain-{{ i }}-{{ loop.parent.loop.index }}" class="sql-explain"></div>
+                                {% endif %}
+
+                                {% if query.backtrace is defined %}
+                                    <div id="backtrace-{{ i }}-{{ loop.parent.loop.index }}" class="hidden">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">File/Call</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for trace in query.backtrace %}
+                                                    <tr>
+                                                        <td>{{ loop.index }}</td>
+                                                        <td>
+                                                            <span class="text-small">
+                                                                {% set line_number = trace.line|default(1) %}
+                                                                {% if trace.file is defined %}
+                                                                    <a href="{{ trace.file|file_link(line_number) }}">
+                                                                {% endif %}
+                                                                    {{- trace.class|default ~ (trace.class is defined ? trace.type|default('::')) -}}
+                                                                    <span class="status-warning">{{ trace.function }}</span>
+                                                                {% if trace.file is defined %}
+                                                                    </a>
+                                                                {% endif %}
+                                                                (line {{ line_number }})
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 {% endif %}
                             </td>
                         </tr>

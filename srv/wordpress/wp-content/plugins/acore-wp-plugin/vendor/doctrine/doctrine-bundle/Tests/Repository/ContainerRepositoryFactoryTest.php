@@ -4,25 +4,30 @@ namespace Doctrine\Bundle\DoctrineBundle\Tests\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ContainerRepositoryFactory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface;
-use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use stdClass;
 
 class ContainerRepositoryFactoryTest extends TestCase
 {
-    public function testGetRepositoryReturnsService()
+    public static function setUpBeforeClass()
     {
-        if (! interface_exists(ContainerInterface::class)) {
-            $this->markTestSkipped('Symfony 3.3 is needed for this feature.');
+        if (interface_exists(EntityManagerInterface::class)) {
+            return;
         }
 
+        self::markTestSkipped('This test requires ORM');
+    }
+
+    public function testGetRepositoryReturnsService()
+    {
         $em        = $this->createEntityManager(['Foo\CoolEntity' => 'my_repo']);
-        $repo      = new StubRepository($em, new ClassMetadata(''));
+        $repo      = new StubRepository();
         $container = $this->createContainer(['my_repo' => $repo]);
 
         $factory = new ContainerRepositoryFactory($container);
@@ -31,10 +36,6 @@ class ContainerRepositoryFactoryTest extends TestCase
 
     public function testGetRepositoryReturnsEntityRepository()
     {
-        if (! interface_exists(ContainerInterface::class)) {
-            $this->markTestSkipped('Symfony 3.3 is needed for this feature.');
-        }
-
         $container = $this->createContainer([]);
         $em        = $this->createEntityManager(['Foo\BoringEntity' => null]);
 
@@ -47,10 +48,6 @@ class ContainerRepositoryFactoryTest extends TestCase
 
     public function testCustomRepositoryIsReturned()
     {
-        if (! interface_exists(ContainerInterface::class)) {
-            $this->markTestSkipped('Symfony 3.3 is needed for this feature.');
-        }
-
         $container = $this->createContainer([]);
         $em        = $this->createEntityManager([
             'Foo\CustomNormalRepoEntity' => StubRepository::class,
@@ -69,10 +66,6 @@ class ContainerRepositoryFactoryTest extends TestCase
      */
     public function testServiceRepositoriesMustExtendObjectRepository()
     {
-        if (! interface_exists(ContainerInterface::class)) {
-            $this->markTestSkipped('Symfony 3.3 is needed for this feature.');
-        }
-
         $repo = new stdClass();
 
         $container = $this->createContainer(['my_repo' => $repo]);
@@ -85,10 +78,6 @@ class ContainerRepositoryFactoryTest extends TestCase
 
     public function testServiceRepositoriesCanNotExtendsEntityRepository()
     {
-        if (! interface_exists(ContainerInterface::class)) {
-            $this->markTestSkipped('Symfony 3.3 is needed for this feature.');
-        }
-
         $repo = $this->getMockBuilder(ObjectRepository::class)->getMock();
 
         $container = $this->createContainer(['my_repo' => $repo]);
@@ -101,17 +90,12 @@ class ContainerRepositoryFactoryTest extends TestCase
         $this->assertSame($repo, $actualRepo);
     }
 
-
     /**
      * @expectedException \RuntimeException
      * @expectedExceptionMessage The "Doctrine\Bundle\DoctrineBundle\Tests\Repository\StubServiceRepository" entity repository implements "Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepositoryInterface", but its service could not be found. Make sure the service exists and is tagged with "doctrine.repository_service".
      */
     public function testRepositoryMatchesServiceInterfaceButServiceNotFound()
     {
-        if (! interface_exists(ContainerInterface::class)) {
-            $this->markTestSkipped('Symfony 3.3 is needed for this feature.');
-        }
-
         $container = $this->createContainer([]);
 
         $em = $this->createEntityManager([
@@ -128,12 +112,7 @@ class ContainerRepositoryFactoryTest extends TestCase
      */
     public function testCustomRepositoryIsNotAValidClass()
     {
-        if (interface_exists(ContainerInterface::class)) {
-            $container = $this->createContainer([]);
-        } else {
-            // Symfony 3.2 and lower support
-            $container = null;
-        }
+        $container = $this->createContainer([]);
 
         $em = $this->createEntityManager(['Foo\CoolEntity' => 'not_a_real_class']);
 
@@ -183,10 +162,48 @@ class ContainerRepositoryFactoryTest extends TestCase
     }
 }
 
-class StubRepository extends EntityRepository
+/**
+ * Repository implementing non-deprecated interface, as current interface implemented in ORM\EntityRepository
+ * uses deprecated one and Composer autoload triggers deprecations that can't be silenced by @group legacy
+ */
+class NonDeprecatedRepository implements ObjectRepository
+{
+    /**
+     * {@inheritDoc}
+     */
+    public function find($id)
+    {
+        return null;
+    }
+
+    public function findAll() : array
+    {
+        return [];
+    }
+
+    public function findBy(array $criteria, ?array $orderBy = null, $limit = null, $offset = null) : array
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function findOneBy(array $criteria)
+    {
+        return null;
+    }
+
+    public function getClassName() : string
+    {
+        return '';
+    }
+}
+
+class StubRepository extends NonDeprecatedRepository
 {
 }
 
-class StubServiceRepository extends EntityRepository implements ServiceEntityRepositoryInterface
+class StubServiceRepository extends NonDeprecatedRepository implements ServiceEntityRepositoryInterface
 {
 }

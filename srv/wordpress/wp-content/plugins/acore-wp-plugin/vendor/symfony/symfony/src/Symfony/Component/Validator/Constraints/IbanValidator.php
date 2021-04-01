@@ -34,10 +34,8 @@ class IbanValidator extends ConstraintValidator
      * included within it, a bank identifier with a fixed position and a fixed length per country
      *
      * @see https://www.swift.com/sites/default/files/resources/iban_registry.pdf
-     *
-     * @var array
      */
-    private static $formats = array(
+    private static $formats = [
         'AD' => 'AD\d{2}\d{4}\d{4}[\dA-Z]{12}', // Andorra
         'AE' => 'AE\d{2}\d{3}\d{16}', // United Arab Emirates
         'AL' => 'AL\d{2}\d{8}[\dA-Z]{16}', // Albania
@@ -52,13 +50,14 @@ class IbanValidator extends ConstraintValidator
         'BH' => 'BH\d{2}[A-Z]{4}[\dA-Z]{14}', // Bahrain
         'BI' => 'BI\d{2}\d{12}', // Burundi
         'BJ' => 'BJ\d{2}[A-Z]{1}\d{23}', // Benin
+        'BY' => 'BY\d{2}[\dA-Z]{4}\d{4}[\dA-Z]{16}', // Belarus - https://bank.codes/iban/structure/belarus/
         'BL' => 'FR\d{2}\d{5}\d{5}[\dA-Z]{11}\d{2}', // Saint Barthelemy
         'BR' => 'BR\d{2}\d{8}\d{5}\d{10}[A-Z][\dA-Z]', // Brazil
         'CG' => 'CG\d{2}\d{23}', // Congo
         'CH' => 'CH\d{2}\d{5}[\dA-Z]{12}', // Switzerland
         'CI' => 'CI\d{2}[A-Z]{1}\d{23}', // Ivory Coast
         'CM' => 'CM\d{2}\d{23}', // Cameron
-        'CR' => 'CR\d{2}\d{3}\d{14}', // Costa Rica
+        'CR' => 'CR\d{2}0\d{3}\d{14}', // Costa Rica
         'CV' => 'CV\d{2}\d{21}', // Cape Verde
         'CY' => 'CY\d{2}\d{3}\d{5}[\dA-Z]{16}', // Cyprus
         'CZ' => 'CZ\d{2}\d{20}', // Czech Republic
@@ -130,11 +129,12 @@ class IbanValidator extends ConstraintValidator
         'TN' => 'TN59\d{2}\d{3}\d{13}\d{2}', // Tunisia
         'TR' => 'TR\d{2}\d{5}[\dA-Z]{1}[\dA-Z]{16}', // Turkey
         'UA' => 'UA\d{2}\d{6}[\dA-Z]{19}', // Ukraine
+        'VA' => 'VA\d{2}\d{3}\d{15}', // Vatican City State
         'VG' => 'VG\d{2}[A-Z]{4}\d{16}', // Virgin Islands, British
         'WF' => 'FR\d{2}\d{5}\d{5}[\dA-Z]{11}\d{2}', // Wallis and Futuna Islands
         'XK' => 'XK\d{2}\d{4}\d{10}\d{2}', // Republic of Kosovo
         'YT' => 'FR\d{2}\d{5}\d{5}[\dA-Z]{11}\d{2}', // Mayotte
-    );
+    ];
 
     /**
      * {@inheritdoc}
@@ -142,14 +142,14 @@ class IbanValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Iban) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Iban');
+            throw new UnexpectedTypeException($constraint, Iban::class);
         }
 
         if (null === $value || '' === $value) {
             return;
         }
 
-        if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
@@ -181,7 +181,7 @@ class IbanValidator extends ConstraintValidator
         }
 
         // ...have a format available
-        if (!array_key_exists($countryCode, self::$formats)) {
+        if (!\array_key_exists($countryCode, self::$formats)) {
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $this->formatValue($value))
                 ->setCode(Iban::NOT_SUPPORTED_COUNTRY_CODE_ERROR)
@@ -232,7 +232,7 @@ class IbanValidator extends ConstraintValidator
         foreach ($chars as $char) {
             // Convert uppercase characters to ordinals, starting with 10 for "A"
             if (ctype_upper($char)) {
-                $bigInt .= (ord($char) - 55);
+                $bigInt .= (\ord($char) - 55);
 
                 continue;
             }

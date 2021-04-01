@@ -13,14 +13,18 @@ namespace Symfony\Bundle\FrameworkBundle\Tests\Functional;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
-use Symfony\Component\Templating\EngineInterface as ComponentEngineInterface;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface as FrameworkBundleEngineInterface;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpKernel\Debug\TraceableEventDispatcher;
+use Symfony\Component\Templating\EngineInterface as ComponentEngineInterface;
 
-class AutowiringTypesTest extends WebTestCase
+class AutowiringTypesTest extends AbstractWebTestCase
 {
     public function testAnnotationReaderAutowiring()
     {
-        static::bootKernel(array('root_config' => 'no_annotations_cache.yml', 'environment' => 'no_annotations_cache'));
+        static::bootKernel(['root_config' => 'no_annotations_cache.yml', 'environment' => 'no_annotations_cache']);
         $container = static::$kernel->getContainer();
 
         $annotationReader = $container->get('test.autowiring_types.autowired_services')->getAnnotationReader();
@@ -46,8 +50,37 @@ class AutowiringTypesTest extends WebTestCase
         $this->assertInstanceOf(ComponentEngineInterface::class, $autowiredServices->getEngine());
     }
 
-    protected static function createKernel(array $options = array())
+    public function testEventDispatcherAutowiring()
     {
-        return parent::createKernel(array('test_case' => 'AutowiringTypes') + $options);
+        static::bootKernel(['debug' => false]);
+        $container = static::$kernel->getContainer();
+
+        $autowiredServices = $container->get('test.autowiring_types.autowired_services');
+
+        if (class_exists(ContainerAwareEventDispatcher::class)) {
+            $this->assertInstanceOf(ContainerAwareEventDispatcher::class, $autowiredServices->getDispatcher(), 'The event_dispatcher service should be injected if the debug is not enabled');
+        } else {
+            $this->assertInstanceOf(EventDispatcher::class, $autowiredServices->getDispatcher(), 'The event_dispatcher service should be injected if the debug is not enabled');
+        }
+
+        static::bootKernel(['debug' => true]);
+        $container = static::$kernel->getContainer();
+
+        $autowiredServices = $container->get('test.autowiring_types.autowired_services');
+        $this->assertInstanceOf(TraceableEventDispatcher::class, $autowiredServices->getDispatcher(), 'The debug.event_dispatcher service should be injected if the debug is enabled');
+    }
+
+    public function testCacheAutowiring()
+    {
+        static::bootKernel();
+        $container = static::$kernel->getContainer();
+
+        $autowiredServices = $container->get('test.autowiring_types.autowired_services');
+        $this->assertInstanceOf(FilesystemAdapter::class, $autowiredServices->getCachePool());
+    }
+
+    protected static function createKernel(array $options = [])
+    {
+        return parent::createKernel(['test_case' => 'AutowiringTypes'] + $options);
     }
 }

@@ -12,6 +12,7 @@
 namespace Symfony\Component\Validator\Mapping;
 
 use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\Constraints\Composite;
 use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 
 /**
@@ -29,8 +30,6 @@ use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 abstract class MemberMetadata extends GenericMetadata implements PropertyMetadataInterface
 {
     /**
-     * @var string
-     *
      * @internal This property is public in order to reduce the size of the
      *           class' serialized representation. Do not access it. Use
      *           {@link getClassName()} instead.
@@ -38,8 +37,6 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
     public $class;
 
     /**
-     * @var string
-     *
      * @internal This property is public in order to reduce the size of the
      *           class' serialized representation. Do not access it. Use
      *           {@link getName()} instead.
@@ -47,8 +44,6 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
     public $name;
 
     /**
-     * @var string
-     *
      * @internal This property is public in order to reduce the size of the
      *           class' serialized representation. Do not access it. Use
      *           {@link getPropertyName()} instead.
@@ -58,11 +53,9 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
     /**
      * @var \ReflectionMethod[]|\ReflectionProperty[]
      */
-    private $reflMember = array();
+    private $reflMember = [];
 
     /**
-     * Constructor.
-     *
      * @param string $class    The name of the class this member is defined on
      * @param string $name     The name of the member
      * @param string $property The property the member belongs to
@@ -79,12 +72,7 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
      */
     public function addConstraint(Constraint $constraint)
     {
-        if (!in_array(Constraint::PROPERTY_CONSTRAINT, (array) $constraint->getTargets())) {
-            throw new ConstraintDefinitionException(sprintf(
-                'The constraint %s cannot be put on properties or getters',
-                get_class($constraint)
-            ));
-        }
+        $this->checkConstraint($constraint);
 
         parent::addConstraint($constraint);
 
@@ -96,11 +84,11 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
      */
     public function __sleep()
     {
-        return array_merge(parent::__sleep(), array(
+        return array_merge(parent::__sleep(), [
             'class',
             'name',
             'property',
-        ));
+        ]);
     }
 
     /**
@@ -174,7 +162,7 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
      */
     public function getReflectionMember($objectOrClassName)
     {
-        $className = is_string($objectOrClassName) ? $objectOrClassName : get_class($objectOrClassName);
+        $className = \is_string($objectOrClassName) ? $objectOrClassName : \get_class($objectOrClassName);
         if (!isset($this->reflMember[$className])) {
             $this->reflMember[$className] = $this->newReflectionMember($objectOrClassName);
         }
@@ -192,4 +180,17 @@ abstract class MemberMetadata extends GenericMetadata implements PropertyMetadat
      * @return \ReflectionMethod|\ReflectionProperty The reflection instance
      */
     abstract protected function newReflectionMember($objectOrClassName);
+
+    private function checkConstraint(Constraint $constraint)
+    {
+        if (!\in_array(Constraint::PROPERTY_CONSTRAINT, (array) $constraint->getTargets(), true)) {
+            throw new ConstraintDefinitionException(sprintf('The constraint "%s" cannot be put on properties or getters.', \get_class($constraint)));
+        }
+
+        if ($constraint instanceof Composite) {
+            foreach ($constraint->getNestedContraints() as $nestedContraint) {
+                $this->checkConstraint($nestedContraint);
+            }
+        }
+    }
 }

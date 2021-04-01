@@ -12,17 +12,27 @@
 namespace Symfony\Component\Form\Tests\Extension\Validator;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Validator\ValidatorTypeGuesser;
 use Symfony\Component\Form\Guess\Guess;
+use Symfony\Component\Form\Guess\TypeGuess;
 use Symfony\Component\Form\Guess\ValueGuess;
+use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Range;
-use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface;
+use Symfony\Component\Validator\Tests\Fixtures\FakeMetadataFactory;
 
 /**
  * @author franek <franek@chicour.net>
@@ -45,30 +55,56 @@ class ValidatorTypeGuesserTest extends TestCase
     private $metadata;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var MetadataFactoryInterface
      */
     private $metadataFactory;
 
     protected function setUp()
     {
         $this->metadata = new ClassMetadata(self::TEST_CLASS);
-        $this->metadataFactory = $this->getMockBuilder('Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface')->getMock();
-        $this->metadataFactory->expects($this->any())
-            ->method('getMetadataFor')
-            ->with(self::TEST_CLASS)
-            ->will($this->returnValue($this->metadata));
+        $this->metadataFactory = new FakeMetadataFactory();
+        $this->metadataFactory->addMetadata($this->metadata);
         $this->guesser = new ValidatorTypeGuesser($this->metadataFactory);
+    }
+
+    /**
+     * @dataProvider guessTypeProvider
+     */
+    public function testGuessType(Constraint $constraint, TypeGuess $guess)
+    {
+        $this->metadata->addPropertyConstraint(self::TEST_PROPERTY, $constraint);
+
+        $this->assertEquals($guess, $this->guesser->guessType(self::TEST_CLASS, self::TEST_PROPERTY));
+    }
+
+    public function guessTypeProvider()
+    {
+        return [
+            [new Type('array'), new TypeGuess(CollectionType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('bool'), new TypeGuess(CheckboxType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('boolean'), new TypeGuess(CheckboxType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('double'), new TypeGuess(NumberType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('float'), new TypeGuess(NumberType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('numeric'), new TypeGuess(NumberType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('real'), new TypeGuess(NumberType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('int'), new TypeGuess(IntegerType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('integer'), new TypeGuess(IntegerType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('long'), new TypeGuess(IntegerType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('string'), new TypeGuess(TextType::class, [], Guess::LOW_CONFIDENCE)],
+            [new Type(\DateTime::class), new TypeGuess(DateType::class, [], Guess::MEDIUM_CONFIDENCE)],
+            [new Type('\DateTime'), new TypeGuess(DateType::class, [], Guess::MEDIUM_CONFIDENCE)],
+        ];
     }
 
     public function guessRequiredProvider()
     {
-        return array(
-            array(new NotNull(), new ValueGuess(true, Guess::HIGH_CONFIDENCE)),
-            array(new NotBlank(), new ValueGuess(true, Guess::HIGH_CONFIDENCE)),
-            array(new IsTrue(), new ValueGuess(true, Guess::HIGH_CONFIDENCE)),
-            array(new Length(10), new ValueGuess(false, Guess::LOW_CONFIDENCE)),
-            array(new Range(array('min' => 1, 'max' => 20)), new ValueGuess(false, Guess::LOW_CONFIDENCE)),
-        );
+        return [
+            [new NotNull(), new ValueGuess(true, Guess::HIGH_CONFIDENCE)],
+            [new NotBlank(), new ValueGuess(true, Guess::HIGH_CONFIDENCE)],
+            [new IsTrue(), new ValueGuess(true, Guess::HIGH_CONFIDENCE)],
+            [new Length(10), new ValueGuess(false, Guess::LOW_CONFIDENCE)],
+            [new Range(['min' => 1, 'max' => 20]), new ValueGuess(false, Guess::LOW_CONFIDENCE)],
+        ];
     }
 
     /**
@@ -92,7 +128,7 @@ class ValidatorTypeGuesserTest extends TestCase
 
     public function testGuessMaxLengthForConstraintWithMaxValue()
     {
-        $constraint = new Length(array('max' => '2'));
+        $constraint = new Length(['max' => '2']);
 
         $result = $this->guesser->guessMaxLengthForConstraint($constraint);
         $this->assertInstanceOf('Symfony\Component\Form\Guess\ValueGuess', $result);
@@ -102,7 +138,7 @@ class ValidatorTypeGuesserTest extends TestCase
 
     public function testGuessMaxLengthForConstraintWithMinValue()
     {
-        $constraint = new Length(array('min' => '2'));
+        $constraint = new Length(['min' => '2']);
 
         $result = $this->guesser->guessMaxLengthForConstraint($constraint);
         $this->assertNull($result);
@@ -110,12 +146,12 @@ class ValidatorTypeGuesserTest extends TestCase
 
     public function maxLengthTypeProvider()
     {
-        return array(
-            array('double'),
-            array('float'),
-            array('numeric'),
-            array('real'),
-        );
+        return [
+            ['double'],
+            ['float'],
+            ['numeric'],
+            ['real'],
+        ];
     }
 
     /**

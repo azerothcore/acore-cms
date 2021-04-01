@@ -14,9 +14,9 @@ namespace Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\Compiler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\CachePoolPass;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Reference;
 
 class CachePoolPassTest extends TestCase
@@ -40,7 +40,7 @@ class CachePoolPassTest extends TestCase
         $adapter->addTag('cache.pool');
         $container->setDefinition('app.cache_adapter', $adapter);
         $container->setAlias('app.cache_adapter_alias', 'app.cache_adapter');
-        $cachePool = new DefinitionDecorator('app.cache_adapter_alias');
+        $cachePool = new ChildDefinition('app.cache_adapter_alias');
         $cachePool->addArgument(null);
         $cachePool->addTag('cache.pool');
         $container->setDefinition('app.cache_pool', $cachePool);
@@ -59,7 +59,7 @@ class CachePoolPassTest extends TestCase
 
         $container->register('cache.adapter.array', ArrayAdapter::class)->addArgument(0);
 
-        $cachePool = new DefinitionDecorator('cache.adapter.array');
+        $cachePool = new ChildDefinition('cache.adapter.array');
         $cachePool->addTag('cache.pool');
         $container->setDefinition('app.cache_pool', $cachePool);
 
@@ -76,10 +76,10 @@ class CachePoolPassTest extends TestCase
         $container->setParameter('kernel.environment', 'prod');
         $container->setParameter('cache.prefix.seed', 'foo');
         $cachePool = new Definition();
-        $cachePool->addTag('cache.pool', array(
+        $cachePool->addTag('cache.pool', [
             'provider' => 'foobar',
             'default_lifetime' => 3,
-        ));
+        ]);
         $cachePool->addArgument(null);
         $cachePool->addArgument(null);
         $cachePool->addArgument(null);
@@ -93,12 +93,10 @@ class CachePoolPassTest extends TestCase
         $this->assertSame(3, $cachePool->getArgument(2));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Invalid "cache.pool" tag for service "app.cache_pool": accepted attributes are
-     */
     public function testThrowsExceptionWhenCachePoolTagHasUnknownAttributes()
     {
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('Invalid "cache.pool" tag for service "app.cache_pool": accepted attributes are');
         $container = new ContainerBuilder();
         $container->setParameter('kernel.debug', false);
         $container->setParameter('kernel.name', 'app');
@@ -108,8 +106,8 @@ class CachePoolPassTest extends TestCase
         $adapter->setAbstract(true);
         $adapter->addTag('cache.pool');
         $container->setDefinition('app.cache_adapter', $adapter);
-        $cachePool = new DefinitionDecorator('app.cache_adapter');
-        $cachePool->addTag('cache.pool', array('foobar' => 123));
+        $cachePool = new ChildDefinition('app.cache_adapter');
+        $cachePool->addTag('cache.pool', ['foobar' => 123]);
         $container->setDefinition('app.cache_pool', $cachePool);
 
         $this->cachePoolPass->process($container);

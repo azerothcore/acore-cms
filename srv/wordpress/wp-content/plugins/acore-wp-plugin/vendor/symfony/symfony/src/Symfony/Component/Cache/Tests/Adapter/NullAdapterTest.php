@@ -43,7 +43,7 @@ class NullAdapterTest extends TestCase
     {
         $adapter = $this->createCachePool();
 
-        $keys = array('foo', 'bar', 'baz', 'biz');
+        $keys = ['foo', 'bar', 'baz', 'biz'];
 
         /** @var CacheItemInterface[] $items */
         $items = $adapter->getItems($keys);
@@ -53,7 +53,7 @@ class NullAdapterTest extends TestCase
             $itemKey = $item->getKey();
 
             $this->assertEquals($itemKey, $key, 'Keys must be preserved when fetching multiple items');
-            $this->assertTrue(in_array($key, $keys), 'Cache key can not change.');
+            $this->assertContains($key, $keys, 'Cache key can not change.');
             $this->assertFalse($item->isHit());
 
             // Remove $key for $keys
@@ -89,7 +89,7 @@ class NullAdapterTest extends TestCase
 
     public function testDeleteItems()
     {
-        $this->assertTrue($this->createCachePool()->deleteItems(array('key', 'foo', 'bar')));
+        $this->assertTrue($this->createCachePool()->deleteItems(['key', 'foo', 'bar']));
     }
 
     public function testSave()

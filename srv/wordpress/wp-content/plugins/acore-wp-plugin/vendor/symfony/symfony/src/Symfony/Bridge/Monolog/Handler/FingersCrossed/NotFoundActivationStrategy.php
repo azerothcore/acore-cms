@@ -12,8 +12,8 @@
 namespace Symfony\Bridge\Monolog\Handler\FingersCrossed;
 
 use Monolog\Handler\FingersCrossed\ErrorLevelActivationStrategy;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Activation strategy that ignores 404s for certain URLs.
@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 class NotFoundActivationStrategy extends ErrorLevelActivationStrategy
 {
-    private $blacklist;
+    private $exclude;
     private $requestStack;
 
     public function __construct(RequestStack $requestStack, array $excludedUrls, $actionLevel)
@@ -31,7 +31,7 @@ class NotFoundActivationStrategy extends ErrorLevelActivationStrategy
         parent::__construct($actionLevel);
 
         $this->requestStack = $requestStack;
-        $this->blacklist = '{('.implode('|', $excludedUrls).')}i';
+        $this->exclude = '{('.implode('|', $excludedUrls).')}i';
     }
 
     public function isHandlerActivated(array $record)
@@ -42,10 +42,10 @@ class NotFoundActivationStrategy extends ErrorLevelActivationStrategy
             $isActivated
             && isset($record['context']['exception'])
             && $record['context']['exception'] instanceof HttpException
-            && $record['context']['exception']->getStatusCode() == 404
+            && 404 == $record['context']['exception']->getStatusCode()
             && ($request = $this->requestStack->getMasterRequest())
         ) {
-            return !preg_match($this->blacklist, $request->getPathInfo());
+            return !preg_match($this->exclude, $request->getPathInfo());
         }
 
         return $isActivated;

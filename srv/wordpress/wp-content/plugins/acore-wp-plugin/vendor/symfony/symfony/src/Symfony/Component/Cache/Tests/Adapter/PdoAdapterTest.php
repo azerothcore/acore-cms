@@ -12,17 +12,20 @@
 namespace Symfony\Component\Cache\Tests\Adapter;
 
 use Symfony\Component\Cache\Adapter\PdoAdapter;
+use Symfony\Component\Cache\Tests\Traits\PdoPruneableTrait;
 
 /**
  * @group time-sensitive
  */
 class PdoAdapterTest extends AdapterTestCase
 {
+    use PdoPruneableTrait;
+
     protected static $dbFile;
 
-    public static function setupBeforeClass()
+    public static function setUpBeforeClass()
     {
-        if (!extension_loaded('pdo_sqlite')) {
+        if (!\extension_loaded('pdo_sqlite')) {
             self::markTestSkipped('Extension pdo_sqlite required.');
         }
 

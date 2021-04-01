@@ -23,9 +23,8 @@ trait TargetPathTrait
      *
      * Usually, you do not need to set this directly.
      *
-     * @param SessionInterface $session
-     * @param string           $providerKey The name of your firewall
-     * @param string           $uri         The URI to set as the target path
+     * @param string $providerKey The name of your firewall
+     * @param string $uri         The URI to set as the target path
      */
     private function saveTargetPath(SessionInterface $session, $providerKey, $uri)
     {
@@ -35,10 +34,9 @@ trait TargetPathTrait
     /**
      * Returns the URL (if any) the user visited that forced them to login.
      *
-     * @param SessionInterface $session
-     * @param string           $providerKey The name of your firewall
+     * @param string $providerKey The name of your firewall
      *
-     * @return string
+     * @return string|null
      */
     private function getTargetPath(SessionInterface $session, $providerKey)
     {
@@ -48,8 +46,7 @@ trait TargetPathTrait
     /**
      * Removes the target path from the session.
      *
-     * @param SessionInterface $session
-     * @param string           $providerKey The name of your firewall
+     * @param string $providerKey The name of your firewall
      */
     private function removeTargetPath(SessionInterface $session, $providerKey)
     {

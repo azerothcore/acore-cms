@@ -11,8 +11,12 @@
 
 namespace Symfony\Component\Validator\Constraints;
 
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
@@ -23,33 +27,52 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
  */
 abstract class AbstractComparisonValidator extends ConstraintValidator
 {
+    private $propertyAccessor;
+
+    public function __construct(PropertyAccessorInterface $propertyAccessor = null)
+    {
+        $this->propertyAccessor = $propertyAccessor;
+    }
+
     /**
      * {@inheritdoc}
      */
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof AbstractComparison) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\AbstractComparison');
+            throw new UnexpectedTypeException($constraint, AbstractComparison::class);
         }
 
         if (null === $value) {
             return;
         }
 
-        $comparedValue = $constraint->value;
+        if ($path = $constraint->propertyPath) {
+            if (null === $object = $this->context->getObject()) {
+                return;
+            }
+
+            try {
+                $comparedValue = $this->getPropertyAccessor()->getValue($object, $path);
+            } catch (NoSuchPropertyException $e) {
+                throw new ConstraintDefinitionException(sprintf('Invalid property path "%s" provided to "%s" constraint: ', $path, \get_class($constraint)).$e->getMessage(), 0, $e);
+            }
+        } else {
+            $comparedValue = $constraint->value;
+        }
 
         // Convert strings to DateTimes if comparing another DateTime
         // This allows to compare with any date/time value supported by
         // the DateTime constructor:
-        // http://php.net/manual/en/datetime.formats.php
-        if (is_string($comparedValue)) {
-            if ($value instanceof \DateTimeImmutable) {
-                // If $value is immutable, convert the compared value to a
-                // DateTimeImmutable too
-                $comparedValue = new \DatetimeImmutable($comparedValue);
-            } elseif ($value instanceof \DateTimeInterface) {
-                // Otherwise use DateTime
-                $comparedValue = new \DateTime($comparedValue);
+        // https://php.net/datetime.formats
+        if (\is_string($comparedValue) && $value instanceof \DateTimeInterface) {
+            // If $value is immutable, convert the compared value to a DateTimeImmutable too, otherwise use DateTime
+            $dateTimeClass = $value instanceof \DateTimeImmutable ? \DateTimeImmutable::class : \DateTime::class;
+
+            try {
+                $comparedValue = new $dateTimeClass($comparedValue);
+            } catch (\Exception $e) {
+                throw new ConstraintDefinitionException(sprintf('The compared value "%s" could not be converted to a "%s" instance in the "%s" constraint.', $comparedValue, $dateTimeClass, \get_class($constraint)));
             }
         }
 
@@ -61,6 +84,15 @@ abstract class AbstractComparisonValidator extends ConstraintValidator
                 ->setCode($this->getErrorCode())
                 ->addViolation();
         }
+    }
+
+    private function getPropertyAccessor()
+    {
+        if (null === $this->propertyAccessor) {
+            $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        }
+
+        return $this->propertyAccessor;
     }
 
     /**
@@ -80,5 +112,6 @@ abstract class AbstractComparisonValidator extends ConstraintValidator
      */
     protected function getErrorCode()
     {
+        return null;
     }
 }

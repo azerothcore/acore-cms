@@ -31,14 +31,14 @@ class DateTimeValidator extends DateValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof DateTime) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\DateTime');
+            throw new UnexpectedTypeException($constraint, DateTime::class);
         }
 
         if (null === $value || '' === $value || $value instanceof \DateTimeInterface) {
             return;
         }
 
-        if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
@@ -55,6 +55,12 @@ class DateTimeValidator extends DateValidator
                 ->addViolation();
 
             return;
+        }
+
+        if ('+' === substr($constraint->format, -1)) {
+            $errors['warnings'] = array_filter($errors['warnings'], function ($warning) {
+                return 'Trailing data' !== $warning;
+            });
         }
 
         foreach ($errors['warnings'] as $warning) {

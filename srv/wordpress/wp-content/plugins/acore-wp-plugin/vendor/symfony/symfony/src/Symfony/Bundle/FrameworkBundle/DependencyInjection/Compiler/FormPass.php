@@ -11,9 +11,11 @@
 
 namespace Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler;
 
+@trigger_error(sprintf('The %s class is deprecated since Symfony 3.3 and will be removed in 4.0. Use Symfony\Component\Form\DependencyInjection\FormPass instead.', FormPass::class), \E_USER_DEPRECATED);
+
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 
 /**
@@ -21,6 +23,8 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
  * arguments of the "form.extension" service.
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @deprecated since version 3.3, to be removed in 4.0. Use FormPass in the Form component instead.
  */
 class FormPass implements CompilerPassInterface
 {
@@ -35,12 +39,12 @@ class FormPass implements CompilerPassInterface
         $definition = $container->getDefinition('form.extension');
 
         // Builds an array with fully-qualified type class names as keys and service IDs as values
-        $types = array();
+        $types = [];
 
         foreach ($container->findTaggedServiceIds('form.type') as $serviceId => $tag) {
             $serviceDefinition = $container->getDefinition($serviceId);
             if (!$serviceDefinition->isPublic()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must be public as form types are lazy-loaded.', $serviceId));
+                $serviceDefinition->setPublic(true);
             }
 
             // Support type access by FQCN
@@ -49,13 +53,13 @@ class FormPass implements CompilerPassInterface
 
         $definition->replaceArgument(1, $types);
 
-        $typeExtensions = array();
+        $typeExtensions = [];
 
         foreach ($this->findAndSortTaggedServices('form.type_extension', $container) as $reference) {
             $serviceId = (string) $reference;
             $serviceDefinition = $container->getDefinition($serviceId);
             if (!$serviceDefinition->isPublic()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must be public as form type extensions are lazy-loaded.', $serviceId));
+                $serviceDefinition->setPublic(true);
             }
 
             $tag = $serviceDefinition->getTag('form.type_extension');
@@ -75,7 +79,7 @@ class FormPass implements CompilerPassInterface
         foreach ($guessers as $serviceId) {
             $serviceDefinition = $container->getDefinition($serviceId);
             if (!$serviceDefinition->isPublic()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must be public as form type guessers are lazy-loaded.', $serviceId));
+                $serviceDefinition->setPublic(true);
             }
         }
 

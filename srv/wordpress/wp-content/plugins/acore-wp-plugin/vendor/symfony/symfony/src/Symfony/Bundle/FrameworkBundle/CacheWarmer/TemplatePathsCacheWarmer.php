@@ -11,9 +11,9 @@
 
 namespace Symfony\Bundle\FrameworkBundle\CacheWarmer;
 
+use Symfony\Bundle\FrameworkBundle\Templating\Loader\TemplateLocator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmer;
-use Symfony\Bundle\FrameworkBundle\Templating\Loader\TemplateLocator;
 
 /**
  * Computes the association between template names and their paths on the disk.
@@ -25,12 +25,6 @@ class TemplatePathsCacheWarmer extends CacheWarmer
     protected $finder;
     protected $locator;
 
-    /**
-     * Constructor.
-     *
-     * @param TemplateFinderInterface $finder  A template finder
-     * @param TemplateLocator         $locator The template locator
-     */
     public function __construct(TemplateFinderInterface $finder, TemplateLocator $locator)
     {
         $this->finder = $finder;
@@ -45,7 +39,7 @@ class TemplatePathsCacheWarmer extends CacheWarmer
     public function warmUp($cacheDir)
     {
         $filesystem = new Filesystem();
-        $templates = array();
+        $templates = [];
 
         foreach ($this->finder->findAllTemplates() as $template) {
             $templates[$template->getLogicalName()] = rtrim($filesystem->makePathRelative($this->locator->locate($template), $cacheDir), '/');

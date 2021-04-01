@@ -22,15 +22,15 @@ use Symfony\Component\Workflow\Exception\InvalidArgumentException;
  */
 class DefinitionBuilder
 {
-    private $places = array();
-    private $transitions = array();
+    private $places = [];
+    private $transitions = [];
     private $initialPlace;
 
     /**
      * @param string[]     $places
      * @param Transition[] $transitions
      */
-    public function __construct(array $places = array(), array $transitions = array())
+    public function __construct(array $places = [], array $transitions = [])
     {
         $this->addPlaces($places);
         $this->addTransitions($transitions);
@@ -46,28 +46,38 @@ class DefinitionBuilder
 
     /**
      * Clear all data in the builder.
+     *
+     * @return $this
      */
     public function reset()
     {
-        $this->places = array();
-        $this->transitions = array();
+        $this->places = [];
+        $this->transitions = [];
         $this->initialPlace = null;
+
+        return $this;
     }
 
     /**
      * @param string $place
+     *
+     * @return $this
      */
     public function setInitialPlace($place)
     {
         $this->initialPlace = $place;
+
+        return $this;
     }
 
     /**
      * @param string $place
+     *
+     * @return $this
      */
     public function addPlace($place)
     {
-        if (!preg_match('{^[\w\d_-]+$}', $place)) {
+        if (!preg_match('{^[\w_-]+$}', $place)) {
             throw new InvalidArgumentException(sprintf('The place "%s" contains invalid characters.', $place));
         }
 
@@ -76,30 +86,45 @@ class DefinitionBuilder
         }
 
         $this->places[$place] = $place;
+
+        return $this;
     }
 
     /**
      * @param string[] $places
+     *
+     * @return $this
      */
     public function addPlaces(array $places)
     {
         foreach ($places as $place) {
             $this->addPlace($place);
         }
+
+        return $this;
     }
 
     /**
      * @param Transition[] $transitions
+     *
+     * @return $this
      */
     public function addTransitions(array $transitions)
     {
         foreach ($transitions as $transition) {
             $this->addTransition($transition);
         }
+
+        return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function addTransition(Transition $transition)
     {
         $this->transitions[] = $transition;
+
+        return $this;
     }
 }

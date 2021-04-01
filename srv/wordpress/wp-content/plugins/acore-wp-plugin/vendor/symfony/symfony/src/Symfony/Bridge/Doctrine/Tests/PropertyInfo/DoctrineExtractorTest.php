@@ -9,13 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Bridge\Doctrine\PropertyInfo\Tests;
+namespace Symfony\Bridge\Doctrine\Tests\PropertyInfo;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Type as DBALType;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Doctrine\PropertyInfo\DoctrineExtractor;
+use Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineDummy210;
+use Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation;
 use Symfony\Component\PropertyInfo\Type;
 
 /**
@@ -30,8 +34,8 @@ class DoctrineExtractorTest extends TestCase
 
     protected function setUp()
     {
-        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__.DIRECTORY_SEPARATOR.'Fixtures'), true);
-        $entityManager = EntityManager::create(array('driver' => 'pdo_sqlite'), $config);
+        $config = Setup::createAnnotationMetadataConfiguration([__DIR__.\DIRECTORY_SEPARATOR.'Fixtures'], true);
+        $entityManager = EntityManager::create(['driver' => 'pdo_sqlite'], $config);
 
         if (!DBALType::hasType('foo')) {
             DBALType::addType('foo', 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineFooType');
@@ -43,24 +47,43 @@ class DoctrineExtractorTest extends TestCase
 
     public function testGetProperties()
     {
+        // Fields
+        $expected = [
+            'id',
+            'guid',
+            'time',
+            'timeImmutable',
+            'dateInterval',
+            'jsonArray',
+            'simpleArray',
+            'float',
+            'decimal',
+            'bool',
+            'binary',
+            'customFoo',
+            'bigint',
+        ];
+
+        if (class_exists(Types::class)) {
+            $expected[] = 'json';
+        }
+
+        // Associations
+        $expected = array_merge($expected, [
+            'foo',
+            'bar',
+            'indexedRguid',
+            'indexedBar',
+            'indexedFoo',
+            'indexedBaz',
+            'indexedByDt',
+            'indexedByCustomType',
+            'indexedBuz',
+        ]);
+
         $this->assertEquals(
-             array(
-                'id',
-                'guid',
-                'time',
-                'json',
-                'simpleArray',
-                'float',
-                'decimal',
-                'bool',
-                'binary',
-                'customFoo',
-                'bigint',
-                'foo',
-                'bar',
-                'indexedBar',
-            ),
-            $this->extractor->getProperties('Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineDummy')
+            $expected,
+            $this->extractor->getProperties(!class_exists(Types::class) ? 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineDummy' : DoctrineDummy210::class)
         );
     }
 
@@ -71,10 +94,10 @@ class DoctrineExtractorTest extends TestCase
         }
 
         $this->assertEquals(
-            array(
+            [
                 'id',
                 'embedded',
-            ),
+            ],
             $this->extractor->getProperties('Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineWithEmbedded')
         );
     }
@@ -84,7 +107,7 @@ class DoctrineExtractorTest extends TestCase
      */
     public function testExtract($property, array $type = null)
     {
-        $this->assertEquals($type, $this->extractor->getTypes('Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineDummy', $property, array()));
+        $this->assertEquals($type, $this->extractor->getTypes(!class_exists(Types::class) ? 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineDummy' : DoctrineDummy210::class, $property, []));
     }
 
     public function testExtractWithEmbedded()
@@ -93,16 +116,16 @@ class DoctrineExtractorTest extends TestCase
             $this->markTestSkipped('@Embedded is not available in Doctrine ORM lower than 2.5.');
         }
 
-        $expectedTypes = array(new Type(
+        $expectedTypes = [new Type(
             Type::BUILTIN_TYPE_OBJECT,
             false,
             'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineEmbeddable'
-        ));
+        )];
 
         $actualTypes = $this->extractor->getTypes(
             'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineWithEmbedded',
             'embedded',
-            array()
+            []
         );
 
         $this->assertEquals($expectedTypes, $actualTypes);
@@ -110,36 +133,86 @@ class DoctrineExtractorTest extends TestCase
 
     public function typesProvider()
     {
-        return array(
-            array('id', array(new Type(Type::BUILTIN_TYPE_INT))),
-            array('guid', array(new Type(Type::BUILTIN_TYPE_STRING))),
-            array('bigint', array(new Type(Type::BUILTIN_TYPE_STRING))),
-            array('float', array(new Type(Type::BUILTIN_TYPE_FLOAT))),
-            array('decimal', array(new Type(Type::BUILTIN_TYPE_STRING))),
-            array('bool', array(new Type(Type::BUILTIN_TYPE_BOOL))),
-            array('binary', array(new Type(Type::BUILTIN_TYPE_RESOURCE))),
-            array('json', array(new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true))),
-            array('foo', array(new Type(Type::BUILTIN_TYPE_OBJECT, true, 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation'))),
-            array('bar', array(new Type(
+        $provider = [
+            ['id', [new Type(Type::BUILTIN_TYPE_INT)]],
+            ['guid', [new Type(Type::BUILTIN_TYPE_STRING)]],
+            ['bigint', [new Type(Type::BUILTIN_TYPE_STRING)]],
+            ['time', [new Type(Type::BUILTIN_TYPE_OBJECT, false, 'DateTime')]],
+            ['timeImmutable', [new Type(Type::BUILTIN_TYPE_OBJECT, false, 'DateTimeImmutable')]],
+            ['dateInterval', [new Type(Type::BUILTIN_TYPE_OBJECT, false, 'DateInterval')]],
+            ['float', [new Type(Type::BUILTIN_TYPE_FLOAT)]],
+            ['decimal', [new Type(Type::BUILTIN_TYPE_STRING)]],
+            ['bool', [new Type(Type::BUILTIN_TYPE_BOOL)]],
+            ['binary', [new Type(Type::BUILTIN_TYPE_RESOURCE)]],
+            ['jsonArray', [new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true)]],
+            ['foo', [new Type(Type::BUILTIN_TYPE_OBJECT, true, 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation')]],
+            ['bar', [new Type(
                 Type::BUILTIN_TYPE_OBJECT,
                 false,
                 'Doctrine\Common\Collections\Collection',
                 true,
                 new Type(Type::BUILTIN_TYPE_INT),
                 new Type(Type::BUILTIN_TYPE_OBJECT, false, 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation')
-            ))),
-            array('indexedBar', array(new Type(
+            )]],
+            ['indexedRguid', [new Type(
                 Type::BUILTIN_TYPE_OBJECT,
                 false,
                 'Doctrine\Common\Collections\Collection',
                 true,
                 new Type(Type::BUILTIN_TYPE_STRING),
                 new Type(Type::BUILTIN_TYPE_OBJECT, false, 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation')
-            ))),
-            array('simpleArray', array(new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true, new Type(Type::BUILTIN_TYPE_INT), new Type(Type::BUILTIN_TYPE_STRING)))),
-            array('customFoo', null),
-            array('notMapped', null),
-        );
+            )]],
+            ['indexedBar', [new Type(
+                Type::BUILTIN_TYPE_OBJECT,
+                false,
+                'Doctrine\Common\Collections\Collection',
+                true,
+                new Type(Type::BUILTIN_TYPE_STRING),
+                new Type(Type::BUILTIN_TYPE_OBJECT, false, 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation')
+            )]],
+            ['indexedFoo', [new Type(
+                Type::BUILTIN_TYPE_OBJECT,
+                false,
+                'Doctrine\Common\Collections\Collection',
+                true,
+                new Type(Type::BUILTIN_TYPE_STRING),
+                new Type(Type::BUILTIN_TYPE_OBJECT, false, 'Symfony\Bridge\Doctrine\Tests\PropertyInfo\Fixtures\DoctrineRelation')
+            )]],
+            ['indexedBaz', [new Type(
+                Type::BUILTIN_TYPE_OBJECT,
+                false,
+                Collection::class,
+                true,
+                new Type(Type::BUILTIN_TYPE_INT),
+                new Type(Type::BUILTIN_TYPE_OBJECT, false, DoctrineRelation::class)
+            )]],
+            ['simpleArray', [new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true, new Type(Type::BUILTIN_TYPE_INT), new Type(Type::BUILTIN_TYPE_STRING))]],
+            ['customFoo', null],
+            ['notMapped', null],
+            ['indexedByDt', [new Type(
+                Type::BUILTIN_TYPE_OBJECT,
+                false,
+                Collection::class,
+                true,
+                new Type(Type::BUILTIN_TYPE_OBJECT),
+                new Type(Type::BUILTIN_TYPE_OBJECT, false, DoctrineRelation::class)
+            )]],
+            ['indexedByCustomType', null],
+            ['indexedBuz', [new Type(
+                Type::BUILTIN_TYPE_OBJECT,
+                false,
+                Collection::class,
+                true,
+                new Type(Type::BUILTIN_TYPE_STRING),
+                new Type(Type::BUILTIN_TYPE_OBJECT, false, DoctrineRelation::class)
+            )]],
+        ];
+
+        if (class_exists(Types::class)) {
+            $provider[] = ['json', null];
+        }
+
+        return $provider;
     }
 
     public function testGetPropertiesCatchException()

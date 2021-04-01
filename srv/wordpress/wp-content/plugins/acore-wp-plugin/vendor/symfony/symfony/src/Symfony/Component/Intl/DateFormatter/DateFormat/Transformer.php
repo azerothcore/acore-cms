@@ -23,7 +23,6 @@ abstract class Transformer
     /**
      * Format a value using a configured DateTime as date/time source.
      *
-     *
      * @param \DateTime $dateTime A DateTime object to be used to generate the formatted value
      * @param int       $length   The formatted value string length
      *
@@ -61,6 +60,6 @@ abstract class Transformer
      */
     protected function padLeft($value, $length)
     {
-        return str_pad($value, $length, '0', STR_PAD_LEFT);
+        return str_pad($value, $length, '0', \STR_PAD_LEFT);
     }
 }

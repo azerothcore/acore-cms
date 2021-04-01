@@ -15,7 +15,6 @@ use Symfony\Bridge\Twig\Node\TransNode;
 use Twig\Error\SyntaxError;
 use Twig\Node\Expression\AbstractExpression;
 use Twig\Node\Expression\ArrayExpression;
-use Twig\Node\Node;
 use Twig\Node\TextNode;
 use Twig\Token;
 
@@ -27,20 +26,14 @@ use Twig\Token;
 class TransChoiceTokenParser extends TransTokenParser
 {
     /**
-     * Parses a token and returns a node.
-     *
-     * @param Token $token
-     *
-     * @return Node
-     *
-     * @throws SyntaxError
+     * {@inheritdoc}
      */
     public function parse(Token $token)
     {
         $lineno = $token->getLine();
         $stream = $this->parser->getStream();
 
-        $vars = new ArrayExpression(array(), $lineno);
+        $vars = new ArrayExpression([], $lineno);
 
         $count = $this->parser->getExpressionParser()->parseExpression();
 
@@ -67,10 +60,10 @@ class TransChoiceTokenParser extends TransTokenParser
 
         $stream->expect(Token::BLOCK_END_TYPE);
 
-        $body = $this->parser->subparse(array($this, 'decideTransChoiceFork'), true);
+        $body = $this->parser->subparse([$this, 'decideTransChoiceFork'], true);
 
         if (!$body instanceof TextNode && !$body instanceof AbstractExpression) {
-            throw new SyntaxError('A message inside a transchoice tag must be a simple text.', $body->getTemplateLine(), $stream->getSourceContext()->getName());
+            throw new SyntaxError('A message inside a transchoice tag must be a simple text.', $body->getTemplateLine(), $stream->getSourceContext());
         }
 
         $stream->expect(Token::BLOCK_END_TYPE);
@@ -80,13 +73,11 @@ class TransChoiceTokenParser extends TransTokenParser
 
     public function decideTransChoiceFork($token)
     {
-        return $token->test(array('endtranschoice'));
+        return $token->test(['endtranschoice']);
     }
 
     /**
-     * Gets the tag name associated with this token parser.
-     *
-     * @return string The tag name
+     * {@inheritdoc}
      */
     public function getTag()
     {

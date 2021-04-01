@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "AED": [
             "AED",
@@ -120,6 +119,10 @@
         "CLP": [
             "CLP",
             "Kili peso"
+        ],
+        "CNH": [
+            "CNH",
+            "kinesiskur yuan (úr landi)"
         ],
         "CNY": [
             "CN¥",
@@ -247,7 +250,7 @@
         ],
         "ILS": [
             "₪",
-            "Ísrael new sheqel"
+            "Ísrael new shekel"
         ],
         "INR": [
             "₹",
@@ -363,6 +366,10 @@
         ],
         "MRO": [
             "MRO",
+            "Móritania ouguiya (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Móritania ouguiya"
         ],
         "MUR": [
@@ -511,6 +518,10 @@
         ],
         "STD": [
             "STD",
+            "Sao Tome & Prinsipi dobra (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Sao Tome & Prinsipi dobra"
         ],
         "SYP": [
@@ -579,6 +590,10 @@
         ],
         "VEF": [
             "VEF",
+            "Venesuela bolívar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Venesuela bolívar"
         ],
         "VND": [

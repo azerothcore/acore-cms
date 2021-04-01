@@ -11,8 +11,8 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Templating\Helper;
 
-use Symfony\Component\Templating\Helper\Helper;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Templating\Helper\Helper;
 
 /**
  * SessionHelper provides read-only access to the session attributes.
@@ -42,7 +42,7 @@ class SessionHelper extends Helper
         return $this->getSession()->get($name, $default);
     }
 
-    public function getFlash($name, array $default = array())
+    public function getFlash($name, array $default = [])
     {
         return $this->getSession()->getFlashBag()->get($name, $default);
     }

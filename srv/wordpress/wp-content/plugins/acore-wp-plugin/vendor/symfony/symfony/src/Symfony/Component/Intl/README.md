@@ -5,7 +5,7 @@ A PHP replacement layer for the C intl extension that also provides access to
 the localization data of the ICU library.
 
 The replacement layer is limited to the locale "en". If you want to use other
-locales, you should [install the intl PHP extension] [0] instead.
+locales, you should [install the intl PHP extension][0] instead.
 
 Resources
 ---------
@@ -18,4 +18,4 @@ Resources
   * [Docker images with intl support](https://hub.docker.com/r/jakzal/php-intl)
     (for the Intl component development)
 
-[0]: http://www.php.net/manual/en/intl.setup.php
+[0]: https://php.net/intl.setup

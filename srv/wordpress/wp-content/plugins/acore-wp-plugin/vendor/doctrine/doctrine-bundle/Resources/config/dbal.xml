@@ -30,6 +30,7 @@
         </service>
 
         <service id="doctrine.dbal.logger.profiling" class="%doctrine.dbal.logger.profiling.class%" public="false" abstract="true" />
+        <service id="doctrine.dbal.logger.backtrace" class="Doctrine\Bundle\DoctrineBundle\Dbal\Logging\BacktraceLogger" public="false" abstract="true" />
 
         <service id="doctrine.dbal.logger" class="%doctrine.dbal.logger.class%" public="false">
             <tag name="monolog.logger" channel="doctrine" />
@@ -62,12 +63,23 @@
             <argument>%doctrine.entity_managers%</argument>
             <argument>%doctrine.default_connection%</argument>
             <argument>%doctrine.default_entity_manager%</argument>
+            <tag name="kernel.reset" method="reset" />
         </service>
+        <service id="Doctrine\Persistence\ManagerRegistry" alias="doctrine" public="false" />
         <service id="Doctrine\Common\Persistence\ManagerRegistry" alias="doctrine" public="false" />
         <service id="Symfony\Bridge\Doctrine\RegistryInterface" alias="doctrine" public="false" />
+        <service id="Doctrine\Bundle\DoctrineBundle\Registry" alias="doctrine" public="false" />
 
         <service id="doctrine.twig.doctrine_extension" class="Doctrine\Bundle\DoctrineBundle\Twig\DoctrineExtension" public="false">
             <tag name="twig.extension" />
+        </service>
+
+        <service id="doctrine.dbal.schema_asset_filter_manager" class="Doctrine\Bundle\DoctrineBundle\Dbal\SchemaAssetsFilterManager" public="false" abstract="true">
+            <!-- schema assets filters -->
+        </service>
+
+        <service id="doctrine.dbal.well_known_schema_asset_filter" class="Doctrine\Bundle\DoctrineBundle\Dbal\BlacklistSchemaAssetFilter" public="false">
+            <argument type="collection" />
         </service>
 
         <!-- commands -->
@@ -81,6 +93,10 @@
             <argument type="service" id="doctrine" />
 
             <tag name="console.command" command="doctrine:database:drop" />
+        </service>
+
+        <service id="doctrine.database_import_command" class="Doctrine\Bundle\DoctrineBundle\Command\Proxy\ImportDoctrineCommand">
+            <tag name="console.command" command="doctrine:database:import" />
         </service>
 
         <service id="doctrine.generate_entities_command" class="Doctrine\Bundle\DoctrineBundle\Command\GenerateEntitiesDoctrineCommand">

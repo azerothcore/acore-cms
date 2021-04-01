@@ -11,14 +11,14 @@
 
 namespace Symfony\Component\Security\Core\Authentication\Provider;
 
+use Symfony\Component\Ldap\Exception\ConnectionException;
+use Symfony\Component\Ldap\LdapInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
-use Symfony\Component\Ldap\LdapInterface;
-use Symfony\Component\Ldap\Exception\ConnectionException;
 
 /**
  * LdapBindAuthenticationProvider authenticates a user against an LDAP server.
@@ -33,10 +33,9 @@ class LdapBindAuthenticationProvider extends UserAuthenticationProvider
     private $userProvider;
     private $ldap;
     private $dnString;
+    private $queryString;
 
     /**
-     * Constructor.
-     *
      * @param UserProviderInterface $userProvider               A UserProvider
      * @param UserCheckerInterface  $userChecker                A UserChecker
      * @param string                $providerKey                The provider key
@@ -54,12 +53,22 @@ class LdapBindAuthenticationProvider extends UserAuthenticationProvider
     }
 
     /**
+     * Set a query string to use in order to find a DN for the username.
+     *
+     * @param string $queryString
+     */
+    public function setQueryString($queryString)
+    {
+        $this->queryString = $queryString;
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function retrieveUser($username, UsernamePasswordToken $token)
     {
         if (AuthenticationProviderInterface::USERNAME_NONE_PROVIDED === $username) {
-            throw new UsernameNotFoundException('Username can not be null');
+            throw new UsernameNotFoundException('Username can not be null.');
         }
 
         return $this->userProvider->loadUserByUsername($username);
@@ -73,13 +82,24 @@ class LdapBindAuthenticationProvider extends UserAuthenticationProvider
         $username = $token->getUsername();
         $password = $token->getCredentials();
 
-        if ('' === $password) {
+        if ('' === (string) $password) {
             throw new BadCredentialsException('The presented password must not be empty.');
         }
 
         try {
-            $username = $this->ldap->escape($username, '', LdapInterface::ESCAPE_DN);
-            $dn = str_replace('{username}', $username, $this->dnString);
+            if ($this->queryString) {
+                $username = $this->ldap->escape($username, '', LdapInterface::ESCAPE_FILTER);
+                $query = str_replace('{username}', $username, $this->queryString);
+                $result = $this->ldap->query($this->dnString, $query)->execute();
+                if (1 !== $result->count()) {
+                    throw new BadCredentialsException('The presented username is invalid.');
+                }
+
+                $dn = $result[0]->getDn();
+            } else {
+                $username = $this->ldap->escape($username, '', LdapInterface::ESCAPE_DN);
+                $dn = str_replace('{username}', $username, $this->dnString);
+            }
 
             $this->ldap->bind($dn, $password);
         } catch (ConnectionException $e) {

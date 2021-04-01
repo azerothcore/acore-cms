@@ -12,31 +12,34 @@
 namespace Symfony\Bundle\FrameworkBundle\Command;
 
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Console\Exception\LogicException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Console\Exception\LogicException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
  * A console command for dumping available configuration reference.
  *
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
+ *
+ * @final since version 3.4
  */
 class ConfigDebugCommand extends AbstractConfigCommand
 {
+    protected static $defaultName = 'debug:config';
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
         $this
-            ->setName('debug:config')
-            ->setDefinition(array(
+            ->setDefinition([
                 new InputArgument('name', InputArgument::OPTIONAL, 'The bundle name or the extension alias'),
                 new InputArgument('path', InputArgument::OPTIONAL, 'The configuration option path'),
-            ))
+            ])
             ->setDescription('Dumps the current configuration for an extension')
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command dumps the current configuration for an
@@ -62,11 +65,12 @@ EOF
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
+        $errorIo = $io->getErrorStyle();
 
         if (null === $name = $input->getArgument('name')) {
-            $this->listBundles($io);
-            $io->comment('Provide the name of a bundle as the first argument of this command to dump its configuration. (e.g. <comment>debug:config FrameworkBundle</comment>)');
-            $io->comment('For dumping a specific option, add its path as the second argument of this command. (e.g. <comment>debug:config FrameworkBundle serializer</comment> to dump the <comment>framework.serializer</comment> configuration)');
+            $this->listBundles($errorIo);
+            $errorIo->comment('Provide the name of a bundle as the first argument of this command to dump its configuration. (e.g. <comment>debug:config FrameworkBundle</comment>)');
+            $errorIo->comment('For dumping a specific option, add its path as the second argument of this command. (e.g. <comment>debug:config FrameworkBundle serializer</comment> to dump the <comment>framework.serializer</comment> configuration)');
 
             return;
         }
@@ -90,7 +94,7 @@ EOF
                 sprintf('Current configuration for %s', ($name === $extensionAlias ? sprintf('extension with alias "%s"', $extensionAlias) : sprintf('"%s"', $name)))
             );
 
-            $io->writeln(Yaml::dump(array($extensionAlias => $config), 10));
+            $io->writeln(Yaml::dump([$extensionAlias => $config], 10));
 
             return;
         }
@@ -98,9 +102,9 @@ EOF
         try {
             $config = $this->getConfigForPath($config, $path, $extensionAlias);
         } catch (LogicException $e) {
-            $io->error($e->getMessage());
+            $errorIo->error($e->getMessage());
 
-            return;
+            return 1;
         }
 
         $io->title(sprintf('Current configuration for "%s.%s"', $extensionAlias, $path));
@@ -110,7 +114,7 @@ EOF
 
     private function compileContainer()
     {
-        $kernel = clone $this->getContainer()->get('kernel');
+        $kernel = clone $this->getApplication()->getKernel();
         $kernel->boot();
 
         $method = new \ReflectionMethod($kernel, 'buildContainer');
@@ -135,8 +139,8 @@ EOF
         $steps = explode('.', $path);
 
         foreach ($steps as $step) {
-            if (!array_key_exists($step, $config)) {
-                throw new LogicException(sprintf('Unable to find configuration for "%s.%s"', $alias, $path));
+            if (!\array_key_exists($step, $config)) {
+                throw new LogicException(sprintf('Unable to find configuration for "%s.%s".', $alias, $path));
             }
 
             $config = $config[$step];

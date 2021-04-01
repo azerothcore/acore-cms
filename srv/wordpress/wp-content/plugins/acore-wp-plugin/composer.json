@@ -19,8 +19,8 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
-        "symfony/symfony": "3.2.*",
+        "php": ">=7.0.8",
+        "symfony/symfony": "3.4.*",
         "doctrine/lexer": "^1.0",
         "doctrine/orm": "^2.7.3",
         "doctrine/doctrine-bundle": "^1.6",

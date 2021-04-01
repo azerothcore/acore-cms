@@ -15,12 +15,14 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Compiler\FactoryReturnTypePass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\Tests\Fixtures\factoryFunction;
 use Symfony\Component\DependencyInjection\Tests\Fixtures\FactoryDummy;
+use Symfony\Component\DependencyInjection\Tests\Fixtures\factoryFunction;
 use Symfony\Component\DependencyInjection\Tests\Fixtures\FactoryParent;
 
 /**
  * @author Guilhem N. <egetick@gmail.com>
+ *
+ * @group legacy
  */
 class FactoryReturnTypePassTest extends TestCase
 {
@@ -29,15 +31,15 @@ class FactoryReturnTypePassTest extends TestCase
         $container = new ContainerBuilder();
 
         $factory = $container->register('factory');
-        $factory->setFactory(array(FactoryDummy::class, 'createFactory'));
+        $factory->setFactory([FactoryDummy::class, 'createFactory']);
 
         $container->setAlias('alias_factory', 'factory');
 
         $foo = $container->register('foo');
-        $foo->setFactory(array(new Reference('alias_factory'), 'create'));
+        $foo->setFactory([new Reference('alias_factory'), 'create']);
 
         $bar = $container->register('bar', __CLASS__);
-        $bar->setFactory(array(new Reference('factory'), 'create'));
+        $bar->setFactory([new Reference('factory'), 'create']);
 
         $pass = new FactoryReturnTypePass();
         $pass->process($container);
@@ -57,7 +59,7 @@ class FactoryReturnTypePassTest extends TestCase
      */
     public function testReturnTypes($factory, $returnType, $hhvmSupport = true)
     {
-        if (!$hhvmSupport && defined('HHVM_VERSION')) {
+        if (!$hhvmSupport && \defined('HHVM_VERSION')) {
             $this->markTestSkipped('Scalar typehints not supported by hhvm.');
         }
 
@@ -78,13 +80,13 @@ class FactoryReturnTypePassTest extends TestCase
 
     public function returnTypesProvider()
     {
-        return array(
+        return [
             // must be loaded before the function as they are in the same file
-            array(array(FactoryDummy::class, 'createBuiltin'), null, false),
-            array(array(FactoryDummy::class, 'createParent'), FactoryParent::class),
-            array(array(FactoryDummy::class, 'createSelf'), FactoryDummy::class),
-            array(factoryFunction::class, FactoryDummy::class),
-        );
+            [[FactoryDummy::class, 'createBuiltin'], null, false],
+            [[FactoryDummy::class, 'createParent'], FactoryParent::class],
+            [[FactoryDummy::class, 'createSelf'], FactoryDummy::class],
+            [factoryFunction::class, FactoryDummy::class],
+        ];
     }
 
     public function testCircularReference()
@@ -92,10 +94,10 @@ class FactoryReturnTypePassTest extends TestCase
         $container = new ContainerBuilder();
 
         $factory = $container->register('factory');
-        $factory->setFactory(array(new Reference('factory2'), 'createSelf'));
+        $factory->setFactory([new Reference('factory2'), 'createSelf']);
 
         $factory2 = $container->register('factory2');
-        $factory2->setFactory(array(new Reference('factory'), 'create'));
+        $factory2->setFactory([new Reference('factory'), 'create']);
 
         $pass = new FactoryReturnTypePass();
         $pass->process($container);
@@ -104,22 +106,16 @@ class FactoryReturnTypePassTest extends TestCase
         $this->assertNull($factory2->getClass());
     }
 
+    /**
+     * @requires function ReflectionMethod::getReturnType
+     * @expectedDeprecation Relying on its factory's return-type to define the class of service "factory" is deprecated since Symfony 3.3 and won't work in 4.0. Set the "class" attribute to "Symfony\Component\DependencyInjection\Tests\Fixtures\FactoryDummy" on the service definition instead.
+     */
     public function testCompile()
     {
         $container = new ContainerBuilder();
 
         $factory = $container->register('factory');
-        $factory->setFactory(array(FactoryDummy::class, 'createFactory'));
-
-        if (!method_exists(\ReflectionMethod::class, 'getReturnType')) {
-            if (method_exists($this, 'expectException')) {
-                $this->expectException(\RuntimeException::class);
-                $this->expectExceptionMessage('Please add the class to service "factory" even if it is constructed by a factory since we might need to add method calls based on compile-time checks.');
-            } else {
-                $this->setExpectedException(\RuntimeException::class, 'Please add the class to service "factory" even if it is constructed by a factory since we might need to add method calls based on compile-time checks.');
-            }
-        }
-
+        $factory->setFactory([FactoryDummy::class, 'createFactory']);
         $container->compile();
 
         $this->assertEquals(FactoryDummy::class, $container->getDefinition('factory')->getClass());

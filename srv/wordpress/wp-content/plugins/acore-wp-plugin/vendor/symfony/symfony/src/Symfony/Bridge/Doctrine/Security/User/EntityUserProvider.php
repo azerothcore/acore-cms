@@ -11,16 +11,17 @@
 
 namespace Symfony\Bridge\Doctrine\Security\User;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Common\Persistence\ManagerRegistry as LegacyManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * Wrapper around a Doctrine ObjectManager.
  *
- * Provides easy to use provisioning for Doctrine entity users.
+ * Provides provisioning for Doctrine entity users.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
@@ -33,7 +34,10 @@ class EntityUserProvider implements UserProviderInterface
     private $class;
     private $property;
 
-    public function __construct(ManagerRegistry $registry, $classOrAlias, $property = null, $managerName = null)
+    /**
+     * @param ManagerRegistry|LegacyManagerRegistry $registry
+     */
+    public function __construct($registry, $classOrAlias, $property = null, $managerName = null)
     {
         $this->registry = $registry;
         $this->managerName = $managerName;
@@ -48,10 +52,10 @@ class EntityUserProvider implements UserProviderInterface
     {
         $repository = $this->getRepository();
         if (null !== $this->property) {
-            $user = $repository->findOneBy(array($this->property => $username));
+            $user = $repository->findOneBy([$this->property => $username]);
         } else {
             if (!$repository instanceof UserLoaderInterface) {
-                throw new \InvalidArgumentException(sprintf('You must either make the "%s" entity Doctrine Repository ("%s") implement "Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface" or set the "property" option in the corresponding entity provider configuration.', $this->classOrAlias, get_class($repository)));
+                throw new \InvalidArgumentException(sprintf('You must either make the "%s" entity Doctrine Repository ("%s") implement "Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface" or set the "property" option in the corresponding entity provider configuration.', $this->classOrAlias, \get_class($repository)));
             }
 
             $user = $repository->loadUserByUsername($username);
@@ -71,7 +75,7 @@ class EntityUserProvider implements UserProviderInterface
     {
         $class = $this->getClass();
         if (!$user instanceof $class) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
         }
 
         $repository = $this->getRepository();
@@ -83,16 +87,12 @@ class EntityUserProvider implements UserProviderInterface
             // That's the case when the user has been changed by a form with
             // validation errors.
             if (!$id = $this->getClassMetadata()->getIdentifierValues($user)) {
-                throw new \InvalidArgumentException('You cannot refresh a user '.
-                    'from the EntityUserProvider that does not contain an identifier. '.
-                    'The user object has to be serialized with its own identifier '.
-                    'mapped by Doctrine.'
-                );
+                throw new \InvalidArgumentException('You cannot refresh a user from the EntityUserProvider that does not contain an identifier. The user object has to be serialized with its own identifier mapped by Doctrine.');
             }
 
             $refreshedUser = $repository->find($id);
             if (null === $refreshedUser) {
-                throw new UsernameNotFoundException(sprintf('User with id %s not found', json_encode($id)));
+                throw new UsernameNotFoundException('User with id '.json_encode($id).' not found.');
             }
         }
 

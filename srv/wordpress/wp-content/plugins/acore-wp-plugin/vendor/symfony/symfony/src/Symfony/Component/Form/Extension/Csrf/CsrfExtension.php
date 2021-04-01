@@ -22,27 +22,14 @@ use Symfony\Component\Translation\TranslatorInterface;
  */
 class CsrfExtension extends AbstractExtension
 {
-    /**
-     * @var CsrfTokenManagerInterface
-     */
     private $tokenManager;
-
-    /**
-     * @var TranslatorInterface
-     */
     private $translator;
-
-    /**
-     * @var null|string
-     */
     private $translationDomain;
 
     /**
-     * Constructor.
-     *
      * @param CsrfTokenManagerInterface $tokenManager      The CSRF token manager
      * @param TranslatorInterface       $translator        The translator for translating error messages
-     * @param null|string               $translationDomain The translation domain for translating
+     * @param string|null               $translationDomain The translation domain for translating
      */
     public function __construct(CsrfTokenManagerInterface $tokenManager, TranslatorInterface $translator = null, $translationDomain = null)
     {
@@ -56,8 +43,8 @@ class CsrfExtension extends AbstractExtension
      */
     protected function loadTypeExtensions()
     {
-        return array(
+        return [
             new Type\FormTypeCsrfExtension($this->tokenManager, true, '_token', $this->translator, $this->translationDomain),
-        );
+        ];
     }
 }

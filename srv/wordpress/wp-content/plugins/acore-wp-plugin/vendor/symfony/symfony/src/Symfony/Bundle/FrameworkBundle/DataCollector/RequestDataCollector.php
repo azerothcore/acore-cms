@@ -11,12 +11,12 @@
 
 namespace Symfony\Bundle\FrameworkBundle\DataCollector;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector as BaseRequestCollector;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * RequestDataCollector.
@@ -38,10 +38,10 @@ class RequestDataCollector extends BaseRequestCollector implements EventSubscrib
             }
         }
         if ($request->attributes->has('_forward_controller')) {
-            $this->data['forward'] = array(
+            $this->data['forward'] = [
                 'token' => $request->attributes->get('_forward_token'),
                 'controller' => $this->parseController($request->attributes->get('_forward_controller')),
-            );
+            ];
         }
     }
 

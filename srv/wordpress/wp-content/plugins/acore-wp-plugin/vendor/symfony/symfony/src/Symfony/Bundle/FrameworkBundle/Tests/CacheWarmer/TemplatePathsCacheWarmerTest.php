@@ -39,18 +39,18 @@ class TemplatePathsCacheWarmerTest extends TestCase
     {
         $this->templateFinder = $this
             ->getMockBuilder(TemplateFinderInterface::class)
-            ->setMethods(array('findAllTemplates'))
+            ->setMethods(['findAllTemplates'])
             ->getMock();
 
         $this->fileLocator = $this
             ->getMockBuilder(FileLocator::class)
-            ->setMethods(array('locate'))
-            ->setConstructorArgs(array('/path/to/fallback'))
+            ->setMethods(['locate'])
+            ->setConstructorArgs(['/path/to/fallback'])
             ->getMock();
 
         $this->templateLocator = new TemplateLocator($this->fileLocator);
 
-        $this->tmpDir = sys_get_temp_dir().DIRECTORY_SEPARATOR.uniqid('cache_template_paths_', true);
+        $this->tmpDir = sys_get_temp_dir().\DIRECTORY_SEPARATOR.uniqid('cache_template_paths_', true);
 
         $this->filesystem = new Filesystem();
         $this->filesystem->mkdir($this->tmpDir);
@@ -68,13 +68,13 @@ class TemplatePathsCacheWarmerTest extends TestCase
         $this->templateFinder
             ->expects($this->once())
             ->method('findAllTemplates')
-            ->will($this->returnValue(array($template)));
+            ->willReturn([$template]);
 
         $this->fileLocator
             ->expects($this->once())
             ->method('locate')
             ->with($template->getPath())
-            ->will($this->returnValue(dirname($this->tmpDir).'/path/to/template.html.twig'));
+            ->willReturn(\dirname($this->tmpDir).'/path/to/template.html.twig');
 
         $warmer = new TemplatePathsCacheWarmer($this->templateFinder, $this->templateLocator);
         $warmer->warmUp($this->tmpDir);
@@ -87,7 +87,7 @@ class TemplatePathsCacheWarmerTest extends TestCase
         $this->templateFinder
             ->expects($this->once())
             ->method('findAllTemplates')
-            ->will($this->returnValue(array()));
+            ->willReturn([]);
 
         $this->fileLocator
             ->expects($this->never())

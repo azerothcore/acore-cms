@@ -413,8 +413,8 @@ UPGRADE FROM 2.x to 3.0
    $form = $this->createForm(MyType::class);
    ```
 
- * Passing custom data to forms now needs to be done 
-   through the options resolver. 
+ * Passing custom data to forms now needs to be done
+   through the options resolver.
 
     In the controller:
 
@@ -425,7 +425,7 @@ UPGRADE FROM 2.x to 3.0
         'method' => 'PUT',
     ));
     ```
-    After: 
+    After:
     ```php
     $form = $this->createForm(MyType::class, $entity, array(
         'action' => $this->generateUrl('action_route'),
@@ -434,13 +434,13 @@ UPGRADE FROM 2.x to 3.0
     ));
     ```
     In the form type:
-    
+
     Before:
     ```php
     class MyType extends AbstractType
     {
         private $value;
-    
+
         public function __construct($variableValue)
         {
             $this->value = $value;
@@ -448,7 +448,7 @@ UPGRADE FROM 2.x to 3.0
         // ...
     }
     ```
-    
+
     After:
     ```php
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -456,7 +456,7 @@ UPGRADE FROM 2.x to 3.0
         $value = $options['custom_value'];
         // ...
     }
-    
+
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
@@ -464,7 +464,7 @@ UPGRADE FROM 2.x to 3.0
         ));
     }
     ```
- 
+
  * The alias option of the `form.type_extension` tag was removed in favor of
    the `extended_type`/`extended-type` option.
 
@@ -596,6 +596,24 @@ UPGRADE FROM 2.x to 3.0
    }
    ```
 
+   If the form is submitted with a different request method than `POST`, you need to configure this in the form:
+
+   Before:
+
+   ```php
+   $form = $this->createForm(FormType::class, $entity);
+   $form->submit($request);
+   ```
+
+   After:
+
+   ```php
+   $form = $this->createForm(FormType::class, $entity, [
+       'method' => 'PUT',
+   ]);
+   $form->handleRequest($request);
+   ```
+
  * The events `PRE_BIND`, `BIND` and `POST_BIND` were renamed to `PRE_SUBMIT`, `SUBMIT`
    and `POST_SUBMIT`.
 
@@ -663,7 +681,7 @@ UPGRADE FROM 2.x to 3.0
    As a value for the option you must provide the fully-qualified class name (FQCN)
    now as well.
 
- * The `FormIntegrationTestCase` and `FormPerformanceTestCase` classes were moved form the `Symfony\Component\Form\Tests` namespace to the `Symfony\Component\Form\Test` namespace.
+ * The `FormIntegrationTestCase` and `FormPerformanceTestCase` classes were moved from the `Symfony\Component\Form\Tests` namespace to the `Symfony\Component\Form\Test` namespace.
 
  * The constants `ROUND_HALFEVEN`, `ROUND_HALFUP` and `ROUND_HALFDOWN` in class
    `NumberToLocalizedStringTransformer` were renamed to `ROUND_HALF_EVEN`,
@@ -865,6 +883,34 @@ UPGRADE FROM 2.x to 3.0
            engines: ['php']
    ```
 
+ * The assets settings under `framework.templating` were moved to `framework.assets`.
+
+   Before:
+
+   ```yml
+   framework:
+       templating:
+           assets_version: 'v123'
+           assets_version_format: '%%s?version=%%s'
+           assets_base_urls:
+               http: ['http://cdn.example.com']
+               ssl:  ['https://secure.example.com']
+           packages:
+               # ...
+   ```
+
+   After:
+
+   ```yml
+   framework:
+       assets:
+           version: 'v123'
+           version_format: '%%s?version=%%s'
+           base_urls: ['http://cdn.example.com', 'https://secure.example.com']
+           packages:
+               # ...
+   ```
+
  * The `form.csrf_provider` service is removed as it implements an adapter for
    the new token manager to the deprecated
    `Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface`
@@ -1017,7 +1063,7 @@ UPGRADE FROM 2.x to 3.0
    ```
 
  * The `ApacheMatcherDumper` and `ApacheUrlMatcher` were removed since
-   the performance gains were minimal and it's hard to replicate the behaviour
+   the performance gains were minimal and it's hard to replicate the behavior
    of PHP implementation.
 
  * The `getMatcherDumperInstance()` and `getGeneratorDumperInstance()` methods in the
@@ -1144,7 +1190,7 @@ UPGRADE FROM 2.x to 3.0
            'http_digest' => array('secret' => '%secret%'),
        ),
    ));
-  ```
+   ```
 
  * The `AbstractVoter` class was removed. Instead, extend the new `Voter` class,
    introduced in 2.8, and move your voting logic to the to the `supports($attribute, $subject)`

@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "ADP": [
             "ADP",
@@ -187,7 +186,7 @@
         ],
         "BRN": [
             "BRN",
-            "Braziliaanse cruzado novo"
+            "Braziliaanse nieuwe cruzado (1989–1990)"
         ],
         "BRR": [
             "BRR",
@@ -261,13 +260,17 @@
             "CLP",
             "Chileense peso"
         ],
+        "CNH": [
+            "CNH",
+            "Chinese yuan (offshore)"
+        ],
         "CNX": [
             "CNX",
             "dollar van de Chinese Volksbank"
         ],
         "CNY": [
             "CN¥",
-            "Chinese renminbi"
+            "Chinese yuan"
         ],
         "COP": [
             "COP",
@@ -679,6 +682,10 @@
         ],
         "MRO": [
             "MRO",
+            "Mauritaanse ouguiya (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Mauritaanse ouguiya"
         ],
         "MTL": [
@@ -911,6 +918,10 @@
         ],
         "STD": [
             "STD",
+            "Santomese dobra (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Santomese dobra"
         ],
         "SUR": [
@@ -1021,6 +1032,10 @@
             "UYU",
             "Uruguayaanse peso"
         ],
+        "UYW": [
+            "UYW",
+            "Uruguayaanse nominale salarisindexeenheid"
+        ],
         "UZS": [
             "UZS",
             "Oezbeekse sum"
@@ -1031,6 +1046,10 @@
         ],
         "VEF": [
             "VEF",
+            "Venezolaanse bolivar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Venezolaanse bolivar"
         ],
         "VND": [

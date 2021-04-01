@@ -57,7 +57,7 @@ class DateTimeToStringTransformer extends BaseDateTimeTransformer
 
         $this->generateFormat = $this->parseFormat = $format;
 
-        // See http://php.net/manual/en/datetime.createfromformat.php
+        // See https://php.net/datetime.createfromformat
         // The character "|" in the format makes sure that the parts of a date
         // that are *not* specified in the format are reset to the corresponding
         // values from 1970-01-01 00:00:00 instead of the current time.
@@ -104,7 +104,7 @@ class DateTimeToStringTransformer extends BaseDateTimeTransformer
      *
      * @param string $value A value as produced by PHP's date() function
      *
-     * @return \DateTime An instance of \DateTime
+     * @return \DateTime|null An instance of \DateTime
      *
      * @throws TransformationFailedException If the given value is not a string,
      *                                       or could not be transformed
@@ -112,10 +112,10 @@ class DateTimeToStringTransformer extends BaseDateTimeTransformer
     public function reverseTransform($value)
     {
         if (empty($value)) {
-            return;
+            return null;
         }
 
-        if (!is_string($value)) {
+        if (!\is_string($value)) {
             throw new TransformationFailedException('Expected a string.');
         }
 
@@ -125,12 +125,7 @@ class DateTimeToStringTransformer extends BaseDateTimeTransformer
         $lastErrors = \DateTime::getLastErrors();
 
         if (0 < $lastErrors['warning_count'] || 0 < $lastErrors['error_count']) {
-            throw new TransformationFailedException(
-                implode(', ', array_merge(
-                    array_values($lastErrors['warnings']),
-                    array_values($lastErrors['errors'])
-                ))
-            );
+            throw new TransformationFailedException(implode(', ', array_merge(array_values($lastErrors['warnings']), array_values($lastErrors['errors']))));
         }
 
         try {

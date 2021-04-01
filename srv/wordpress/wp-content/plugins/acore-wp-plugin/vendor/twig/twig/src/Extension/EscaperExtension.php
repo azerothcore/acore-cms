@@ -265,7 +265,7 @@ function twig_escape_filter(Environment $env, $string, $strategy = 'html', $char
 
                 /*
                  * A few characters have short escape sequences in JSON and JavaScript.
-                 * Escape sequences supported only by JavaScript, not JSON, are ommitted.
+                 * Escape sequences supported only by JavaScript, not JSON, are omitted.
                  * \" is also supported but omitted, because the resulting string is not HTML safe.
                  */
                 static $shortMap = [
@@ -282,15 +282,18 @@ function twig_escape_filter(Environment $env, $string, $strategy = 'html', $char
                     return $shortMap[$char];
                 }
 
-                // \uHHHH
-                $char = twig_convert_encoding($char, 'UTF-16BE', 'UTF-8');
-                $char = strtoupper(bin2hex($char));
-
-                if (4 >= \strlen($char)) {
-                    return sprintf('\u%04s', $char);
+                $codepoint = mb_ord($char);
+                if (0x10000 > $codepoint) {
+                    return sprintf('\u%04X', $codepoint);
                 }
 
-                return sprintf('\u%04s\u%04s', substr($char, 0, -4), substr($char, -4));
+                // Split characters outside the BMP into surrogate pairs
+                // https://tools.ietf.org/html/rfc2781.html#section-2.1
+                $u = $codepoint - 0x10000;
+                $high = 0xD800 | ($u >> 10);
+                $low = 0xDC00 | ($u & 0x3FF);
+
+                return sprintf('\u%04X\u%04X', $high, $low);
             }, $string);
 
             if ('UTF-8' !== $charset) {

@@ -16,19 +16,19 @@ use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 
 class DebugProcessor implements DebugLoggerInterface
 {
-    private $records = array();
+    private $records = [];
     private $errorCount = 0;
 
     public function __invoke(array $record)
     {
-        $this->records[] = array(
-            'timestamp' => $record['datetime']->getTimestamp(),
+        $this->records[] = [
+            'timestamp' => $record['datetime'] instanceof \DateTimeInterface ? $record['datetime']->getTimestamp() : strtotime($record['datetime']),
             'message' => $record['message'],
             'priority' => $record['level'],
             'priorityName' => $record['level_name'],
             'context' => $record['context'],
             'channel' => isset($record['channel']) ? $record['channel'] : '',
-        );
+        ];
         switch ($record['level']) {
             case Logger::ERROR:
             case Logger::CRITICAL:
@@ -54,5 +54,14 @@ class DebugProcessor implements DebugLoggerInterface
     public function countErrors()
     {
         return $this->errorCount;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear()
+    {
+        $this->records = [];
+        $this->errorCount = 0;
     }
 }

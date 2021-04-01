@@ -12,36 +12,38 @@
 namespace Symfony\Component\Form\Tests\Extension\Validator;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Form\Extension\Validator\Constraints\Form as FormConstraint;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\Extension\Validator\ValidatorTypeGuesser;
+use Symfony\Component\Form\Form;
+use Symfony\Component\Validator\Mapping\CascadingStrategy;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Mapping\TraversalStrategy;
+use Symfony\Component\Validator\Tests\Fixtures\FakeMetadataFactory;
+use Symfony\Component\Validator\Validation;
 
 class ValidatorExtensionTest extends TestCase
 {
     public function test2Dot5ValidationApi()
     {
-        $validator = $this->getMockBuilder('Symfony\Component\Validator\Validator\RecursiveValidator')
-            ->disableOriginalConstructor()
-            ->getMock();
-        $metadata = $this->getMockBuilder('Symfony\Component\Validator\Mapping\ClassMetadata')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $metadata = new ClassMetadata(Form::class);
 
-        $validator->expects($this->once())
-            ->method('getMetadataFor')
-            ->with($this->identicalTo('Symfony\Component\Form\Form'))
-            ->will($this->returnValue($metadata));
+        $metadataFactory = new FakeMetadataFactory();
+        $metadataFactory->addMetadata($metadata);
 
-        // Verify that the constraints are added
-        $metadata->expects($this->once())
-            ->method('addConstraint')
-            ->with($this->isInstanceOf('Symfony\Component\Form\Extension\Validator\Constraints\Form'));
-
-        $metadata->expects($this->once())
-            ->method('addPropertyConstraint')
-            ->with('children', $this->isInstanceOf('Symfony\Component\Validator\Constraints\Valid'));
+        $validator = Validation::createValidatorBuilder()
+            ->setMetadataFactory($metadataFactory)
+            ->getValidator();
 
         $extension = new ValidatorExtension($validator);
-        $guesser = $extension->loadTypeGuesser();
 
-        $this->assertInstanceOf('Symfony\Component\Form\Extension\Validator\ValidatorTypeGuesser', $guesser);
+        $this->assertInstanceOf(ValidatorTypeGuesser::class, $extension->loadTypeGuesser());
+
+        $this->assertCount(1, $metadata->getConstraints());
+        $this->assertInstanceOf(FormConstraint::class, $metadata->getConstraints()[0]);
+
+        $this->assertSame(CascadingStrategy::NONE, $metadata->cascadingStrategy);
+        $this->assertSame(TraversalStrategy::NONE, $metadata->traversalStrategy);
+        $this->assertCount(0, $metadata->getPropertyMetadata('children'));
     }
 }

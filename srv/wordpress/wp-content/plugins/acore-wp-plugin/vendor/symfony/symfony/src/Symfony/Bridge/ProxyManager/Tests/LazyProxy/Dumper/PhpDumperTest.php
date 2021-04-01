@@ -61,7 +61,7 @@ class PhpDumperTest extends TestCase
     {
         $container = new ContainerBuilder();
 
-        $container->register('foo', 'stdClass');
+        $container->register('foo', 'stdClass')->setPublic(true);
         $container->getDefinition('foo')->setLazy(true);
         $container->compile();
 
@@ -69,6 +69,6 @@ class PhpDumperTest extends TestCase
 
         $dumper->setProxyDumper(new ProxyDumper());
 
-        return $dumper->dump(array('class' => 'LazyServiceProjectServiceContainer'));
+        return $dumper->dump(['class' => 'LazyServiceProjectServiceContainer']);
     }
 }

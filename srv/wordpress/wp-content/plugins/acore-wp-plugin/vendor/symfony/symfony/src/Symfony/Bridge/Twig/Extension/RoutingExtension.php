@@ -33,16 +33,14 @@ class RoutingExtension extends AbstractExtension
     }
 
     /**
-     * Returns a list of functions to add to the existing list.
-     *
-     * @return array An array of functions
+     * {@inheritdoc}
      */
     public function getFunctions()
     {
-        return array(
-            new TwigFunction('url', array($this, 'getUrl'), array('is_safe_callback' => array($this, 'isUrlGenerationSafe'))),
-            new TwigFunction('path', array($this, 'getPath'), array('is_safe_callback' => array($this, 'isUrlGenerationSafe'))),
-        );
+        return [
+            new TwigFunction('url', [$this, 'getUrl'], ['is_safe_callback' => [$this, 'isUrlGenerationSafe']]),
+            new TwigFunction('path', [$this, 'getPath'], ['is_safe_callback' => [$this, 'isUrlGenerationSafe']]),
+        ];
     }
 
     /**
@@ -52,7 +50,7 @@ class RoutingExtension extends AbstractExtension
      *
      * @return string
      */
-    public function getPath($name, $parameters = array(), $relative = false)
+    public function getPath($name, $parameters = [], $relative = false)
     {
         return $this->generator->generate($name, $parameters, $relative ? UrlGeneratorInterface::RELATIVE_PATH : UrlGeneratorInterface::ABSOLUTE_PATH);
     }
@@ -64,7 +62,7 @@ class RoutingExtension extends AbstractExtension
      *
      * @return string
      */
-    public function getUrl($name, $parameters = array(), $schemeRelative = false)
+    public function getUrl($name, $parameters = [], $schemeRelative = false)
     {
         return $this->generator->generate($name, $parameters, $schemeRelative ? UrlGeneratorInterface::NETWORK_PATH : UrlGeneratorInterface::ABSOLUTE_URL);
     }
@@ -91,7 +89,7 @@ class RoutingExtension extends AbstractExtension
      *
      * @return array An array with the contexts the URL is safe
      *
-     * To be made @final in 3.4, and the type-hint be changed to "\Twig\Node\Node" in 4.0.
+     * @final since version 3.4, type-hint to be changed to "\Twig\Node\Node" in 4.0
      */
     public function isUrlGenerationSafe(\Twig_Node $argsNode)
     {
@@ -100,13 +98,13 @@ class RoutingExtension extends AbstractExtension
             $argsNode->hasNode(1) ? $argsNode->getNode(1) : null
         );
 
-        if (null === $paramsNode || $paramsNode instanceof ArrayExpression && count($paramsNode) <= 2 &&
+        if (null === $paramsNode || $paramsNode instanceof ArrayExpression && \count($paramsNode) <= 2 &&
             (!$paramsNode->hasNode(1) || $paramsNode->getNode(1) instanceof ConstantExpression)
         ) {
-            return array('html');
+            return ['html'];
         }
 
-        return array();
+        return [];
     }
 
     /**

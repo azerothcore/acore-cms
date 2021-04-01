@@ -177,6 +177,12 @@
             color: inherit;
             text-decoration: inherit;
         }
+        h2 + h3.form-data-type {
+            margin-top: 0;
+        }
+        h3.form-data-type + h3 {
+            margin-top: 1em;
+        }
     </style>
 {% endblock %}
 
@@ -455,9 +461,10 @@
 {% macro form_tree_details(name, data, forms_by_hash, show) %}
     {% import _self as tree %}
     <div class="tree-details{% if not show|default(false) %} hidden{% endif %}" {% if data.id is defined %}id="{{ data.id }}-details"{% endif %}>
-        <h2 class="dump-inline">
-            {{ name|default('(no name)') }} {% if data.type_class is defined %}({{ profiler_dump(data.type_class) }}){% endif %}
-        </h2>
+        <h2>{{ name|default('(no name)') }}</h2>
+        {% if data.type_class is defined %}
+            <h3 class="dump-inline form-data-type">{{ profiler_dump(data.type_class) }}</h3>
+        {% endif %}
 
         {% if data.errors is defined and data.errors|length > 0 %}
         <div class="errors">
@@ -525,7 +532,7 @@
                         <th class="font-normal" scope="row">Model Format</th>
                         <td>
                             {% if data.default_data.model is defined %}
-                                {{ profiler_dump(data.default_data.model) }}
+                                {{ profiler_dump(data.default_data.seek('model')) }}
                             {% else %}
                                 <em class="font-normal text-muted">same as normalized format</em>
                             {% endif %}
@@ -533,13 +540,13 @@
                     </tr>
                     <tr>
                         <th class="font-normal" scope="row">Normalized Format</th>
-                        <td>{{ profiler_dump(data.default_data.norm) }}</td>
+                        <td>{{ profiler_dump(data.default_data.seek('norm')) }}</td>
                     </tr>
                     <tr>
                         <th class="font-normal" scope="row">View Format</th>
                         <td>
                             {% if data.default_data.view is defined %}
-                                {{ profiler_dump(data.default_data.view) }}
+                                {{ profiler_dump(data.default_data.seek('view')) }}
                             {% else %}
                                 <em class="font-normal text-muted">same as normalized format</em>
                             {% endif %}
@@ -571,7 +578,7 @@
                         <th class="font-normal" scope="row">View Format</th>
                         <td>
                             {% if data.submitted_data.view is defined %}
-                                {{ profiler_dump(data.submitted_data.view) }}
+                                {{ profiler_dump(data.submitted_data.seek('view')) }}
                             {% else %}
                                 <em class="font-normal text-muted">same as normalized format</em>
                             {% endif %}
@@ -579,13 +586,13 @@
                     </tr>
                     <tr>
                         <th class="font-normal" scope="row">Normalized Format</th>
-                        <td>{{ profiler_dump(data.submitted_data.norm) }}</td>
+                        <td>{{ profiler_dump(data.submitted_data.seek('norm')) }}</td>
                     </tr>
                     <tr>
                         <th class="font-normal" scope="row">Model Format</th>
                         <td>
                             {% if data.submitted_data.model is defined %}
-                                {{ profiler_dump(data.submitted_data.model) }}
+                                {{ profiler_dump(data.submitted_data.seek('model')) }}
                             {% else %}
                                 <em class="font-normal text-muted">same as normalized format</em>
                             {% endif %}
@@ -624,10 +631,13 @@
                     <th>{{ option }}</th>
                     <td>{{ profiler_dump(value) }}</td>
                     <td>
-                        {% if data.resolved_options[option] == value %}
+                        {# values can be stubs #}
+                        {% set option_value = value.value|default(value) %}
+                        {% set resolved_option_value = data.resolved_options[option].value|default(data.resolved_options[option]) %}
+                        {% if resolved_option_value == option_value %}
                             <em class="font-normal text-muted">same as passed value</em>
                         {% else %}
-                            {{ profiler_dump(data.resolved_options[option]) }}
+                            {{ profiler_dump(data.resolved_options.seek(option)) }}
                         {% endif %}
                     </td>
                 </tr>
@@ -636,7 +646,7 @@
             </table>
             {% else %}
                 <div class="empty">
-                    <p>No options where passed when constructing this form.</p>
+                    <p>No options were passed when constructing this form.</p>
                 </div>
             {% endif %}
         </div>

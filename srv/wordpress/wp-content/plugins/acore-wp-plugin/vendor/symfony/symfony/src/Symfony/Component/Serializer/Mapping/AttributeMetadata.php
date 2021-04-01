@@ -19,8 +19,6 @@ namespace Symfony\Component\Serializer\Mapping;
 class AttributeMetadata implements AttributeMetadataInterface
 {
     /**
-     * @var string
-     *
      * @internal This property is public in order to reduce the size of the
      *           class' serialized representation. Do not access it. Use
      *           {@link getName()} instead.
@@ -28,13 +26,11 @@ class AttributeMetadata implements AttributeMetadataInterface
     public $name;
 
     /**
-     * @var array
-     *
      * @internal This property is public in order to reduce the size of the
      *           class' serialized representation. Do not access it. Use
      *           {@link getGroups()} instead.
      */
-    public $groups = array();
+    public $groups = [];
 
     /**
      * @var int|null
@@ -68,7 +64,7 @@ class AttributeMetadata implements AttributeMetadataInterface
      */
     public function addGroup($group)
     {
-        if (!in_array($group, $this->groups)) {
+        if (!\in_array($group, $this->groups)) {
             $this->groups[] = $group;
         }
     }
@@ -119,6 +115,6 @@ class AttributeMetadata implements AttributeMetadataInterface
      */
     public function __sleep()
     {
-        return array('name', 'groups', 'maxDepth');
+        return ['name', 'groups', 'maxDepth'];
     }
 }

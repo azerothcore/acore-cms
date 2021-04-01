@@ -11,20 +11,14 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Functional;
 
-use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
-
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-class SerializerTest extends WebTestCase
+class SerializerTest extends AbstractWebTestCase
 {
     public function testDeserializeArrayOfObject()
     {
-        if (!class_exists(DataUriNormalizer::class)) {
-            $this->markTestSkipped('This test is only applicable when using the Symfony Serializer Component version 3.1 or superior.');
-        }
-
-        static::bootKernel(array('test_case' => 'Serializer'));
+        static::bootKernel(['test_case' => 'Serializer']);
         $container = static::$kernel->getContainer();
 
         $result = $container->get('serializer')->deserialize('{"bars": [{"id": 1}, {"id": 2}]}', Foo::class, 'json');
@@ -35,7 +29,7 @@ class SerializerTest extends WebTestCase
         $bar2->id = 2;
 
         $expected = new Foo();
-        $expected->bars = array($bar1, $bar2);
+        $expected->bars = [$bar1, $bar2];
 
         $this->assertEquals($expected, $result);
     }

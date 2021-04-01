@@ -16,6 +16,9 @@ use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\DeclaredClass;
 use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\WarmedClass;
 use Symfony\Bundle\FrameworkBundle\Tests\TestCase;
 
+/**
+ * @group legacy
+ */
 class ClassCacheCacheWarmerTest extends TestCase
 {
     public function testWithDeclaredClasses()
@@ -24,9 +27,9 @@ class ClassCacheCacheWarmerTest extends TestCase
 
         $dir = sys_get_temp_dir();
         @unlink($dir.'/classes.php');
-        file_put_contents($dir.'/classes.map', sprintf('<?php return %s;', var_export(array(WarmedClass::class), true)));
+        file_put_contents($dir.'/classes.map', sprintf('<?php return %s;', var_export([WarmedClass::class], true)));
 
-        $warmer = new ClassCacheCacheWarmer(array(DeclaredClass::class));
+        $warmer = new ClassCacheCacheWarmer([DeclaredClass::class]);
 
         $warmer->warmUp($dir);
 

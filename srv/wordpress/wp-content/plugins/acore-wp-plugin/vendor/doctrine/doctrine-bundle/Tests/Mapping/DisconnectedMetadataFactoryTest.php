@@ -5,19 +5,18 @@ namespace Doctrine\Bundle\DoctrineBundle\Tests\Mapping;
 use Doctrine\Bundle\DoctrineBundle\Mapping\ClassMetadataCollection;
 use Doctrine\Bundle\DoctrineBundle\Mapping\DisconnectedMetadataFactory;
 use Doctrine\Bundle\DoctrineBundle\Tests\TestCase;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 class DisconnectedMetadataFactoryTest extends TestCase
 {
-    protected function setUp()
+    public static function setUpBeforeClass()
     {
-        parent::setUp();
-
-        if (class_exists('Doctrine\\ORM\\Version')) {
+        if (interface_exists(EntityManagerInterface::class)) {
             return;
         }
 
-        $this->markTestSkipped('Doctrine ORM is not available.');
+        self::markTestSkipped('This test requires ORM');
     }
 
     /**
@@ -29,7 +28,7 @@ class DisconnectedMetadataFactoryTest extends TestCase
         $class      = new ClassMetadataInfo(self::class);
         $collection = new ClassMetadataCollection([$class]);
 
-        $registry = $this->getMockBuilder('Doctrine\Common\Persistence\ManagerRegistry')->getMock();
+        $registry = $this->getMockBuilder('Doctrine\Persistence\ManagerRegistry')->getMock();
         $factory  = new DisconnectedMetadataFactory($registry);
 
         $factory->findNamespaceAndPathForMetadata($collection);
@@ -40,7 +39,7 @@ class DisconnectedMetadataFactoryTest extends TestCase
         $class      = new ClassMetadataInfo('\Vendor\Package\Class');
         $collection = new ClassMetadataCollection([$class]);
 
-        $registry = $this->getMockBuilder('Doctrine\Common\Persistence\ManagerRegistry')->getMock();
+        $registry = $this->getMockBuilder('Doctrine\Persistence\ManagerRegistry')->getMock();
         $factory  = new DisconnectedMetadataFactory($registry);
 
         $factory->findNamespaceAndPathForMetadata($collection, '/path/to/code');

@@ -13,39 +13,36 @@ namespace Symfony\Component\Security\Core\Tests\Authentication;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\AuthenticationEvents;
 use Symfony\Component\Security\Core\Event\AuthenticationEvent;
 use Symfony\Component\Security\Core\Event\AuthenticationFailureEvent;
-use Symfony\Component\Security\Core\Exception\ProviderNotFoundException;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\AccountStatusException;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\ProviderNotFoundException;
 
 class AuthenticationProviderManagerTest extends TestCase
 {
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testAuthenticateWithoutProviders()
     {
-        new AuthenticationProviderManager(array());
+        $this->expectException('InvalidArgumentException');
+        new AuthenticationProviderManager([]);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testAuthenticateWithProvidersWithIncorrectInterface()
     {
-        new AuthenticationProviderManager(array(
+        $this->expectException('InvalidArgumentException');
+        (new AuthenticationProviderManager([
             new \stdClass(),
-        ));
+        ]))->authenticate($this->getMockBuilder(TokenInterface::class)->getMock());
     }
 
     public function testAuthenticateWhenNoProviderSupportsToken()
     {
-        $manager = new AuthenticationProviderManager(array(
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(false),
-        ));
+        ]);
 
         try {
             $manager->authenticate($token = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
@@ -57,9 +54,15 @@ class AuthenticationProviderManagerTest extends TestCase
 
     public function testAuthenticateWhenProviderReturnsAccountStatusException()
     {
-        $manager = new AuthenticationProviderManager(array(
+        $secondAuthenticationProvider = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface')->getMock();
+
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(true, null, 'Symfony\Component\Security\Core\Exception\AccountStatusException'),
-        ));
+            $secondAuthenticationProvider,
+        ]);
+
+        // AccountStatusException stops authentication
+        $secondAuthenticationProvider->expects($this->never())->method('supports');
 
         try {
             $manager->authenticate($token = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
@@ -71,9 +74,9 @@ class AuthenticationProviderManagerTest extends TestCase
 
     public function testAuthenticateWhenProviderReturnsAuthenticationException()
     {
-        $manager = new AuthenticationProviderManager(array(
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(true, null, 'Symfony\Component\Security\Core\Exception\AuthenticationException'),
-        ));
+        ]);
 
         try {
             $manager->authenticate($token = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
@@ -85,10 +88,10 @@ class AuthenticationProviderManagerTest extends TestCase
 
     public function testAuthenticateWhenOneReturnsAuthenticationExceptionButNotAll()
     {
-        $manager = new AuthenticationProviderManager(array(
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(true, null, 'Symfony\Component\Security\Core\Exception\AuthenticationException'),
             $this->getAuthenticationProvider(true, $expected = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock()),
-        ));
+        ]);
 
         $token = $manager->authenticate($this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
         $this->assertSame($expected, $token);
@@ -101,10 +104,10 @@ class AuthenticationProviderManagerTest extends TestCase
             ->expects($this->never())
             ->method('supports')
         ;
-        $manager = new AuthenticationProviderManager(array(
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(true, $expected = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock()),
             $second,
-        ));
+        ]);
 
         $token = $manager->authenticate($this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
         $this->assertSame($expected, $token);
@@ -112,16 +115,16 @@ class AuthenticationProviderManagerTest extends TestCase
 
     public function testEraseCredentialFlag()
     {
-        $manager = new AuthenticationProviderManager(array(
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(true, $token = new UsernamePasswordToken('foo', 'bar', 'key')),
-        ));
+        ]);
 
         $token = $manager->authenticate($this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
         $this->assertEquals('', $token->getCredentials());
 
-        $manager = new AuthenticationProviderManager(array(
+        $manager = new AuthenticationProviderManager([
             $this->getAuthenticationProvider(true, $token = new UsernamePasswordToken('foo', 'bar', 'key')),
-        ), false);
+        ], false);
 
         $token = $manager->authenticate($this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Token\TokenInterface')->getMock());
         $this->assertEquals('bar', $token->getCredentials());
@@ -140,7 +143,7 @@ class AuthenticationProviderManagerTest extends TestCase
             ->method('dispatch')
             ->with(AuthenticationEvents::AUTHENTICATION_FAILURE, $this->equalTo(new AuthenticationFailureEvent($token, $exception)));
 
-        $manager = new AuthenticationProviderManager(array($provider));
+        $manager = new AuthenticationProviderManager([$provider]);
         $manager->setEventDispatcher($dispatcher);
 
         try {
@@ -165,7 +168,7 @@ class AuthenticationProviderManagerTest extends TestCase
             ->method('dispatch')
             ->with(AuthenticationEvents::AUTHENTICATION_SUCCESS, $this->equalTo(new AuthenticationEvent($token)));
 
-        $manager = new AuthenticationProviderManager(array($provider));
+        $manager = new AuthenticationProviderManager([$provider]);
         $manager->setEventDispatcher($dispatcher);
 
         $this->assertSame($token, $manager->authenticate($token));
@@ -176,18 +179,18 @@ class AuthenticationProviderManagerTest extends TestCase
         $provider = $this->getMockBuilder('Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface')->getMock();
         $provider->expects($this->once())
                  ->method('supports')
-                 ->will($this->returnValue($supports))
+                 ->willReturn($supports)
         ;
 
         if (null !== $token) {
             $provider->expects($this->once())
                      ->method('authenticate')
-                     ->will($this->returnValue($token))
+                     ->willReturn($token)
             ;
         } elseif (null !== $exception) {
             $provider->expects($this->once())
                      ->method('authenticate')
-                     ->will($this->throwException($this->getMockBuilder($exception)->setMethods(null)->getMock()))
+                     ->willThrowException($this->getMockBuilder($exception)->setMethods(null)->getMock())
             ;
         }
 

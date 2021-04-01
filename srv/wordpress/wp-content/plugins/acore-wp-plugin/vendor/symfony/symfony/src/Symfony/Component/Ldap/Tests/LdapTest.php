@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Ldap\Tests;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Ldap\Adapter\AdapterInterface;
 use Symfony\Component\Ldap\Adapter\ConnectionInterface;
@@ -19,7 +20,7 @@ use Symfony\Component\Ldap\Ldap;
 
 class LdapTest extends TestCase
 {
-    /** @var \PHPUnit_Framework_MockObject_MockObject */
+    /** @var MockObject */
     private $adapter;
 
     /** @var Ldap */
@@ -42,7 +43,7 @@ class LdapTest extends TestCase
         $this->adapter
             ->expects($this->once())
             ->method('getConnection')
-            ->will($this->returnValue($connection))
+            ->willReturn($connection)
         ;
         $this->ldap->bind('foo', 'bar');
     }
@@ -62,9 +63,9 @@ class LdapTest extends TestCase
         $this->adapter
             ->expects($this->once())
             ->method('createQuery')
-            ->with('foo', 'bar', array('baz'))
+            ->with('foo', 'bar', ['baz'])
         ;
-        $this->ldap->query('foo', 'bar', array('baz'));
+        $this->ldap->query('foo', 'bar', ['baz']);
     }
 
     /**
@@ -78,7 +79,7 @@ class LdapTest extends TestCase
 
     public function testCreateWithInvalidAdapterName()
     {
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}(DriverNotFoundException::class);
+        $this->expectException(DriverNotFoundException::class);
         Ldap::create('foo');
     }
 }

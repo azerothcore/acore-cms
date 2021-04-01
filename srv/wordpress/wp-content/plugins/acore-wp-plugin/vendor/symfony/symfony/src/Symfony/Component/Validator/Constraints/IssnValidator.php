@@ -31,14 +31,14 @@ class IssnValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Issn) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Issn');
+            throw new UnexpectedTypeException($constraint, Issn::class);
         }
 
         if (null === $value || '' === $value) {
             return;
         }
 
-        if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
@@ -59,7 +59,7 @@ class IssnValidator extends ConstraintValidator
             return;
         }
 
-        $length = strlen($canonical);
+        $length = \strlen($canonical);
 
         if ($length < 8) {
             $this->context->buildViolation($constraint->message)
@@ -120,7 +120,7 @@ class IssnValidator extends ConstraintValidator
 
         for ($i = 0; $i < 7; ++$i) {
             // Multiply the first digit by 8, the second by 7, etc.
-            $checkSum += (8 - $i) * $canonical[$i];
+            $checkSum += (8 - $i) * (int) $canonical[$i];
         }
 
         if (0 !== $checkSum % 11) {

@@ -2,8 +2,8 @@
 
 namespace Doctrine\Bundle\DoctrineBundle\Repository;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
 
 /**
@@ -14,7 +14,7 @@ use LogicException;
  *
  * class YourEntityRepository extends ServiceEntityRepository
  * {
- *     public function __construct(RegistryInterface $registry)
+ *     public function __construct(Registry $registry)
  *     {
  *         parent::__construct($registry, YourEntity::class);
  *     }

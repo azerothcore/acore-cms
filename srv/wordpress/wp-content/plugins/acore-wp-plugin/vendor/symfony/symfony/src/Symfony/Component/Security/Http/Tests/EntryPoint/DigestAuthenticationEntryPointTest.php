@@ -12,10 +12,13 @@
 namespace Symfony\Component\Security\Http\Tests\EntryPoint;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Security\Http\EntryPoint\DigestAuthenticationEntryPoint;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\NonceExpiredException;
+use Symfony\Component\Security\Http\EntryPoint\DigestAuthenticationEntryPoint;
 
+/**
+ * @group legacy
+ */
 class DigestAuthenticationEntryPointTest extends TestCase
 {
     public function testStart()
@@ -28,7 +31,7 @@ class DigestAuthenticationEntryPointTest extends TestCase
         $response = $entryPoint->start($request, $authenticationException);
 
         $this->assertEquals(401, $response->getStatusCode());
-        $this->assertRegExp('/^Digest realm="TheRealmName", qop="auth", nonce="[a-zA-Z0-9\/+]+={0,2}"$/', $response->headers->get('WWW-Authenticate'));
+        $this->assertMatchesRegularExpression('/^Digest realm="TheRealmName", qop="auth", nonce="[a-zA-Z0-9\/+]+={0,2}"$/', $response->headers->get('WWW-Authenticate'));
     }
 
     public function testStartWithNoException()
@@ -39,7 +42,7 @@ class DigestAuthenticationEntryPointTest extends TestCase
         $response = $entryPoint->start($request);
 
         $this->assertEquals(401, $response->getStatusCode());
-        $this->assertRegExp('/^Digest realm="TheRealmName", qop="auth", nonce="[a-zA-Z0-9\/+]+={0,2}"$/', $response->headers->get('WWW-Authenticate'));
+        $this->assertMatchesRegularExpression('/^Digest realm="TheRealmName", qop="auth", nonce="[a-zA-Z0-9\/+]+={0,2}"$/', $response->headers->get('WWW-Authenticate'));
     }
 
     public function testStartWithNonceExpiredException()
@@ -52,6 +55,6 @@ class DigestAuthenticationEntryPointTest extends TestCase
         $response = $entryPoint->start($request, $nonceExpiredException);
 
         $this->assertEquals(401, $response->getStatusCode());
-        $this->assertRegExp('/^Digest realm="TheRealmName", qop="auth", nonce="[a-zA-Z0-9\/+]+={0,2}", stale="true"$/', $response->headers->get('WWW-Authenticate'));
+        $this->assertMatchesRegularExpression('/^Digest realm="TheRealmName", qop="auth", nonce="[a-zA-Z0-9\/+]+={0,2}", stale="true"$/', $response->headers->get('WWW-Authenticate'));
     }
 }

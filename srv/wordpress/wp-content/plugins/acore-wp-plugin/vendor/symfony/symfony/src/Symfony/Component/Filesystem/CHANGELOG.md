@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+3.4.0
+-----
+
+ * support for passing relative paths to `Filesystem::makePathRelative()` is deprecated and will be removed in 4.0
+
+3.3.0
+-----
+
+ * added `appendToFile()` to append contents to existing files
+
 3.2.0
 -----
 

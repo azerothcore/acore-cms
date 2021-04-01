@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "AED": [
             "AED",
@@ -95,15 +94,15 @@
         ],
         "BEC": [
             "BEC",
-            "BEC"
+            "Ffranc Gwlad Belg (arnewidiol)"
         ],
         "BEF": [
             "BEF",
-            "BEF"
+            "Ffranc Gwlad Belg"
         ],
         "BEL": [
             "BEL",
-            "BEL"
+            "Ffranc Gwlad Belg (ariannol)"
         ],
         "BGM": [
             "BGM",
@@ -215,7 +214,7 @@
         ],
         "CHE": [
             "CHE",
-            "CHE"
+            "Ewro WIR"
         ],
         "CHF": [
             "CHF",
@@ -223,7 +222,7 @@
         ],
         "CHW": [
             "CHW",
-            "CHW"
+            "Ffranc WIR"
         ],
         "CLE": [
             "CLE",
@@ -236,6 +235,10 @@
         "CLP": [
             "CLP",
             "Peso Chile"
+        ],
+        "CNH": [
+            "CNH",
+            "Yuan Tsieina (ar y môr)"
         ],
         "CNX": [
             "CNX",
@@ -251,7 +254,7 @@
         ],
         "COU": [
             "COU",
-            "COU"
+            "Uned Gwir Werth Colombia"
         ],
         "CRC": [
             "CRC",
@@ -279,15 +282,15 @@
         ],
         "CZK": [
             "CZK",
-            "Koruna Tsiec"
+            "Koruna’r Weriniaeth Tsiec"
         ],
         "DDM": [
             "DDM",
-            "DDM"
+            "Marc Dwyrain yr Almaen"
         ],
         "DEM": [
             "DEM",
-            "DEM"
+            "Marc yr Almaen"
         ],
         "DJF": [
             "DJF",
@@ -308,6 +311,14 @@
         "ECS": [
             "ECS",
             "Sucre Ecuador"
+        ],
+        "ECV": [
+            "ECV",
+            "Uned Gwerth Gyson Ecuador"
+        ],
+        "EEK": [
+            "EEK",
+            "Kroon Estonia"
         ],
         "EGP": [
             "EGP",
@@ -331,7 +342,7 @@
         ],
         "FIM": [
             "FIM",
-            "FIM"
+            "Markka’r Ffindir"
         ],
         "FJD": [
             "FJD",
@@ -343,7 +354,7 @@
         ],
         "FRF": [
             "FRF",
-            "FRF"
+            "Ffranc Ffrainc"
         ],
         "GBP": [
             "£",
@@ -461,6 +472,10 @@
             "IRR",
             "Rial Iran"
         ],
+        "ISJ": [
+            "ISJ",
+            "Króna Gwlad yr Iâ (1918 – 1981)"
+        ],
         "ISK": [
             "ISK",
             "Króna Gwlad yr Iâ"
@@ -559,7 +574,7 @@
         ],
         "LUF": [
             "LUF",
-            "LUF"
+            "Ffranc Lwcsembwrg"
         ],
         "LUL": [
             "LUL",
@@ -571,7 +586,7 @@
         ],
         "LVR": [
             "LVR",
-            "LVR"
+            "Rwbl Latfia"
         ],
         "LYD": [
             "LYD",
@@ -627,6 +642,10 @@
         ],
         "MRO": [
             "MRO",
+            "Ouguiya Mauritania (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Ouguiya Mauritania"
         ],
         "MTL": [
@@ -739,7 +758,7 @@
         ],
         "PHP": [
             "PHP",
-            "Peso’r Philipinau"
+            "Peso Philipinas"
         ],
         "PKR": [
             "PKR",
@@ -815,7 +834,7 @@
         ],
         "SHP": [
             "SHP",
-            "Punt Saint Helena"
+            "Punt St Helena"
         ],
         "SIT": [
             "SIT",
@@ -843,6 +862,10 @@
         ],
         "STD": [
             "STD",
+            "Dobra São Tomé a Príncipe (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Dobra São Tomé a Príncipe"
         ],
         "SVC": [
@@ -955,6 +978,10 @@
         ],
         "VEF": [
             "VEF",
+            "Bolívar Venezuela (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Bolívar Venezuela"
         ],
         "VND": [
@@ -983,7 +1010,7 @@
         ],
         "XEU": [
             "XEU",
-            "XEU"
+            "Uned Arian Cyfred Ewropeaidd"
         ],
         "XOF": [
             "CFA",

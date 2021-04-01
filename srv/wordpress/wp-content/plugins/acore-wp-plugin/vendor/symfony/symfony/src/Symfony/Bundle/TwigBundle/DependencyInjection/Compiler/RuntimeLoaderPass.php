@@ -11,9 +11,10 @@
 
 namespace Symfony\Bundle\TwigBundle\DependencyInjection\Compiler;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Registers Twig runtime services.
@@ -27,21 +28,12 @@ class RuntimeLoaderPass implements CompilerPassInterface
         }
 
         $definition = $container->getDefinition('twig.runtime_loader');
-        $mapping = array();
-        foreach ($container->findTaggedServiceIds('twig.runtime') as $id => $attributes) {
+        $mapping = [];
+        foreach ($container->findTaggedServiceIds('twig.runtime', true) as $id => $attributes) {
             $def = $container->getDefinition($id);
-
-            if (!$def->isPublic()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must be public as it can be lazy-loaded.', $id));
-            }
-
-            if ($def->isAbstract()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must not be abstract as it can be lazy-loaded.', $id));
-            }
-
-            $mapping[$def->getClass()] = $id;
+            $mapping[$def->getClass()] = new Reference($id);
         }
 
-        $definition->replaceArgument(1, $mapping);
+        $definition->replaceArgument(0, ServiceLocatorTagPass::register($container, $mapping));
     }
 }

@@ -74,8 +74,8 @@
             {% endif %}
 
             <tr>
-                <td class="text-right">{{ listener.priority|default('-') }}</td>
-                <td class="font-normal">{{ profiler_dump(listener.data) }}</td>
+                <td class="text-right nowrap">{{ listener.priority|default('-') }}</td>
+                <td class="font-normal">{{ profiler_dump(listener.stub) }}</td>
             </tr>
 
             {% if loop.last %}

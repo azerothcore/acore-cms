@@ -40,7 +40,7 @@ class SecurityUserValueResolverTest extends TestCase
         $tokenStorage->setToken($token);
 
         $resolver = new SecurityUserValueResolver($tokenStorage);
-        $metadata = new ArgumentMetadata('foo', get_class($mock), false, false, null);
+        $metadata = new ArgumentMetadata('foo', \get_class($mock), false, false, null);
 
         $this->assertFalse($resolver->supports(Request::create('/'), $metadata));
     }
@@ -66,7 +66,7 @@ class SecurityUserValueResolverTest extends TestCase
         $metadata = new ArgumentMetadata('foo', UserInterface::class, false, false, null);
 
         $this->assertTrue($resolver->supports(Request::create('/'), $metadata));
-        $this->assertSame(array($user), iterator_to_array($resolver->resolve(Request::create('/'), $metadata)));
+        $this->assertSame([$user], iterator_to_array($resolver->resolve(Request::create('/'), $metadata)));
     }
 
     public function testIntegration()
@@ -77,8 +77,8 @@ class SecurityUserValueResolverTest extends TestCase
         $tokenStorage = new TokenStorage();
         $tokenStorage->setToken($token);
 
-        $argumentResolver = new ArgumentResolver(null, array(new SecurityUserValueResolver($tokenStorage)));
-        $this->assertSame(array($user), $argumentResolver->getArguments(Request::create('/'), function (UserInterface $user) {}));
+        $argumentResolver = new ArgumentResolver(null, [new SecurityUserValueResolver($tokenStorage)]);
+        $this->assertSame([$user], $argumentResolver->getArguments(Request::create('/'), function (UserInterface $user) {}));
     }
 
     public function testIntegrationNoUser()
@@ -87,15 +87,7 @@ class SecurityUserValueResolverTest extends TestCase
         $tokenStorage = new TokenStorage();
         $tokenStorage->setToken($token);
 
-        $argumentResolver = new ArgumentResolver(null, array(new SecurityUserValueResolver($tokenStorage), new DefaultValueResolver()));
-        $this->assertSame(array(null), $argumentResolver->getArguments(Request::create('/'), function (UserInterface $user = null) {}));
+        $argumentResolver = new ArgumentResolver(null, [new SecurityUserValueResolver($tokenStorage), new DefaultValueResolver()]);
+        $this->assertSame([null], $argumentResolver->getArguments(Request::create('/'), function (UserInterface $user = null) {}));
     }
-}
-
-abstract class DummyUser implements UserInterface
-{
-}
-
-abstract class DummySubUser extends DummyUser
-{
 }

@@ -14,6 +14,7 @@ namespace Symfony\Component\PropertyInfo\Util;
 use phpDocumentor\Reflection\Type as DocType;
 use phpDocumentor\Reflection\Types\Compound;
 use phpDocumentor\Reflection\Types\Null_;
+use phpDocumentor\Reflection\Types\Nullable;
 use Symfony\Component\PropertyInfo\Type;
 
 /**
@@ -27,12 +28,17 @@ final class PhpDocTypeHelper
     /**
      * Creates a {@see Type} from a PHPDoc type.
      *
-     * @return Type
+     * @return Type[]
      */
     public function getTypes(DocType $varType)
     {
-        $types = array();
+        $types = [];
         $nullable = false;
+
+        if ($varType instanceof Nullable) {
+            $nullable = true;
+            $varType = $varType->getActualType();
+        }
 
         if (!$varType instanceof Compound) {
             if ($varType instanceof Null_) {
@@ -47,17 +53,24 @@ final class PhpDocTypeHelper
             return $types;
         }
 
-        $varTypes = array();
+        $varTypes = [];
         for ($typeIndex = 0; $varType->has($typeIndex); ++$typeIndex) {
-            $varTypes[] = (string) $varType->get($typeIndex);
+            $nestedVarType = $varType->get($typeIndex);
+
+            if ($nestedVarType instanceof Nullable) {
+                $varTypes[] = (string) $nestedVarType->getActualType();
+                $nullable = true;
+            } else {
+                $varTypes[] = (string) $nestedVarType;
+            }
         }
 
         // If null is present, all types are nullable
         $nullKey = array_search(Type::BUILTIN_TYPE_NULL, $varTypes);
-        $nullable = false !== $nullKey;
+        $nullable = $nullable || false !== $nullKey;
 
         // Remove the null type from the type if other types are defined
-        if ($nullable && count($varTypes) > 1) {
+        if ($nullable && false !== $nullKey && \count($varTypes) > 1) {
             unset($varTypes[$nullKey]);
         }
 
@@ -83,28 +96,26 @@ final class PhpDocTypeHelper
     {
         // Cannot guess
         if (!$docType || 'mixed' === $docType) {
-            return;
+            return null;
         }
 
-        if ($collection = '[]' === substr($docType, -2)) {
-            $docType = substr($docType, 0, -2);
+        if ('[]' === substr($docType, -2)) {
+            if ('mixed[]' === $docType) {
+                $collectionKeyType = null;
+                $collectionValueType = null;
+            } else {
+                $collectionKeyType = new Type(Type::BUILTIN_TYPE_INT);
+                $collectionValueType = $this->createType(substr($docType, 0, -2), $nullable);
+            }
+
+            return new Type(Type::BUILTIN_TYPE_ARRAY, $nullable, null, true, $collectionKeyType, $collectionValueType);
         }
 
         $docType = $this->normalizeType($docType);
         list($phpType, $class) = $this->getPhpTypeAndClass($docType);
 
-        $array = 'array' === $docType;
-
-        if ($collection || $array) {
-            if ($array || 'mixed' === $docType) {
-                $collectionKeyType = null;
-                $collectionValueType = null;
-            } else {
-                $collectionKeyType = new Type(Type::BUILTIN_TYPE_INT);
-                $collectionValueType = new Type($phpType, $nullable, $class);
-            }
-
-            return new Type(Type::BUILTIN_TYPE_ARRAY, $nullable, null, true, $collectionKeyType, $collectionValueType);
+        if ('array' === $docType) {
+            return new Type(Type::BUILTIN_TYPE_ARRAY, $nullable, null, true, null, null);
         }
 
         return new Type($phpType, $nullable, $class);
@@ -150,10 +161,10 @@ final class PhpDocTypeHelper
      */
     private function getPhpTypeAndClass($docType)
     {
-        if (in_array($docType, Type::$builtinTypes)) {
-            return array($docType, null);
+        if (\in_array($docType, Type::$builtinTypes)) {
+            return [$docType, null];
         }
 
-        return array('object', substr($docType, 1));
+        return ['object', substr($docType, 1)];
     }
 }

@@ -9,12 +9,13 @@
          failOnWarning="true"
 >
     <php>
+        <env name="LANG" value="en_US.UTF-8" force="true" />
         <ini name="error_reporting" value="-1" />
     </php>
 
     <testsuites>
         <testsuite name="Twig Intl Extension Test Suite">
-            <directory>./tests/</directory>
+            <directory>./Tests/</directory>
         </testsuite>
     </testsuites>
 
@@ -22,7 +23,7 @@
         <whitelist>
             <directory>./</directory>
             <exclude>
-                <directory>./tests</directory>
+                <directory>./Tests</directory>
                 <directory>./vendor</directory>
             </exclude>
         </whitelist>
