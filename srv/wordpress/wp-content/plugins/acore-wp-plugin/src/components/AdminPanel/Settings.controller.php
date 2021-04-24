@@ -15,7 +15,7 @@ class SettingsController {
 
     /**
      *
-     * @var SettingsModel 
+     * @var SettingsModel
      */
     private $model;
     private $data;
@@ -25,8 +25,20 @@ class SettingsController {
         $this->view = new SettingsView($this);
     }
 
-    public function init() {
-        //must check that the user has the required capability 
+    public function loadHome() {
+        //must check that the user has the required capability
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        // See if the user has posted us some information
+        // If they did, this hidden field will be set to 'Y'
+
+        echo $this->getView()->getHomeRender();
+    }
+
+    public function loadSettings() {
+        //must check that the user has the required capability
         if (!current_user_can('manage_options')) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
@@ -46,11 +58,11 @@ class SettingsController {
         <div class="updated"><p><strong>Option saved</strong></p></div>
         <?php
 
-        echo $this->getView()->getRender();
+        echo $this->getView()->getSettingsRender();
     }
 
     /**
-     * 
+     *
      * @return SettingsView
      */
     public function getView() {
@@ -58,7 +70,7 @@ class SettingsController {
     }
 
     /**
-     * 
+     *
      * @return SettingsModel
      */
     public function getModel() {
