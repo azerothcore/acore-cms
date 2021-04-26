@@ -61,7 +61,7 @@ final class Versions
   'twig/twig' => 'v2.12.5@18772e0190734944277ee97a02a9a6c6555fcd94',
   'sensio/generator-bundle' => 'v3.1.7@28cbaa244bd0816fd8908b93f90380bcd7b67a65',
   'symfony/phpunit-bridge' => 'v3.4.41@f926812c6b3d456dfbd13c706293f49e9a10bc2a',
-  'azerothcore/acore-wp-plugin' => 'No version set (parsed as 1.0.0)@',
+  'azerothcore/acore-wp-plugin' => 'dev-master@6aab633ffd96b7e9ce423f558aa60d977bc8396d',
 );
 
     private function __construct()
