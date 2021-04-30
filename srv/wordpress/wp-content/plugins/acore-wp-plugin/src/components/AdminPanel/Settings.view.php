@@ -64,9 +64,18 @@ class SettingsView {
         ?>
 
         <form name="form-acore-settings" method="post" action="">
-            <p>Realm Alias:
-                <input type="text" name="acore_realm_alias" value="<?= Opts::I()->acore_realm_alias; ?>" size="20">
-            </p>
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <label for="acore_realm_alias">Realm Alias:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_realm_alias" value="<?= Opts::I()->acore_realm_alias; ?>" size="20">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <hr />
 
@@ -144,6 +153,152 @@ class SettingsView {
             </p>
 
         </form>
+        </div>
+
+        <?php
+        return ob_get_clean();
+    }
+
+    public function getPvpRewardsRender() {
+        ob_start();
+
+        // Now display the settings editing screen
+
+        echo '<div class="wrap">';
+
+        // header
+
+        echo "<h2>" . __('PvP Rewards', Opts::I()->page_alias) . "</h2>";
+
+        // settings form
+        ?>
+
+            <div id="dashboard-widgets-wrap">
+                <div id="dashboard-widgets" class="metabox-holder">
+                    <div id="postbox-container-1" class="postbox-container">
+                        <div id="normal-sortables" class="meta-box-sortables">
+                            <div id="dashboard_site_health" class="postbox ">
+                                <div class="postbox-header"><h2 class="hndle">Give rewards</h2>
+                                </div>
+                                <div class="inside">
+                                    <form name="post" action="" method="post" id="quick-press" class="initial-form hide-if-no-js">
+                                    <table class="form-table" role="presentation">
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">
+                                                    <label for="token">Mycred Token</label>
+                                                </th>
+                                                <td>
+                                                    ChromiePoins
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">
+                                                <label for="token">
+                                                    <label for="amount">Amount per result</label>
+                                                </th>
+                                                <td>
+                                                    <input type="number" name="amount" id="amount" autocomplete="off" min=0 value=0 required />
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">
+                                                    <label for="result">Result to reward</label>
+                                                </th>
+                                                <td>
+                                                    <select name="result" id="result" required>
+                                                        <option value=null selected disabled>Select result</option>
+                                                        <option value=0>Looser</option>
+                                                        <option value=1>Winner</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">
+                                                    <label for="bracket">Bracket</label>
+                                                </th>
+                                                <td>
+                                                    <select name="bracket" id="bracket" required>
+                                                        <option value=0 selected disabled>Select bracket</option>
+                                                        <option value=1>10-19</option>
+                                                        <option value=2>20-29</option>
+                                                        <option value=3>30-39</option>
+                                                        <option value=4>40-49</option>
+                                                        <option value=5>50-59</option>
+                                                        <option value=6>60-69</option>
+                                                        <option value=7>70-79</option>
+                                                        <option value=8>80</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">
+                                                    <label for="month">Month</label>
+                                                </th>
+                                                <td>
+                                                    <select name="month" id="month" required>
+                                                        <option value=0 selected disabled>Select month</option>
+                                                        <option value=1>January</option>
+                                                        <option value=2>February</option>
+                                                        <option value=3>March</option>
+                                                        <option value=4>April</option>
+                                                        <option value=5>May</option>
+                                                        <option value=6>June</option>
+                                                        <option value=7>July</option>
+                                                        <option value=8>August</option>
+                                                        <option value=9>September</option>
+                                                        <option value=10>October</option>
+                                                        <option value=11>November</option>
+                                                        <option value=12>December</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">
+                                                    <label for="year">Year</label>
+                                                </th>
+                                                <td>
+                                                    <select name="year" id="year" required>
+                                                        <?php $year = (int) (new \DateTime())->format('Y');
+                                                        for ($i = $year; $i >= 2015; $i--) {
+                                                            echo "<option value=$i selected>$i</option>";
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <input type="submit" name="submit" id="preview" class="button-secondary" value="<?php esc_attr_e('Preview', Opts::I()->page_alias) ?>" />
+                                                </td>
+                                                <td align="right">
+                                                    <input type="submit" name="submit" id="send-rewards" class="button-primary" value="<?php esc_attr_e('Send rewards', Opts::I()->page_alias) ?>" />
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="postbox-container-2" class="postbox-container">
+                        <div id="normal-sortables" class="meta-box-sortables">
+                            <div id="dashboard_site_health" class="postbox ">
+                                <div class="postbox-header"><h2 class="hndle">PvP Summary</h2>
+                                </div>
+                                <div class="inside">
+                                        <p>asdasdfasdf</p>
+                                        <p>adsfasdfa</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <hr />
+
         </div>
 
         <?php

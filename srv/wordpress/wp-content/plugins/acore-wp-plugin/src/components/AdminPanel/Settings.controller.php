@@ -46,19 +46,51 @@ class SettingsController {
         // See if the user has posted us some information
         // If they did, this hidden field will be set to 'Y'
 
-        foreach (Opts::I()->getConfs() as $key => $value) {
-            if (isset($_POST[$key])) {
-                $this->model->storeConf($key, $_POST[$key]);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            foreach (Opts::I()->getConfs() as $key => $value) {
+                if (isset($_POST[$key])) {
+                    $this->model->storeConf($key, $_POST[$key]);
+                }
             }
+
+            $this->data = $this->model->loadData(); // reload confs
+            // Put a "settings saved" message on the screen
+            ?>
+            <div class="updated"><p><strong>Option saved</strong></p></div>
+            <?php
         }
 
-        $this->data = $this->model->loadData(); // reload confs
-        // Put a "settings saved" message on the screen
-        ?>
-        <div class="updated"><p><strong>Option saved</strong></p></div>
-        <?php
-
         echo $this->getView()->getSettingsRender();
+    }
+
+    public function loadPvpRewards() {
+        //must check that the user has the required capability
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        if (!is_plugin_active('mycred/mycred.php')) {
+            wp_die(__('You need mycred plugin active to use PvP Rewards.'));
+        }
+
+        // See if the user has posted us some information
+        // If they did, this hidden field will be set to 'Y'
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            foreach (Opts::I()->getConfs() as $key => $value) {
+                if (isset($_POST[$key])) {
+                    $this->model->storeConf($key, $_POST[$key]);
+                }
+            }
+
+            $this->data = $this->model->loadData(); // reload confs
+            // Put a "settings saved" message on the screen
+            ?>
+            <div class="updated"><p><strong>Option saved</strong></p></div>
+            <?php
+        }
+
+        echo $this->getView()->getPvpRewardsRender();
     }
 
     /**

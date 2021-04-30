@@ -32,6 +32,13 @@ class AdminPanel
     }
 
     // mt_settings_page() displays the page content for the Test settings submenu
+    function acore_pvpreward_page()
+    {
+        $SettingsCtrl = new SettingsController();
+        $SettingsCtrl->loadPvpRewards();
+    }
+
+    // mt_settings_page() displays the page content for the Test settings submenu
     function acore_home_page()
     {
         $SettingsCtrl = new SettingsController();
@@ -49,6 +56,16 @@ class AdminPanel
             'manage_options',
             'settings',
             array($this, 'acore_settings_page')
+        );
+
+        // Add a new submenu under Settings:
+        add_submenu_page(
+            'acore',
+            __('ACore Settings Panel', Opts::I()->org_alias),
+            __('PvP Rewards', Opts::I()->org_alias),
+            'manage_options',
+            'pvp-rewards',
+            array($this, 'acore_pvpreward_page')
         );
     }
 
