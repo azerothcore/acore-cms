@@ -79,72 +79,187 @@ class SettingsView {
 
             <hr />
 
-            <p>Soap Host:
-                <input type="text" name="acore_soap_host" value="<?= Opts::I()->acore_soap_host; ?>" size="20">
-            </p>
-            <p>Soap Port:
-                <input type="text" name="acore_soap_port" value="<?= Opts::I()->acore_soap_port; ?>" size="20">
-            </p>
-            <p>Soap User:
-                <input type="text" name="acore_soap_user" value="<?= Opts::I()->acore_soap_user; ?>" size="20" >
-            </p>
-            <p>Soap Pass:
-                <input type="password" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20" >
-            </p>
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                             <label for="acore_soap_host">Soap Host:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_soap_host" value="<?= Opts::I()->acore_soap_host; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_soap_port">Soap Port:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_soap_port" value="<?= Opts::I()->acore_soap_port; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_soap_user">Soap User:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_soap_user" value="<?= Opts::I()->acore_soap_user; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_realm_alias">Soap Pass:</label>
+                        </th>
+                        <td>
+                            <input type="password" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                </tbody>
+            </table>
 
             <hr />
 
-            <p>Database Auth Host:
-                <input type="text" name="acore_db_auth_host" value="<?= Opts::I()->acore_db_auth_host; ?>" size="20">
-            </p>
-            <p>Database Auth Port:
-                <input type="text" name="acore_db_auth_port" value="<?= Opts::I()->acore_db_auth_port; ?>" size="20">
-            </p>
-            <p>Database Auth User:
-                <input type="text" name="acore_db_auth_user" value="<?= Opts::I()->acore_db_auth_user; ?>" size="20" >
-            </p>
-            <p>Database Auth Pass:
-                <input type="password" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" >
-            </p>
-            <p>Database Auth Name:
-                <input type="text" name="acore_db_auth_name" value="<?= Opts::I()->acore_db_auth_name; ?>" size="20" >
-            </p>
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                        <label for="acore_db_auth_host">Database Auth Host:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_auth_host" value="<?= Opts::I()->acore_db_auth_host; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_auth_port">Database Auth Port:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_auth_port" value="<?= Opts::I()->acore_db_auth_port; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_auth_user">Database Auth User:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_auth_user" value="<?= Opts::I()->acore_db_auth_user; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_realm_alias">Database Auth Pass:</label>
+                        </th>
+                        <td>
+                            <input type="password" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_auth_name">Database Auth Name:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_auth_name" value="<?= Opts::I()->acore_db_auth_name; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                </tbody>
+            </table>
 
             <hr />
 
-            <p>Database Characters Host:
-                <input type="text" name="acore_db_char_host" value="<?= Opts::I()->acore_db_char_host; ?>" size="20">
-            </p>
-            <p>Database Characters Port:
-                <input type="text" name="acore_db_char_port" value="<?= Opts::I()->acore_db_char_port; ?>" size="20">
-            </p>
-            <p>Database Characters User:
-                <input type="text" name="acore_db_char_user" value="<?= Opts::I()->acore_db_char_user; ?>" size="20" >
-            </p>
-            <p>Database Characters Pass:
-                <input type="password" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" >
-            </p>
-            <p>Database Characters Name:
-                <input type="text" name="acore_db_char_name" value="<?= Opts::I()->acore_db_char_name; ?>" size="20" >
-            </p>
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <label for="acore_db_char_host">Database Characters Host:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_char_host" value="<?= Opts::I()->acore_db_char_host; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_char_port">Database Characters Port:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_char_port" value="<?= Opts::I()->acore_db_char_port; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_char_user">Database Characters User:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_char_user" value="<?= Opts::I()->acore_db_char_user; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_realm_alias">Database Characters Pass:</label>
+                        </th>
+                        <td>
+                            <input type="password" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_char_name">Database Characters Name:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_char_name" value="<?= Opts::I()->acore_db_char_name; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                </tbody>
+            </table>
 
             <hr />
 
-            <p>Database World Host:
-                <input type="text" name="acore_db_world_host" value="<?= Opts::I()->acore_db_world_host; ?>" size="20">
-            </p>
-            <p>Database World Port:
-                <input type="text" name="acore_db_world_port" value="<?= Opts::I()->acore_db_world_port; ?>" size="20">
-            </p>
-            <p>Database World User:
-                <input type="text" name="acore_db_world_user" value="<?= Opts::I()->acore_db_world_user; ?>" size="20" >
-            </p>
-            <p>Database World Pass:
-                <input type="password" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" >
-            </p>
-            <p>Database World Name:
-                <input type="text" name="acore_db_world_name" value="<?= Opts::I()->acore_db_world_name; ?>" size="20" >
-            </p>
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                        <label for="acore_db_world_host">Database World Host:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_world_host" value="<?= Opts::I()->acore_db_world_host; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_world_port">Database World Port:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_world_port" value="<?= Opts::I()->acore_db_world_port; ?>" size="20">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_world_user">Database World User:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_world_user" value="<?= Opts::I()->acore_db_world_user; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_realm_alias">Database World Pass:</label>
+                        </th>
+                        <td>
+                            <input type="password" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            <label for="acore_db_world_name">Database World Name:</label>
+                        </th>
+                        <td>
+                            <input type="text" name="acore_db_world_name" value="<?= Opts::I()->acore_db_world_name; ?>" size="20" >
+                        </td>
+                    </tr>
+                    <tr>
+                </tbody>
+            </table>
 
             <hr />
 
@@ -159,7 +274,7 @@ class SettingsView {
         return ob_get_clean();
     }
 
-    public function getPvpRewardsRender() {
+    public function getPvpRewardsRender($amount, $isWinner, $bracket, $month, $year, $result) {
         ob_start();
 
         // Now display the settings editing screen
@@ -181,102 +296,95 @@ class SettingsView {
                                 <div class="postbox-header"><h2 class="hndle">Give rewards</h2>
                                 </div>
                                 <div class="inside">
-                                    <form name="post" action="" method="post" id="quick-press" class="initial-form hide-if-no-js">
-                                    <table class="form-table" role="presentation">
-                                        <tbody>
-                                            <tr>
-                                                <th scope="row">
-                                                    <label for="token">Mycred Token</label>
-                                                </th>
-                                                <td>
-                                                    ChromiePoins
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">
-                                                <label for="token">
-                                                    <label for="amount">Amount per result</label>
-                                                </th>
-                                                <td>
-                                                    <input type="number" name="amount" id="amount" autocomplete="off" min=0 value=0 required />
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">
-                                                    <label for="result">Result to reward</label>
-                                                </th>
-                                                <td>
-                                                    <select name="result" id="result" required>
-                                                        <option value=null selected disabled>Select result</option>
-                                                        <option value=0>Looser</option>
-                                                        <option value=1>Winner</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">
-                                                    <label for="bracket">Bracket</label>
-                                                </th>
-                                                <td>
-                                                    <select name="bracket" id="bracket" required>
-                                                        <option value=0 selected disabled>Select bracket</option>
-                                                        <option value=1>10-19</option>
-                                                        <option value=2>20-29</option>
-                                                        <option value=3>30-39</option>
-                                                        <option value=4>40-49</option>
-                                                        <option value=5>50-59</option>
-                                                        <option value=6>60-69</option>
-                                                        <option value=7>70-79</option>
-                                                        <option value=8>80</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">
-                                                    <label for="month">Month</label>
-                                                </th>
-                                                <td>
-                                                    <select name="month" id="month" required>
-                                                        <option value=0 selected disabled>Select month</option>
-                                                        <option value=1>January</option>
-                                                        <option value=2>February</option>
-                                                        <option value=3>March</option>
-                                                        <option value=4>April</option>
-                                                        <option value=5>May</option>
-                                                        <option value=6>June</option>
-                                                        <option value=7>July</option>
-                                                        <option value=8>August</option>
-                                                        <option value=9>September</option>
-                                                        <option value=10>October</option>
-                                                        <option value=11>November</option>
-                                                        <option value=12>December</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">
-                                                    <label for="year">Year</label>
-                                                </th>
-                                                <td>
-                                                    <select name="year" id="year" required>
-                                                        <?php $year = (int) (new \DateTime())->format('Y');
-                                                        for ($i = $year; $i >= 2015; $i--) {
-                                                            echo "<option value=$i selected>$i</option>";
-                                                        }
-                                                        ?>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <input type="submit" name="submit" id="preview" class="button-secondary" value="<?php esc_attr_e('Preview', Opts::I()->page_alias) ?>" />
-                                                </td>
-                                                <td align="right">
-                                                    <input type="submit" name="submit" id="send-rewards" class="button-primary" value="<?php esc_attr_e('Send rewards', Opts::I()->page_alias) ?>" />
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    <form name="pvp-rewards" method="post" id="pvp-rewards" class="initial-form hide-if-no-js">
+                                        <input type="hidden" name="page" value="pvp-rewards" />
+                                        <table class="form-table" role="presentation">
+                                            <tbody>
+                                                <tr>
+                                                    <th scope="row">
+                                                    <label for="token">
+                                                        <label for="amount">Amount per result</label>
+                                                    </th>
+                                                    <td>
+                                                        <input type="number" name="amount" id="amount" autocomplete="off" min=0 value=<?php echo $amount; ?> required />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <label for="is_winner">Result to reward</label>
+                                                    </th>
+                                                    <td>
+                                                        <select name="is_winner" id="result" required>
+                                                            <option value=null selected disabled>Select result</option>
+                                                            <option value=0 <?php if ($isWinner == 0) echo 'selected'; ?>>Looser</option>
+                                                            <option value=1 <?php if ($isWinner == 1) echo 'selected'; ?>>Winner</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <label for="bracket">Bracket</label>
+                                                    </th>
+                                                    <td>
+                                                        <select name="bracket" id="bracket" required>
+                                                            <option value=0 <?php if ($bracket == 0) echo 'selected'; ?>>All</option>
+                                                            <option value=1 <?php if ($bracket == 1) echo 'selected'; ?>>10-19</option>
+                                                            <option value=2 <?php if ($bracket == 2) echo 'selected'; ?>>20-29</option>
+                                                            <option value=3 <?php if ($bracket == 3) echo 'selected'; ?>>30-39</option>
+                                                            <option value=4 <?php if ($bracket == 4) echo 'selected'; ?>>40-49</option>
+                                                            <option value=5 <?php if ($bracket == 5) echo 'selected'; ?>>50-59</option>
+                                                            <option value=6 <?php if ($bracket == 6) echo 'selected'; ?>>60-69</option>
+                                                            <option value=7 <?php if ($bracket == 7) echo 'selected'; ?>>70-79</option>
+                                                            <option value=8 <?php if ($bracket == 8) echo 'selected'; ?>>80</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <label for="month">Month</label>
+                                                    </th>
+                                                    <td>
+                                                        <select name="month" id="month" required>
+                                                            <option value=0 <?php if ($month == 0) echo 'selected'; ?> disabled>Select month</option>
+                                                            <option value=1 <?php if ($month == 1) echo 'selected'; ?>>January</option>
+                                                            <option value=2 <?php if ($month == 2) echo 'selected'; ?>>February</option>
+                                                            <option value=3 <?php if ($month == 3) echo 'selected'; ?>>March</option>
+                                                            <option value=4 <?php if ($month == 4) echo 'selected'; ?>>April</option>
+                                                            <option value=5 <?php if ($month == 5) echo 'selected'; ?>>May</option>
+                                                            <option value=6 <?php if ($month == 6) echo 'selected'; ?>>June</option>
+                                                            <option value=7 <?php if ($month == 7) echo 'selected'; ?>>July</option>
+                                                            <option value=8 <?php if ($month == 8) echo 'selected'; ?>>August</option>
+                                                            <option value=9 <?php if ($month == 9) echo 'selected'; ?>>September</option>
+                                                            <option value=10 <?php if ($month == 10) echo 'selected'; ?>>October</option>
+                                                            <option value=11 <?php if ($month == 11) echo 'selected'; ?>>November</option>
+                                                            <option value=12 <?php if ($month == 12) echo 'selected'; ?>>December</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <label for="year">Year</label>
+                                                    </th>
+                                                    <td>
+                                                        <select name="year" id="year" required>
+                                                            <?php $year = (int) (new \DateTime())->format('Y');
+                                                            for ($i = $year; $i >= 2015; $i--) {
+                                                                echo "<option value=$i" . (($i == $year) ? " seleted" : "") . ">$i</option>";
+                                                            }
+                                                            ?>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <input type="submit" name="preview" id="preview" class="button-secondary" value="<?php esc_attr_e('Preview', Opts::I()->page_alias) ?>" />
+                                                    </td>
+                                                    <td align="right">
+                                                        <input type="submit" name="send-rewards" id="send-rewards" class="button-primary" value="<?php esc_attr_e('Send rewards', Opts::I()->page_alias) ?>" />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </form>
                                 </div>
                             </div>
@@ -288,8 +396,33 @@ class SettingsView {
                                 <div class="postbox-header"><h2 class="hndle">PvP Summary</h2>
                                 </div>
                                 <div class="inside">
-                                        <p>asdasdfasdf</p>
-                                        <p>adsfasdfa</p>
+                                    <?php
+                                    if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($result) && is_array($result) && count($result) > 0) {?>
+                                        <p><strong>This is a preview of top 10 players related to the options selected.</strong></p>
+                                        <table class="wp-list-table widefat fixed striped table-view-list"><thead>
+                                        <tr>
+                                            <th>Account</th>
+                                            <th>Char name</th>
+                                            <th>Result Count</th>
+                                            <th>Points to Obtain</th>
+                                        </tr>
+                                        </thead><tbody>
+                                        <?php
+                                        foreach ($result as $item) {
+                                            echo "<tr><td>" . $item['username'] . "</td>";
+                                            echo "<td>" . $item['character_name'] . "</td>";
+                                            echo "<td>" . $item['total_battle'] . "</td>";
+                                            echo "<td>" . $item['points'] . "</td></tr>";
+                                        }
+                                        ?>
+                                        </tbody></table>
+                                        <?php
+                                    } elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                                        echo "<p>Give reward will not show table.</p>";
+                                    } else {
+                                        echo "<p>No results found</p>";
+                                    }
+                                    ?>
                                 </div>
                             </div>
                         </div>
@@ -298,7 +431,18 @@ class SettingsView {
             </div>
 
         <hr />
-
+        <script>
+            jQuery('#preview').on('click', function(e) {
+                jQuery('#pvp-rewards').attr('method', 'GET');
+            });
+            jQuery('#send-rewards').on('click', function(e) {
+                jQuery('#pvp-rewards').attr('method', 'POST');
+            });
+            jQuery('#pvp-rewards').on('submit', function(e) {
+                var r = confirm("You sure you want to continue?");
+                return r;
+            });
+        </script>
         </div>
 
         <?php
