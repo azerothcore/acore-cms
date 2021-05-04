@@ -379,7 +379,7 @@ class SettingsView {
                                                     <th scope="row">
                                                         <label>Top Extra Rewards</label>
                                                     </th>
-                                                    <td>
+                                                    <td><hr>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -430,7 +430,7 @@ class SettingsView {
                             </div>
                         </div>
                     </div>
-                    <div id="postbox-container-2" class="postbox-container">
+                    <div id="postbox-container-2" class="postbox-container" style="width: 50%;">
                         <div id="normal-sortables" class="meta-box-sortables">
                             <div id="dashboard_site_health" class="postbox ">
                                 <div class="postbox-header"><h2 class="hndle">PvP Summary</h2>
