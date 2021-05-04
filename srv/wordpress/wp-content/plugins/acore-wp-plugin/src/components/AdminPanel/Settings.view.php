@@ -274,7 +274,7 @@ class SettingsView {
         return ob_get_clean();
     }
 
-    public function getPvpRewardsRender($amount, $isWinner, $bracket, $month, $year, $result) {
+    public function getPvpRewardsRender($amount, $isWinner, $bracket, $month, $year, $top, $fixedAmount, $stepAmount, $result) {
         ob_start();
 
         // Now display the settings editing screen
@@ -376,6 +376,46 @@ class SettingsView {
                                                     </td>
                                                 </tr>
                                                 <tr>
+                                                    <th scope="row">
+                                                        <label>Top Extra Rewards</label>
+                                                    </th>
+                                                    <td>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                        <label for="top">Top</label>
+                                                    </th>
+                                                    <td>
+                                                        <select name="top" id="result" required>
+                                                            <option value=0 <?php if ($top == 0) echo 'selected'; ?>>None</option>
+                                                            <option value=5 <?php if ($top == 5) echo 'selected'; ?>>Top 5</option>
+                                                            <option value=10 <?php if ($top == 10) echo 'selected'; ?>>Top 10</option>
+                                                            <option value=15 <?php if ($top == 15) echo 'selected'; ?>>Top 15</option>
+                                                            <option value=20 <?php if ($top == 20) echo 'selected'; ?>>Top 20</option>
+                                                            <option value=25 <?php if ($top == 25) echo 'selected'; ?>>Top 25</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                    <label for="token">
+                                                        <label for="fixed_amount">Fixed amount</label>
+                                                    </th>
+                                                    <td>
+                                                        <input type="number" name="fixed_amount" id="fixed_amount" autocomplete="off" min=0 value=<?php echo $fixedAmount; ?> required />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                    <label for="token">
+                                                        <label for="step_amount">Step amount</label>
+                                                    </th>
+                                                    <td>
+                                                        <input type="number" name="step_amount" id="step_amount" autocomplete="off" min=0 value=<?php echo $stepAmount; ?> required />
+                                                    </td>
+                                                </tr>
+                                                <tr>
                                                     <td>
                                                         <input type="submit" name="preview" id="preview" class="button-secondary" value="<?php esc_attr_e('Preview', Opts::I()->page_alias) ?>" />
                                                     </td>
@@ -405,14 +445,22 @@ class SettingsView {
                                             <th>Char name</th>
                                             <th>Result Count</th>
                                             <th>Points to Obtain</th>
+                                            <th>Extra Points</th>
                                         </tr>
                                         </thead><tbody>
                                         <?php
+                                        $i = $top;
                                         foreach ($result as $item) {
                                             echo "<tr><td>" . $item['username'] . "</td>";
                                             echo "<td>" . $item['character_name'] . "</td>";
                                             echo "<td>" . $item['total_battle'] . "</td>";
-                                            echo "<td>" . $item['points'] . "</td></tr>";
+                                            echo "<td>" . $item['points'] . "</td>";
+                                            if ($i > 0) {
+                                                echo "<td>" . ($fixedAmount + ($stepAmount * $i)) . "</td></tr>";
+                                                $i--;
+                                            } else {
+                                                echo "<td>0</td></tr>";
+                                            }
                                         }
                                         ?>
                                         </tbody></table>

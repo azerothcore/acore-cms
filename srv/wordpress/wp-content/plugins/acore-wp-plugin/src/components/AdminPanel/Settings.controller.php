@@ -69,9 +69,9 @@ class SettingsController {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
 
-        //if (!is_plugin_active('mycred/mycred.php')) {
-        //    wp_die(__('You need mycred plugin active to use PvP Rewards.'));
-        //}
+        if (!is_plugin_active('mycred/mycred.php')) {
+            wp_die(__('You need mycred plugin active to use PvP Rewards.'));
+        }
 
         // See if the user has posted us some information
         // If they did, this hidden field will be set to 'Y'
@@ -82,6 +82,11 @@ class SettingsController {
         $month = 1;
         $year = 2010;
         $result = [];
+        $top = 0;
+        $fixedAmount = 0;
+        $stepAmount = 0;
+        // TODO OBTAIN MYCRED FROM DATABASE.
+        $mycredTokenName = "mycred_default";
         $authDbName = Opts::I()->acore_db_auth_name;
         $charDbName = Opts::I()->acore_db_char_name;
 
@@ -106,9 +111,18 @@ class SettingsController {
             if (isset($_POST["year"])) {
                 $year = (int) $_POST['year'];
             }
+            if (isset($_POST["top"])) {
+                $top = (int) $_POST['top'];
+            }
+            if (isset($_POST["fixed_amount"])) {
+                $fixedAmount = (int) $_POST['fixed_amount'];
+            }
+            if (isset($_POST["step_amount"])) {
+                $stepAmount = (int) $_POST['step_amount'];
+            }
             $query = "SELECT
                 character_guid,
-                count(character_guid) * $amount AS points,
+                COUNT(character_guid) * $amount AS points,
                 account.username
             FROM pvpstats_players
             INNER JOIN pvpstats_battlegrounds ON pvpstats_players.battleground_id = pvpstats_battlegrounds.id
@@ -119,14 +133,20 @@ class SettingsController {
                 $bracketAnd
                 AND MONTH(date) = $month
                 AND YEAR(date) = $year
-            GROUP BY character_guid";
+            GROUP BY character_guid
+            ORDER BY COUNT(character_guid) DESC";
 
             $connection = ACoreServices::I()->getCharactersMgr()->getConnection();
             $result = $connection->query($query)->fetchAll();
             if ($result) {
                 $accountCounter = 0;
                 $pointsCounter = 0;
+                $i = $top;
                 foreach ($result as $item) {
+                    if ($i > 0) {
+                        $pointsCounter += $fixedAmount + ($stepAmount * $i);
+                        $i--;
+                    }
                     $pointsCounter += $item['points'];
                     $key = strtolower($item['username']);
                     if (isset($rewards[$key])) {
@@ -141,7 +161,12 @@ class SettingsController {
                     `points` INT
                 )");
                 $insertTempValues = [];
+                $i = $top;
                 foreach ($rewards as $key => $value) {
+                    if ($i > 0) {
+                        $value += $fixedAmount + ($stepAmount * $i);
+                        $i--;
+                    }
                     $insertTempValues[] = "('$key', $value)";
                 }
                 $query = "INSERT INTO temp_pvp_rewards (`account`, `points`) VALUES " . implode(', ', $insertTempValues);
@@ -153,15 +178,15 @@ class SettingsController {
                     SET `meta_value` = CAST(`meta_value` AS INT) + t.`points`
                     WHERE u.`ID` IS NOT NULL
                     AND t.`points` IS NOT NULL
-                    AND um.meta_key = 'mycred_default'";
+                    AND um.meta_key = '$mycredTokenName'";
                 $wpdb->query($query);
 
                 $query = "INSERT INTO `{$wpdb->prefix}usermeta` (`user_id`, `meta_key`, `meta_value`)
-                        SELECT u.`ID`, 'mycred_default', t.`points`
+                        SELECT u.`ID`, '$mycredTokenName', t.`points`
                         FROM `{$wpdb->prefix}users` u
                         LEFT JOIN temp_pvp_rewards t ON t.account = u.user_login
                         WHERE t.`points` IS NOT NULL
-                        AND u.`ID` NOT IN (SELECT `user_id` FROM `{$wpdb->prefix}usermeta` WHERE meta_key = 'mycred_default')";
+                        AND u.`ID` NOT IN (SELECT `user_id` FROM `{$wpdb->prefix}usermeta` WHERE meta_key = '$mycredTokenName')";
                 $wpdb->query($query);
             }
             ?>
@@ -186,6 +211,15 @@ class SettingsController {
             if (isset($_GET["year"])) {
                 $year = (int) $_GET['year'];
             }
+            if (isset($_GET["top"])) {
+                $top = (int) $_GET['top'];
+            }
+            if (isset($_GET["fixed_amount"])) {
+                $fixedAmount = (int) $_GET['fixed_amount'];
+            }
+            if (isset($_GET["step_amount"])) {
+                $stepAmount = (int) $_GET['step_amount'];
+            }
             $query = "SELECT
                 count(character_guid) total_battle,
                 characters.name as character_name,
@@ -208,7 +242,17 @@ class SettingsController {
             $result = $connection->query($query)->fetchAll();
         }
 
-        echo $this->getView()->getPvpRewardsRender($amount, $isWinner, $bracket, $month, $year, $result);
+        echo $this->getView()->getPvpRewardsRender(
+            $amount,
+            $isWinner,
+            $bracket,
+            $month,
+            $year,
+            $top,
+            $fixedAmount,
+            $stepAmount,
+            $result
+        );
     }
 
     /**
