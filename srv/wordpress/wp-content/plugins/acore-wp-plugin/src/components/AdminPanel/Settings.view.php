@@ -279,6 +279,7 @@ class SettingsView {
 
         // Now display the settings editing screen
 
+        $myCredConfs = get_option('mycred_pref_core');
         echo '<div class="wrap">';
 
         // header
@@ -454,9 +455,20 @@ class SettingsView {
                                             echo "<tr><td>" . $item['username'] . "</td>";
                                             echo "<td>" . $item['character_name'] . "</td>";
                                             echo "<td>" . $item['total_battle'] . "</td>";
-                                            echo "<td>" . $item['points'] . "</td>";
+                                            $points = number_format(
+                                                $item['points'],
+                                                $myCredConfs['format']['decimals'],
+                                                $myCredConfs['format']['separators']['decimal'],
+                                                $myCredConfs['format']['separators']['thousand']);
+                                            echo "<td>" . $points . "</td>";
                                             if ($i > 0) {
-                                                echo "<td>" . ($fixedAmount + ($stepAmount * $i)) . "</td></tr>";
+                                                $temp = $fixedAmount + ($stepAmount * $i);
+                                                $points = number_format(
+                                                    $temp,
+                                                    $myCredConfs['format']['decimals'],
+                                                    $myCredConfs['format']['separators']['decimal'],
+                                                    $myCredConfs['format']['separators']['thousand']);
+                                                echo "<td>" . $points . "</td></tr>";
                                                 $i--;
                                             } else {
                                                 echo "<td>0</td></tr>";

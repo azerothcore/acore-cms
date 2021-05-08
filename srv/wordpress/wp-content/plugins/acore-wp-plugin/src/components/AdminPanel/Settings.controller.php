@@ -85,8 +85,8 @@ class SettingsController {
         $top = 0;
         $fixedAmount = 0;
         $stepAmount = 0;
-        // TODO OBTAIN MYCRED FROM DATABASE.
-        $mycredTokenName = "mycred_default";
+        $myCredConfs = get_option('mycred_pref_core');
+        $mycredTokenName = $myCredConfs['cred_id'];
         $authDbName = Opts::I()->acore_db_auth_name;
         $charDbName = Opts::I()->acore_db_char_name;
 
@@ -190,7 +190,15 @@ class SettingsController {
                 $wpdb->query($query);
             }
             ?>
-            <div class="updated"><p><strong>Rewards sent to a total of <?php echo $accountCounter; ?> accounts and a total of <?php echo $pointsCounter; ?> points were given.</strong></p></div>
+            <div class="updated"><p><strong>Rewards sent to a total of <?php echo $accountCounter; ?> accounts and a total of
+            <?php $formattedPoints = number_format(
+                $pointsCounter,
+                $myCredConfs['format']['decimals'],
+                $myCredConfs['format']['separators']['decimal'],
+                $myCredConfs['format']['separators']['thousand']
+            );
+                $pointName = $pointsCounter == 1 ? $myCredConfs['name']['singular'] : $myCredConfs['name']['plural'];
+                echo $formattedPoints . " " . $pointName ?> were given.</strong></p></div>
             <?php
         } elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
             if (isset($_GET["amount"])) {
