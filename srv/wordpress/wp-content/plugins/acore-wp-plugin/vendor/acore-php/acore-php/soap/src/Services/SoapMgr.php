@@ -40,7 +40,7 @@ class SoapMgr
             $result = $soap->executeCommand(new \SoapParam($command, 'command'));
             return $result;
         } catch (\Exception $e) {
-            return $e;
+            return $e->getMessage();
         }
     }
 }
