@@ -138,14 +138,29 @@ class SettingsView {
             </p>
 
             <hr />
+            <div id="ajax-message"></div>
 
             <p class="submit">
                 <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
+                <input type="button" name="check-soap" id="check-soap" class="button-secondary" value="<?php esc_attr_e('Check SOAP', Opts::I()->page_alias) ?>" />
             </p>
 
         </form>
         </div>
 
+        <script>
+            jQuery('#check-soap').on('click', function(e) {
+                jQuery.ajax({
+                    url: "<?php echo get_rest_url(null, 'wp-acore/v1/server-info'); ?>",
+                    success: function(response) {
+                        jQuery('#ajax-message').html('<div class="notice notice-info"><p>SOAP Response: <strong>' + response.message + '</strong></p></div>');
+                    },
+                    error: function(response) {
+                        jQuery('#ajax-message').html('<div class="notice notice-error"><p>An unknown error happens requesting SOAP status.</div>');
+                    },
+                })
+            });
+        </script>
         <?php
         return ob_get_clean();
     }
