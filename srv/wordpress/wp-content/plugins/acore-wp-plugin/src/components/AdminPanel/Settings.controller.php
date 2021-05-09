@@ -73,6 +73,12 @@ class SettingsController {
             wp_die(__('You need mycred plugin active to use PvP Rewards.'));
         }
 
+        $myCredConfs = get_option('mycred_pref_core');
+
+        if (!isset($myCredConfs['cred_id']) || empty($myCredConfs['cred_id'])) {
+            wp_die(__('<p>No Cred ID Found. Please check settings. <a href="' . admin_url( 'admin.php?page=' . MYCRED_SLUG . '-settings' ) . '" >' . __( 'MyCred Settings', 'mycred' ) . '</a></p>'));
+        }
+
         // See if the user has posted us some information
         // If they did, this hidden field will be set to 'Y'
         $amount = 0;
@@ -85,7 +91,6 @@ class SettingsController {
         $top = 0;
         $fixedAmount = 0;
         $stepAmount = 0;
-        $myCredConfs = get_option('mycred_pref_core');
         $mycredTokenName = $myCredConfs['cred_id'];
         $authDbName = Opts::I()->acore_db_auth_name;
         $charDbName = Opts::I()->acore_db_char_name;

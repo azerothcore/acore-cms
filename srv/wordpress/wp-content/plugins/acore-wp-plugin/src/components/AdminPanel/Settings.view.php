@@ -304,6 +304,20 @@ class SettingsView {
                                                 <tr>
                                                     <th scope="row">
                                                     <label for="token">
+                                                        <label>Cred ID</label>
+                                                    </th>
+                                                    <td>
+                                                        <?php if (isset($myCredConfs['cred_id'])) {
+                                                            echo $myCredConfs['cred_id'] . ( isset($myCredConfs['name']['singular']) ? " (" . $myCredConfs['name']['singular'] . ")" : "");
+                                                        } else {
+                                                            echo "<p>No Cred ID Found. Please check settings.</p>";
+                                                            echo '<a href="' . admin_url( 'admin.php?page=' . MYCRED_SLUG . '-settings' ) . '" >' . __( 'MyCred Settings', 'mycred' ) . '</a>';
+                                                        } ?>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th scope="row">
+                                                    <label for="token">
                                                         <label for="amount">Amount per result</label>
                                                     </th>
                                                     <td>
