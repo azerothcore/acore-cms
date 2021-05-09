@@ -72,7 +72,7 @@ class AdminPanel
     // action function for above hook
     function acore_admin_menu()
     {
-        $file = file_get_contents(plugins_url( 'acore-wp-plugin/web/assets/admin_logo.svg' ));
+        $file = file_get_contents( ACORE_PATH_PLG . 'web/assets/admin_logo.svg' );
         add_menu_page(
             __('ACore Home', Opts::I()->org_alias),
             __('AzerothCore', Opts::I()->org_alias),
