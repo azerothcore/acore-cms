@@ -82,7 +82,7 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
             FieldElements::destCharacter(__("Or send it as a present for: ", 'acore-wp-plugin'));
             ?>
             <br>
-            <label for="acore_msg_dest">Send a message (optional):</label> 
+            <label for="acore_msg_dest">Send a message (optional):</label>
             <textarea maxlength="200" id="acore_msg_dest" class="acore_msg_dest" name="acore_msg_dest"></textarea>
             <br>
             <br>
@@ -120,7 +120,7 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
     }
 
     // 3) SAVE INTO ITEM DATA
-    // This code will store the custom fields ( for the product that is being added to cart ) into cart item data 
+    // This code will store the custom fields ( for the product that is being added to cart ) into cart item data
     // ( each cart item has their own data )
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
@@ -208,19 +208,20 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
 
     // 7)DO THE FINAL ACTION
     public static function payment_complete($order_id) {
+        $WoWSrv = ACoreServices::I();
         $logs = new \WC_Logger();
         try {
             $order = new \WC_Order($order_id);
             $items = $order->get_items();
 
-            $soap = ACoreServices::I()->getGameMailSoap();
+            $soap = $WoWSrv->getGameMailSoap();
 
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     $sku = self::getSkuItem($item["acore_item_sku"]);
 
                     if ($sku) {
-                        $charName = self::getCharName($item["acore_char_guid"]);
+                        $charName = $WoWSrv->getCharName($item["acore_char_guid"]);
 
                         $obj = "Shop Item";
                         $msg = $item["acore_msg_dest"];
@@ -253,16 +254,6 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
         }
     }
 
-    private static function getCharName($charId) {
-        $charRepo = ACoreServices::I()->getCharactersRepo();
-        $char = $charRepo->findOneByGuid($charId);
-        if (!$char || !$char->getName()) { // even name is empty ( deleted char )
-            throw new \Exception("The character <$charId> does not exist!");
-        }
-
-        return $char->getName();
-    }
-
     private static function getCharInfo() {
         $WoWSrv = ACoreServices::I();
         $charRepo = $WoWSrv->getCharactersRepo();
@@ -280,7 +271,7 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
             $guid = $char->getGuid();
         } else {
             $guid = intval($_REQUEST['acore_char_sel']);
-            $name = self::getCharName($guid);
+            $name = $WoWSrv->getCharName($guid);
         }
 
         return array("guid" => $guid, "name" => $name);

@@ -12,7 +12,7 @@ class ACoreServices
 
     /**
      *
-     * @var type 
+     * @var type
      */
     private $kernel;
 
@@ -88,7 +88,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \AppKernel
      */
     function getKernel()
@@ -97,7 +97,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return Services
      */
     public static function I()
@@ -110,7 +110,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Account\Services\AccountMgr
      */
     public function getAccountMgr()
@@ -119,7 +119,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Character\Services\CharacterMgr
      */
     public function getCharactersMgr()
@@ -128,7 +128,24 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
+     * @return \ACore\Character\Services\CharacterMgr
+     */
+    public function getCharName($charId, $deleted = false)
+    {
+        $char = $this->getCharactersRepo()->findOneByGuid($charId);
+
+        if (!$char || (!$char->getName() && !$deleted) || ($deleted && !$char->getDeletedName())) {
+            // even name is empty ( deleted char )
+            $current_user = wp_get_current_user();
+            throw new \Exception("Char $charId doesn't exists! account: " . $current_user->user_login);
+        }
+
+        return $deleted ? $char->getDeletedName() : $char->getName();
+    }
+
+    /**
+     *
      * @return \ACore\Account\Repository\AccountRepository
      */
     public function getAccountRepo()
@@ -137,7 +154,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Account\Repository\AccountBannedRepository
      */
     public function getAccountBannedRepo()
@@ -146,7 +163,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Character\Repository\CharacterRepository
      */
     public function getCharactersRepo()
@@ -155,7 +172,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Character\Repository\CharacterBannedRepository
      */
     public function getCharactersBannedRepo()
@@ -164,7 +181,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Account\Services\AccountSoapMgr
      */
     public function getAccountSoap()
@@ -175,7 +192,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Character\Services\CharacterSoapMgr
      */
     public function getCharactersSoap()
@@ -186,7 +203,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\GameMail\Services\MailMgr
      */
     public function getGameMailSoap()
@@ -197,7 +214,7 @@ class ACoreServices
     }
 
     /**
-     * 
+     *
      * @return \ACore\Server\Services\ServerSoapMgr
      */
     public function getServerSoap()
