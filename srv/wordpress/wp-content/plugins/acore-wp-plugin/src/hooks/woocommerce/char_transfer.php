@@ -68,13 +68,13 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
             \wc_add_notice(__('This character is not in your account!', 'acore-wp-plugin'), 'error');
             return false;
         }
-        
+
         if ($charBanRepo->isActiveByGuid($guid)) {
             \wc_add_notice(__('This character is banned!', 'acore-wp-plugin'), 'error');
             return false;
         }
-        
-        
+
+
         if ($accBanRepo->isActiveById($accountId)) {
             \wc_add_notice(__('This account is banned!', 'woocommerce'), 'error');
             return false;
@@ -86,7 +86,7 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
             \wc_add_notice(__('Destination account not valid!', 'woocommerce'), 'error');
             return false;
         }
-        
+
         if ($accBanRepo->isActiveById($destAcc->getId())) {
             \wc_add_notice(__('Destination account is banned!', 'woocommerce'), 'error');
             return false;
@@ -96,7 +96,7 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
     }
 
     // 3) SAVE INTO ITEM DATA
-    // This code will store the custom fields ( for the product that is being added to cart ) into cart item data 
+    // This code will store the custom fields ( for the product that is being added to cart ) into cart item data
     // ( each cart item has their own data )
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
@@ -160,12 +160,13 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
     public static function checkout_order_processed($order_id, $posted_data) {
         $order = new \WC_Order($order_id);
         $items = $order->get_items();
+        $WoWSrv = ACoreServices::I();
 
         foreach ($items as $item) {
             if ($item["acore_item_sku"]) {
                 if (in_array($item["acore_item_sku"], self::$skuList)) {
                     $charId = $item["acore_char_sel"];
-                    self::getCharName($charId); // throw if not exists
+                    $WoWSrv->getCharName($charId); // throw if not exists
                     return;
                 }
             }
@@ -199,17 +200,6 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
         } catch (\Exception $e) {
             $logs->add("acore_log", $e->getMessage());
         }
-    }
-
-    private static function getCharName($charId) {
-        $charRepo = ACoreServices::I()->getCharactersRepo();
-        $char = $charRepo->findOneByGuid($charId);
-        if (!$char || !$char->getName()) { // even name is empty ( deleted char )
-            $current_user = wp_get_current_user();
-            throw new \Exception("Char $charId doesn't exist! account: " . $current_user->user_login);
-        }
-
-        return $char->getName();
     }
 
 }
