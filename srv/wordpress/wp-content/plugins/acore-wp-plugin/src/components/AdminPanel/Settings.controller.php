@@ -66,17 +66,28 @@ class SettingsController {
     public function loadPvpRewards() {
         //must check that the user has the required capability
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.'));
+            wp_die(__('<div class="notice notice-error"><p>You do not have sufficient permissions to access this page.</p></div>'));
         }
 
         if (!is_plugin_active('mycred/mycred.php')) {
-            wp_die(__('You need mycred plugin active to use PvP Rewards.'));
+            wp_die(__('<div class="notice notice-error"><p>You need mycred plugin active to use PvP Rewards.</p></div>'));
         }
 
         $myCredConfs = get_option('mycred_pref_core');
 
         if (!isset($myCredConfs['cred_id']) || empty($myCredConfs['cred_id'])) {
-            wp_die(__('<p>No Cred ID Found. Please check settings. <a href="' . admin_url( 'admin.php?page=' . MYCRED_SLUG . '-settings' ) . '" >' . __( 'MyCred Settings', 'mycred' ) . '</a></p>'));
+            wp_die(__('<div class="notice notice-error"><p>No Cred ID Found. Please check settings. <a href="' . admin_url( 'admin.php?page=' . MYCRED_SLUG . '-settings' ) . '" >' . __( 'MyCred Settings', 'mycred' ) . '</a></p></div>'));
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            global $wpdb;
+            $tableResult = $wpdb->query("CREATE TEMPORARY TABLE temp_pvp_rewards (
+                `account` VARCHAR(255),
+                `points` INT
+            )");
+            if ($tableResult === false) {
+                wp_die(__('<div class="notice notice-error"><p>Error trying to create temporal table. Please check mysql user privileges.</p></div>'));
+            }
         }
 
         // See if the user has posted us some information
@@ -161,10 +172,6 @@ class SettingsController {
                         $rewards[$key] = $item['points'];
                     }
                 }
-                $wpdb->query("CREATE TEMPORARY TABLE temp_pvp_rewards (
-                    `account` VARCHAR(255),
-                    `points` INT
-                )");
                 $insertTempValues = [];
                 $i = $top;
                 foreach ($rewards as $key => $value) {
