@@ -82,7 +82,7 @@ class SettingsController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             global $wpdb;
             $tableResult = $wpdb->query("CREATE TEMPORARY TABLE temp_pvp_rewards (
-                `account` VARCHAR(255),
+                `account` VARCHAR(255) COLLATE utf8_unicode_ci,
                 `points` INT
             )");
             if ($tableResult === false) {
@@ -187,7 +187,7 @@ class SettingsController {
                 $query = "UPDATE `{$wpdb->prefix}usermeta` um
                     LEFT JOIN `{$wpdb->prefix}users` u ON u.`ID` = um.user_id
                     LEFT JOIN temp_pvp_rewards t ON t.account = u.user_login
-                    SET `meta_value` = CAST(`meta_value` AS INT) + t.`points`
+                    SET `meta_value` = CAST(`meta_value` AS UNSIGNED) + t.`points`
                     WHERE u.`ID` IS NOT NULL
                     AND t.`points` IS NOT NULL
                     AND um.meta_key = '$mycredTokenName'";
