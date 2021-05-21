@@ -32,6 +32,13 @@ class AdminPanel
     }
 
     // mt_settings_page() displays the page content for the Test settings submenu
+    function acore_pvpreward_page()
+    {
+        $SettingsCtrl = new SettingsController();
+        $SettingsCtrl->loadPvpRewards();
+    }
+
+    // mt_settings_page() displays the page content for the Test settings submenu
     function acore_home_page()
     {
         $SettingsCtrl = new SettingsController();
@@ -50,12 +57,22 @@ class AdminPanel
             'settings',
             array($this, 'acore_settings_page')
         );
+
+        // Add a new submenu under Settings:
+        add_submenu_page(
+            'acore',
+            __('ACore Settings Panel', Opts::I()->org_alias),
+            __('PvP Rewards', Opts::I()->org_alias),
+            'manage_options',
+            'pvp-rewards',
+            array($this, 'acore_pvpreward_page')
+        );
     }
 
     // action function for above hook
     function acore_admin_menu()
     {
-        $file = file_get_contents(plugins_url( 'acore-wp-plugin/web/assets/logo.svg' ));
+        $file = file_get_contents( ACORE_PATH_PLG . 'web/assets/admin_logo.svg' );
         add_menu_page(
             __('ACore Home', Opts::I()->org_alias),
             __('AzerothCore', Opts::I()->org_alias),

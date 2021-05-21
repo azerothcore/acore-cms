@@ -53,33 +53,33 @@
        id="path0"
        d="M 0,216 42,260 200,90 358,260 400,216 200,0"
        stroke="none"
-       fill="#fc0404"
+       fill="#f0f6fc"
        fill-rule="evenodd"
        sodipodi:nodetypes="cccccc" />
     <path
        id="path1"
        d="m 200,135 -65,65 65,65 65,-65"
        stroke="none"
-       fill="#5c5353"
+       fill="#f0f6fc"
        fill-rule="evenodd"
        sodipodi:nodetypes="cccc" />
     <path
        id="path2"
        d=""
        stroke="none"
-       fill="#1002c2c"
+       fill="#f0f6fc"
        fill-rule="evenodd" />
     <path
        id="path3"
        d=""
        stroke="none"
-       fill="#1002c2c"
+       fill="#f0f6fc"
        fill-rule="evenodd" />
     <path
        id="path4"
        d=""
        stroke="none"
-       fill="#1002c2c"
+       fill="#f0f6fc"
        fill-rule="evenodd" />
   </g>
 </svg>
