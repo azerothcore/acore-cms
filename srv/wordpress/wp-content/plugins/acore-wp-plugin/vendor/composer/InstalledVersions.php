@@ -20,6 +20,8 @@ use Composer\Semver\VersionParser;
 
 
 
+
+
 class InstalledVersions
 {
 private static $installed = array (
@@ -30,7 +32,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '4b11b2220dc406708c428b8e9682ac0acc185fe1',
+    'reference' => 'f64319a628324c808e4ef8313065d6d967c22779',
     'name' => 'azerothcore/acore-wp-plugin',
   ),
   'versions' => 
@@ -51,34 +53,34 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '4b11b2220dc406708c428b8e9682ac0acc185fe1',
+      'reference' => 'f64319a628324c808e4ef8313065d6d967c22779',
     ),
     'composer/package-versions-deprecated' => 
     array (
-      'pretty_version' => '1.11.99.1',
-      'version' => '1.11.99.1',
+      'pretty_version' => '1.11.99.2',
+      'version' => '1.11.99.2',
       'aliases' => 
       array (
       ),
-      'reference' => '7413f0b55a051e89485c5cb9f765fe24bb02a7b6',
+      'reference' => 'c6522afe5540d5fc46675043d3ed5a45a740b27c',
     ),
     'doctrine/annotations' => 
     array (
-      'pretty_version' => '1.12.1',
-      'version' => '1.12.1.0',
+      'pretty_version' => '1.13.1',
+      'version' => '1.13.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'b17c5014ef81d212ac539f07a1001832df1b6d3b',
+      'reference' => 'e6e7b7d5b45a2f2abc5460cc6396480b2b1d321f',
     ),
     'doctrine/cache' => 
     array (
-      'pretty_version' => '1.10.2',
-      'version' => '1.10.2.0',
+      'pretty_version' => '1.11.2',
+      'version' => '1.11.2.0',
       'aliases' => 
       array (
       ),
-      'reference' => '13e3381b25847283a91948d04640543941309727',
+      'reference' => '9c53086695937c50c47936ed86d96150ffbcf60d',
     ),
     'doctrine/collections' => 
     array (
@@ -100,12 +102,12 @@ private static $installed = array (
     ),
     'doctrine/dbal' => 
     array (
-      'pretty_version' => '2.13.0',
-      'version' => '2.13.0.0',
+      'pretty_version' => '2.13.1',
+      'version' => '2.13.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => '67d56d3203b33db29834e6b2fcdbfdc50535d796',
+      'reference' => 'c800380457948e65bbd30ba92cc17cda108bf8c9',
     ),
     'doctrine/deprecations' => 
     array (
@@ -145,12 +147,12 @@ private static $installed = array (
     ),
     'doctrine/inflector' => 
     array (
-      'pretty_version' => '1.4.3',
-      'version' => '1.4.3.0',
+      'pretty_version' => '1.4.4',
+      'version' => '1.4.4.0',
       'aliases' => 
       array (
       ),
-      'reference' => '4650c8b30c753a76bf44fb2ed00117d6f367490c',
+      'reference' => '4bd5c1cdfcd00e9e2d8c484f79150f67e5d355d9',
     ),
     'doctrine/instantiator' => 
     array (
@@ -311,12 +313,12 @@ private static $installed = array (
     ),
     'psr/log' => 
     array (
-      'pretty_version' => '1.1.3',
-      'version' => '1.1.3.0',
+      'pretty_version' => '1.1.4',
+      'version' => '1.1.4.0',
       'aliases' => 
       array (
       ),
-      'reference' => '0f73288fd15629204f9d42b7055f72dacbe811fc',
+      'reference' => 'd49695b909c3b7628b6289db5479a1c204601f11',
     ),
     'psr/log-implementation' => 
     array (
@@ -391,161 +393,161 @@ private static $installed = array (
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/browser-kit' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/cache' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/class-loader' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/config' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/console' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/css-selector' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/debug' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/debug-bundle' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/dependency-injection' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/deprecation-contracts' => 
     array (
-      'pretty_version' => 'v2.2.0',
-      'version' => '2.2.0.0',
+      'pretty_version' => 'v2.4.0',
+      'version' => '2.4.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => '5fa56b4074d1ae755beb55617ddafe6f5d78f665',
+      'reference' => '5f38c8804a9e97d23e0c8d63341088cd8a22d627',
     ),
     'symfony/doctrine-bridge' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/dom-crawler' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/dotenv' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/event-dispatcher' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/expression-language' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/filesystem' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/finder' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/form' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/framework-bundle' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/http-client' => 
     array (
-      'pretty_version' => 'v5.2.6',
-      'version' => '5.2.6.0',
+      'pretty_version' => 'v5.2.9',
+      'version' => '5.2.9.0',
       'aliases' => 
       array (
       ),
-      'reference' => '3c3075467da15bc2edf38d2ac20d34719e794bd8',
+      'reference' => '653dc5e2201659abfa090a7396ce202371787540',
     ),
     'symfony/http-client-contracts' => 
     array (
-      'pretty_version' => 'v2.3.1',
-      'version' => '2.3.1.0',
+      'pretty_version' => 'v2.4.0',
+      'version' => '2.4.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => '41db680a15018f9c1d4b23516059633ce280ca33',
+      'reference' => '7e82f6084d7cae521a75ef2cb5c9457bbda785f4',
     ),
     'symfony/http-client-implementation' => 
     array (
@@ -558,58 +560,58 @@ private static $installed = array (
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/http-kernel' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/inflector' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/intl' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/ldap' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/lock' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/mime' => 
     array (
-      'pretty_version' => 'v5.2.6',
-      'version' => '5.2.6.0',
+      'pretty_version' => 'v5.2.9',
+      'version' => '5.2.9.0',
       'aliases' => 
       array (
       ),
-      'reference' => '1b2092244374cbe48ae733673f2ca0818b37197b',
+      'reference' => '64258e870f8cc75c3dae986201ea2df58c210b52',
     ),
     'symfony/monolog-bridge' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/monolog-bundle' => 
@@ -625,7 +627,7 @@ private static $installed = array (
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/phpunit-bridge' => 
@@ -740,100 +742,100 @@ private static $installed = array (
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/property-access' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/property-info' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/proxy-manager-bridge' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/routing' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/security' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/security-bundle' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/security-core' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/security-csrf' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/security-guard' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/security-http' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/serializer' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/service-contracts' => 
     array (
-      'pretty_version' => 'v2.2.0',
-      'version' => '2.2.0.0',
+      'pretty_version' => 'v2.4.0',
+      'version' => '2.4.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'd15da7ba4957ffb8f1747218be9e1a121fd298a1',
+      'reference' => 'f040a30e04b57fbcc9c6cbcf4dbaa96bd318b9bb',
     ),
     'symfony/stopwatch' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/swiftmailer-bundle' => 
@@ -847,98 +849,98 @@ private static $installed = array (
     ),
     'symfony/symfony' => 
     array (
-      'pretty_version' => 'v3.4.47',
-      'version' => '3.4.47.0',
+      'pretty_version' => 'v3.4.49',
+      'version' => '3.4.49.0',
       'aliases' => 
       array (
       ),
-      'reference' => '83093d5448a7b90fd4cbcce38580ae53898f506f',
+      'reference' => 'ba0e346e3ad11de4a307fe4fa2452a3656dcc17b',
     ),
     'symfony/templating' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/translation' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/twig-bridge' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/twig-bundle' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/validator' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/var-dumper' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/web-link' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/web-profiler-bundle' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/web-server-bundle' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/workflow' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'symfony/yaml' => 
     array (
       'replaced' => 
       array (
-        0 => 'v3.4.47',
+        0 => 'v3.4.49',
       ),
     ),
     'twig/twig' => 
     array (
-      'pretty_version' => 'v2.14.4',
-      'version' => '2.14.4.0',
+      'pretty_version' => 'v2.14.6',
+      'version' => '2.14.6.0',
       'aliases' => 
       array (
       ),
-      'reference' => '0b4ba691fb99ec7952d25deb36c0a83061b93bbf',
+      'reference' => '27e5cf2b05e3744accf39d4c68a3235d9966d260',
     ),
   ),
 );
@@ -957,7 +959,6 @@ $packages = array();
 foreach (self::getInstalled() as $installed) {
 $packages[] = array_keys($installed['versions']);
 }
-
 
 if (1 === \count($packages)) {
 return $packages[0];
@@ -1122,9 +1123,23 @@ return $installed[0]['root'];
 
 
 
+
 public static function getRawData()
 {
+@trigger_error('getRawData only returns the first dataset loaded, which may not be what you expect. Use getAllRawData() instead which returns all datasets for all autoloaders present in the process.', E_USER_DEPRECATED);
+
 return self::$installed;
+}
+
+
+
+
+
+
+
+public static function getAllRawData()
+{
+return self::getInstalled();
 }
 
 
@@ -1150,6 +1165,7 @@ public static function reload($data)
 self::$installed = $data;
 self::$installedByVendor = array();
 }
+
 
 
 

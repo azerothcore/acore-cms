@@ -12,21 +12,21 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
-        '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
-        'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
+        '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
-        '6a47392539ca2329373e0d33e1dba053' => __DIR__ . '/..' . '/symfony/polyfill-intl-icu/bootstrap.php',
         '32dcc8afd4335739640db7d200c1971d' => __DIR__ . '/..' . '/symfony/polyfill-apcu/bootstrap.php',
+        '6a47392539ca2329373e0d33e1dba053' => __DIR__ . '/..' . '/symfony/polyfill-intl-icu/bootstrap.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'T' =>
+        'T' => 
         array (
             'Twig\\' => 5,
         ),
-        'S' =>
+        'S' => 
         array (
             'Symfony\\Polyfill\\Php80\\' => 23,
             'Symfony\\Polyfill\\Php73\\' => 23,
@@ -55,7 +55,7 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
             'Sensio\\Bundle\\DistributionBundle\\' => 33,
             'SensioLabs\\Security\\' => 20,
         ),
-        'P' =>
+        'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
             'Psr\\Log\\' => 8,
@@ -64,19 +64,19 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
             'Psr\\Cache\\' => 10,
             'PackageVersions\\' => 16,
         ),
-        'M' =>
+        'M' => 
         array (
             'Monolog\\' => 8,
         ),
-        'I' =>
+        'I' => 
         array (
             'Incenteev\\ParameterHandler\\' => 27,
         ),
-        'F' =>
+        'F' => 
         array (
             'Fig\\Link\\' => 9,
         ),
-        'D' =>
+        'D' => 
         array (
             'Doctrine\\Persistence\\' => 21,
             'Doctrine\\ORM\\' => 13,
@@ -93,7 +93,7 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
             'Doctrine\\Bundle\\DoctrineCacheBundle\\' => 36,
             'Doctrine\\Bundle\\DoctrineBundle\\' => 31,
         ),
-        'A' =>
+        'A' => 
         array (
             'ACore\\WorldDb\\' => 14,
             'ACore\\System\\' => 13,
@@ -113,262 +113,262 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
     );
 
     public static $prefixDirsPsr4 = array (
-        'Twig\\' =>
+        'Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/twig/twig/src',
         ),
-        'Symfony\\Polyfill\\Php80\\' =>
+        'Symfony\\Polyfill\\Php80\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
         ),
-        'Symfony\\Polyfill\\Php73\\' =>
+        'Symfony\\Polyfill\\Php73\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php73',
         ),
-        'Symfony\\Polyfill\\Php72\\' =>
+        'Symfony\\Polyfill\\Php72\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php72',
         ),
-        'Symfony\\Polyfill\\Mbstring\\' =>
+        'Symfony\\Polyfill\\Mbstring\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Symfony\\Polyfill\\Intl\\Normalizer\\' =>
+        'Symfony\\Polyfill\\Intl\\Normalizer\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer',
         ),
-        'Symfony\\Polyfill\\Intl\\Idn\\' =>
+        'Symfony\\Polyfill\\Intl\\Idn\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-idn',
         ),
-        'Symfony\\Polyfill\\Intl\\Icu\\' =>
+        'Symfony\\Polyfill\\Intl\\Icu\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-icu',
         ),
-        'Symfony\\Polyfill\\Ctype\\' =>
+        'Symfony\\Polyfill\\Ctype\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
-        'Symfony\\Polyfill\\Apcu\\' =>
+        'Symfony\\Polyfill\\Apcu\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-apcu',
         ),
-        'Symfony\\Contracts\\Service\\' =>
+        'Symfony\\Contracts\\Service\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/service-contracts',
         ),
-        'Symfony\\Contracts\\HttpClient\\' =>
+        'Symfony\\Contracts\\HttpClient\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/http-client-contracts',
         ),
-        'Symfony\\Component\\Mime\\' =>
+        'Symfony\\Component\\Mime\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/mime',
         ),
-        'Symfony\\Component\\HttpClient\\' =>
+        'Symfony\\Component\\HttpClient\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/http-client',
         ),
-        'Symfony\\Component\\' =>
+        'Symfony\\Component\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Component',
         ),
-        'Symfony\\Bundle\\SwiftmailerBundle\\' =>
+        'Symfony\\Bundle\\SwiftmailerBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/swiftmailer-bundle',
         ),
-        'Symfony\\Bundle\\MonologBundle\\' =>
+        'Symfony\\Bundle\\MonologBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/monolog-bundle',
         ),
-        'Symfony\\Bundle\\' =>
+        'Symfony\\Bundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Bundle',
         ),
-        'Symfony\\Bridge\\Twig\\' =>
+        'Symfony\\Bridge\\Twig\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Bridge/Twig',
         ),
-        'Symfony\\Bridge\\ProxyManager\\' =>
+        'Symfony\\Bridge\\ProxyManager\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Bridge/ProxyManager',
         ),
-        'Symfony\\Bridge\\PhpUnit\\' =>
+        'Symfony\\Bridge\\PhpUnit\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/phpunit-bridge',
         ),
-        'Symfony\\Bridge\\Monolog\\' =>
+        'Symfony\\Bridge\\Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Bridge/Monolog',
         ),
-        'Symfony\\Bridge\\Doctrine\\' =>
+        'Symfony\\Bridge\\Doctrine\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Bridge/Doctrine',
         ),
-        'Sensio\\Bundle\\GeneratorBundle\\' =>
+        'Sensio\\Bundle\\GeneratorBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/sensio/generator-bundle',
         ),
-        'Sensio\\Bundle\\FrameworkExtraBundle\\' =>
+        'Sensio\\Bundle\\FrameworkExtraBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/sensio/framework-extra-bundle',
         ),
-        'Sensio\\Bundle\\DistributionBundle\\' =>
+        'Sensio\\Bundle\\DistributionBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/sensio/distribution-bundle',
         ),
-        'SensioLabs\\Security\\' =>
+        'SensioLabs\\Security\\' => 
         array (
             0 => __DIR__ . '/..' . '/sensiolabs/security-checker/SensioLabs/Security',
         ),
-        'Psr\\SimpleCache\\' =>
+        'Psr\\SimpleCache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/simple-cache/src',
         ),
-        'Psr\\Log\\' =>
+        'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
-        'Psr\\Link\\' =>
+        'Psr\\Link\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/link/src',
         ),
-        'Psr\\Container\\' =>
+        'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Psr\\Cache\\' =>
+        'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
-        'PackageVersions\\' =>
+        'PackageVersions\\' => 
         array (
             0 => __DIR__ . '/..' . '/composer/package-versions-deprecated/src/PackageVersions',
         ),
-        'Monolog\\' =>
+        'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
-        'Incenteev\\ParameterHandler\\' =>
+        'Incenteev\\ParameterHandler\\' => 
         array (
             0 => __DIR__ . '/..' . '/incenteev/composer-parameter-handler',
         ),
-        'Fig\\Link\\' =>
+        'Fig\\Link\\' => 
         array (
             0 => __DIR__ . '/..' . '/fig/link-util/src',
         ),
-        'Doctrine\\Persistence\\' =>
+        'Doctrine\\Persistence\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/persistence/lib/Doctrine/Persistence',
         ),
-        'Doctrine\\ORM\\' =>
+        'Doctrine\\ORM\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/orm/lib/Doctrine/ORM',
         ),
-        'Doctrine\\Instantiator\\' =>
+        'Doctrine\\Instantiator\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/instantiator/src/Doctrine/Instantiator',
         ),
-        'Doctrine\\Inflector\\' =>
+        'Doctrine\\Inflector\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Inflector',
         ),
-        'Doctrine\\Deprecations\\' =>
+        'Doctrine\\Deprecations\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/deprecations/lib/Doctrine/Deprecations',
         ),
-        'Doctrine\\DBAL\\' =>
+        'Doctrine\\DBAL\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/dbal/lib/Doctrine/DBAL',
         ),
-        'Doctrine\\Common\\Lexer\\' =>
+        'Doctrine\\Common\\Lexer\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/lexer/lib/Doctrine/Common/Lexer',
         ),
-        'Doctrine\\Common\\Inflector\\' =>
+        'Doctrine\\Common\\Inflector\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Common/Inflector',
         ),
-        'Doctrine\\Common\\Collections\\' =>
+        'Doctrine\\Common\\Collections\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/collections/lib/Doctrine/Common/Collections',
         ),
-        'Doctrine\\Common\\Cache\\' =>
+        'Doctrine\\Common\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/cache/lib/Doctrine/Common/Cache',
         ),
-        'Doctrine\\Common\\Annotations\\' =>
+        'Doctrine\\Common\\Annotations\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/annotations/lib/Doctrine/Common/Annotations',
         ),
-        'Doctrine\\Common\\' =>
+        'Doctrine\\Common\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/common/lib/Doctrine/Common',
-            1 => __DIR__ . '/..' . '/doctrine/reflection/lib/Doctrine/Common',
-            2 => __DIR__ . '/..' . '/doctrine/event-manager/lib/Doctrine/Common',
-            3 => __DIR__ . '/..' . '/doctrine/persistence/lib/Doctrine/Common',
+            1 => __DIR__ . '/..' . '/doctrine/event-manager/lib/Doctrine/Common',
+            2 => __DIR__ . '/..' . '/doctrine/persistence/lib/Doctrine/Common',
+            3 => __DIR__ . '/..' . '/doctrine/reflection/lib/Doctrine/Common',
         ),
-        'Doctrine\\Bundle\\DoctrineCacheBundle\\' =>
+        'Doctrine\\Bundle\\DoctrineCacheBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/doctrine-cache-bundle',
         ),
-        'Doctrine\\Bundle\\DoctrineBundle\\' =>
+        'Doctrine\\Bundle\\DoctrineBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/doctrine-bundle',
         ),
-        'ACore\\WorldDb\\' =>
+        'ACore\\WorldDb\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/world_db/src',
         ),
-        'ACore\\System\\' =>
+        'ACore\\System\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/system/src',
         ),
-        'ACore\\Soap\\' =>
+        'ACore\\Soap\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/soap/src',
         ),
-        'ACore\\Service\\' =>
+        'ACore\\Service\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/service/src',
         ),
-        'ACore\\Server\\' =>
+        'ACore\\Server\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/server/src',
         ),
-        'ACore\\GameMail\\' =>
+        'ACore\\GameMail\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/game_mail/src',
         ),
-        'ACore\\Framework\\' =>
+        'ACore\\Framework\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/framework/src',
         ),
-        'ACore\\Defines\\' =>
+        'ACore\\Defines\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/defines/src',
         ),
-        'ACore\\Database\\' =>
+        'ACore\\Database\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/database/src',
         ),
-        'ACore\\Creature\\' =>
+        'ACore\\Creature\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/creature/src',
         ),
-        'ACore\\Character\\' =>
+        'ACore\\Character\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/character/src',
         ),
-        'ACore\\CharDb\\' =>
+        'ACore\\CharDb\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/char_db/src',
         ),
-        'ACore\\AuthDb\\' =>
+        'ACore\\AuthDb\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/auth_db/src',
         ),
-        'ACore\\Account\\' =>
+        'ACore\\Account\\' => 
         array (
             0 => __DIR__ . '/..' . '/acore-php/acore-php/account/src',
         ),
@@ -379,9 +379,9 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
     );
 
     public static $prefixesPsr0 = array (
-        'T' =>
+        'T' => 
         array (
-            'Twig_' =>
+            'Twig_' => 
             array (
                 0 => __DIR__ . '/..' . '/twig/twig/lib',
             ),
@@ -389,69 +389,6 @@ class ComposerStaticIniteece7d12cec1bbdb42308fcc7f5ed462
     );
 
     public static $classMap = array (
-        'ACore\\Account\\ACoreAccount' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/ACoreAccount.php',
-        'ACore\\Account\\Controller\\AccountController' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Controller/AccountController.php',
-        'ACore\\Account\\DependencyInjection\\AccountExtension' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/DependencyInjection/AccountExtension.php',
-        'ACore\\Account\\Entity\\AccountAccessEntity' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Entity/AccountAccessEntity.php',
-        'ACore\\Account\\Entity\\AccountBannedEntity' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Entity/AccountBannedEntity.php',
-        'ACore\\Account\\Entity\\AccountEntity' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Entity/AccountEntity.php',
-        'ACore\\Account\\Repository\\AccountAccessRepository' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Repository/AccountAccessRepository.php',
-        'ACore\\Account\\Repository\\AccountBannedRepository' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Repository/AccountBannedRepository.php',
-        'ACore\\Account\\Repository\\AccountRepository' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Repository/AccountRepository.php',
-        'ACore\\Account\\Services\\AccountMgr' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Services/AccountMgr.php',
-        'ACore\\Account\\Services\\AccountSoapMgr' => __DIR__ . '/..' . '/acore-php/acore-php/account/src/Services/AccountSoapMgr.php',
-        'ACore\\AuthDb\\ACoreAuthDb' => __DIR__ . '/..' . '/acore-php/acore-php/auth_db/src/ACoreAuthDb.php',
-        'ACore\\AuthDb\\DependencyInjection\\AuthDbExtension' => __DIR__ . '/..' . '/acore-php/acore-php/auth_db/src/DependencyInjection/AuthDbExtension.php',
-        'ACore\\AuthDb\\Services\\AuthDbMgr' => __DIR__ . '/..' . '/acore-php/acore-php/auth_db/src/Services/AuthDbMgr.php',
-        'ACore\\AuthDb\\Utils\\AuthDbTrait' => __DIR__ . '/..' . '/acore-php/acore-php/auth_db/src/Utils/AuthDbTrait.php',
-        'ACore\\CharDb\\ACoreCharDb' => __DIR__ . '/..' . '/acore-php/acore-php/char_db/src/ACoreCharDb.php',
-        'ACore\\CharDb\\DependencyInjection\\CharDbExtension' => __DIR__ . '/..' . '/acore-php/acore-php/char_db/src/DependencyInjection/CharDbExtension.php',
-        'ACore\\CharDb\\Services\\CharDbMgr' => __DIR__ . '/..' . '/acore-php/acore-php/char_db/src/Services/CharDbMgr.php',
-        'ACore\\CharDb\\Utils\\CharDbTrait' => __DIR__ . '/..' . '/acore-php/acore-php/char_db/src/Utils/CharDbTrait.php',
-        'ACore\\Character\\ACoreCharacter' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/ACoreCharacter.php',
-        'ACore\\Character\\Controller\\CharacterBannedController' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Controller/CharacterBannedController.php',
-        'ACore\\Character\\Controller\\CharacterController' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Controller/CharacterController.php',
-        'ACore\\Character\\DependencyInjection\\CharacterExtension' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/DependencyInjection/CharacterExtension.php',
-        'ACore\\Character\\Entity\\CharacterBannedEntity' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Entity/CharacterBannedEntity.php',
-        'ACore\\Character\\Entity\\CharacterEntity' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Entity/CharacterEntity.php',
-        'ACore\\Character\\Repository\\CharacterBannedRepository' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Repository/CharacterBannedRepository.php',
-        'ACore\\Character\\Repository\\CharacterRepository' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Repository/CharacterRepository.php',
-        'ACore\\Character\\Services\\CharacterMgr' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Services/CharacterMgr.php',
-        'ACore\\Character\\Services\\CharacterSoapMgr' => __DIR__ . '/..' . '/acore-php/acore-php/character/src/Services/CharacterSoapMgr.php',
-        'ACore\\Creature\\ACoreCreature' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/ACoreCreature.php',
-        'ACore\\Creature\\Controller\\CreatureTmplController' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/Controller/CreatureTmplController.php',
-        'ACore\\Creature\\DependencyInjection\\CreatureExtension' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/DependencyInjection/CreatureExtension.php',
-        'ACore\\Creature\\Entity\\CreatureEntity' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/Entity/CreatureEntity.php',
-        'ACore\\Creature\\Entity\\CreatureTemplateEntity' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/Entity/CreatureTemplateEntity.php',
-        'ACore\\Creature\\Repository\\CreatureRepository' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/Repository/CreatureRepository.php',
-        'ACore\\Creature\\Repository\\CreatureTmplRepository' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/Repository/CreatureTmplRepository.php',
-        'ACore\\Creature\\Services\\CreatureMgr' => __DIR__ . '/..' . '/acore-php/acore-php/creature/src/Services/CreatureMgr.php',
-        'ACore\\Database\\ACoreDatabase' => __DIR__ . '/..' . '/acore-php/acore-php/database/src/ACoreDatabase.php',
-        'ACore\\Database\\DependencyInjection\\DatabaseExtension' => __DIR__ . '/..' . '/acore-php/acore-php/database/src/DependencyInjection/DatabaseExtension.php',
-        'ACore\\Database\\Services\\DoctrineDbMgr' => __DIR__ . '/..' . '/acore-php/acore-php/database/src/Services/DoctrineDbMgr.php',
-        'ACore\\Defines\\Common' => __DIR__ . '/..' . '/acore-php/acore-php/defines/src/Common.php',
-        'ACore\\Defines\\Conf' => __DIR__ . '/..' . '/acore-php/acore-php/defines/src/Conf.php',
-        'ACore\\Defines\\Paths' => __DIR__ . '/..' . '/acore-php/acore-php/defines/src/Paths.php',
-        'ACore\\Framework\\ACoreFramework' => __DIR__ . '/..' . '/acore-php/acore-php/framework/src/ACoreFramework.php',
-        'ACore\\GameMail\\ACoreGameMail' => __DIR__ . '/..' . '/acore-php/acore-php/game_mail/src/ACoreGameMail.php',
-        'ACore\\GameMail\\DependencyInjection\\MailExtension' => __DIR__ . '/..' . '/acore-php/acore-php/game_mail/src/DependencyInjection/MailExtension.php',
-        'ACore\\GameMail\\Services\\MailMgr' => __DIR__ . '/..' . '/acore-php/acore-php/game_mail/src/Services/MailMgr.php',
-        'ACore\\Server\\ACoreServer' => __DIR__ . '/..' . '/acore-php/acore-php/server/src/ACoreServer.php',
-        'ACore\\Server\\DependencyInjection\\ServerExtension' => __DIR__ . '/..' . '/acore-php/acore-php/server/src/DependencyInjection/ServerExtension.php',
-        'ACore\\Server\\Services\\ServerMgr' => __DIR__ . '/..' . '/acore-php/acore-php/server/src/Services/ServerMgr.php',
-        'ACore\\Server\\Services\\ServerSoapMgr' => __DIR__ . '/..' . '/acore-php/acore-php/server/src/Services/ServerSoapMgr.php',
-        'ACore\\Soap\\ACoreSoap' => __DIR__ . '/..' . '/acore-php/acore-php/soap/src/ACoreSoap.php',
-        'ACore\\Soap\\DependencyInjection\\SoapExtension' => __DIR__ . '/..' . '/acore-php/acore-php/soap/src/DependencyInjection/SoapExtension.php',
-        'ACore\\Soap\\Services\\SoapMgr' => __DIR__ . '/..' . '/acore-php/acore-php/soap/src/Services/SoapMgr.php',
-        'ACore\\Soap\\Utils\\SoapTrait' => __DIR__ . '/..' . '/acore-php/acore-php/soap/src/Utils/SoapTrait.php',
-        'ACore\\System\\Utils\\ApiController' => __DIR__ . '/..' . '/acore-php/acore-php/system/src/Utils/ApiController.php',
-        'ACore\\System\\Utils\\Repository' => __DIR__ . '/..' . '/acore-php/acore-php/system/src/Utils/Repository.php',
-        'ACore\\WorldDb\\ACoreWorldDb' => __DIR__ . '/..' . '/acore-php/acore-php/world_db/src/ACoreWorldDb.php',
-        'ACore\\WorldDb\\DependencyInjection\\WorldDbExtension' => __DIR__ . '/..' . '/acore-php/acore-php/world_db/src/DependencyInjection/WorldDbExtension.php',
-        'ACore\\WorldDb\\Services\\WorldDbMgr' => __DIR__ . '/..' . '/acore-php/acore-php/world_db/src/Services/WorldDbMgr.php',
-        'ACore\\WorldDb\\Utils\\WorldDbTrait' => __DIR__ . '/..' . '/acore-php/acore-php/world_db/src/Utils/WorldDbTrait.php',
-        'AppBundle\\AppBundle' => __DIR__ . '/../..' . '/src/core/AppBundle/AppBundle.php',
-        'AppBundle\\Controller\\DefaultController' => __DIR__ . '/../..' . '/src/core/AppBundle/Controller/DefaultController.php',
         'AppCache' => __DIR__ . '/../..' . '/src/core/AppCache.php',
         'AppKernel' => __DIR__ . '/../..' . '/src/core/AppKernel.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
