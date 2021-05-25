@@ -12,7 +12,7 @@ require_once "char_transfer.php";
 require_once "carbon_copy.php";
 
 // Add WooCommerce customer username to edit/view order admin page
-add_action('woocommerce_admin_order_data_after_billing_address', __NAMESPACE__ . 'woo_display_order_username', 10, 1);
+add_action('woocommerce_admin_order_data_after_billing_address', __NAMESPACE__ . '\woo_display_order_username', 10, 1);
 
 function woo_display_order_username($order) {
     global $post;
