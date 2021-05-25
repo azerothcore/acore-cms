@@ -231,7 +231,7 @@ add_action('wp_authenticate', function ($username, $password) {
 /**
  * Helper function used to validate user password based on azerothcore limits
  * for in different Wordpress actions
- * 
+ *
  */
 function validateComplexPassword($errors)
 {
@@ -252,7 +252,7 @@ function validateComplexPassword($errors)
 
 /**
  * AzerothCore supports a limited length password
- * So the wordpress automatic generated password 
+ * So the wordpress automatic generated password
  * must be truncated
  */
 add_filter('random_password', function ($pass) {
@@ -267,14 +267,14 @@ add_action('show_user_profile', __NAMESPACE__ . '\extra_user_profile_fields');
 add_action('edit_user_profile', __NAMESPACE__ . '\extra_user_profile_fields');
 
 function extra_user_profile_fields($user)
-{ 
+{
     $accRepo = ACoreServices::I()->getAccountRepo();
     $gameUser = $accRepo->findOneByUsername($user->user_login);
     $userExpansion = $gameUser->getExpansion();
 
     $curUser = \wp_get_current_user();
 
-    
+
     $curGameUser = $curUser->ID != $user->ID ? $accRepo->findOneByUsername($user->user_login) : $gameUser;
 
     if (!in_array($userExpansion,Common::EXPANSIONS))
@@ -288,24 +288,24 @@ function extra_user_profile_fields($user)
             <th><label for="acore-user-game-expansion"><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
             <td>
                 <select id="acore-user-game-expansion" name="acore-user-game-expansion">
-                    <?php 
+                    <?php
                     foreach (Common::EXPANSIONS as $key => $value) {
                         ?><option value=<?=$value?> <?=$userExpansion == $value ? "selected" : ""?>><?=$key?></option>
-                  <?
+                  <?php
                     }
                   ?>
                 </select>
                 <span class="description"><?php _e("Game expansion to enable", 'acore-wp-plugin'); ?></span>
             </td>
         </tr>
-        <?php 
+        <?php
             /*
             ?>
             <tr>
                 <th><label for="acore-user-account-access"><?php _e("Account Level", 'acore-wp-plugin'); ?></label></th>
                 <td>
                     <select id="acore-user-account-access" name="acore-user-account-access">
-                        <?php 
+                        <?php
                         foreach (Common::ACCOUNT_LEVELS as $key => $value) {
                             ?><option value=<?=$value?> <?=$userExpansion == $value ? "selected" : ""?>><?=$key?></option>
                     <?
@@ -321,15 +321,15 @@ function extra_user_profile_fields($user)
     </table>
 
     <h3><?php _e("Other fields...", "blank"); // needed to avoid mess them up with wordpress fields ?></h3>
-<?php 
+<?php
 }
 
 add_action( 'personal_options_update',  __NAMESPACE__ . '\save_extra_user_profile_fields' );
 add_action( 'edit_user_profile_update',  __NAMESPACE__ . '\save_extra_user_profile_fields' );
 
 function save_extra_user_profile_fields( $user_id ) {
-    if ( !current_user_can( 'edit_user', $user_id ) ) { 
-        return false; 
+    if ( !current_user_can( 'edit_user', $user_id ) ) {
+        return false;
     }
 
     $user = get_user_by('id', $user_id);

@@ -155,46 +155,47 @@ class WC_CharChange extends \ACore\Lib\WpClass {
 
     // 7)DO THE FINAL ACTION
     public static function payment_complete($order_id) {
+        $WoWSrv = ACoreServices::I();
         $logs = new \WC_Logger();
         try {
             $order = new \WC_Order($order_id);
             $items = $order->get_items();
 
-            $soap = ACoreServices::I()->getCharactersSoap();
+            $soap = $WoWSrv->getCharactersSoap();
 
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     switch ($item["acore_item_sku"]) {
                         case "char-change-name":
-                            $charName = self::getCharName($item["acore_char_sel"]);
+                            $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
                             $res = $soap->changeName($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character rename on $charName - " . $res->getMessage());
                             }
                             break;
                         case "char-change-faction":
-                            $charName = self::getCharName($item["acore_char_sel"]);
+                            $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
                             $res = $soap->changeFaction($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change faction on $charName - " . $res->getMessage());
                             }
                             break;
                         case "char-change-race":
-                            $charName = self::getCharName($item["acore_char_sel"]);
+                            $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
                             $res = $soap->changeRace($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change race on $charName - " . $res->getMessage());
                             }
                             break;
                         case "char-change-customize":
-                            $charName = self::getCharName($item["acore_char_sel"]);
+                            $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
                             $res = $soap->charCustomization($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character customization on $charName - " . $res->getMessage());
                             }
                             break;
                         case "char-restore-delete":
-                            $charName = self::getCharName($item["acore_char_sel"], true);
+                            $charName = $WoWSrv->getCharName($item["acore_char_sel"], true);
                             $res = $soap->charRestore($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character restore delete on $charName - " . $res->getMessage());
@@ -206,18 +207,6 @@ class WC_CharChange extends \ACore\Lib\WpClass {
         } catch (\Exception $e) {
             $logs->add("acore_log", $e->getMessage());
         }
-    }
-
-    private static function getCharName($charId, $deleted = false) {
-        $charRepo = ACoreServices::I()->getCharactersRepo();
-        $char = $charRepo->findOneByGuid($charId);
-
-        if (!$char || (!$char->getName() && !$deleted) || ($deleted && !$char->getDeletedName())) { // even name is empty ( deleted char )
-            $current_user = wp_get_current_user();
-            throw new \Exception("Char $charId doesn't exists! account: " . $current_user->user_login);
-        }
-
-        return $deleted ? $char->getDeletedName() : $char->getName();
     }
 
     private static function isDeletedSKU($sku) {
