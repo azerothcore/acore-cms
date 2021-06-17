@@ -59,6 +59,18 @@ class ACoreServices
         ));
         $this->emWorld = $this->mgrWorld->getWorldEm($this->realmAlias);
 
+        $this->mgrEluna = $this->getKernel()->getContainer()->get("eluna_db.eluna_db_mgr");
+        $this->mgrEluna->createElunaEm($this->realmAlias, array(
+            'driver' => 'pdo_mysql',
+            'host' => Opts::I()->acore_db_eluna_host,
+            'port' => Opts::I()->acore_db_eluna_port,
+            'dbname' => Opts::I()->acore_db_eluna_name,
+            'user' => Opts::I()->acore_db_eluna_user,
+            'password' => Opts::I()->acore_db_eluna_pass,
+            'charset' => 'UTF8',
+        ));
+        $this->emEluna = $this->mgrEluna->getElunaEm($this->realmAlias);
+
         $this->soapParams = array(
             "host" => Opts::I()->acore_soap_host,
             "port" => Opts::I()->acore_soap_port,

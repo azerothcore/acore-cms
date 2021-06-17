@@ -38,6 +38,12 @@ class AdminPanel
         $SettingsCtrl->loadPvpRewards();
     }
 
+    function acore_eluna_settings()
+    {
+        $SettingsCtrl = new SettingsController();
+        $SettingsCtrl->loadElunaSettings();
+    }
+
     // mt_settings_page() displays the page content for the Test settings submenu
     function acore_home_page()
     {
@@ -56,6 +62,16 @@ class AdminPanel
             'manage_options',
             'settings',
             array($this, 'acore_settings_page')
+        );
+
+        // Add a new submenu under Settings:
+        add_submenu_page(
+            'acore',
+            __('ACore Settings Panel', Opts::I()->org_alias),
+            __('Eluna', Opts::I()->org_alias),
+            'manage_options',
+            'eluna-settings',
+            array($this, 'acore_eluna_settings')
         );
 
         // Add a new submenu under Settings:
