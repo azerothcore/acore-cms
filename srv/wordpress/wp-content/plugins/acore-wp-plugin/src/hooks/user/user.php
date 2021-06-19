@@ -270,6 +270,10 @@ function extra_user_profile_fields($user)
 {
     $accRepo = ACoreServices::I()->getAccountRepo();
     $gameUser = $accRepo->findOneByUsername($user->user_login);
+    if (!$gameUser) {
+        return;
+    }
+
     $userExpansion = $gameUser->getExpansion();
 
     $curUser = \wp_get_current_user();
