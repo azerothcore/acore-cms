@@ -25,4 +25,11 @@ class MailMgr {
         return $this->executeCommand('.send items  ' . $playerName . ' "' . $_subject . '" "' . $_message . '" ' . $money);
     }
 
+    // requires https://github.com/55Honey/Acore_SendAndBind
+    public function sendItemAndBind($guid, $message, $itemId, $stack) {
+        $_message = addslashes($message);
+        $_itemId = intval($itemId);
+        $_stack = intval($stack);
+        return $this->executeCommand('.senditemandbind ' . $guid . ' ' . $_itemId . ' ' . $_stack . ' ' . $_message);
+    }
 }
