@@ -256,9 +256,8 @@ function validateComplexPassword($errors)
  * must be truncated
  */
 add_filter('random_password', function ($pass) {
-    return substr($pass, 0, Conf::PASSWORD_LENGTH-1);
+    return substr($pass, 0, Conf::PASSWORD_LENGTH);
 }, 10, 1);
-
 
 /**
  * User extra fields
@@ -343,14 +342,27 @@ function save_extra_user_profile_fields( $user_id ) {
      * @var \ACore\Account\Entity\AccountEntity
      */
     $gameUser = $accRepo->findOneByUsername($user->user_login);
-    if (!$gameUser)
-        throw new \Exception(__("Game account doesn't exist!","acore-wp-plugin"));
+    if (!$gameUser) {
+        if (isset($_POST['pass1']) && $_POST['pass1'] != '') {
+
+            create_account_if_not_exists($user, $_POST['pass1']);
+
+            $gameUser = $accRepo->findOneByUsername($user->user_login);
+            if (!$gameUser) {
+                throw new \Exception(__("Game account doesn't exist!","acore-wp-plugin"));
+            }
+        } else {
+            throw new \Exception(__("Game account doesn't exist! Change password to renew your game account.","acore-wp-plugin"));
+        }
+    }
 
 
     $expansion = $_POST['acore-user-game-expansion'];
 
-    if (!in_array($expansion,Common::EXPANSIONS))
-        throw new \Exception(__("Invalid Expansion!", "acore-wp-plugin"));
+    if (!$expansion || !in_array($expansion,Common::EXPANSIONS)) {
+        $expansion = Common::EXPANSION_WOTLK;
+        // throw new \Exception(__("Invalid Expansion!", "acore-wp-plugin"));
+    }
 
     if ($expansion != $gameUser->getExpansion()) {
         $gameUser->setExpansion($expansion);
