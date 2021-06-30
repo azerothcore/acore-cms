@@ -18,10 +18,7 @@ class CharactersView {
     }
 
     public function getHomeRender($characters) {
-        $races = [ "Human", "Orc", "Dwarf", "Night Elf", "Undead", "Tauren", "Gnome", "Troll", "Blood Elf", "Draenei" ];
-        $classes = [ "Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Death Knight", "Shaman", "Mage", "Warlock", "", "Druid" ];
         ob_start();
-
         ?>
         <div class="wrap">
             <h2>Characters Settings</h2>
