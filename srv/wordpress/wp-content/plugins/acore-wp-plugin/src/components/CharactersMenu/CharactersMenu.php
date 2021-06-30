@@ -12,7 +12,7 @@ class CharactersMenu
 
     /**
      * Singleton
-     * @return Opts
+     * @return CharactersMenu
      */
     public static function I()
     {
