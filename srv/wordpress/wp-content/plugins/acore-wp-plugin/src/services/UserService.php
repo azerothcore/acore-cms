@@ -8,7 +8,7 @@ class UserService
 {
     public static function validatePassword($Password)
     {
-        if (strlen($Password) >= Conf::PASSWORD_LENGTH) {
+        if (strlen($Password) > Conf::PASSWORD_LENGTH) {
             return sprintf(__("Password is too long (%s), please use less then %s characters", 'acore_wp_plugin'), strlen($Password), Conf::PASSWORD_LENGTH);
         }
 
