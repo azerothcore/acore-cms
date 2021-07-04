@@ -18,15 +18,20 @@ namespace Symfony\Component\Debug\Exception;
  */
 class SilencedErrorContext implements \JsonSerializable
 {
+    public $count = 1;
+
     private $severity;
     private $file;
     private $line;
+    private $trace;
 
-    public function __construct($severity, $file, $line)
+    public function __construct($severity, $file, $line, array $trace = [], $count = 1)
     {
         $this->severity = $severity;
         $this->file = $file;
         $this->line = $line;
+        $this->trace = $trace;
+        $this->count = $count;
     }
 
     public function getSeverity()
@@ -44,12 +49,19 @@ class SilencedErrorContext implements \JsonSerializable
         return $this->line;
     }
 
-    public function JsonSerialize()
+    public function getTrace()
     {
-        return array(
+        return $this->trace;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
             'severity' => $this->severity,
             'file' => $this->file,
             'line' => $this->line,
-        );
+            'trace' => $this->trace,
+            'count' => $this->count,
+        ];
     }
 }

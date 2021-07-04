@@ -23,11 +23,11 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
  */
 class EmailValidator extends ConstraintValidator
 {
-    /**
-     * @var bool
-     */
     private $isStrict;
 
+    /**
+     * @param bool $strict
+     */
     public function __construct($strict = false)
     {
         $this->isStrict = $strict;
@@ -39,18 +39,21 @@ class EmailValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Email) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Email');
+            throw new UnexpectedTypeException($constraint, Email::class);
         }
 
         if (null === $value || '' === $value) {
             return;
         }
 
-        if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
         $value = (string) $value;
+        if ('' === $value) {
+            return;
+        }
 
         if (null === $constraint->strict) {
             $constraint->strict = $this->isStrict;
@@ -58,7 +61,7 @@ class EmailValidator extends ConstraintValidator
 
         if ($constraint->strict) {
             if (!class_exists('\Egulias\EmailValidator\EmailValidator')) {
-                throw new RuntimeException('Strict email validation requires egulias/email-validator ~1.2|~2.0');
+                throw new RuntimeException('Strict email validation requires egulias/email-validator ~1.2|~2.0.');
             }
 
             $strictValidator = new \Egulias\EmailValidator\EmailValidator();

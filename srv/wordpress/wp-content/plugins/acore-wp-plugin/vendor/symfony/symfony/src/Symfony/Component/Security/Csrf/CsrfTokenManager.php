@@ -13,8 +13,8 @@ namespace Symfony\Component\Security\Csrf;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
-use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
 use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
+use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
 use Symfony\Component\Security\Csrf\TokenStorage\NativeSessionTokenStorage;
 use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
 
@@ -26,29 +26,16 @@ use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
  */
 class CsrfTokenManager implements CsrfTokenManagerInterface
 {
-    /**
-     * @var TokenGeneratorInterface
-     */
     private $generator;
-
-    /**
-     * @var TokenStorageInterface
-     */
     private $storage;
     private $namespace;
 
     /**
-     * Creates a new CSRF provider using PHP's native session storage.
-     *
-     * @param null|string|RequestStack|callable $namespace
+     * @param string|RequestStack|callable|null $namespace
      *                                                     * null: generates a namespace using $_SERVER['HTTPS']
      *                                                     * string: uses the given string
      *                                                     * RequestStack: generates a namespace using the current master request
      *                                                     * callable: uses the result of this callable (must return a string)
-     *
-     * @param TokenGeneratorInterface|null $generator The token generator
-     * @param TokenStorageInterface|null   $storage   The storage for storing
-     *                                                generated CSRF tokens
      */
     public function __construct(TokenGeneratorInterface $generator = null, TokenStorageInterface $storage = null, $namespace = null)
     {
@@ -69,10 +56,10 @@ class CsrfTokenManager implements CsrfTokenManagerInterface
 
                 return $superGlobalNamespaceGenerator();
             };
-        } elseif (is_callable($namespace) || is_string($namespace)) {
+        } elseif (\is_callable($namespace) || \is_string($namespace)) {
             $this->namespace = $namespace;
         } else {
-            throw new InvalidArgumentException(sprintf('$namespace must be a string, a callable returning a string, null or an instance of "RequestStack". "%s" given.', gettype($namespace)));
+            throw new InvalidArgumentException(sprintf('$namespace must be a string, a callable returning a string, null or an instance of "RequestStack". "%s" given.', \gettype($namespace)));
         }
     }
 
@@ -129,6 +116,6 @@ class CsrfTokenManager implements CsrfTokenManagerInterface
 
     private function getNamespace()
     {
-        return is_callable($ns = $this->namespace) ? $ns() : $ns;
+        return \is_callable($ns = $this->namespace) ? $ns() : $ns;
     }
 }

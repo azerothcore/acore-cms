@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "ADP": [
             "ADP",
@@ -71,7 +70,7 @@
         ],
         "ATS": [
             "ATS",
-            "Scilling Ostarach"
+            "Scilling na hOstaire"
         ],
         "AUD": [
             "A$",
@@ -111,7 +110,7 @@
         ],
         "BEC": [
             "BEC",
-            "Franc Beilgeach (inathraithe)"
+            "Franc na Beilge (inmhalartaithe)"
         ],
         "BEF": [
             "BEF",
@@ -119,7 +118,7 @@
         ],
         "BEL": [
             "BEL",
-            "Franc Beilgeach (airgeadúil)"
+            "Franc na Beilge (airgeadais)"
         ],
         "BGL": [
             "BGL",
@@ -295,7 +294,7 @@
         ],
         "DDM": [
             "DDM",
-            "Ostmark na hOirGhearmáine"
+            "Marc Ghearmáin an Oirthir"
         ],
         "DEM": [
             "DEM",
@@ -371,7 +370,7 @@
         ],
         "FRF": [
             "FRF",
-            "Franc Francach"
+            "FRF"
         ],
         "GBP": [
             "£",
@@ -411,7 +410,7 @@
         ],
         "GQE": [
             "GQE",
-            "Ekwele Guineana na Guine Meánchriosaí"
+            "Ekwele Guineana na Guine Meánchiorclaí"
         ],
         "GRD": [
             "GRD",
@@ -577,6 +576,10 @@
             "LTT",
             "Talonas Liotuánach"
         ],
+        "LUC": [
+            "LUC",
+            "LUC"
+        ],
         "LUF": [
             "LUF",
             "Franc Lucsamburg"
@@ -587,7 +590,7 @@
         ],
         "LVR": [
             "LVR",
-            "Rúbal Laitviach"
+            "LVR"
         ],
         "LYD": [
             "LYD",
@@ -639,6 +642,10 @@
         ],
         "MRO": [
             "MRO",
+            "Ouguiya na Máratáine (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Ouguiya na Máratáine"
         ],
         "MTL": [
@@ -675,7 +682,7 @@
         ],
         "MXV": [
             "MXV",
-            "Unidad de Inversion (UDI) Meicsiceo"
+            "MXV"
         ],
         "MYR": [
             "MYR",
@@ -867,6 +874,10 @@
         ],
         "STD": [
             "STD",
+            "Dobra São Tomé agus Príncipe (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Dobra São Tomé agus Príncipe"
         ],
         "SUR": [
@@ -899,7 +910,7 @@
         ],
         "TMM": [
             "TMM",
-            "Manat na An Tuircméanastáine"
+            "Manat na Tuircméanastáine (1993–2009)"
         ],
         "TMT": [
             "TMT",
@@ -983,6 +994,10 @@
         ],
         "VEF": [
             "VEF",
+            "Bolívar Veiniséala (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Bolívar Veiniséala"
         ],
         "VND": [
@@ -1051,7 +1066,7 @@
         ],
         "YUN": [
             "YUN",
-            "Dínear Inathraithe Iúgslavach"
+            "YUN"
         ],
         "YUR": [
             "YUR",

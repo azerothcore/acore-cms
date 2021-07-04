@@ -24,11 +24,11 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
+        "php": "^5.5.9|>=7.0.8",
         "symfony/polyfill-intl-icu": "~1.0"
     },
     "require-dev": {
-        "symfony/filesystem": "~2.8|~3.0"
+        "symfony/filesystem": "~2.8|~3.0|~4.0"
     },
     "suggest": {
         "ext-intl": "to use the component with locales other than \"en\""
@@ -40,10 +40,5 @@
             "/Tests/"
         ]
     },
-    "minimum-stability": "dev",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.2-dev"
-        }
-    }
+    "minimum-stability": "dev"
 }

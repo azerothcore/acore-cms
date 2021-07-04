@@ -11,10 +11,10 @@
 
 namespace Symfony\Bridge\Monolog\Handler;
 
-@trigger_error('The '.__NAMESPACE__.'\DebugHandler class is deprecated since version 3.2 and will be removed in 4.0. Use Symfony\Bridge\Monolog\Processor\DebugProcessor instead.', E_USER_DEPRECATED);
+@trigger_error('The '.__NAMESPACE__.'\DebugHandler class is deprecated since Symfony 3.2 and will be removed in 4.0. Use Symfony\Bridge\Monolog\Processor\DebugProcessor instead.', \E_USER_DEPRECATED);
 
-use Monolog\Logger;
 use Monolog\Handler\TestHandler;
+use Monolog\Logger;
 use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 
 /**
@@ -31,16 +31,16 @@ class DebugHandler extends TestHandler implements DebugLoggerInterface
      */
     public function getLogs()
     {
-        $records = array();
+        $records = [];
         foreach ($this->records as $record) {
-            $records[] = array(
+            $records[] = [
                 'timestamp' => $record['datetime']->getTimestamp(),
                 'message' => $record['message'],
                 'priority' => $record['level'],
                 'priorityName' => $record['level_name'],
                 'context' => $record['context'],
                 'channel' => isset($record['channel']) ? $record['channel'] : '',
-            );
+            ];
         }
 
         return $records;
@@ -52,10 +52,10 @@ class DebugHandler extends TestHandler implements DebugLoggerInterface
     public function countErrors()
     {
         $cnt = 0;
-        $levels = array(Logger::ERROR, Logger::CRITICAL, Logger::ALERT, Logger::EMERGENCY);
+        $levels = [Logger::ERROR, Logger::CRITICAL, Logger::ALERT, Logger::EMERGENCY];
         foreach ($levels as $level) {
             if (isset($this->recordsByLevel[$level])) {
-                $cnt += count($this->recordsByLevel[$level]);
+                $cnt += \count($this->recordsByLevel[$level]);
             }
         }
 

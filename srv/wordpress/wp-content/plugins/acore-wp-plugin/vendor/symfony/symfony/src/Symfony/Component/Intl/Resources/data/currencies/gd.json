@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "ADP": [
             "ADP",
@@ -260,6 +259,10 @@
         "CLP": [
             "CLP",
             "Peso Sileach"
+        ],
+        "CNH": [
+            "CNH",
+            "Yuan Sìneach (far-thìreach)"
         ],
         "CNX": [
             "CNX",
@@ -679,6 +682,10 @@
         ],
         "MRO": [
             "MRO",
+            "Ouguiya Moratàineach (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Ouguiya Moratàineach"
         ],
         "MTL": [
@@ -911,6 +918,10 @@
         ],
         "STD": [
             "STD",
+            "Dobra São Tomé agus Príncipe (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Dobra São Tomé agus Príncipe"
         ],
         "SUR": [
@@ -1021,6 +1032,10 @@
             "UYU",
             "Peso Uruguaidheach"
         ],
+        "UYW": [
+            "UYW",
+            "aonad inneacs tuarastail ainmeach Uruguaidh"
+        ],
         "UZS": [
             "UZS",
             "Som Usbagach"
@@ -1031,6 +1046,10 @@
         ],
         "VEF": [
             "VEF",
+            "Bolívar Bheinisealach (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Bolívar Bheinisealach"
         ],
         "VND": [

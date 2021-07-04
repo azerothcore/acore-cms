@@ -20,14 +20,7 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class PropertyAccessorBuilder
 {
-    /**
-     * @var bool
-     */
     private $magicCall = false;
-
-    /**
-     * @var bool
-     */
     private $throwExceptionOnInvalidIndex = false;
 
     /**
@@ -106,8 +99,6 @@ class PropertyAccessorBuilder
 
     /**
      * Sets a cache system.
-     *
-     * @param CacheItemPoolInterface|null $cacheItemPool
      *
      * @return PropertyAccessorBuilder The builder object
      */

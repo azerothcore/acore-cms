@@ -26,21 +26,27 @@ class LengthValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Length) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Length');
+            throw new UnexpectedTypeException($constraint, Length::class);
         }
 
         if (null === $value || '' === $value) {
             return;
         }
 
-        if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
         $stringValue = (string) $value;
 
-        if (!$invalidCharset = !@mb_check_encoding($stringValue, $constraint->charset)) {
-            $length = mb_strlen($stringValue, $constraint->charset);
+        try {
+            $invalidCharset = !@mb_check_encoding($stringValue, $constraint->charset);
+        } catch (\ValueError $e) {
+            if (!str_starts_with($e->getMessage(), 'mb_check_encoding(): Argument #2 ($encoding) must be a valid encoding')) {
+                throw $e;
+            }
+
+            $invalidCharset = true;
         }
 
         if ($invalidCharset) {
@@ -53,6 +59,8 @@ class LengthValidator extends ConstraintValidator
 
             return;
         }
+
+        $length = mb_strlen($stringValue, $constraint->charset);
 
         if (null !== $constraint->max && $length > $constraint->max) {
             $this->context->buildViolation($constraint->min == $constraint->max ? $constraint->exactMessage : $constraint->maxMessage)

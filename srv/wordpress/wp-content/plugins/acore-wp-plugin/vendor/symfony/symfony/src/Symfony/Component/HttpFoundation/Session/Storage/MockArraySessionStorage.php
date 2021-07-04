@@ -50,7 +50,7 @@ class MockArraySessionStorage implements SessionStorageInterface
     /**
      * @var array
      */
-    protected $data = array();
+    protected $data = [];
 
     /**
      * @var MetadataBag
@@ -60,11 +60,9 @@ class MockArraySessionStorage implements SessionStorageInterface
     /**
      * @var array|SessionBagInterface[]
      */
-    protected $bags = array();
+    protected $bags = [];
 
     /**
-     * Constructor.
-     *
      * @param string      $name    Session name
      * @param MetadataBag $metaBag MetadataBag instance
      */
@@ -74,11 +72,6 @@ class MockArraySessionStorage implements SessionStorageInterface
         $this->setMetadataBag($metaBag);
     }
 
-    /**
-     * Sets the session data.
-     *
-     * @param array $array
-     */
     public function setSessionData(array $array)
     {
         $this->data = $array;
@@ -159,7 +152,7 @@ class MockArraySessionStorage implements SessionStorageInterface
     public function save()
     {
         if (!$this->started || $this->closed) {
-            throw new \RuntimeException('Trying to save a session that was not started yet or was already closed');
+            throw new \RuntimeException('Trying to save a session that was not started yet or was already closed.');
         }
         // nothing to do since we don't persist the session data
         $this->closed = false;
@@ -177,7 +170,7 @@ class MockArraySessionStorage implements SessionStorageInterface
         }
 
         // clear out the session
-        $this->data = array();
+        $this->data = [];
 
         // reconnect the bags to the session
         $this->loadSession();
@@ -197,7 +190,7 @@ class MockArraySessionStorage implements SessionStorageInterface
     public function getBag($name)
     {
         if (!isset($this->bags[$name])) {
-            throw new \InvalidArgumentException(sprintf('The SessionBagInterface %s is not registered.', $name));
+            throw new \InvalidArgumentException(sprintf('The SessionBagInterface "%s" is not registered.', $name));
         }
 
         if (!$this->started) {
@@ -215,11 +208,6 @@ class MockArraySessionStorage implements SessionStorageInterface
         return $this->started;
     }
 
-    /**
-     * Sets the MetadataBag.
-     *
-     * @param MetadataBag $bag
-     */
     public function setMetadataBag(MetadataBag $bag = null)
     {
         if (null === $bag) {
@@ -254,11 +242,11 @@ class MockArraySessionStorage implements SessionStorageInterface
 
     protected function loadSession()
     {
-        $bags = array_merge($this->bags, array($this->metadataBag));
+        $bags = array_merge($this->bags, [$this->metadataBag]);
 
         foreach ($bags as $bag) {
             $key = $bag->getStorageKey();
-            $this->data[$key] = isset($this->data[$key]) ? $this->data[$key] : array();
+            $this->data[$key] = isset($this->data[$key]) ? $this->data[$key] : [];
             $bag->initialize($this->data[$key]);
         }
 

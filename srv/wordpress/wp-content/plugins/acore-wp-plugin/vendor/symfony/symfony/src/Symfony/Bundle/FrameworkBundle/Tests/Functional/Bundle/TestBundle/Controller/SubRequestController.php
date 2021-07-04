@@ -21,16 +21,14 @@ class SubRequestController implements ContainerAwareInterface
 {
     use ContainerAwareTrait;
 
-    public function indexAction()
+    public function indexAction($handler)
     {
-        $handler = $this->container->get('fragment.handler');
-
-        $errorUrl = $this->generateUrl('subrequest_fragment_error', array('_locale' => 'fr', '_format' => 'json'));
-        $altUrl = $this->generateUrl('subrequest_fragment', array('_locale' => 'fr', '_format' => 'json'));
+        $errorUrl = $this->generateUrl('subrequest_fragment_error', ['_locale' => 'fr', '_format' => 'json']);
+        $altUrl = $this->generateUrl('subrequest_fragment', ['_locale' => 'fr', '_format' => 'json']);
 
         // simulates a failure during the rendering of a fragment...
         // should render fr/json
-        $content = $handler->render($errorUrl, 'inline', array('alt' => $altUrl));
+        $content = $handler->render($errorUrl, 'inline', ['alt' => $altUrl]);
 
         // ...to check that the FragmentListener still references the right Request
         // when rendering another fragment after the error occurred
@@ -61,7 +59,7 @@ class SubRequestController implements ContainerAwareInterface
         throw new \RuntimeException('error');
     }
 
-    protected function generateUrl($name, $arguments = array())
+    protected function generateUrl($name, $arguments = [])
     {
         return $this->container->get('router')->generate($name, $arguments);
     }

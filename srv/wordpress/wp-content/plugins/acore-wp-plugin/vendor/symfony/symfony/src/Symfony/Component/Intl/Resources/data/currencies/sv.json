@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "ADP": [
             "ADP",
@@ -260,6 +259,10 @@
         "CLP": [
             "CLP",
             "chilensk peso"
+        ],
+        "CNH": [
+            "CNH",
+            "kinesisk yuan (offshore)"
         ],
         "CNX": [
             "CNX",
@@ -679,6 +682,10 @@
         ],
         "MRO": [
             "MRO",
+            "mauretansk ouguiya (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "mauretansk ouguiya"
         ],
         "MTL": [
@@ -911,6 +918,10 @@
         ],
         "STD": [
             "STD",
+            "saotomeansk dobra (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "saotomeansk dobra"
         ],
         "SUR": [
@@ -959,7 +970,7 @@
         ],
         "TPE": [
             "TPE",
-            "timoriansk escudo"
+            "östtimoresisk escudo"
         ],
         "TRL": [
             "TRL",
@@ -1021,6 +1032,10 @@
             "UYU",
             "uruguayansk peso"
         ],
+        "UYW": [
+            "UYW",
+            "uruguayansk indexenhet för nominell lön"
+        ],
         "UZS": [
             "UZS",
             "uzbekisk sum"
@@ -1031,6 +1046,10 @@
         ],
         "VEF": [
             "VEF",
+            "venezuelansk bolívar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "venezuelansk bolívar"
         ],
         "VND": [

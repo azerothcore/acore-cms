@@ -28,26 +28,25 @@ trait PriorityTaggedServiceTrait
      * and knowing that the \SplPriorityQueue class does not respect the FIFO method,
      * we should not use that class.
      *
-     * @see https://bugs.php.net/bug.php?id=53710
-     * @see https://bugs.php.net/bug.php?id=60926
+     * @see https://bugs.php.net/53710
+     * @see https://bugs.php.net/60926
      *
-     * @param string           $tagName
-     * @param ContainerBuilder $container
+     * @param string $tagName
      *
      * @return Reference[]
      */
     private function findAndSortTaggedServices($tagName, ContainerBuilder $container)
     {
-        $services = array();
+        $services = [];
 
-        foreach ($container->findTaggedServiceIds($tagName) as $serviceId => $attributes) {
+        foreach ($container->findTaggedServiceIds($tagName, true) as $serviceId => $attributes) {
             $priority = isset($attributes[0]['priority']) ? $attributes[0]['priority'] : 0;
             $services[$priority][] = new Reference($serviceId);
         }
 
         if ($services) {
             krsort($services);
-            $services = call_user_func_array('array_merge', $services);
+            $services = \call_user_func_array('array_merge', $services);
         }
 
         return $services;

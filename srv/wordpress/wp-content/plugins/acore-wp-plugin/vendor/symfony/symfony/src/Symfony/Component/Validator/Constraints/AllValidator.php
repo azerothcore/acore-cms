@@ -26,14 +26,14 @@ class AllValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof All) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\All');
+            throw new UnexpectedTypeException($constraint, All::class);
         }
 
         if (null === $value) {
             return;
         }
 
-        if (!is_array($value) && !$value instanceof \Traversable) {
+        if (!\is_array($value) && !$value instanceof \Traversable) {
             throw new UnexpectedTypeException($value, 'array or Traversable');
         }
 

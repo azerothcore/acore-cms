@@ -22,8 +22,6 @@ class DirectoryResource implements SelfCheckingResourceInterface, \Serializable
     private $pattern;
 
     /**
-     * Constructor.
-     *
      * @param string      $resource The file path to the resource
      * @param string|null $pattern  A pattern to restrict monitored files
      *
@@ -44,7 +42,7 @@ class DirectoryResource implements SelfCheckingResourceInterface, \Serializable
      */
     public function __toString()
     {
-        return md5(serialize(array($this->resource, $this->pattern)));
+        return md5(serialize([$this->resource, $this->pattern]));
     }
 
     /**
@@ -106,11 +104,17 @@ class DirectoryResource implements SelfCheckingResourceInterface, \Serializable
         return true;
     }
 
+    /**
+     * @internal
+     */
     public function serialize()
     {
-        return serialize(array($this->resource, $this->pattern));
+        return serialize([$this->resource, $this->pattern]);
     }
 
+    /**
+     * @internal
+     */
     public function unserialize($serialized)
     {
         list($this->resource, $this->pattern) = unserialize($serialized);

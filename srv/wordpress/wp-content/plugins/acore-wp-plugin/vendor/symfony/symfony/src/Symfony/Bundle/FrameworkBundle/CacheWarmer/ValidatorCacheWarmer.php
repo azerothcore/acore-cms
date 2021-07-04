@@ -33,9 +33,8 @@ class ValidatorCacheWarmer extends AbstractPhpFileCacheWarmer
     private $validatorBuilder;
 
     /**
-     * @param ValidatorBuilderInterface $validatorBuilder
-     * @param string                    $phpArrayFile     The PHP file where metadata are cached
-     * @param CacheItemPoolInterface    $fallbackPool     The pool where runtime-discovered metadata are cached
+     * @param string                 $phpArrayFile The PHP file where metadata are cached
+     * @param CacheItemPoolInterface $fallbackPool The pool where runtime-discovered metadata are cached
      */
     public function __construct(ValidatorBuilderInterface $validatorBuilder, $phpArrayFile, CacheItemPoolInterface $fallbackPool)
     {
@@ -61,10 +60,10 @@ class ValidatorCacheWarmer extends AbstractPhpFileCacheWarmer
                     if ($metadataFactory->hasMetadataFor($mappedClass)) {
                         $metadataFactory->getMetadataFor($mappedClass);
                     }
-                } catch (\ReflectionException $e) {
-                    // ignore failing reflection
                 } catch (AnnotationException $e) {
                     // ignore failing annotations
+                } catch (\Exception $e) {
+                    $this->ignoreAutoloadException($mappedClass, $e);
                 }
             }
         }
@@ -85,13 +84,13 @@ class ValidatorCacheWarmer extends AbstractPhpFileCacheWarmer
      */
     private function extractSupportedLoaders(array $loaders)
     {
-        $supportedLoaders = array();
+        $supportedLoaders = [];
 
         foreach ($loaders as $loader) {
             if ($loader instanceof XmlFileLoader || $loader instanceof YamlFileLoader) {
                 $supportedLoaders[] = $loader;
             } elseif ($loader instanceof LoaderChain) {
-                $supportedLoaders = array_merge($supportedLoaders, $this->extractSupportedLoaders($loader->getDelegatedLoaders()));
+                $supportedLoaders = array_merge($supportedLoaders, $this->extractSupportedLoaders($loader->getLoaders()));
             }
         }
 

@@ -16,13 +16,22 @@ use Symfony\Component\Config\Definition\Builder\BooleanNodeDefinition;
 
 class BooleanNodeDefinitionTest extends TestCase
 {
-    /**
-     * @expectedException \Symfony\Component\Config\Definition\Exception\InvalidDefinitionException
-     * @expectedExceptionMessage ->cannotBeEmpty() is not applicable to BooleanNodeDefinition.
-     */
     public function testCannotBeEmptyThrowsAnException()
     {
+        $this->expectException('Symfony\Component\Config\Definition\Exception\InvalidDefinitionException');
+        $this->expectExceptionMessage('->cannotBeEmpty() is not applicable to BooleanNodeDefinition.');
         $def = new BooleanNodeDefinition('foo');
         $def->cannotBeEmpty();
+    }
+
+    public function testSetDeprecated()
+    {
+        $def = new BooleanNodeDefinition('foo');
+        $def->setDeprecated('The "%path%" node is deprecated.');
+
+        $node = $def->getNode();
+
+        $this->assertTrue($node->isDeprecated());
+        $this->assertSame('The "foo" node is deprecated.', $node->getDeprecationMessage($node->getName(), $node->getPath()));
     }
 }

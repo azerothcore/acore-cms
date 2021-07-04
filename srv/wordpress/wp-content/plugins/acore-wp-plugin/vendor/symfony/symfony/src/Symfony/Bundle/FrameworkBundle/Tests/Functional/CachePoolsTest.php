@@ -11,25 +11,15 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Functional;
 
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Exception\InvalidArgumentException;
 
-class CachePoolsTest extends WebTestCase
+class CachePoolsTest extends AbstractWebTestCase
 {
-    protected function setUp()
-    {
-        $_SERVER['SYMFONY__REDIS_HOST'] = getenv('REDIS_HOST');
-    }
-
-    protected function tearDown()
-    {
-        unset($_SERVER['SYMFONY__REDIS_HOST']);
-    }
-
     public function testCachePools()
     {
-        $this->doTestCachePools(array(), FilesystemAdapter::class);
+        $this->doTestCachePools([], AdapterInterface::class);
     }
 
     /**
@@ -38,19 +28,19 @@ class CachePoolsTest extends WebTestCase
     public function testRedisCachePools()
     {
         try {
-            $this->doTestCachePools(array('root_config' => 'redis_config.yml', 'environment' => 'redis_cache'), RedisAdapter::class);
+            $this->doTestCachePools(['root_config' => 'redis_config.yml', 'environment' => 'redis_cache'], RedisAdapter::class);
         } catch (\PHPUnit\Framework\Error\Warning $e) {
             if (0 !== strpos($e->getMessage(), 'unable to connect to')) {
                 throw $e;
             }
             $this->markTestSkipped($e->getMessage());
-        } catch (\PHPUnit_Framework_Error_Warning $e) {
+        } catch (\PHPUnit\Framework\Error\Warning $e) {
             if (0 !== strpos($e->getMessage(), 'unable to connect to')) {
                 throw $e;
             }
             $this->markTestSkipped($e->getMessage());
         } catch (InvalidArgumentException $e) {
-            if (0 !== strpos($e->getMessage(), 'Redis connection failed')) {
+            if (0 !== strpos($e->getMessage(), 'Redis connection ')) {
                 throw $e;
             }
             $this->markTestSkipped($e->getMessage());
@@ -63,13 +53,13 @@ class CachePoolsTest extends WebTestCase
     public function testRedisCustomCachePools()
     {
         try {
-            $this->doTestCachePools(array('root_config' => 'redis_custom_config.yml', 'environment' => 'custom_redis_cache'), RedisAdapter::class);
+            $this->doTestCachePools(['root_config' => 'redis_custom_config.yml', 'environment' => 'custom_redis_cache'], RedisAdapter::class);
         } catch (\PHPUnit\Framework\Error\Warning $e) {
             if (0 !== strpos($e->getMessage(), 'unable to connect to')) {
                 throw $e;
             }
             $this->markTestSkipped($e->getMessage());
-        } catch (\PHPUnit_Framework_Error_Warning $e) {
+        } catch (\PHPUnit\Framework\Error\Warning $e) {
             if (0 !== strpos($e->getMessage(), 'unable to connect to')) {
                 throw $e;
             }
@@ -77,7 +67,7 @@ class CachePoolsTest extends WebTestCase
         }
     }
 
-    public function doTestCachePools($options, $adapterClass)
+    private function doTestCachePools($options, $adapterClass)
     {
         static::bootKernel($options);
         $container = static::$kernel->getContainer();
@@ -106,8 +96,8 @@ class CachePoolsTest extends WebTestCase
         $this->assertTrue($item->isHit());
     }
 
-    protected static function createKernel(array $options = array())
+    protected static function createKernel(array $options = [])
     {
-        return parent::createKernel(array('test_case' => 'CachePools') + $options);
+        return parent::createKernel(['test_case' => 'CachePools'] + $options);
     }
 }

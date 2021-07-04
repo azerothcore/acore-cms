@@ -28,11 +28,10 @@ interface AdapterInterface
      *
      * @param string $dn
      * @param string $query
-     * @param array  $options
      *
      * @return QueryInterface
      */
-    public function createQuery($dn, $query, array $options = array());
+    public function createQuery($dn, $query, array $options = []);
 
     /**
      * Fetches the entry manager instance.

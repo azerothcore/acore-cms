@@ -89,7 +89,7 @@ final class CoreExtension extends AbstractExtension
      */
     public function setEscaper($strategy, callable $callable)
     {
-        @trigger_error(sprintf('The "%s" method is deprecated since Twig 2.11; use "%s::setEscaper" instead.', __METHOD__, EscaperExtension::class), E_USER_DEPRECATED);
+        @trigger_error(sprintf('The "%s" method is deprecated since Twig 2.11; use "%s::setEscaper" instead.', __METHOD__, EscaperExtension::class), \E_USER_DEPRECATED);
 
         $this->escapers[$strategy] = $callable;
     }
@@ -103,8 +103,8 @@ final class CoreExtension extends AbstractExtension
      */
     public function getEscapers(/* $triggerDeprecation = true */)
     {
-        if (0 === \func_num_args() || func_get_arg(0)) {
-            @trigger_error(sprintf('The "%s" method is deprecated since Twig 2.11; use "%s::getEscapers" instead.', __METHOD__, EscaperExtension::class), E_USER_DEPRECATED);
+        if (0 === \func_num_args() || \func_get_arg(0)) {
+            @trigger_error(sprintf('The "%s" method is deprecated since Twig 2.11; use "%s::getEscapers" instead.', __METHOD__, EscaperExtension::class), \E_USER_DEPRECATED);
         }
 
         return $this->escapers;
@@ -241,9 +241,9 @@ final class CoreExtension extends AbstractExtension
             new TwigFilter('merge', 'twig_array_merge'),
             new TwigFilter('batch', 'twig_array_batch'),
             new TwigFilter('column', 'twig_array_column'),
-            new TwigFilter('filter', 'twig_array_filter'),
-            new TwigFilter('map', 'twig_array_map'),
-            new TwigFilter('reduce', 'twig_array_reduce'),
+            new TwigFilter('filter', 'twig_array_filter', ['needs_environment' => true]),
+            new TwigFilter('map', 'twig_array_map', ['needs_environment' => true]),
+            new TwigFilter('reduce', 'twig_array_reduce', ['needs_environment' => true]),
 
             // string/array filters
             new TwigFilter('reverse', 'twig_reverse_filter', ['needs_environment' => true]),
@@ -279,10 +279,10 @@ final class CoreExtension extends AbstractExtension
             new TwigTest('even', null, ['node_class' => EvenTest::class]),
             new TwigTest('odd', null, ['node_class' => OddTest::class]),
             new TwigTest('defined', null, ['node_class' => DefinedTest::class]),
-            new TwigTest('same as', null, ['node_class' => SameasTest::class]),
+            new TwigTest('same as', null, ['node_class' => SameasTest::class, 'one_mandatory_argument' => true]),
             new TwigTest('none', null, ['node_class' => NullTest::class]),
             new TwigTest('null', null, ['node_class' => NullTest::class]),
-            new TwigTest('divisible by', null, ['node_class' => DivisiblebyTest::class]),
+            new TwigTest('divisible by', null, ['node_class' => DivisiblebyTest::class, 'one_mandatory_argument' => true]),
             new TwigTest('constant', null, ['node_class' => ConstantTest::class]),
             new TwigTest('empty', 'twig_test_empty'),
             new TwigTest('iterable', 'twig_test_iterable'),
@@ -349,8 +349,9 @@ namespace {
     use Twig\Markup;
     use Twig\Source;
     use Twig\Template;
+    use Twig\TemplateWrapper;
 
-    /**
+/**
  * Cycles over a value.
  *
  * @param \ArrayAccess|array $values
@@ -518,6 +519,10 @@ function twig_date_converter(Environment $env, $date = null, $timezone = null)
     }
 
     if (null === $date || 'now' === $date) {
+        if (null === $date) {
+            $date = 'now';
+        }
+
         return new \DateTime($date, false !== $timezone ? $timezone : $env->getExtension(CoreExtension::class)->getTimezone());
     }
 
@@ -563,15 +568,15 @@ function twig_replace_filter($str, $from)
  */
 function twig_round($value, $precision = 0, $method = 'common')
 {
-    if ('common' == $method) {
+    if ('common' === $method) {
         return round($value, $precision);
     }
 
-    if ('ceil' != $method && 'floor' != $method) {
+    if ('ceil' !== $method && 'floor' !== $method) {
         throw new RuntimeError('The round filter only supports the "common", "ceil", and "floor" methods.');
     }
 
-    return $method($value * pow(10, $precision)) / pow(10, $precision);
+    return $method($value * 10 ** $precision) / 10 ** $precision;
 }
 
 /**
@@ -616,7 +621,7 @@ function twig_number_format_filter(Environment $env, $number, $decimal = null, $
 function twig_urlencode_filter($url)
 {
     if (\is_array($url)) {
-        return http_build_query($url, '', '&', PHP_QUERY_RFC3986);
+        return http_build_query($url, '', '&', \PHP_QUERY_RFC3986);
     }
 
     return rawurlencode($url);
@@ -997,7 +1002,7 @@ function twig_spaceless($content)
 
 function twig_convert_encoding($string, $to, $from)
 {
-    if (!function_exists('iconv')) {
+    if (!\function_exists('iconv')) {
         throw new RuntimeError('Unable to convert encoding: required function iconv() does not exist. You should install ext-iconv or symfony/polyfill-iconv.');
     }
 
@@ -1070,7 +1075,7 @@ function twig_lower_filter(Environment $env, $string)
 function twig_title_string_filter(Environment $env, $string)
 {
     if (null !== $charset = $env->getCharset()) {
-        return mb_convert_case($string, MB_CASE_TITLE, $charset);
+        return mb_convert_case($string, \MB_CASE_TITLE, $charset);
     }
 
     return ucwords(strtolower($string));
@@ -1152,7 +1157,7 @@ function twig_to_array($seq, $preserveKeys = true)
 function twig_test_empty($value)
 {
     if ($value instanceof \Countable) {
-        return 0 == \count($value);
+        return 0 === \count($value);
     }
 
     if ($value instanceof \Traversable) {
@@ -1207,6 +1212,13 @@ function twig_include(Environment $env, $context, $template, $variables = [], $w
         $sandbox = $env->getExtension(SandboxExtension::class);
         if (!$alreadySandboxed = $sandbox->isSandboxed()) {
             $sandbox->enableSandbox();
+        }
+
+        foreach ((\is_array($template) ? $template : [$template]) as $name) {
+            // if a Template instance is passed, it might have been instantiated outside of a sandbox, check security
+            if ($name instanceof TemplateWrapper || $name instanceof Template) {
+                $name->unwrap()->checkSecurity();
+            }
         }
     }
 
@@ -1535,8 +1547,16 @@ function twig_array_column($array, $name, $index = null): array
     return array_column($array, $name, $index);
 }
 
-function twig_array_filter($array, $arrow)
+function twig_array_filter(Environment $env, $array, $arrow)
 {
+    if (!twig_test_iterable($array)) {
+        throw new RuntimeError(sprintf('The "filter" filter expects an array or "Traversable", got "%s".', \is_object($array) ? \get_class($array) : \gettype($array)));
+    }
+
+    if (!$arrow instanceof Closure && $env->hasExtension('\Twig\Extension\SandboxExtension') && $env->getExtension('\Twig\Extension\SandboxExtension')->isSandboxed()) {
+        throw new RuntimeError('The callable passed to "filter" filter must be a Closure in sandbox mode.');
+    }
+
     if (\is_array($array)) {
         return array_filter($array, $arrow, \ARRAY_FILTER_USE_BOTH);
     }
@@ -1545,8 +1565,12 @@ function twig_array_filter($array, $arrow)
     return new \CallbackFilterIterator(new \IteratorIterator($array), $arrow);
 }
 
-function twig_array_map($array, $arrow)
+function twig_array_map(Environment $env, $array, $arrow)
 {
+    if (!$arrow instanceof Closure && $env->hasExtension('\Twig\Extension\SandboxExtension') && $env->getExtension('\Twig\Extension\SandboxExtension')->isSandboxed()) {
+        throw new RuntimeError('The callable passed to the "map" filter must be a Closure in sandbox mode.');
+    }
+
     $r = [];
     foreach ($array as $k => $v) {
         $r[$k] = $arrow($v, $k);
@@ -1555,9 +1579,17 @@ function twig_array_map($array, $arrow)
     return $r;
 }
 
-function twig_array_reduce($array, $arrow, $initial = null)
+function twig_array_reduce(Environment $env, $array, $arrow, $initial = null)
 {
+    if (!$arrow instanceof Closure && $env->hasExtension('\Twig\Extension\SandboxExtension') && $env->getExtension('\Twig\Extension\SandboxExtension')->isSandboxed()) {
+        throw new RuntimeError('The callable passed to the "reduce" filter must be a Closure in sandbox mode.');
+    }
+
     if (!\is_array($array)) {
+        if (!$array instanceof \Traversable) {
+            throw new RuntimeError(sprintf('The "reduce" filter only works with arrays or "Traversable", got "%s" as first argument.', \gettype($array)));
+        }
+
         $array = iterator_to_array($array);
     }
 

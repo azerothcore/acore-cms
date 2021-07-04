@@ -16,11 +16,9 @@ use Symfony\Component\DependencyInjection\ParameterBag\EnvPlaceholderParameterBa
 
 class EnvPlaceholderParameterBagTest extends TestCase
 {
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\InvalidArgumentException
-     */
     public function testGetThrowsInvalidArgumentExceptionIfEnvNameContainsNonWordCharacters()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\InvalidArgumentException');
         $bag = new EnvPlaceholderParameterBag();
         $bag->get('env(%foo%)');
     }
@@ -42,8 +40,8 @@ class EnvPlaceholderParameterBagTest extends TestCase
         $placeholder = array_values($placeholderForVariable)[0];
 
         $this->assertCount(1, $placeholderForVariable);
-        $this->assertInternalType('string', $placeholder);
-        $this->assertContains($envVariableName, $placeholder);
+        $this->assertIsString($placeholder);
+        $this->assertStringContainsString($envVariableName, $placeholder);
     }
 
     public function testMergeWhereFirstBagIsEmptyWillWork()
@@ -65,8 +63,8 @@ class EnvPlaceholderParameterBagTest extends TestCase
         $placeholder = array_values($placeholderForVariable)[0];
 
         $this->assertCount(1, $placeholderForVariable);
-        $this->assertInternalType('string', $placeholder);
-        $this->assertContains($envVariableName, $placeholder);
+        $this->assertIsString($placeholder);
+        $this->assertStringContainsString($envVariableName, $placeholder);
     }
 
     public function testMergeWherePlaceholderOnlyExistsInSecond()
@@ -115,29 +113,27 @@ class EnvPlaceholderParameterBagTest extends TestCase
     {
         $bag = new EnvPlaceholderParameterBag();
         $bag->get('env(INT_VAR)');
-        $bag->set('env(Int_Var)', 2);
+        $bag->set('env(INT_VAR)', 2);
         $bag->resolve();
-        $this->assertSame('2', $bag->all()['env(int_var)']);
+        $this->assertSame('2', $bag->all()['env(INT_VAR)']);
     }
 
     public function testResolveEnvAllowsNull()
     {
         $bag = new EnvPlaceholderParameterBag();
         $bag->get('env(NULL_VAR)');
-        $bag->set('env(Null_Var)', null);
+        $bag->set('env(NULL_VAR)', null);
         $bag->resolve();
-        $this->assertNull($bag->all()['env(null_var)']);
+        $this->assertNull($bag->all()['env(NULL_VAR)']);
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage The default value of env parameter "ARRAY_VAR" must be scalar or null, array given.
-     */
     public function testResolveThrowsOnBadDefaultValue()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('The default value of env parameter "ARRAY_VAR" must be scalar or null, "array" given.');
         $bag = new EnvPlaceholderParameterBag();
         $bag->get('env(ARRAY_VAR)');
-        $bag->set('env(Array_Var)', array());
+        $bag->set('env(ARRAY_VAR)', []);
         $bag->resolve();
     }
 
@@ -148,17 +144,15 @@ class EnvPlaceholderParameterBagTest extends TestCase
         $bag->get('env(NULL_VAR)');
         $bag->resolve();
 
-        $this->assertNull($bag->all()['env(null_var)']);
+        $this->assertNull($bag->all()['env(NULL_VAR)']);
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
-     * @expectedExceptionMessage The default value of an env() parameter must be scalar or null, but "array" given to "env(ARRAY_VAR)".
-     */
     public function testGetThrowsOnBadDefaultValue()
     {
+        $this->expectException('Symfony\Component\DependencyInjection\Exception\RuntimeException');
+        $this->expectExceptionMessage('The default value of an env() parameter must be scalar or null, but "array" given to "env(ARRAY_VAR)".');
         $bag = new EnvPlaceholderParameterBag();
-        $bag->set('env(ARRAY_VAR)', array());
+        $bag->set('env(ARRAY_VAR)', []);
         $bag->get('env(ARRAY_VAR)');
         $bag->resolve();
     }

@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Form\Tests\ChoiceList;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\ChoiceList\ArrayChoiceList;
 use Symfony\Component\Form\ChoiceList\LazyChoiceList;
@@ -26,12 +27,12 @@ class LazyChoiceListTest extends TestCase
     private $list;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var MockObject
      */
     private $loadedList;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var MockObject
      */
     private $loader;
 
@@ -50,15 +51,15 @@ class LazyChoiceListTest extends TestCase
         $this->loader->expects($this->exactly(2))
             ->method('loadChoiceList')
             ->with($this->value)
-            ->will($this->returnValue($this->loadedList));
+            ->willReturn($this->loadedList);
 
         // The same list is returned by the loader
         $this->loadedList->expects($this->exactly(2))
             ->method('getChoices')
-            ->will($this->returnValue('RESULT'));
+            ->willReturn(['RESULT']);
 
-        $this->assertSame('RESULT', $this->list->getChoices());
-        $this->assertSame('RESULT', $this->list->getChoices());
+        $this->assertSame(['RESULT'], $this->list->getChoices());
+        $this->assertSame(['RESULT'], $this->list->getChoices());
     }
 
     /**
@@ -66,20 +67,15 @@ class LazyChoiceListTest extends TestCase
      */
     public function testGetChoicesUsesLoadedListWhenLoaderDoesNotCacheChoiceListOnFirstCall()
     {
-        $this->loader->expects($this->at(0))
+        $this->loader->expects($this->exactly(2))
             ->method('loadChoiceList')
             ->with($this->value)
-            ->willReturn($this->loadedList);
-
-        $this->loader->expects($this->at(1))
-            ->method('loadChoiceList')
-            ->with($this->value)
-            ->willReturn(new ArrayChoiceList(array('a', 'b')));
+            ->willReturnOnConsecutiveCalls($this->loadedList, new ArrayChoiceList(['a', 'b']));
 
         // The same list is returned by the lazy choice list
         $this->loadedList->expects($this->exactly(2))
             ->method('getChoices')
-            ->will($this->returnValue('RESULT'));
+            ->willReturn('RESULT');
 
         $this->assertSame('RESULT', $this->list->getChoices());
         $this->assertSame('RESULT', $this->list->getChoices());
@@ -90,15 +86,15 @@ class LazyChoiceListTest extends TestCase
         $this->loader->expects($this->exactly(2))
             ->method('loadChoiceList')
             ->with($this->value)
-            ->will($this->returnValue($this->loadedList));
+            ->willReturn($this->loadedList);
 
         // The same list is returned by the loader
         $this->loadedList->expects($this->exactly(2))
             ->method('getValues')
-            ->will($this->returnValue('RESULT'));
+            ->willReturn(['RESULT']);
 
-        $this->assertSame('RESULT', $this->list->getValues());
-        $this->assertSame('RESULT', $this->list->getValues());
+        $this->assertSame(['RESULT'], $this->list->getValues());
+        $this->assertSame(['RESULT'], $this->list->getValues());
     }
 
     public function testGetStructuredValuesLoadsLoadedListOnFirstCall()
@@ -106,15 +102,15 @@ class LazyChoiceListTest extends TestCase
         $this->loader->expects($this->exactly(2))
             ->method('loadChoiceList')
             ->with($this->value)
-            ->will($this->returnValue($this->loadedList));
+            ->willReturn($this->loadedList);
 
         // The same list is returned by the loader
         $this->loadedList->expects($this->exactly(2))
             ->method('getStructuredValues')
-            ->will($this->returnValue('RESULT'));
+            ->willReturn(['RESULT']);
 
-        $this->assertSame('RESULT', $this->list->getStructuredValues());
-        $this->assertSame('RESULT', $this->list->getStructuredValues());
+        $this->assertSame(['RESULT'], $this->list->getStructuredValues());
+        $this->assertSame(['RESULT'], $this->list->getStructuredValues());
     }
 
     public function testGetOriginalKeysLoadsLoadedListOnFirstCall()
@@ -122,26 +118,26 @@ class LazyChoiceListTest extends TestCase
         $this->loader->expects($this->exactly(2))
             ->method('loadChoiceList')
             ->with($this->value)
-            ->will($this->returnValue($this->loadedList));
+            ->willReturn($this->loadedList);
 
         // The same list is returned by the loader
         $this->loadedList->expects($this->exactly(2))
             ->method('getOriginalKeys')
-            ->will($this->returnValue('RESULT'));
+            ->willReturn(['RESULT']);
 
-        $this->assertSame('RESULT', $this->list->getOriginalKeys());
-        $this->assertSame('RESULT', $this->list->getOriginalKeys());
+        $this->assertSame(['RESULT'], $this->list->getOriginalKeys());
+        $this->assertSame(['RESULT'], $this->list->getOriginalKeys());
     }
 
     public function testGetChoicesForValuesForwardsCallIfListNotLoaded()
     {
         $this->loader->expects($this->exactly(2))
             ->method('loadChoicesForValues')
-            ->with(array('a', 'b'))
-            ->will($this->returnValue('RESULT'));
+            ->with(['a', 'b'])
+            ->willReturn(['RESULT']);
 
-        $this->assertSame('RESULT', $this->list->getChoicesForValues(array('a', 'b')));
-        $this->assertSame('RESULT', $this->list->getChoicesForValues(array('a', 'b')));
+        $this->assertSame(['RESULT'], $this->list->getChoicesForValues(['a', 'b']));
+        $this->assertSame(['RESULT'], $this->list->getChoicesForValues(['a', 'b']));
     }
 
     public function testGetChoicesForValuesUsesLoadedList()
@@ -151,21 +147,21 @@ class LazyChoiceListTest extends TestCase
             ->with($this->value)
             // For BC, the same choice loaded list is returned 3 times
             // It should only twice in 4.0
-            ->will($this->returnValue($this->loadedList));
+            ->willReturn($this->loadedList);
 
         $this->loader->expects($this->never())
             ->method('loadChoicesForValues');
 
         $this->loadedList->expects($this->exactly(2))
             ->method('getChoicesForValues')
-            ->with(array('a', 'b'))
-            ->will($this->returnValue('RESULT'));
+            ->with(['a', 'b'])
+            ->willReturn(['RESULT']);
 
         // load choice list
         $this->list->getChoices();
 
-        $this->assertSame('RESULT', $this->list->getChoicesForValues(array('a', 'b')));
-        $this->assertSame('RESULT', $this->list->getChoicesForValues(array('a', 'b')));
+        $this->assertSame(['RESULT'], $this->list->getChoicesForValues(['a', 'b']));
+        $this->assertSame(['RESULT'], $this->list->getChoicesForValues(['a', 'b']));
     }
 
     /**
@@ -175,11 +171,11 @@ class LazyChoiceListTest extends TestCase
     {
         $this->loader->expects($this->exactly(2))
             ->method('loadValuesForChoices')
-            ->with(array('a', 'b'))
-            ->will($this->returnValue('RESULT'));
+            ->with(['a', 'b'])
+            ->willReturn('RESULT');
 
-        $this->assertSame('RESULT', $this->list->getValuesForChoices(array('a', 'b')));
-        $this->assertSame('RESULT', $this->list->getValuesForChoices(array('a', 'b')));
+        $this->assertSame('RESULT', $this->list->getValuesForChoices(['a', 'b']));
+        $this->assertSame('RESULT', $this->list->getValuesForChoices(['a', 'b']));
     }
 
     public function testGetValuesForChoicesUsesLoadedList()
@@ -189,20 +185,20 @@ class LazyChoiceListTest extends TestCase
             ->with($this->value)
             // For BC, the same choice loaded list is returned 3 times
             // It should only twice in 4.0
-            ->will($this->returnValue($this->loadedList));
+            ->willReturn($this->loadedList);
 
         $this->loader->expects($this->never())
             ->method('loadValuesForChoices');
 
         $this->loadedList->expects($this->exactly(2))
             ->method('getValuesForChoices')
-            ->with(array('a', 'b'))
-            ->will($this->returnValue('RESULT'));
+            ->with(['a', 'b'])
+            ->willReturn(['RESULT']);
 
         // load choice list
         $this->list->getChoices();
 
-        $this->assertSame('RESULT', $this->list->getValuesForChoices(array('a', 'b')));
-        $this->assertSame('RESULT', $this->list->getValuesForChoices(array('a', 'b')));
+        $this->assertSame(['RESULT'], $this->list->getValuesForChoices(['a', 'b']));
+        $this->assertSame(['RESULT'], $this->list->getValuesForChoices(['a', 'b']));
     }
 }

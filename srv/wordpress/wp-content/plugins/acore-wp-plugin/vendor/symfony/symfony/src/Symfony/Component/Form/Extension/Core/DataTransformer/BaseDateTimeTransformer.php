@@ -17,21 +17,19 @@ use Symfony\Component\Form\Exception\UnexpectedTypeException;
 
 abstract class BaseDateTimeTransformer implements DataTransformerInterface
 {
-    protected static $formats = array(
+    protected static $formats = [
         \IntlDateFormatter::NONE,
         \IntlDateFormatter::FULL,
         \IntlDateFormatter::LONG,
         \IntlDateFormatter::MEDIUM,
         \IntlDateFormatter::SHORT,
-    );
+    ];
 
     protected $inputTimezone;
 
     protected $outputTimezone;
 
     /**
-     * Constructor.
-     *
      * @param string $inputTimezone  The name of the input timezone
      * @param string $outputTimezone The name of the output timezone
      *
@@ -40,11 +38,11 @@ abstract class BaseDateTimeTransformer implements DataTransformerInterface
      */
     public function __construct($inputTimezone = null, $outputTimezone = null)
     {
-        if (null !== $inputTimezone && !is_string($inputTimezone)) {
+        if (null !== $inputTimezone && !\is_string($inputTimezone)) {
             throw new UnexpectedTypeException($inputTimezone, 'string');
         }
 
-        if (null !== $outputTimezone && !is_string($outputTimezone)) {
+        if (null !== $outputTimezone && !\is_string($outputTimezone)) {
             throw new UnexpectedTypeException($outputTimezone, 'string');
         }
 
@@ -55,13 +53,13 @@ abstract class BaseDateTimeTransformer implements DataTransformerInterface
         try {
             new \DateTimeZone($this->inputTimezone);
         } catch (\Exception $e) {
-            throw new InvalidArgumentException(sprintf('Input timezone is invalid: %s.', $this->inputTimezone), $e->getCode(), $e);
+            throw new InvalidArgumentException(sprintf('Input timezone is invalid: "%s".', $this->inputTimezone), $e->getCode(), $e);
         }
 
         try {
             new \DateTimeZone($this->outputTimezone);
         } catch (\Exception $e) {
-            throw new InvalidArgumentException(sprintf('Output timezone is invalid: %s.', $this->outputTimezone), $e->getCode(), $e);
+            throw new InvalidArgumentException(sprintf('Output timezone is invalid: "%s".', $this->outputTimezone), $e->getCode(), $e);
         }
     }
 }

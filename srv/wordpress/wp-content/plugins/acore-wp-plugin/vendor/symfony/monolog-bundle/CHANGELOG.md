@@ -1,3 +1,39 @@
+## 3.6.0 (xxxx-xx-xx)
+
+* Added support for Symfony Mailer
+* Added support for setting log levels from parameters or environment variables
+
+## 3.5.0 (2019-11-13)
+
+* Added support for Monolog 2.0
+* Added `sentry` type to use sentry 2.0 client
+* Added `insightops` handler
+* Added possibility for auto-wire monolog channel according to the type-hinted aliases, introduced in the Symfony 4.2
+
+## 3.4.0 (2019-06-20)
+
+* Deprecate "excluded_404s" option
+* Flush loggers on `kernel.reset`
+* Register processors (`ProcessorInterface`) for autoconfiguration (tag: `monolog.processor`)
+* Expose configuration for the `ConsoleHandler`
+* Fixed psr-3 processing being applied to all handlers, only leaf ones are now processing
+* Fixed regression when `app` channel is defined explicitly
+* Fixed handlers marked as nested not being ignored properly from the stack
+* Added support for Redis configuration
+* Drop support for Symfony <3
+
+## 3.3.1 (2018-11-04)
+
+* Fixed compatiblity with Symfony 4.2
+
+## 3.3.0 (2018-06-04)
+
+* Fixed the autowiring of the channel logger in autoconfigured services
+* Added timeouts to the pushover, hipchat, slack handlers
+* Dropped support for PHP 5.3, 5.4, and HHVM
+* Added configuration for HttpCodeActivationStrategy
+* Deprecated "excluded_404s" option for Symfony >= 3.4
+
 ## 3.2.0 (2018-03-05)
 
 * Removed randomness from the container build

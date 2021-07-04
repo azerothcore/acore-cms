@@ -42,7 +42,7 @@ class IntlTestHelper
         //   * the intl extension is loaded with version Intl::getIcuStubVersion()
         //   * the intl extension is not loaded
 
-        if (($minimumIcuVersion || defined('HHVM_VERSION_ID')) && IcuVersion::compare(Intl::getIcuVersion(), $minimumIcuVersion, '<', 1)) {
+        if (($minimumIcuVersion || \defined('HHVM_VERSION_ID')) && IcuVersion::compare(Intl::getIcuVersion(), $minimumIcuVersion, '<', 1)) {
             $testCase->markTestSkipped('ICU version '.$minimumIcuVersion.' is required.');
         }
 
@@ -86,7 +86,7 @@ class IntlTestHelper
      */
     public static function require32Bit(TestCase $testCase)
     {
-        if (4 !== PHP_INT_SIZE) {
+        if (4 !== \PHP_INT_SIZE) {
             $testCase->markTestSkipped('PHP 32 bit is required.');
         }
     }
@@ -96,7 +96,7 @@ class IntlTestHelper
      */
     public static function require64Bit(TestCase $testCase)
     {
-        if (8 !== PHP_INT_SIZE) {
+        if (8 !== \PHP_INT_SIZE) {
             $testCase->markTestSkipped('PHP 64 bit is required.');
         }
     }

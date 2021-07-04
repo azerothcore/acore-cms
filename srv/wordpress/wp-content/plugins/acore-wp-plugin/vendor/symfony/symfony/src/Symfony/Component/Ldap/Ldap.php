@@ -21,9 +21,9 @@ final class Ldap implements LdapInterface
 {
     private $adapter;
 
-    private static $adapterMap = array(
+    private static $adapterMap = [
         'ext_ldap' => 'Symfony\Component\Ldap\Adapter\ExtLdap\Adapter',
-    );
+    ];
 
     public function __construct(AdapterInterface $adapter)
     {
@@ -41,7 +41,7 @@ final class Ldap implements LdapInterface
     /**
      * {@inheritdoc}
      */
-    public function query($dn, $query, array $options = array())
+    public function query($dn, $query, array $options = [])
     {
         return $this->adapter->createQuery($dn, $query, $options);
     }
@@ -70,14 +70,10 @@ final class Ldap implements LdapInterface
      *
      * @return static
      */
-    public static function create($adapter, array $config = array())
+    public static function create($adapter, array $config = [])
     {
         if (!isset(self::$adapterMap[$adapter])) {
-            throw new DriverNotFoundException(sprintf(
-                'Adapter "%s" not found. You should use one of: %s',
-                $adapter,
-                implode(', ', self::$adapterMap)
-            ));
+            throw new DriverNotFoundException(sprintf('Adapter "%s" not found. You should use one of: "%s".', $adapter, implode('", "', self::$adapterMap)));
         }
 
         $class = self::$adapterMap[$adapter];

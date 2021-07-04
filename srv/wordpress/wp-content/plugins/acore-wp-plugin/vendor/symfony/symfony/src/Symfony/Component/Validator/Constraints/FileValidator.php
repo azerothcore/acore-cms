@@ -27,13 +27,13 @@ class FileValidator extends ConstraintValidator
     const KIB_BYTES = 1024;
     const MIB_BYTES = 1048576;
 
-    private static $suffices = array(
+    private static $suffices = [
         1 => 'bytes',
         self::KB_BYTES => 'kB',
         self::MB_BYTES => 'MB',
         self::KIB_BYTES => 'KiB',
         self::MIB_BYTES => 'MiB',
-    );
+    ];
 
     /**
      * {@inheritdoc}
@@ -41,7 +41,7 @@ class FileValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof File) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\File');
+            throw new UnexpectedTypeException($constraint, File::class);
         }
 
         if (null === $value || '' === $value) {
@@ -50,57 +50,57 @@ class FileValidator extends ConstraintValidator
 
         if ($value instanceof UploadedFile && !$value->isValid()) {
             switch ($value->getError()) {
-                case UPLOAD_ERR_INI_SIZE:
+                case \UPLOAD_ERR_INI_SIZE:
                     $iniLimitSize = UploadedFile::getMaxFilesize();
                     if ($constraint->maxSize && $constraint->maxSize < $iniLimitSize) {
                         $limitInBytes = $constraint->maxSize;
                         $binaryFormat = $constraint->binaryFormat;
                     } else {
                         $limitInBytes = $iniLimitSize;
-                        $binaryFormat = true;
+                        $binaryFormat = null === $constraint->binaryFormat ? true : $constraint->binaryFormat;
                     }
 
-                    list($sizeAsString, $limitAsString, $suffix) = $this->factorizeSizes(0, $limitInBytes, $binaryFormat);
+                    list(, $limitAsString, $suffix) = $this->factorizeSizes(0, $limitInBytes, $binaryFormat);
                     $this->context->buildViolation($constraint->uploadIniSizeErrorMessage)
                         ->setParameter('{{ limit }}', $limitAsString)
                         ->setParameter('{{ suffix }}', $suffix)
-                        ->setCode(UPLOAD_ERR_INI_SIZE)
+                        ->setCode(\UPLOAD_ERR_INI_SIZE)
                         ->addViolation();
 
                     return;
-                case UPLOAD_ERR_FORM_SIZE:
+                case \UPLOAD_ERR_FORM_SIZE:
                     $this->context->buildViolation($constraint->uploadFormSizeErrorMessage)
-                        ->setCode(UPLOAD_ERR_FORM_SIZE)
+                        ->setCode(\UPLOAD_ERR_FORM_SIZE)
                         ->addViolation();
 
                     return;
-                case UPLOAD_ERR_PARTIAL:
+                case \UPLOAD_ERR_PARTIAL:
                     $this->context->buildViolation($constraint->uploadPartialErrorMessage)
-                        ->setCode(UPLOAD_ERR_PARTIAL)
+                        ->setCode(\UPLOAD_ERR_PARTIAL)
                         ->addViolation();
 
                     return;
-                case UPLOAD_ERR_NO_FILE:
+                case \UPLOAD_ERR_NO_FILE:
                     $this->context->buildViolation($constraint->uploadNoFileErrorMessage)
-                        ->setCode(UPLOAD_ERR_NO_FILE)
+                        ->setCode(\UPLOAD_ERR_NO_FILE)
                         ->addViolation();
 
                     return;
-                case UPLOAD_ERR_NO_TMP_DIR:
+                case \UPLOAD_ERR_NO_TMP_DIR:
                     $this->context->buildViolation($constraint->uploadNoTmpDirErrorMessage)
-                        ->setCode(UPLOAD_ERR_NO_TMP_DIR)
+                        ->setCode(\UPLOAD_ERR_NO_TMP_DIR)
                         ->addViolation();
 
                     return;
-                case UPLOAD_ERR_CANT_WRITE:
+                case \UPLOAD_ERR_CANT_WRITE:
                     $this->context->buildViolation($constraint->uploadCantWriteErrorMessage)
-                        ->setCode(UPLOAD_ERR_CANT_WRITE)
+                        ->setCode(\UPLOAD_ERR_CANT_WRITE)
                         ->addViolation();
 
                     return;
-                case UPLOAD_ERR_EXTENSION:
+                case \UPLOAD_ERR_EXTENSION:
                     $this->context->buildViolation($constraint->uploadExtensionErrorMessage)
-                        ->setCode(UPLOAD_ERR_EXTENSION)
+                        ->setCode(\UPLOAD_ERR_EXTENSION)
                         ->addViolation();
 
                     return;
@@ -113,7 +113,7 @@ class FileValidator extends ConstraintValidator
             }
         }
 
-        if (!is_scalar($value) && !$value instanceof FileObject && !(is_object($value) && method_exists($value, '__toString'))) {
+        if (!is_scalar($value) && !$value instanceof FileObject && !(\is_object($value) && method_exists($value, '__toString'))) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
@@ -196,7 +196,7 @@ class FileValidator extends ConstraintValidator
 
     private static function moreDecimalsThan($double, $numberOfDecimals)
     {
-        return strlen((string) $double) > strlen(round($double, $numberOfDecimals));
+        return \strlen((string) $double) > \strlen(round($double, $numberOfDecimals));
     }
 
     /**
@@ -233,6 +233,6 @@ class FileValidator extends ConstraintValidator
             $sizeAsString = (string) round($size / $coef, 2);
         }
 
-        return array($sizeAsString, $limitAsString, self::$suffices[$coef]);
+        return [$sizeAsString, $limitAsString, self::$suffices[$coef]];
     }
 }

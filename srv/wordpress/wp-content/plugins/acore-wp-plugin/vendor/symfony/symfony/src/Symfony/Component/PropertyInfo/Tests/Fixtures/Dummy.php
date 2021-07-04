@@ -47,6 +47,16 @@ class Dummy extends ParentDummy
     public $collection;
 
     /**
+     * @var string[][]
+     */
+    public $nestedCollection;
+
+    /**
+     * @var mixed[]
+     */
+    public $mixedCollection;
+
+    /**
      * @var ParentDummy
      */
     public $B;
@@ -67,6 +77,38 @@ class Dummy extends ParentDummy
      * @var array|null
      */
     public $g;
+
+    /**
+     * @var ?string
+     */
+    public $h;
+
+    /**
+     * @var ?string|int
+     */
+    public $i;
+
+    /**
+     * @var ?\DateTime
+     */
+    public $j;
+
+    /**
+     * @var array
+     */
+    private $xTotals;
+
+    /**
+     * @var string
+     */
+    private $YT;
+
+    /**
+     * This should not be removed.
+     *
+     * @var
+     */
+    public $emptyVar;
 
     public static function getStatic()
     {
@@ -118,6 +160,42 @@ class Dummy extends ParentDummy
     }
 
     public function get123()
+    {
+    }
+
+    /**
+     * @param self $self
+     */
+    public function setSelf(self $self)
+    {
+    }
+
+    /**
+     * @param parent $realParent
+     */
+    public function setRealParent(parent $realParent)
+    {
+    }
+
+    /**
+     * @return array
+     */
+    public function getXTotals()
+    {
+    }
+
+    /**
+     * @return string
+     */
+    public function getYT()
+    {
+    }
+
+    public function setDate(\DateTime $date)
+    {
+    }
+
+    public function addDate(\DateTime $date)
     {
     }
 }

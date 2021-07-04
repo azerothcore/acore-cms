@@ -7,17 +7,18 @@
         'default':                '#999',
         'section':                '#444',
         'event_listener':         '#00B8F5',
-        'event_listener_loading': '#00B8F5',
         'template':               '#66CC00',
         'doctrine':               '#FF6633',
-        'propel':                 '#FF6633',
     } %}
 {% endif %}
 
+
 {% block toolbar %}
-    {% set total_time = collector.events|length ? '%.0f'|format(collector.duration) : 'n/a' %}
+    {% set has_time_events = collector.events|length > 0 %}
+
+    {% set total_time = has_time_events ? '%.0f'|format(collector.duration) : 'n/a' %}
     {% set initialization_time = collector.events|length ? '%.0f'|format(collector.inittime) : 'n/a' %}
-    {% set status_color = collector.events|length and collector.duration > 1000 ? 'yellow' : '' %}
+    {% set status_color = has_time_events and collector.duration > 1000 ? 'yellow' : '' %}
 
     {% set icon %}
         {{ include('@WebProfiler/Icon/time.svg') }}
@@ -47,6 +48,7 @@
 {% endblock %}
 
 {% block panel %}
+    {% set has_time_events = collector.events|length > 0 %}
     <h2>Performance metrics</h2>
 
     <div class="metrics">
@@ -62,7 +64,7 @@
 
         {% if profile.collectors.memory %}
             <div class="metric">
-                <span class="value">{{ '%.2f'|format(profile.collectors.memory.memory / 1024 / 1024) }} <span class="unit">MB</span></span>
+                <span class="value">{{ '%.2f'|format(profile.collectors.memory.memory / 1024 / 1024) }} <span class="unit">MiB</span></span>
                 <span class="label">Peak memory usage</span>
             </div>
         {% endif %}
@@ -75,10 +77,14 @@
                 <span class="label">Sub-Request{{ profile.children|length > 1 ? 's' }}</span>
             </div>
 
-            {% set subrequests_time = 0 %}
-            {% for child in profile.children %}
-                {% set subrequests_time = subrequests_time + child.getcollector('time').events.__section__.duration %}
-            {% endfor %}
+            {% if has_time_events %}
+                {% set subrequests_time = 0 %}
+                {% for child in profile.children %}
+                    {% set subrequests_time = subrequests_time + child.getcollector('time').events.__section__.duration %}
+                {% endfor %}
+            {% else %}
+                {% set subrequests_time = 'n/a' %}
+            {% endif %}
 
             <div class="metric">
                 <span class="value">{{ subrequests_time }} <span class="unit">ms</span></span>
@@ -89,7 +95,11 @@
 
     <h2>Execution timeline</h2>
 
-    {% if collector.events is empty %}
+    {% if not collector.isStopwatchInstalled() %}
+        <div class="empty">
+            <p>The Stopwatch component is not installed. If you want to see timing events, run: <code>composer require symfony/stopwatch</code>.</p>
+        </div>
+    {% elseif collector.events is empty %}
         <div class="empty">
             <p>No timing events have been recorded. Are you sure that debugging is enabled in the kernel?</p>
         </div>
@@ -376,7 +386,7 @@
                     ctx.fillStyle = "#444";
                     ctx.font = "12px sans-serif";
                     text = event.name;
-                    ms = "  " + (event.duration < 1 ? event.duration : parseInt(event.duration, 10)) + " ms / " + event.memory + " MB";
+                    ms = "  " + (event.duration < 1 ? event.duration : parseInt(event.duration, 10)) + " ms / " + event.memory + " MiB";
                     if (x + event.starttime * ratio + ctx.measureText(text + ms).width > width) {
                         ctx.textAlign = "end";
                         ctx.font = "10px sans-serif";

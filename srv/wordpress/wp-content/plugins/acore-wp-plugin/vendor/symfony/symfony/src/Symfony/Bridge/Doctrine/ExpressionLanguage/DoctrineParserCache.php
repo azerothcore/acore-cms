@@ -11,7 +11,7 @@
 
 namespace Symfony\Bridge\Doctrine\ExpressionLanguage;
 
-@trigger_error('The '.__NAMESPACE__.'\DoctrineParserCache class is deprecated since version 3.2 and will be removed in 4.0. Use the Symfony\Component\Cache\Adapter\DoctrineAdapter class instead.', E_USER_DEPRECATED);
+@trigger_error('The '.__NAMESPACE__.'\DoctrineParserCache class is deprecated since Symfony 3.2 and will be removed in 4.0. Use the Symfony\Component\Cache\Adapter\DoctrineAdapter class instead.', \E_USER_DEPRECATED);
 
 use Doctrine\Common\Cache\Cache;
 use Symfony\Component\ExpressionLanguage\ParsedExpression;
@@ -24,9 +24,6 @@ use Symfony\Component\ExpressionLanguage\ParserCache\ParserCacheInterface;
  */
 class DoctrineParserCache implements ParserCacheInterface
 {
-    /**
-     * @var Cache
-     */
     private $cache;
 
     public function __construct(Cache $cache)
@@ -40,7 +37,7 @@ class DoctrineParserCache implements ParserCacheInterface
     public function fetch($key)
     {
         if (false === $value = $this->cache->fetch($key)) {
-            return;
+            return null;
         }
 
         return $value;

@@ -1,13 +1,12 @@
 {
-    "Version": "2.1.31.33",
     "Names": {
         "BOB": [
             "Bs",
-            "BOB"
+            "Boliviano"
         ],
         "PEN": [
             "PEN",
-            "PEN"
+            "Sol Peruano"
         ]
     }
 }

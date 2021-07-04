@@ -68,7 +68,7 @@ class AppVariable
     /**
      * Returns the current user.
      *
-     * @return mixed
+     * @return object|null
      *
      * @see TokenInterface::getUser()
      */
@@ -79,13 +79,12 @@ class AppVariable
         }
 
         if (!$token = $tokenStorage->getToken()) {
-            return;
+            return null;
         }
 
         $user = $token->getUser();
-        if (is_object($user)) {
-            return $user;
-        }
+
+        return \is_object($user) ? $user : null;
     }
 
     /**
@@ -113,9 +112,7 @@ class AppVariable
             throw new \RuntimeException('The "app.session" variable is not available.');
         }
 
-        if ($request = $this->getRequest()) {
-            return $request->getSession();
-        }
+        return ($request = $this->getRequest()) ? $request->getSession() : null;
     }
 
     /**
@@ -144,5 +141,40 @@ class AppVariable
         }
 
         return $this->debug;
+    }
+
+    /**
+     * Returns some or all the existing flash messages:
+     *  * getFlashes() returns all the flash messages
+     *  * getFlashes('notice') returns a simple array with flash messages of that type
+     *  * getFlashes(['notice', 'error']) returns a nested array of type => messages.
+     *
+     * @return array
+     */
+    public function getFlashes($types = null)
+    {
+        try {
+            $session = $this->getSession();
+            if (null === $session) {
+                return [];
+            }
+        } catch (\RuntimeException $e) {
+            return [];
+        }
+
+        if (null === $types || '' === $types || [] === $types) {
+            return $session->getFlashBag()->all();
+        }
+
+        if (\is_string($types)) {
+            return $session->getFlashBag()->get($types);
+        }
+
+        $result = [];
+        foreach ($types as $type) {
+            $result[$type] = $session->getFlashBag()->get($type);
+        }
+
+        return $result;
     }
 }

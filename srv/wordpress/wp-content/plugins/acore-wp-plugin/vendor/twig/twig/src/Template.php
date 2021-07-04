@@ -29,9 +29,9 @@ use Twig\Error\RuntimeError;
  */
 abstract class Template
 {
-    const ANY_CALL = 'any';
-    const ARRAY_CALL = 'array';
-    const METHOD_CALL = 'method';
+    public const ANY_CALL = 'any';
+    public const ARRAY_CALL = 'array';
+    public const METHOD_CALL = 'method';
 
     protected $parent;
     protected $parents = [];
@@ -84,8 +84,6 @@ abstract class Template
      *
      * This method is for internal use only and should never be called
      * directly.
-     *
-     * @param array $context
      *
      * @return Template|TemplateWrapper|false The parent template or false if there is no parent
      */
@@ -324,7 +322,7 @@ abstract class Template
             }
 
             if ($template === $this->getTemplateName()) {
-                $class = \get_class($this);
+                $class = static::class;
                 if (false !== $pos = strrpos($class, '___', -1)) {
                     $class = substr($class, 0, $pos);
                 }
@@ -357,7 +355,7 @@ abstract class Template
      *
      * @return Template
      */
-    protected function unwrap()
+    public function unwrap()
     {
         return $this;
     }

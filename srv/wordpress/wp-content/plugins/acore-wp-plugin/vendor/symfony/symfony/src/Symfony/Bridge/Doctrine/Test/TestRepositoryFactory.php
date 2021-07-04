@@ -11,10 +11,11 @@
 
 namespace Symfony\Bridge\Doctrine\Test;
 
-use Doctrine\Common\Persistence\ObjectRepository;
+use Doctrine\Common\Persistence\ObjectRepository as LegacyObjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Repository\RepositoryFactory;
+use Doctrine\Persistence\ObjectRepository;
 
 /**
  * @author Andreas Braun <alcaeus@alcaeus.org>
@@ -24,10 +25,12 @@ final class TestRepositoryFactory implements RepositoryFactory
     /**
      * @var ObjectRepository[]
      */
-    private $repositoryList = array();
+    private $repositoryList = [];
 
     /**
      * {@inheritdoc}
+     *
+     * @return ObjectRepository|LegacyObjectRepository
      */
     public function getRepository(EntityManagerInterface $entityManager, $entityName)
     {
@@ -40,7 +43,7 @@ final class TestRepositoryFactory implements RepositoryFactory
         return $this->repositoryList[$repositoryHash] = $this->createRepository($entityManager, $entityName);
     }
 
-    public function setRepository(EntityManagerInterface $entityManager, $entityName, ObjectRepository $repository)
+    public function setRepository(EntityManagerInterface $entityManager, $entityName, LegacyObjectRepository $repository)
     {
         $repositoryHash = $this->getRepositoryHash($entityManager, $entityName);
 
@@ -48,7 +51,7 @@ final class TestRepositoryFactory implements RepositoryFactory
     }
 
     /**
-     * @return ObjectRepository
+     * @return ObjectRepository|LegacyObjectRepository
      */
     private function createRepository(EntityManagerInterface $entityManager, $entityName)
     {

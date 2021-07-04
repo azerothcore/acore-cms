@@ -12,23 +12,17 @@
 namespace Symfony\Component\Form\Extension\HttpFoundation\Type;
 
 use Symfony\Component\Form\AbstractTypeExtension;
-use Symfony\Component\Form\RequestHandlerInterface;
-use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationRequestHandler;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\RequestHandlerInterface;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class FormTypeHttpFoundationExtension extends AbstractTypeExtension
 {
-    /**
-     * @var RequestHandlerInterface
-     */
     private $requestHandler;
 
-    /**
-     * @param RequestHandlerInterface $requestHandler
-     */
     public function __construct(RequestHandlerInterface $requestHandler = null)
     {
         $this->requestHandler = $requestHandler ?: new HttpFoundationRequestHandler();

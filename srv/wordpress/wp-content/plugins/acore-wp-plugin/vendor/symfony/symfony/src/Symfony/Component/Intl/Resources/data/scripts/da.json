@@ -1,8 +1,8 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "Afak": "afaka",
         "Arab": "arabisk",
+        "Aran": "nastaliq",
         "Armi": "armi",
         "Armn": "armensk",
         "Avst": "avestansk",
@@ -14,7 +14,7 @@
         "Blis": "blissymboler",
         "Bopo": "bopomofo",
         "Brah": "bramisk",
-        "Brai": "brailleskrift",
+        "Brai": "punktskrift",
         "Bugi": "buginesisk",
         "Buhd": "buhid",
         "Cakm": "cakm",
@@ -113,6 +113,7 @@
         "Phnx": "fønikisk",
         "Plrd": "pollardtegn",
         "Prti": "prti",
+        "Qaag": "zawgyi",
         "Rjng": "rejang",
         "Roro": "rongo-rongo",
         "Runr": "runer",

@@ -7,13 +7,6 @@ in 3.2 minor versions.
 To get the diff for a specific change, go to https://github.com/symfony/symfony/commit/XXX where XXX is the change hash
 To get the diff between two versions, go to https://github.com/symfony/symfony/compare/v3.2.0...v3.2.1
 
-* 3.2.14 (2017-11-16)
-
- * security #24995 Validate redirect targets using the session cookie domain (nicolas-grekas)
- * security #24994 Prevent bundle readers from breaking out of paths (xabbuh)
- * security #24993 Ensure that submitted data are uploaded files (xabbuh)
- * security #24992 Namespace generated CSRF tokens depending of the current scheme (dunglas)
-
 * 3.2.13 (2017-08-01)
 
  * bug #22244 [Console] Fix passing options with defaultCommand (Jakub Sacha)
@@ -109,7 +102,7 @@ To get the diff between two versions, go to https://github.com/symfony/symfony/c
  * bug #22900 [FrameworkBundle][Console] Fix the override of a command registered by the kernel (aaa2000)
  * bug #22910 [Filesystem] improve error handling in lock() (xabbuh)
  * bug #22924 [Cache] Dont use pipelining with RedisCluster (nicolas-grekas)
- * bug #22718 [Console] Fixed different behaviour of key and value user inputs in multiple choice question (borNfreee)
+ * bug #22718 [Console] Fixed different behavior of key and value user inputs in multiple choice question (borNfreee)
  * bug #22829 [Yaml] fix colon without space deprecation (xabbuh)
  * bug #22901 Fix missing abstract key in XmlDumper (weaverryan)
  * bug #22912 [DI] Avoid private call to Container::has() (ro0NL)

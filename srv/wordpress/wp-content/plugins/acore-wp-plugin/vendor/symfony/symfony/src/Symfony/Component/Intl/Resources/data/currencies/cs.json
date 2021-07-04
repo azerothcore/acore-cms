@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "ADP": [
             "ADP",
@@ -123,15 +122,15 @@
         ],
         "BGL": [
             "BGL",
-            "BGL"
+            "bulharský tvrdý leva"
         ],
         "BGM": [
             "BGM",
-            "BGM"
+            "bulharský socialistický leva"
         ],
         "BGN": [
             "BGN",
-            "bulharský lev"
+            "bulharský leva"
         ],
         "BGO": [
             "BGO",
@@ -260,6 +259,14 @@
         "CLP": [
             "CLP",
             "chilské peso"
+        ],
+        "CNH": [
+            "CNH",
+            "čínský jüan (offshore)"
+        ],
+        "CNX": [
+            "CNX",
+            "čínský dolar ČLB"
         ],
         "CNY": [
             "CN¥",
@@ -675,6 +682,10 @@
         ],
         "MRO": [
             "MRO",
+            "mauritánská ouguiya (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "mauritánská ouguiya"
         ],
         "MTL": [
@@ -907,6 +918,10 @@
         ],
         "STD": [
             "STD",
+            "svatotomášská dobra (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "svatotomášská dobra"
         ],
         "SUR": [
@@ -1027,6 +1042,10 @@
         ],
         "VEF": [
             "VEF",
+            "venezuelský bolívar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "venezuelský bolívar"
         ],
         "VND": [

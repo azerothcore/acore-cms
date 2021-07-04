@@ -36,12 +36,10 @@ class StreamOutputTest extends TestCase
         $this->assertTrue($output->isDecorated(), '__construct() takes the decorated flag as its second argument');
     }
 
-    /**
-     * @expectedException        \InvalidArgumentException
-     * @expectedExceptionMessage The StreamOutput class needs a stream as its first argument.
-     */
     public function testStreamIsRequired()
     {
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('The StreamOutput class needs a stream as its first argument.');
         new StreamOutput('foo');
     }
 
@@ -56,6 +54,14 @@ class StreamOutputTest extends TestCase
         $output = new StreamOutput($this->stream);
         $output->writeln('foo');
         rewind($output->getStream());
-        $this->assertEquals('foo'.PHP_EOL, stream_get_contents($output->getStream()), '->doWrite() writes to the stream');
+        $this->assertEquals('foo'.\PHP_EOL, stream_get_contents($output->getStream()), '->doWrite() writes to the stream');
+    }
+
+    public function testDoWriteOnFailure()
+    {
+        $resource = fopen(__DIR__.'/../Fixtures/stream_output_file.txt', 'r', false);
+        $output = new StreamOutput($resource);
+        rewind($output->getStream());
+        $this->assertEquals('', stream_get_contents($output->getStream()));
     }
 }

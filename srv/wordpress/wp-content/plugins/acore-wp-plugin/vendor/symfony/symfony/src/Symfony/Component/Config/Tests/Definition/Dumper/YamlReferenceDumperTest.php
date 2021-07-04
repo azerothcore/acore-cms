@@ -26,6 +26,61 @@ class YamlReferenceDumperTest extends TestCase
         $this->assertEquals($this->getConfigurationAsString(), $dumper->dump($configuration));
     }
 
+    public function provideDumpAtPath()
+    {
+        return [
+            'Regular node' => ['scalar_true', <<<EOL
+scalar_true:          true
+EOL
+            ],
+            'Array node' => ['array', <<<EOL
+# some info
+array:
+    child1:               ~
+    child2:               ~
+
+    # this is a long
+    # multi-line info text
+    # which should be indented
+    child3:               ~ # Example: example setting
+EOL
+            ],
+            'Regular nested' => ['array.child2', <<<EOL
+child2:               ~
+EOL
+            ],
+            'Prototype' => ['cms_pages.page', <<<EOL
+# Prototype
+page:
+
+    # Prototype
+    locale:
+        title:                ~ # Required
+        path:                 ~ # Required
+EOL
+            ],
+            'Nested prototype' => ['cms_pages.page.locale', <<<EOL
+# Prototype
+locale:
+    title:                ~ # Required
+    path:                 ~ # Required
+EOL
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideDumpAtPath
+     */
+    public function testDumpAtPath($path, $expected)
+    {
+        $configuration = new ExampleConfiguration();
+
+        $dumper = new YamlReferenceDumper();
+
+        $this->assertSame(trim($expected), trim($dumper->dumpAtPath($configuration, $path)));
+    }
+
     private function getConfigurationAsString()
     {
         return <<<'EOL'
@@ -43,6 +98,8 @@ acme_root:
         - elem1
         - elem2
     scalar_required:      ~ # Required
+    scalar_deprecated:    ~ # Deprecated (The child node "scalar_deprecated" at path "acme_root" is deprecated.)
+    scalar_deprecated_with_message: ~ # Deprecated (Deprecation custom message for "scalar_deprecated_with_message" at "acme_root")
     node_with_a_looong_name: ~
     enum_with_default:    this # One of "this"; "that"
     enum:                 ~ # One of "this"; "that"

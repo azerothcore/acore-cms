@@ -9,6 +9,12 @@ use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
+use const E_USER_DEPRECATED;
+use function array_key_exists;
+use function in_array;
+use function is_array;
+use function sprintf;
+use function trigger_error;
 
 /**
  * This class contains the configuration information for the bundle
@@ -22,8 +28,6 @@ class Configuration implements ConfigurationInterface
     private $debug;
 
     /**
-     * Constructor
-     *
      * @param bool $debug Whether to use the debug mode
      */
     public function __construct($debug)
@@ -34,7 +38,7 @@ class Configuration implements ConfigurationInterface
     /**
      * {@inheritDoc}
      */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder() : TreeBuilder
     {
         $treeBuilder = new TreeBuilder('doctrine');
 
@@ -96,7 +100,7 @@ class Configuration implements ConfigurationInterface
                             ->end()
                             ->children()
                                 ->scalarNode('class')->isRequired()->end()
-                                ->booleanNode('commented')->defaultTrue()->end()
+                                ->booleanNode('commented')->defaultNull()->end()
                             ->end()
                         ->end()
                     ->end()
@@ -143,6 +147,10 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('schema_filter')->end()
                 ->booleanNode('logging')->defaultValue($this->debug)->end()
                 ->booleanNode('profiling')->defaultValue($this->debug)->end()
+                ->booleanNode('profiling_collect_backtrace')
+                    ->defaultValue(false)
+                    ->info('Enables collecting backtraces when profiling is enabled')
+                ->end()
                 ->scalarNode('server_version')->end()
                 ->scalarNode('driver_class')->end()
                 ->scalarNode('wrapper_class')->end()
@@ -152,7 +160,7 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('keep_slave')->end()
                 ->arrayNode('options')
                     ->useAttributeAsKey('key')
-                    ->prototype('scalar')->end()
+                    ->prototype('variable')->end()
                 ->end()
                 ->arrayNode('mapping_types')
                     ->useAttributeAsKey('name')
@@ -540,7 +548,7 @@ class Configuration implements ConfigurationInterface
                             ->append($this->getOrmCacheDriverNode('region_cache_driver'))
                             ->scalarNode('region_lock_lifetime')->defaultValue(60)->end()
                             ->booleanNode('log_enabled')->defaultValue($this->debug)->end()
-                            ->scalarNode('region_lifetime')->defaultValue(0)->end()
+                            ->scalarNode('region_lifetime')->defaultValue(3600)->end()
                             ->booleanNode('enabled')->defaultValue(true)->end()
                             ->scalarNode('factory')->end()
                         ->end()
@@ -689,20 +697,46 @@ class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet()
             ->beforeNormalization()
                 ->ifString()
-                ->then(static function ($v) {
+                ->then(static function ($v) : array {
                     return ['type' => $v];
                 })
             ->end()
+            ->beforeNormalization()
+                ->ifTrue(static function ($v) : bool {
+                    return is_array($v) && array_key_exists('cache_provider', $v);
+                })
+                ->then(static function ($v) : array {
+                    return ['type' => 'provider'] + $v;
+                })
+            ->end()
             ->children()
-                ->scalarNode('type')->defaultValue('array')->end()
-                ->scalarNode('host')->end()
-                ->scalarNode('port')->end()
-                ->scalarNode('database')->end()
-                ->scalarNode('instance_class')->end()
-                ->scalarNode('class')->end()
+                ->scalarNode('type')
+                    ->defaultNull()
+                    ->beforeNormalization()
+                        ->ifNotInArray([null, 'pool', 'service'])
+                        ->then(static function ($v) use ($name) {
+                            @trigger_error(
+                                sprintf(
+                                    'Using the "%s" type for cache "%s" is deprecated since DoctrineBundle 1.12 and will be dropped in 2.0. Please use the "service" or "pool" types exclusively.',
+                                    $v,
+                                    $name
+                                ),
+                                E_USER_DEPRECATED
+                            );
+
+                            return $v;
+                        })
+                    ->end()
+                ->end()
                 ->scalarNode('id')->end()
-                ->scalarNode('namespace')->defaultNull()->end()
-                ->scalarNode('cache_provider')->defaultNull()->end()
+                ->scalarNode('pool')->end()
+                ->scalarNode('host')->setDeprecated()->end()
+                ->scalarNode('port')->setDeprecated()->end()
+                ->scalarNode('database')->setDeprecated()->end()
+                ->scalarNode('instance_class')->setDeprecated()->end()
+                ->scalarNode('class')->setDeprecated()->end()
+                ->scalarNode('namespace')->defaultNull()->setDeprecated()->end()
+                ->scalarNode('cache_provider')->defaultNull()->setDeprecated()->end()
             ->end();
 
         return $node;

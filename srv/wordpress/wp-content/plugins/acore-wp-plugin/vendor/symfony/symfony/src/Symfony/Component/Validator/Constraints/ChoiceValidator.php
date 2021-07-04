@@ -31,40 +31,40 @@ class ChoiceValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Choice) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Choice');
+            throw new UnexpectedTypeException($constraint, Choice::class);
         }
 
-        if (!is_array($constraint->choices) && !$constraint->callback) {
-            throw new ConstraintDefinitionException('Either "choices" or "callback" must be specified on constraint Choice');
+        if (!\is_array($constraint->choices) && !$constraint->callback) {
+            throw new ConstraintDefinitionException('Either "choices" or "callback" must be specified on constraint Choice.');
         }
 
         if (null === $value) {
             return;
         }
 
-        if ($constraint->multiple && !is_array($value)) {
+        if ($constraint->multiple && !\is_array($value)) {
             throw new UnexpectedTypeException($value, 'array');
         }
 
         if ($constraint->callback) {
-            if (!is_callable($choices = array($this->context->getObject(), $constraint->callback))
-                && !is_callable($choices = array($this->context->getClassName(), $constraint->callback))
-                && !is_callable($choices = $constraint->callback)
+            if (!\is_callable($choices = [$this->context->getObject(), $constraint->callback])
+                && !\is_callable($choices = [$this->context->getClassName(), $constraint->callback])
+                && !\is_callable($choices = $constraint->callback)
             ) {
-                throw new ConstraintDefinitionException('The Choice constraint expects a valid callback');
+                throw new ConstraintDefinitionException('The Choice constraint expects a valid callback.');
             }
-            $choices = call_user_func($choices);
+            $choices = \call_user_func($choices);
         } else {
             $choices = $constraint->choices;
         }
 
-        if (false === $constraint->strict) {
-            @trigger_error('Setting the strict option of the Choice constraint to false is deprecated since version 3.2 and will be removed in 4.0.', E_USER_DEPRECATED);
+        if (true !== $constraint->strict) {
+            @trigger_error('Not setting the strict option of the Choice constraint to true is deprecated since Symfony 3.4 and will throw an exception in 4.0.', \E_USER_DEPRECATED);
         }
 
         if ($constraint->multiple) {
             foreach ($value as $_value) {
-                if (!in_array($_value, $choices, $constraint->strict)) {
+                if (!\in_array($_value, $choices, $constraint->strict)) {
                     $this->context->buildViolation($constraint->multipleMessage)
                         ->setParameter('{{ value }}', $this->formatValue($_value))
                         ->setCode(Choice::NO_SUCH_CHOICE_ERROR)
@@ -75,9 +75,9 @@ class ChoiceValidator extends ConstraintValidator
                 }
             }
 
-            $count = count($value);
+            $count = \count($value);
 
-            if ($constraint->min !== null && $count < $constraint->min) {
+            if (null !== $constraint->min && $count < $constraint->min) {
                 $this->context->buildViolation($constraint->minMessage)
                     ->setParameter('{{ limit }}', $constraint->min)
                     ->setPlural((int) $constraint->min)
@@ -87,7 +87,7 @@ class ChoiceValidator extends ConstraintValidator
                 return;
             }
 
-            if ($constraint->max !== null && $count > $constraint->max) {
+            if (null !== $constraint->max && $count > $constraint->max) {
                 $this->context->buildViolation($constraint->maxMessage)
                     ->setParameter('{{ limit }}', $constraint->max)
                     ->setPlural((int) $constraint->max)
@@ -96,7 +96,7 @@ class ChoiceValidator extends ConstraintValidator
 
                 return;
             }
-        } elseif (!in_array($value, $choices, $constraint->strict)) {
+        } elseif (!\in_array($value, $choices, $constraint->strict)) {
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $this->formatValue($value))
                 ->setCode(Choice::NO_SUCH_CHOICE_ERROR)

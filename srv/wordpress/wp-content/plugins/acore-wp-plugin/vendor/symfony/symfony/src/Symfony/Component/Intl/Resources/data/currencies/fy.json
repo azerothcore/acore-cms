@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "ADP": [
             "ADP",
@@ -663,6 +662,10 @@
         ],
         "MRO": [
             "MRO",
+            "Mauritaanske ouguiya (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Mauritaanske ouguiya"
         ],
         "MTL": [
@@ -891,6 +894,10 @@
         ],
         "STD": [
             "STD",
+            "Santomese dobra (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Santomese dobra"
         ],
         "SUR": [
@@ -1011,6 +1018,10 @@
         ],
         "VEF": [
             "VEF",
+            "Fenezolaanske bolivar (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "Fenezolaanske bolivar"
         ],
         "VND": [

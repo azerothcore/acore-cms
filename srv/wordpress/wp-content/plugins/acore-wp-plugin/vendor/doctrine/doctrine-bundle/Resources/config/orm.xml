@@ -29,7 +29,7 @@
         <parameter key="doctrine.orm.cache.zenddata.class">Doctrine\Common\Cache\ZendDataCache</parameter>
 
         <!-- metadata -->
-        <parameter key="doctrine.orm.metadata.driver_chain.class">Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain</parameter>
+        <parameter key="doctrine.orm.metadata.driver_chain.class">Doctrine\Persistence\Mapping\Driver\MappingDriverChain</parameter>
         <parameter key="doctrine.orm.metadata.annotation.class">Doctrine\ORM\Mapping\Driver\AnnotationDriver</parameter>
         <parameter key="doctrine.orm.metadata.xml.class">Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver</parameter>
         <parameter key="doctrine.orm.metadata.yml.class">Doctrine\ORM\Mapping\Driver\SimplifiedYamlDriver</parameter>
@@ -62,7 +62,7 @@
         <parameter key="doctrine.orm.quote_strategy.ansi.class">Doctrine\ORM\Mapping\AnsiQuoteStrategy</parameter>
 
         <!-- entity listener resolver -->
-        <parameter key="doctrine.orm.entity_listener_resolver.class">Doctrine\Bundle\DoctrineBundle\Mapping\ContainerAwareEntityListenerResolver</parameter>
+        <parameter key="doctrine.orm.entity_listener_resolver.class">Doctrine\Bundle\DoctrineBundle\Mapping\ContainerEntityListenerResolver</parameter>
 
         <!-- second level cache -->
         <parameter key="doctrine.orm.second_level_cache.default_cache_factory.class">Doctrine\ORM\Cache\DefaultCacheFactory</parameter>
@@ -75,7 +75,7 @@
     </parameters>
 
     <services>
-        <service id="Doctrine\Common\Persistence\ObjectManager" alias="doctrine.orm.entity_manager" public="false" />
+        <service id="Doctrine\Common\Persistence\ObjectManager" alias="doctrine.orm.entity_manager" public="false"/>
         <service id="Doctrine\ORM\EntityManagerInterface" alias="doctrine.orm.entity_manager" public="false" />
 
         <!--- Deprecated Annotation Metadata Reader Service alias, use annotation_reader service -->
@@ -103,7 +103,11 @@
         </service>
 
         <service id="doctrine.orm.container_repository_factory" class="Doctrine\Bundle\DoctrineBundle\Repository\ContainerRepositoryFactory" public="false">
-            <argument>null</argument> <!-- repository locator -->
+            <argument type="service">
+                <service class="Symfony\Component\DependencyInjection\ServiceLocator">
+                    <argument type="collection" />
+                </service>
+            </argument>
         </service>
 
         <!-- The configurator cannot be a private service -->
@@ -134,6 +138,10 @@
         <!-- naming strategy -->
         <service id="doctrine.orm.naming_strategy.default" class="%doctrine.orm.naming_strategy.default.class%" public="false" />
         <service id="doctrine.orm.naming_strategy.underscore" class="%doctrine.orm.naming_strategy.underscore.class%" public="false" />
+        <service id="doctrine.orm.naming_strategy.underscore_number_aware" class="%doctrine.orm.naming_strategy.underscore.class%" public="false">
+            <argument type="constant">CASE_LOWER</argument>
+            <argument>true</argument>
+        </service>
 
         <!-- quote strategy -->
         <service id="doctrine.orm.quote_strategy.default" class="%doctrine.orm.quote_strategy.default.class%" public="false" />
@@ -174,10 +182,6 @@
 
         <service id="doctrine.clear_entity_region_command" class="Doctrine\Bundle\DoctrineBundle\Command\Proxy\EntityRegionCacheDoctrineCommand">
             <tag name="console.command" command="doctrine:cache:clear-entity-region" />
-        </service>
-
-        <service id="doctrine.database_import_command" class="Doctrine\Bundle\DoctrineBundle\Command\Proxy\ImportDoctrineCommand">
-            <tag name="console.command" command="doctrine:database:import" />
         </service>
 
         <service id="doctrine.mapping_info_command" class="Doctrine\Bundle\DoctrineBundle\Command\Proxy\InfoDoctrineCommand">

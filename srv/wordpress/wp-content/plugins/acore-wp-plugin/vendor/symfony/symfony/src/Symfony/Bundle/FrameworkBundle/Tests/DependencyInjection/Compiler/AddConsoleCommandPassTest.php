@@ -16,8 +16,10 @@ use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddConsoleComman
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 
+/**
+ * @group legacy
+ */
 class AddConsoleCommandPassTest extends TestCase
 {
     /**
@@ -37,34 +39,34 @@ class AddConsoleCommandPassTest extends TestCase
         $container->compile();
 
         $alias = 'console.command.symfony_bundle_frameworkbundle_tests_dependencyinjection_compiler_mycommand';
-        if ($container->hasAlias($alias)) {
-            $this->assertSame('my-command', (string) $container->getAlias($alias));
+
+        if ($public) {
+            $this->assertFalse($container->hasAlias($alias));
+            $id = 'my-command';
         } else {
+            $id = $alias;
             // The alias is replaced by a Definition by the ReplaceAliasByActualDefinitionPass
             // in case the original service is private
             $this->assertFalse($container->hasDefinition('my-command'));
             $this->assertTrue($container->hasDefinition($alias));
         }
 
-        $id = $public ? 'my-command' : 'console.command.symfony_bundle_frameworkbundle_tests_dependencyinjection_compiler_mycommand';
         $this->assertTrue($container->hasParameter('console.command.ids'));
-        $this->assertSame(array($id), $container->getParameter('console.command.ids'));
+        $this->assertSame([$alias => $id], $container->getParameter('console.command.ids'));
     }
 
     public function visibilityProvider()
     {
-        return array(
-            array(true),
-            array(false),
-        );
+        return [
+            [true],
+            [false],
+        ];
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage The service "my-command" tagged "console.command" must not be abstract.
-     */
     public function testProcessThrowAnExceptionIfTheServiceIsAbstract()
     {
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('The service "my-command" tagged "console.command" must not be abstract.');
         $container = new ContainerBuilder();
         $container->addCompilerPass(new AddConsoleCommandPass());
 
@@ -76,12 +78,10 @@ class AddConsoleCommandPassTest extends TestCase
         $container->compile();
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage The service "my-command" tagged "console.command" must be a subclass of "Symfony\Component\Console\Command\Command".
-     */
     public function testProcessThrowAnExceptionIfTheServiceIsNotASubclassOfCommand()
     {
+        $this->expectException('InvalidArgumentException');
+        $this->expectExceptionMessage('The service "my-command" tagged "console.command" must be a subclass of "Symfony\Component\Console\Command\Command".');
         $container = new ContainerBuilder();
         $container->addCompilerPass(new AddConsoleCommandPass());
 
@@ -91,12 +91,30 @@ class AddConsoleCommandPassTest extends TestCase
 
         $container->compile();
     }
+
+    public function testProcessPrivateServicesWithSameCommand()
+    {
+        $container = new ContainerBuilder();
+        $className = 'Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\Compiler\MyCommand';
+
+        $definition1 = new Definition($className);
+        $definition1->addTag('console.command')->setPublic(false);
+
+        $definition2 = new Definition($className);
+        $definition2->addTag('console.command')->setPublic(false);
+
+        $container->setDefinition('my-command1', $definition1);
+        $container->setDefinition('my-command2', $definition2);
+
+        (new AddConsoleCommandPass())->process($container);
+
+        $alias1 = 'console.command.symfony_bundle_frameworkbundle_tests_dependencyinjection_compiler_mycommand';
+        $alias2 = $alias1.'_my-command2';
+        $this->assertTrue($container->hasAlias($alias1));
+        $this->assertTrue($container->hasAlias($alias2));
+    }
 }
 
 class MyCommand extends Command
-{
-}
-
-class ExtensionPresentBundle extends Bundle
 {
 }

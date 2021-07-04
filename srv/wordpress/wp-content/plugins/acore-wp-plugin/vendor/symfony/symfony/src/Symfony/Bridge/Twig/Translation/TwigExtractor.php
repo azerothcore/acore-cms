@@ -12,7 +12,6 @@
 namespace Symfony\Bridge\Twig\Translation;
 
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Translation\Extractor\AbstractFileExtractor;
 use Symfony\Component\Translation\Extractor\ExtractorInterface;
 use Symfony\Component\Translation\MessageCatalogue;
@@ -42,11 +41,6 @@ class TwigExtractor extends AbstractFileExtractor implements ExtractorInterface
      */
     private $prefix = '';
 
-    /**
-     * The twig environment.
-     *
-     * @var Environment
-     */
     private $twig;
 
     public function __construct(Environment $twig)
@@ -59,22 +53,11 @@ class TwigExtractor extends AbstractFileExtractor implements ExtractorInterface
      */
     public function extract($resource, MessageCatalogue $catalogue)
     {
-        $files = $this->extractFiles($resource);
-        foreach ($files as $file) {
+        foreach ($this->extractFiles($resource) as $file) {
             try {
                 $this->extractTemplate(file_get_contents($file->getPathname()), $catalogue);
             } catch (Error $e) {
-                if ($file instanceof \SplFileInfo) {
-                    $path = $file->getRealPath() ?: $file->getPathname();
-                    $name = $file instanceof SplFileInfo ? $file->getRelativePathname() : $path;
-                    if (method_exists($e, 'setSourceContext')) {
-                        $e->setSourceContext(new Source('', $name, $path));
-                    } else {
-                        $e->setTemplateName($name);
-                    }
-                }
-
-                throw $e;
+                // ignore errors, these should be fixed by using the linter
             }
         }
     }
@@ -108,13 +91,11 @@ class TwigExtractor extends AbstractFileExtractor implements ExtractorInterface
      */
     protected function canBeExtracted($file)
     {
-        return $this->isFile($file) && 'twig' === pathinfo($file, PATHINFO_EXTENSION);
+        return $this->isFile($file) && 'twig' === pathinfo($file, \PATHINFO_EXTENSION);
     }
 
     /**
-     * @param string|array $directory
-     *
-     * @return array
+     * {@inheritdoc}
      */
     protected function extractFromDirectory($directory)
     {

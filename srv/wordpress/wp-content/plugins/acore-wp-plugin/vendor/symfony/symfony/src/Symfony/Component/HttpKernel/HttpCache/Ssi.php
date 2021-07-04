@@ -58,20 +58,20 @@ class Ssi extends AbstractSurrogate
         }
 
         $parts = explode(';', $type);
-        if (!in_array($parts[0], $this->contentTypes)) {
+        if (!\in_array($parts[0], $this->contentTypes)) {
             return $response;
         }
 
         // we don't use a proper XML parser here as we can have SSI tags in a plain text response
         $content = $response->getContent();
 
-        $chunks = preg_split('#<!--\#include\s+(.*?)\s*-->#', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $chunks = preg_split('#<!--\#include\s+(.*?)\s*-->#', $content, -1, \PREG_SPLIT_DELIM_CAPTURE);
         $chunks[0] = str_replace($this->phpEscapeMap[0], $this->phpEscapeMap[1], $chunks[0]);
 
         $i = 1;
         while (isset($chunks[$i])) {
-            $options = array();
-            preg_match_all('/(virtual)="([^"]*?)"/', $chunks[$i], $matches, PREG_SET_ORDER);
+            $options = [];
+            preg_match_all('/(virtual)="([^"]*?)"/', $chunks[$i], $matches, \PREG_SET_ORDER);
             foreach ($matches as $set) {
                 $options[$set[1]] = $set[2];
             }
@@ -94,5 +94,7 @@ class Ssi extends AbstractSurrogate
 
         // remove SSI/1.0 from the Surrogate-Control header
         $this->removeFromControl($response);
+
+        return $response;
     }
 }

@@ -77,7 +77,7 @@ class FormLoginAuthenticatorTest extends TestCase
         $this->requestWithSession->getSession()
             ->expects($this->once())
             ->method('get')
-            ->will($this->returnValue(null));
+            ->willReturn(null);
 
         $redirectResponse = $this->authenticator->onAuthenticationSuccess($this->requestWithSession, $token, 'providerkey');
 
@@ -96,7 +96,7 @@ class FormLoginAuthenticatorTest extends TestCase
         $this->requestWithSession->getSession()
             ->expects($this->once())
             ->method('get')
-            ->will($this->returnValue(self::CUSTOM_SUCCESS_URL));
+            ->willReturn(self::CUSTOM_SUCCESS_URL);
 
         $redirectResponse = $this->authenticator->onAuthenticationSuccess($this->requestWithSession, $token, 'providerkey');
 
@@ -129,8 +129,8 @@ class FormLoginAuthenticatorTest extends TestCase
 
     protected function setUp()
     {
-        $this->requestWithoutSession = new Request(array(), array(), array(), array(), array(), array());
-        $this->requestWithSession = new Request(array(), array(), array(), array(), array(), array());
+        $this->requestWithoutSession = new Request([], [], [], [], [], []);
+        $this->requestWithSession = new Request([], [], [], [], [], []);
 
         $session = $this->getMockBuilder('Symfony\\Component\\HttpFoundation\\Session\\SessionInterface')
             ->disableOriginalConstructor()
@@ -142,12 +142,6 @@ class FormLoginAuthenticatorTest extends TestCase
             ->setLoginUrl(self::LOGIN_URL)
             ->setDefaultSuccessRedirectUrl(self::DEFAULT_SUCCESS_URL)
         ;
-    }
-
-    protected function tearDown()
-    {
-        $this->request = null;
-        $this->requestWithSession = null;
     }
 }
 

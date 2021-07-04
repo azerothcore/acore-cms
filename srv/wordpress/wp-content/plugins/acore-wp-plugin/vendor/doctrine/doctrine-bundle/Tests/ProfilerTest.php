@@ -4,8 +4,8 @@ namespace Doctrine\Bundle\DoctrineBundle\Tests;
 
 use Doctrine\Bundle\DoctrineBundle\DataCollector\DoctrineDataCollector;
 use Doctrine\Bundle\DoctrineBundle\Twig\DoctrineExtension;
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\DBAL\Logging\DebugStack;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Bridge\Twig\Extension\CodeExtension;
 use Symfony\Bridge\Twig\Extension\HttpKernelExtension;
@@ -14,20 +14,19 @@ use Symfony\Bridge\Twig\Extension\RoutingExtension;
 use Symfony\Bundle\WebProfilerBundle\Twig\WebProfilerExtension;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
 use Symfony\Component\HttpKernel\Fragment\FragmentHandler;
 use Symfony\Component\HttpKernel\Profiler\Profile;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-use Twig_RuntimeLoaderInterface;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use Twig\RuntimeLoader\RuntimeLoaderInterface;
 
 class ProfilerTest extends BaseTestCase
 {
     /** @var DebugStack */
     private $logger;
 
-    /** @var Twig_Environment */
+    /** @var Environment */
     private $twig;
 
     /** @var DoctrineDataCollector */
@@ -41,18 +40,26 @@ class ProfilerTest extends BaseTestCase
         $this->collector = new DoctrineDataCollector($registry);
         $this->collector->addLogger('foo', $this->logger);
 
-        $twigLoaderFilesystem = new Twig_Loader_Filesystem(__DIR__ . '/../Resources/views/Collector');
+        $twigLoaderFilesystem = new FilesystemLoader(__DIR__ . '/../Resources/views/Collector');
         $twigLoaderFilesystem->addPath(__DIR__ . '/../vendor/symfony/web-profiler-bundle/Resources/views', 'WebProfiler');
-        $this->twig = new Twig_Environment($twigLoaderFilesystem, ['debug' => true, 'strict_variables' => true]);
+        $this->twig = new Environment($twigLoaderFilesystem, ['debug' => true, 'strict_variables' => true]);
+
+        $fragmentHandler = $this->getMockBuilder(FragmentHandler::class)->disableOriginalConstructor()->getMock();
+        $fragmentHandler->method('render')->willReturn('');
+
+        $kernelRuntime = new HttpKernelRuntime($fragmentHandler);
+
+        $urlGenerator = $this->getMockBuilder(UrlGeneratorInterface::class)->getMock();
+        $urlGenerator->method('generate')->willReturn('');
 
         $this->twig->addExtension(new CodeExtension('', '', ''));
-        $this->twig->addExtension(new RoutingExtension($this->getMockBuilder(UrlGeneratorInterface::class)->getMock()));
-        $this->twig->addExtension(new HttpKernelExtension($this->getMockBuilder(FragmentHandler::class)->disableOriginalConstructor()->getMock()));
+        $this->twig->addExtension(new RoutingExtension($urlGenerator));
+        $this->twig->addExtension(new HttpKernelExtension($fragmentHandler));
         $this->twig->addExtension(new WebProfilerExtension());
         $this->twig->addExtension(new DoctrineExtension());
 
-        $loader = $this->getMockBuilder(Twig_RuntimeLoaderInterface::class)->getMock();
-        $loader->method('load')->willReturn($this->getMockBuilder(HttpKernelRuntime::class)->disableOriginalConstructor()->getMock());
+        $loader = $this->getMockBuilder(RuntimeLoaderInterface::class)->getMock();
+        $loader->method('load')->willReturn($kernelRuntime);
         $this->twig->addRuntimeLoader($loader);
     }
 
@@ -62,6 +69,7 @@ class ProfilerTest extends BaseTestCase
             [
                 'sql' => 'SELECT * FROM foo WHERE bar IN (?, ?)',
                 'params' => ['foo', 'bar'],
+                'types' => null,
                 'executionMS' => 1,
             ],
         ];
@@ -69,14 +77,6 @@ class ProfilerTest extends BaseTestCase
         $this->collector->collect($request = new Request(['group' => '0']), $response = new Response());
 
         $profile = new Profile('foo');
-
-        // This is only needed for WebProfilerBundle=3.2, remove when support for it is dropped
-        $requestCollector = new RequestDataCollector();
-        $requestCollector->collect($request, $response);
-        if (method_exists($requestCollector, 'lateCollect')) {
-            $requestCollector->lateCollect();
-        }
-        $profile->addCollector($requestCollector);
 
         $output = $this->twig->render('db.html.twig', [
             'request' => $request,

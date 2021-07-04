@@ -48,7 +48,7 @@
             </trans-unit>
             <trans-unit id="12">
                 <source>Username could not be found.</source>
-                <target>Không tìm thấy tên người dùng username.</target>
+                <target>Không tìm thấy tên người dùng.</target>
             </trans-unit>
             <trans-unit id="13">
                 <source>Account has expired.</source>
@@ -65,6 +65,14 @@
             <trans-unit id="16">
                 <source>Account is locked.</source>
                 <target>Tài khoản bị khóa.</target>
+            </trans-unit>
+            <trans-unit id="17">
+                <source>Too many failed login attempts, please try again later.</source>
+                <target>Đăng nhập sai quá nhiều lần, vui lòng thử lại lần nữa.</target>
+            </trans-unit>
+            <trans-unit id="18">
+                <source>Invalid or expired login link.</source>
+                <target>Liên kết đăng nhập không hợp lệ hoặc quá hạn.</target>
             </trans-unit>
         </body>
     </file>

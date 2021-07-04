@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "AC": "Ascension",
         "AD": "Andorra",
@@ -146,7 +145,7 @@
         "MF": "Svatý Martin (Francie)",
         "MG": "Madagaskar",
         "MH": "Marshallovy ostrovy",
-        "MK": "Makedonie",
+        "MK": "Severní Makedonie",
         "ML": "Mali",
         "MM": "Myanmar (Barma)",
         "MN": "Mongolsko",
@@ -236,7 +235,6 @@
         "UA": "Ukrajina",
         "UG": "Uganda",
         "UM": "Menší odlehlé ostrovy USA",
-        "UN": "OSN",
         "US": "Spojené státy",
         "UY": "Uruguay",
         "UZ": "Uzbekistán",
@@ -249,6 +247,8 @@
         "VU": "Vanuatu",
         "WF": "Wallis a Futuna",
         "WS": "Samoa",
+        "XA": "simulovaná diakritika",
+        "XB": "simulovaný obousměrný zápis",
         "XK": "Kosovo",
         "YE": "Jemen",
         "YT": "Mayotte",

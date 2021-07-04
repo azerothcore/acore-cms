@@ -38,18 +38,7 @@ use Symfony\Component\Validator\Mapping\Loader\LoaderInterface;
  */
 class LazyLoadingMetadataFactory implements MetadataFactoryInterface
 {
-    /**
-     * The loader for loading the class metadata.
-     *
-     * @var LoaderInterface|null
-     */
     protected $loader;
-
-    /**
-     * The cache for caching class metadata.
-     *
-     * @var CacheInterface|null
-     */
     protected $cache;
 
     /**
@@ -57,7 +46,7 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
      *
      * @var ClassMetadata[]
      */
-    protected $loadedClasses = array();
+    protected $loadedClasses = [];
 
     /**
      * Creates a new metadata factory.
@@ -89,14 +78,18 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
      */
     public function getMetadataFor($value)
     {
-        if (!is_object($value) && !is_string($value)) {
-            throw new NoSuchMetadataException(sprintf('Cannot create metadata for non-objects. Got: %s', gettype($value)));
+        if (!\is_object($value) && !\is_string($value)) {
+            throw new NoSuchMetadataException(sprintf('Cannot create metadata for non-objects. Got: "%s".', \gettype($value)));
         }
 
-        $class = ltrim(is_object($value) ? get_class($value) : $value, '\\');
+        $class = ltrim(\is_object($value) ? \get_class($value) : $value, '\\');
 
         if (isset($this->loadedClasses[$class])) {
             return $this->loadedClasses[$class];
+        }
+
+        if (!class_exists($class) && !interface_exists($class, false)) {
+            throw new NoSuchMetadataException(sprintf('The class or interface "%s" does not exist.', $class));
         }
 
         if (null !== $this->cache && false !== ($metadata = $this->cache->read($class))) {
@@ -104,10 +97,6 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
             $this->mergeConstraints($metadata);
 
             return $this->loadedClasses[$class] = $metadata;
-        }
-
-        if (!class_exists($class) && !interface_exists($class)) {
-            throw new NoSuchMetadataException(sprintf('The class or interface "%s" does not exist.', $class));
         }
 
         $metadata = new ClassMetadata($class);
@@ -128,34 +117,25 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
 
     private function mergeConstraints(ClassMetadata $metadata)
     {
+        if ($metadata->getReflectionClass()->isInterface()) {
+            return;
+        }
+
         // Include constraints from the parent class
         if ($parent = $metadata->getReflectionClass()->getParentClass()) {
             $metadata->mergeConstraints($this->getMetadataFor($parent->name));
         }
 
-        $interfaces = $metadata->getReflectionClass()->getInterfaces();
-
-        $interfaces = array_filter($interfaces, function ($interface) use ($parent, $interfaces) {
-            $interfaceName = $interface->getName();
-
-            if ($parent && $parent->implementsInterface($interfaceName)) {
-                return false;
-            }
-
-            foreach ($interfaces as $i) {
-                if ($i !== $interface && $i->implementsInterface($interfaceName)) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
         // Include constraints from all directly implemented interfaces
-        foreach ($interfaces as $interface) {
+        foreach ($metadata->getReflectionClass()->getInterfaces() as $interface) {
             if ('Symfony\Component\Validator\GroupSequenceProviderInterface' === $interface->name) {
                 continue;
             }
+
+            if ($parent && \in_array($interface->getName(), $parent->getInterfaceNames(), true)) {
+                continue;
+            }
+
             $metadata->mergeConstraints($this->getMetadataFor($interface->name));
         }
     }
@@ -165,16 +145,12 @@ class LazyLoadingMetadataFactory implements MetadataFactoryInterface
      */
     public function hasMetadataFor($value)
     {
-        if (!is_object($value) && !is_string($value)) {
+        if (!\is_object($value) && !\is_string($value)) {
             return false;
         }
 
-        $class = ltrim(is_object($value) ? get_class($value) : $value, '\\');
+        $class = ltrim(\is_object($value) ? \get_class($value) : $value, '\\');
 
-        if (class_exists($class) || interface_exists($class)) {
-            return true;
-        }
-
-        return false;
+        return class_exists($class) || interface_exists($class, false);
     }
 }

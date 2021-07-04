@@ -15,7 +15,6 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessBuilder;
 
 /**
  * The ProcessHelper class provides helpers to run external processes.
@@ -38,15 +37,17 @@ class ProcessHelper extends Helper
      */
     public function run(OutputInterface $output, $cmd, $error = null, callable $callback = null, $verbosity = OutputInterface::VERBOSITY_VERY_VERBOSE)
     {
+        if (!class_exists(Process::class)) {
+            throw new \LogicException('The ProcessHelper cannot be run as the Process component is not installed. Try running "compose require symfony/process".');
+        }
+
         if ($output instanceof ConsoleOutputInterface) {
             $output = $output->getErrorOutput();
         }
 
         $formatter = $this->getHelperSet()->get('debug_formatter');
 
-        if (is_array($cmd)) {
-            $process = ProcessBuilder::create($cmd)->getProcess();
-        } elseif ($cmd instanceof Process) {
+        if ($cmd instanceof Process) {
             $process = $cmd;
         } else {
             $process = new Process($cmd);
@@ -124,7 +125,7 @@ class ProcessHelper extends Helper
             $output->write($formatter->progress(spl_object_hash($process), $this->escapeString($buffer), Process::ERR === $type));
 
             if (null !== $callback) {
-                call_user_func($callback, $type, $buffer);
+                \call_user_func($callback, $type, $buffer);
             }
         };
     }

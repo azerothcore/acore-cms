@@ -26,7 +26,7 @@ class TypeValidator extends ConstraintValidator
     public function validate($value, Constraint $constraint)
     {
         if (!$constraint instanceof Type) {
-            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Type');
+            throw new UnexpectedTypeException($constraint, Type::class);
         }
 
         if (null === $value) {
@@ -34,13 +34,13 @@ class TypeValidator extends ConstraintValidator
         }
 
         $type = strtolower($constraint->type);
-        $type = $type == 'boolean' ? 'bool' : $constraint->type;
+        $type = 'boolean' == $type ? 'bool' : $constraint->type;
         $isFunction = 'is_'.$type;
         $ctypeFunction = 'ctype_'.$type;
 
-        if (function_exists($isFunction) && $isFunction($value)) {
+        if (\function_exists($isFunction) && $isFunction($value)) {
             return;
-        } elseif (function_exists($ctypeFunction) && $ctypeFunction($value)) {
+        } elseif (\function_exists($ctypeFunction) && $ctypeFunction($value)) {
             return;
         } elseif ($value instanceof $constraint->type) {
             return;

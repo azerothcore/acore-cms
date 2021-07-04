@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "AC": "Ascension",
         "AD": "Andorra",
@@ -146,7 +145,7 @@
         "MF": "St. Martin",
         "MG": "Madagaskar",
         "MH": "Marshallinselen",
-        "MK": "Mazedonien",
+        "MK": "Nordmazedonien",
         "ML": "Mali",
         "MM": "Myanmar",
         "MN": "Mongolei",
@@ -236,7 +235,7 @@
         "UA": "Ukrain",
         "UG": "Uganda",
         "UM": "Amerikanesch-Ozeanien",
-        "US": "Vereenegt Staate vun Amerika",
+        "US": "Vereenegt Staaten",
         "UY": "Uruguay",
         "UZ": "Usbekistan",
         "VA": "Vatikanstad",

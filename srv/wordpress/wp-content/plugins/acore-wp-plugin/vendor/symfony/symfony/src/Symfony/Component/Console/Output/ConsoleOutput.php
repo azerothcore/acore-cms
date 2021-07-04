@@ -29,14 +29,9 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
  */
 class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
 {
-    /**
-     * @var StreamOutput
-     */
     private $stderr;
 
     /**
-     * Constructor.
-     *
      * @param int                           $verbosity The verbosity level (one of the VERBOSITY constants in OutputInterface)
      * @param bool|null                     $decorated Whether to decorate messages (null for auto-guessing)
      * @param OutputFormatterInterface|null $formatter Output formatter instance (null to use default OutputFormatter)
@@ -126,11 +121,11 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
      */
     private function isRunningOS400()
     {
-        $checks = array(
-            function_exists('php_uname') ? php_uname('s') : '',
+        $checks = [
+            \function_exists('php_uname') ? php_uname('s') : '',
             getenv('OSTYPE'),
-            PHP_OS,
-        );
+            \PHP_OS,
+        ];
 
         return false !== stripos(implode(';', $checks), 'OS400');
     }

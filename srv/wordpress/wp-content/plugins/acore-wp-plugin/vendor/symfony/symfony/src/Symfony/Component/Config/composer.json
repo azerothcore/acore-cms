@@ -16,11 +16,19 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
-        "symfony/filesystem": "~2.8|~3.0"
+        "php": "^5.5.9|>=7.0.8",
+        "symfony/filesystem": "~2.8|~3.0|~4.0",
+        "symfony/polyfill-ctype": "~1.8"
     },
     "require-dev": {
-        "symfony/yaml": "~3.0"
+        "symfony/finder": "~3.3|~4.0",
+        "symfony/yaml": "~3.0|~4.0",
+        "symfony/dependency-injection": "~3.3|~4.0",
+        "symfony/event-dispatcher": "~3.3|~4.0"
+    },
+    "conflict": {
+        "symfony/finder": "<3.3",
+        "symfony/dependency-injection": "<3.3"
     },
     "suggest": {
         "symfony/yaml": "To use the yaml reference dumper"
@@ -31,10 +39,5 @@
             "/Tests/"
         ]
     },
-    "minimum-stability": "dev",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.2-dev"
-        }
-    }
+    "minimum-stability": "dev"
 }

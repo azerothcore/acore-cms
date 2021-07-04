@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+3.4.0
+-----
+
+ * added `setDeprecated()` method to indicate a deprecated node
+ * added `XmlUtils::parse()` method to parse an XML string
+ * deprecated `ConfigCachePass`
+
+3.3.0
+-----
+
+ * added `ReflectionClassResource` class
+ * added second `$exists` constructor argument to `ClassExistenceResource`
+ * made `ClassExistenceResource` work with interfaces and traits
+ * added `ConfigCachePass` (originally in FrameworkBundle)
+ * added `castToArray()` helper to turn any config value into an array
+
 3.0.0
 -----
 
@@ -18,7 +34,7 @@ The edge case of defining just one value for nodes of type Enum is now allowed:
 $rootNode
     ->children()
         ->enumNode('variable')
-            ->values(array('value'))
+            ->values(['value'])
         ->end()
     ->end()
 ;
@@ -28,7 +44,7 @@ Before: `InvalidArgumentException` (variable must contain at least two
 distinct elements).
 After: the code will work as expected and it will restrict the values of the
 `variable` option to just `value`.
- 
+
  * deprecated the `ResourceInterface::isFresh()` method. If you implement custom resource types and they
    can be validated that way, make them implement the new `SelfCheckingResourceInterface`.
  * deprecated the getResource() method in ResourceInterface. You can still call this method
@@ -41,7 +57,7 @@ After: the code will work as expected and it will restrict the values of the
 
  * added `ConfigCacheInterface`, `ConfigCacheFactoryInterface` and a basic `ConfigCacheFactory`
    implementation to delegate creation of ConfigCache instances
-   
+
 2.2.0
 -----
 

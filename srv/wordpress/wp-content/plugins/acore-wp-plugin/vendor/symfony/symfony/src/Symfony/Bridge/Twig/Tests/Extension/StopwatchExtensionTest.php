@@ -19,12 +19,10 @@ use Twig\Loader\ArrayLoader;
 
 class StopwatchExtensionTest extends TestCase
 {
-    /**
-     * @expectedException \Twig\Error\SyntaxError
-     */
     public function testFailIfStoppingWrongEvent()
     {
-        $this->testTiming('{% stopwatch "foo" %}{% endstopwatch "bar" %}', array());
+        $this->expectException('Twig\Error\SyntaxError');
+        $this->testTiming('{% stopwatch "foo" %}{% endstopwatch "bar" %}', []);
     }
 
     /**
@@ -32,11 +30,11 @@ class StopwatchExtensionTest extends TestCase
      */
     public function testTiming($template, $events)
     {
-        $twig = new Environment(new ArrayLoader(array('template' => $template)), array('debug' => true, 'cache' => false, 'autoescape' => 'html', 'optimizations' => 0));
+        $twig = new Environment(new ArrayLoader(['template' => $template]), ['debug' => true, 'cache' => false, 'autoescape' => 'html', 'optimizations' => 0]);
         $twig->addExtension(new StopwatchExtension($this->getStopwatch($events)));
 
         try {
-            $nodes = $twig->render('template');
+            $twig->render('template');
         } catch (RuntimeError $e) {
             throw $e->getPrevious();
         }
@@ -44,32 +42,36 @@ class StopwatchExtensionTest extends TestCase
 
     public function getTimingTemplates()
     {
-        return array(
-            array('{% stopwatch "foo" %}something{% endstopwatch %}', 'foo'),
-            array('{% stopwatch "foo" %}symfony is fun{% endstopwatch %}{% stopwatch "bar" %}something{% endstopwatch %}', array('foo', 'bar')),
-            array('{% set foo = "foo" %}{% stopwatch foo %}something{% endstopwatch %}', 'foo'),
-            array('{% set foo = "foo" %}{% stopwatch foo %}something {% set foo = "bar" %}{% endstopwatch %}', 'foo'),
-            array('{% stopwatch "foo.bar" %}something{% endstopwatch %}', 'foo.bar'),
-            array('{% stopwatch "foo" %}something{% endstopwatch %}{% stopwatch "foo" %}something else{% endstopwatch %}', array('foo', 'foo')),
-        );
+        return [
+            ['{% stopwatch "foo" %}something{% endstopwatch %}', 'foo'],
+            ['{% stopwatch "foo" %}symfony is fun{% endstopwatch %}{% stopwatch "bar" %}something{% endstopwatch %}', ['foo', 'bar']],
+            ['{% set foo = "foo" %}{% stopwatch foo %}something{% endstopwatch %}', 'foo'],
+            ['{% set foo = "foo" %}{% stopwatch foo %}something {% set foo = "bar" %}{% endstopwatch %}', 'foo'],
+            ['{% stopwatch "foo.bar" %}something{% endstopwatch %}', 'foo.bar'],
+            ['{% stopwatch "foo" %}something{% endstopwatch %}{% stopwatch "foo" %}something else{% endstopwatch %}', ['foo', 'foo']],
+        ];
     }
 
-    protected function getStopwatch($events = array())
+    protected function getStopwatch($events = [])
     {
-        $events = is_array($events) ? $events : array($events);
+        $events = \is_array($events) ? $events : [$events];
         $stopwatch = $this->getMockBuilder('Symfony\Component\Stopwatch\Stopwatch')->getMock();
 
-        $i = -1;
+        $expectedCalls = 0;
+        $expectedStartCalls = [];
+        $expectedStopCalls = [];
         foreach ($events as $eventName) {
-            $stopwatch->expects($this->at(++$i))
-                ->method('start')
-                ->with($this->equalTo($eventName), 'template')
-            ;
-            $stopwatch->expects($this->at(++$i))
-                ->method('stop')
-                ->with($this->equalTo($eventName))
-            ;
+            ++$expectedCalls;
+            $expectedStartCalls[] = [$this->equalTo($eventName), 'template'];
+            $expectedStopCalls[] = [$this->equalTo($eventName)];
         }
+
+        $startInvocationMocker = $stopwatch->expects($this->exactly($expectedCalls))
+            ->method('start');
+        \call_user_func_array([$startInvocationMocker, 'withConsecutive'], $expectedStartCalls);
+        $stopInvocationMocker = $stopwatch->expects($this->exactly($expectedCalls))
+            ->method('stop');
+        \call_user_func_array([$stopInvocationMocker, 'withConsecutive'], $expectedStopCalls);
 
         return $stopwatch;
     }

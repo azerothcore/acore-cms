@@ -50,11 +50,9 @@ class DateValidatorTest extends ConstraintValidatorTestCase
         $this->assertNoViolation();
     }
 
-    /**
-     * @expectedException \Symfony\Component\Validator\Exception\UnexpectedTypeException
-     */
     public function testExpectsStringCompatibleType()
     {
+        $this->expectException('Symfony\Component\Validator\Exception\UnexpectedTypeException');
         $this->validator->validate(new \stdClass(), new Date());
     }
 
@@ -70,11 +68,11 @@ class DateValidatorTest extends ConstraintValidatorTestCase
 
     public function getValidDates()
     {
-        return array(
-            array('2010-01-01'),
-            array('1955-12-12'),
-            array('2030-05-31'),
-        );
+        return [
+            ['2010-01-01'],
+            ['1955-12-12'],
+            ['2030-05-31'],
+        ];
     }
 
     /**
@@ -82,9 +80,9 @@ class DateValidatorTest extends ConstraintValidatorTestCase
      */
     public function testInvalidDates($date, $code)
     {
-        $constraint = new Date(array(
+        $constraint = new Date([
             'message' => 'myMessage',
-        ));
+        ]);
 
         $this->validator->validate($date, $constraint);
 
@@ -96,13 +94,13 @@ class DateValidatorTest extends ConstraintValidatorTestCase
 
     public function getInvalidDates()
     {
-        return array(
-            array('foobar', Date::INVALID_FORMAT_ERROR),
-            array('foobar 2010-13-01', Date::INVALID_FORMAT_ERROR),
-            array('2010-13-01 foobar', Date::INVALID_FORMAT_ERROR),
-            array('2010-13-01', Date::INVALID_DATE_ERROR),
-            array('2010-04-32', Date::INVALID_DATE_ERROR),
-            array('2010-02-29', Date::INVALID_DATE_ERROR),
-        );
+        return [
+            ['foobar', Date::INVALID_FORMAT_ERROR],
+            ['foobar 2010-13-01', Date::INVALID_FORMAT_ERROR],
+            ['2010-13-01 foobar', Date::INVALID_FORMAT_ERROR],
+            ['2010-13-01', Date::INVALID_DATE_ERROR],
+            ['2010-04-32', Date::INVALID_DATE_ERROR],
+            ['2010-02-29', Date::INVALID_DATE_ERROR],
+        ];
     }
 }

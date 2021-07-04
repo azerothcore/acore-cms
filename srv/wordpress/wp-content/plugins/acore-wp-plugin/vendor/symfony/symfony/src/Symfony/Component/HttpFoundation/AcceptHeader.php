@@ -24,7 +24,7 @@ class AcceptHeader
     /**
      * @var AcceptHeaderItem[]
      */
-    private $items = array();
+    private $items = [];
 
     /**
      * @var bool
@@ -32,8 +32,6 @@ class AcceptHeader
     private $sorted = true;
 
     /**
-     * Constructor.
-     *
      * @param AcceptHeaderItem[] $items
      */
     public function __construct(array $items)
@@ -59,7 +57,7 @@ class AcceptHeader
             $item->setIndex($index++);
 
             return $item;
-        }, preg_split('/\s*(?:,*("[^"]+"),*|,*(\'[^\']+\'),*|,+)\s*/', $headerValue, 0, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE)));
+        }, preg_split('/\s*(?:,*("[^"]+"),*|,*(\'[^\']+\'),*|,+)\s*/', $headerValue, 0, \PREG_SPLIT_NO_EMPTY | \PREG_SPLIT_DELIM_CAPTURE)));
     }
 
     /**
@@ -98,8 +96,6 @@ class AcceptHeader
 
     /**
      * Adds an item.
-     *
-     * @param AcceptHeaderItem $item
      *
      * @return $this
      */
@@ -155,7 +151,7 @@ class AcceptHeader
     private function sort()
     {
         if (!$this->sorted) {
-            uasort($this->items, function ($a, $b) {
+            uasort($this->items, function (AcceptHeaderItem $a, AcceptHeaderItem $b) {
                 $qA = $a->getQuality();
                 $qB = $b->getQuality();
 

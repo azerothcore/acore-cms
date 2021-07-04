@@ -11,13 +11,13 @@
 
 namespace Symfony\Bundle\MonologBundle\DependencyInjection\Compiler;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Argument\BoundArgument;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\ChildDefinition;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Replaces the default logger by another one with its own channel for tagged services.
@@ -26,8 +26,11 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
  */
 class LoggerChannelPass implements CompilerPassInterface
 {
-    protected $channels = array('app');
+    protected $channels = ['app'];
 
+    /**
+     * {@inheritDoc}
+     */
     public function process(ContainerBuilder $container)
     {
         if (!$container->hasDefinition('monolog.logger')) {
@@ -63,7 +66,7 @@ class LoggerChannelPass implements CompilerPassInterface
                 }
                 $definition->setMethodCalls($calls);
 
-                if (!$definition instanceof ChildDefinition && \method_exists($definition, 'getBindings')) {
+                if (\method_exists($definition, 'getBindings')) {
                     $binding = new BoundArgument(new Reference($loggerId));
 
                     // Mark the binding as used already, to avoid reporting it as unused if the service does not use a
@@ -81,6 +84,9 @@ class LoggerChannelPass implements CompilerPassInterface
 
         // create additional channels
         foreach ($container->getParameter('monolog.additional_channels') as $chan) {
+            if ($chan === 'app') {
+                continue;
+            }
             $loggerId = sprintf('monolog.logger.%s', $chan);
             $this->createLogger($chan, $loggerId, $container);
             $container->getDefinition($loggerId)->setPublic(true);
@@ -97,16 +103,24 @@ class LoggerChannelPass implements CompilerPassInterface
                     $msg = 'Monolog configuration error: The logging channel "'.$channel.'" assigned to the "'.substr($handler, 16).'" handler does not exist.';
                     throw new \InvalidArgumentException($msg, 0, $e);
                 }
-                $logger->addMethodCall('pushHandler', array(new Reference($handler)));
+                $logger->addMethodCall('pushHandler', [new Reference($handler)]);
             }
         }
     }
 
+    /**
+     * @return array
+     */
     public function getChannels()
     {
         return $this->channels;
     }
 
+    /**
+     * @param array $configuration
+     *
+     * @return array
+     */
     protected function processChannels($configuration)
     {
         if (null === $configuration) {
@@ -120,18 +134,27 @@ class LoggerChannelPass implements CompilerPassInterface
         return array_diff($this->channels, $configuration['elements']);
     }
 
+    /**
+     * Create new logger from the monolog.logger_prototype
+     *
+     * @param string $channel
+     * @param string $loggerId
+     * @param ContainerBuilder $container
+     */
     protected function createLogger($channel, $loggerId, ContainerBuilder $container)
     {
         if (!in_array($channel, $this->channels)) {
-            if (class_exists('Symfony\Component\DependencyInjection\ChildDefinition')) {
-                $logger = new ChildDefinition('monolog.logger_prototype');
-            } else {
-                $logger = new DefinitionDecorator('monolog.logger_prototype');
-            }
-
+            $logger = new ChildDefinition('monolog.logger_prototype');
             $logger->replaceArgument(0, $channel);
             $container->setDefinition($loggerId, $logger);
             $this->channels[] = $channel;
+        }
+
+        // Allows only for Symfony 4.2+
+        if (\method_exists($container, 'registerAliasForArgument')) {
+            $parameterName = $channel . 'Logger';
+
+            $container->registerAliasForArgument($loggerId, LoggerInterface::class, $parameterName);
         }
     }
 

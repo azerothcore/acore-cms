@@ -9,13 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Ldap\Tests;
+namespace Symfony\Component\Ldap\Tests\Adapter\ExtLdap;
 
 use Symfony\Component\Ldap\Adapter\ExtLdap\Adapter;
 use Symfony\Component\Ldap\Adapter\ExtLdap\Collection;
 use Symfony\Component\Ldap\Entry;
 use Symfony\Component\Ldap\Exception\LdapException;
 use Symfony\Component\Ldap\Exception\NotBoundException;
+use Symfony\Component\Ldap\Tests\LdapTestCase;
 
 /**
  * @requires extension ldap
@@ -38,12 +39,12 @@ class LdapManagerTest extends LdapTestCase
     {
         $this->executeSearchQuery(1);
 
-        $entry = new Entry('cn=Charles Sarrazin,dc=symfony,dc=com', array(
-            'sn' => array('csarrazi'),
-            'objectclass' => array(
+        $entry = new Entry('cn=Charles Sarrazin,dc=symfony,dc=com', [
+            'sn' => ['csarrazi'],
+            'objectclass' => [
                 'inetOrgPerson',
-            ),
-        ));
+            ],
+        ]);
 
         $em = $this->adapter->getEntryManager();
         $em->add($entry);
@@ -59,15 +60,15 @@ class LdapManagerTest extends LdapTestCase
      */
     public function testLdapAddInvalidEntry()
     {
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}(LdapException::class);
+        $this->expectException(LdapException::class);
         $this->executeSearchQuery(1);
 
         // The entry is missing a subject name
-        $entry = new Entry('cn=Charles Sarrazin,dc=symfony,dc=com', array(
-            'objectclass' => array(
+        $entry = new Entry('cn=Charles Sarrazin,dc=symfony,dc=com', [
+            'objectclass' => [
                 'inetOrgPerson',
-            ),
-        ));
+            ],
+        ]);
 
         $em = $this->adapter->getEntryManager();
         $em->add($entry);
@@ -105,7 +106,7 @@ class LdapManagerTest extends LdapTestCase
     public function testLdapUnboundAdd()
     {
         $this->adapter = new Adapter($this->getLdapConfig());
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}(NotBoundException::class);
+        $this->expectException(NotBoundException::class);
         $em = $this->adapter->getEntryManager();
         $em->add(new Entry(''));
     }
@@ -116,7 +117,7 @@ class LdapManagerTest extends LdapTestCase
     public function testLdapUnboundRemove()
     {
         $this->adapter = new Adapter($this->getLdapConfig());
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}(NotBoundException::class);
+        $this->expectException(NotBoundException::class);
         $em = $this->adapter->getEntryManager();
         $em->remove(new Entry(''));
     }
@@ -127,7 +128,7 @@ class LdapManagerTest extends LdapTestCase
     public function testLdapUnboundUpdate()
     {
         $this->adapter = new Adapter($this->getLdapConfig());
-        $this->{method_exists($this, $_ = 'expectException') ? $_ : 'setExpectedException'}(NotBoundException::class);
+        $this->expectException(NotBoundException::class);
         $em = $this->adapter->getEntryManager();
         $em->update(new Entry(''));
     }
@@ -146,5 +147,50 @@ class LdapManagerTest extends LdapTestCase
         $this->assertCount($expectedResults, $results);
 
         return $results;
+    }
+
+    /**
+     * @group functional
+     */
+    public function testLdapRename()
+    {
+        $result = $this->executeSearchQuery(1);
+
+        $entry = $result[0];
+
+        $entryManager = $this->adapter->getEntryManager();
+        $entryManager->rename($entry, 'cn=Kevin');
+
+        $result = $this->executeSearchQuery(1);
+        $renamedEntry = $result[0];
+        $this->assertEquals('Kevin', $renamedEntry->getAttribute('cn')[0]);
+
+        $oldRdn = $entry->getAttribute('cn')[0];
+        $entryManager->rename($renamedEntry, 'cn='.$oldRdn);
+        $this->executeSearchQuery(1);
+    }
+
+    /**
+     * @group functional
+     */
+    public function testLdapRenameWithoutRemovingOldRdn()
+    {
+        $result = $this->executeSearchQuery(1);
+
+        $entry = $result[0];
+
+        $entryManager = $this->adapter->getEntryManager();
+        $entryManager->rename($entry, 'cn=Kevin', false);
+
+        $result = $this->executeSearchQuery(1);
+
+        $newEntry = $result[0];
+        $originalCN = $entry->getAttribute('cn')[0];
+
+        $this->assertContains($originalCN, $newEntry->getAttribute('cn'));
+
+        $entryManager->rename($newEntry, 'cn='.$originalCN);
+
+        $this->executeSearchQuery(1);
     }
 }

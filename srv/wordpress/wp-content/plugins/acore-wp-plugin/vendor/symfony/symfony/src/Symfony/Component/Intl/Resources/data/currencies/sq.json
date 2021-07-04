@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.32.59",
     "Names": {
         "AED": [
             "AED",
@@ -39,7 +38,7 @@
         ],
         "AZN": [
             "AZN",
-            "Manata e Azerbajxhanit"
+            "Manata azerbajxhanase"
         ],
         "BAM": [
             "BAM",
@@ -78,7 +77,7 @@
             "Boliviani i Bolivisë"
         ],
         "BRL": [
-            "R$",
+            "BRL",
             "Reali brazilian"
         ],
         "BSD": [
@@ -121,6 +120,10 @@
             "CLP",
             "Pesoja kiliane"
         ],
+        "CNH": [
+            "CNH",
+            "Juani kinez (për treg të jashtëm)"
+        ],
         "CNY": [
             "CN¥",
             "Juani kinez"
@@ -147,7 +150,7 @@
         ],
         "CZK": [
             "CZK",
-            "Koruna e Republikës Çeke"
+            "Koruna e Çekisë"
         ],
         "DJF": [
             "DJF",
@@ -167,7 +170,7 @@
         ],
         "EGP": [
             "EGP",
-            "Stërlina egjiptiane"
+            "Sterlina egjiptiane"
         ],
         "ERN": [
             "ERN",
@@ -223,7 +226,7 @@
         ],
         "HKD": [
             "HK$",
-            "Dollari i Hong Kongut"
+            "Dollari i Hong-Kongut"
         ],
         "HNL": [
             "HNL",
@@ -347,7 +350,7 @@
         ],
         "MDL": [
             "MDL",
-            "Leu moldav"
+            "Leuja moldave"
         ],
         "MGA": [
             "MGA",
@@ -371,6 +374,10 @@
         ],
         "MRO": [
             "MRO",
+            "Ugija mauritane (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "Ugija mauritane"
         ],
         "MUR": [
@@ -435,7 +442,7 @@
         ],
         "PGK": [
             "PGK",
-            "Kina e Papua-Guineas së Re"
+            "Kina e Guinesë së Re-Papua"
         ],
         "PHP": [
             "PHP",
@@ -459,7 +466,7 @@
         ],
         "RON": [
             "RON",
-            "Leu rumun"
+            "Leuja rumune"
         ],
         "RSD": [
             "RSD",
@@ -487,7 +494,7 @@
         ],
         "SDG": [
             "SDG",
-            "Stërlina sudaneze"
+            "Sterlina sudaneze"
         ],
         "SEK": [
             "SEK",
@@ -499,7 +506,7 @@
         ],
         "SHP": [
             "SHP",
-            "Stërlina e Ishullit të Shën-Helenës"
+            "Sterlina e Ishullit të Shën-Helenës"
         ],
         "SLL": [
             "SLL",
@@ -515,10 +522,14 @@
         ],
         "SSP": [
             "SSP",
-            "Stërlina e Sudanit të Jugut"
+            "Sterlina sudanezo-jugore"
         ],
         "STD": [
             "STD",
+            "Dobra e Sao-Tomes dhe Prinsipes (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "Dobra e Sao-Tomes dhe Prinsipes"
         ],
         "SYP": [
@@ -587,7 +598,11 @@
         ],
         "VEF": [
             "VEF",
-            "Bolivari venezuelian"
+            "Bolivari venezuelian (2008–2018)"
+        ],
+        "VES": [
+            "VES",
+            "Bolivari venezuelas"
         ],
         "VND": [
             "₫",

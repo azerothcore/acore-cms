@@ -1,5 +1,4 @@
 {
-    "Version": "2.1.31.86",
     "Names": {
         "ADP": [
             "ADP",
@@ -116,10 +115,6 @@
         "BEF": [
             "BEF",
             "lur Belgia"
-        ],
-        "BEL": [
-            "BEL",
-            "BEL"
         ],
         "BGL": [
             "BGL",
@@ -679,6 +674,10 @@
         ],
         "MRO": [
             "MRO",
+            "ouguiya Maouritania (1973–2017)"
+        ],
+        "MRU": [
+            "MRU",
             "ouguiya Maouritania"
         ],
         "MTL": [
@@ -911,6 +910,10 @@
         ],
         "STD": [
             "STD",
+            "dobra São Tomé ha Príncipe (1977–2017)"
+        ],
+        "STN": [
+            "STN",
             "dobra São Tomé ha Príncipe"
         ],
         "SUR": [
@@ -1031,6 +1034,10 @@
         ],
         "VEF": [
             "VEF",
+            "bolivar Venezuela (2008–2018)"
+        ],
+        "VES": [
+            "VES",
             "bolivar Venezuela"
         ],
         "VND": [

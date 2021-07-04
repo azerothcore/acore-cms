@@ -27,7 +27,7 @@ class Query extends AbstractQuery
     /** @var resource */
     private $search;
 
-    public function __construct(Connection $connection, $dn, $query, array $options = array())
+    public function __construct(Connection $connection, $dn, $query, array $options = [])
     {
         parent::__construct($connection, $dn, $query, $options);
     }
@@ -45,7 +45,7 @@ class Query extends AbstractQuery
         $this->search = null;
 
         if (!$success) {
-            throw new LdapException(sprintf('Could not free results: %s', ldap_error($con)));
+            throw new LdapException('Could not free results: '.ldap_error($con));
         }
     }
 
@@ -62,7 +62,21 @@ class Query extends AbstractQuery
 
             $con = $this->connection->getResource();
 
-            $this->search = @ldap_search(
+            switch ($this->options['scope']) {
+                case static::SCOPE_BASE:
+                    $func = 'ldap_read';
+                    break;
+                case static::SCOPE_ONE:
+                    $func = 'ldap_list';
+                    break;
+                case static::SCOPE_SUB:
+                    $func = 'ldap_search';
+                    break;
+                default:
+                    throw new LdapException(sprintf('Could not search in scope "%s".', $this->options['scope']));
+            }
+
+            $this->search = @$func(
                 $con,
                 $this->dn,
                 $this->query,
@@ -75,7 +89,7 @@ class Query extends AbstractQuery
         }
 
         if (false === $this->search) {
-            throw new LdapException(sprintf('Could not complete search with dn "%s", query "%s" and filters "%s"', $this->dn, $this->query, implode(',', $this->options['filter'])));
+            throw new LdapException(sprintf('Could not complete search with dn "%s", query "%s" and filters "%s".', $this->dn, $this->query, implode(',', $this->options['filter'])));
         }
 
         return new Collection($this->connection, $this);
