@@ -50,7 +50,7 @@ The env variables above are used to configure the ports within the docker-compos
 
 **Note**: if you change this after the wordpress installation remember to change also the siteurl and related wordpress parameters in `wp_options` table.
 
-**WARNING: if you run this in production, comment the phpmyadmin section in dcker-compose to not expose the phpmyadmin service to any user or change the mysql credentials**
+**WARNING: if you run this in production, comment the phpmyadmin section in docker-compose to not expose the phpmyadmin service to any user or change the mysql credentials**
 
 More info about docker-configuration are available below
 
