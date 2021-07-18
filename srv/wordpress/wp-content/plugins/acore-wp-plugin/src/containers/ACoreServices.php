@@ -59,8 +59,9 @@ class ACoreServices
         ));
         $this->emWorld = $this->mgrWorld->getWorldEm($this->realmAlias);
 
-        $this->mgrEluna = $this->getKernel()->getContainer()->get("eluna_db.eluna_db_mgr");
-        $this->mgrEluna->createElunaEm($this->realmAlias, array(
+        $this->mgrEluna = $this->getKernel()->getContainer()->get("database.doctrine_db");
+        $this->mgrEluna->configureEntities(array(realpath(__DIR__ . "/../Entity/")));
+        $this->mgrEluna->createEm(array(
             'driver' => 'pdo_mysql',
             'host' => Opts::I()->acore_db_eluna_host,
             'port' => Opts::I()->acore_db_eluna_port,
@@ -69,7 +70,7 @@ class ACoreServices
             'password' => Opts::I()->acore_db_eluna_pass,
             'charset' => 'UTF8',
         ));
-        $this->emEluna = $this->mgrEluna->getElunaEm($this->realmAlias);
+        $this->emEluna = $this->mgrEluna->getEm();
 
         $this->soapParams = array(
             "host" => Opts::I()->acore_soap_host,
@@ -234,6 +235,55 @@ class ACoreServices
         $mgr = $this->getKernel()->getContainer()->get("server.server_soap_mgr");
         $mgr->configure($this->soapParams);
         return $mgr;
+    }
+
+    /**
+     *
+     * @return \ACore\Database\Services\DatabaseMgr
+     */
+    public function getDatabaseMgr()
+    {
+        return $this->mgrEluna->getEm();
+    }
+
+    public function getAcoreAccountId() {
+        $user = wp_get_current_user();
+        $query = "SELECT `id`
+            FROM `account`
+            WHERE `username` = ?
+        ";
+        $conn = $this->getAccountMgr()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $user->get("user_login"));
+        $stmt->execute();
+        $res = $stmt->fetch();
+        return $res["id"];
+    }
+
+    public function getAcoreAccountIdByName($username) {
+        $query = "SELECT `id`
+            FROM `account`
+            WHERE `username` = ?
+        ";
+        $conn = $this->getAccountMgr()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $username);
+        $stmt->execute();
+        $res = $stmt->fetch();
+        return $res["id"];
+    }
+
+    public function getUserNameByUserId($usedId) {
+        $query = "SELECT `username`
+            FROM `account`
+            WHERE `id` = ?
+        ";
+        $conn = $this->getAccountMgr()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $usedId);
+        $stmt->execute();
+        $res = $stmt->fetch();
+        return $res["username"];
     }
 }
 
