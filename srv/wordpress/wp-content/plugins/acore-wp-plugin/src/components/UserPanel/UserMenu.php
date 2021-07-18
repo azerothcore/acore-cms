@@ -28,7 +28,6 @@ class UserMenu
     function acore_user_menu()
     {
         if (Opts::I()->eluna_recruit_a_friend == '1') {
-            $user = wp_get_current_user();
             add_submenu_page('profile.php', 'Recruit a Friend', 'Recruit a Friend', 'read', 'eluna-raf-progress', array($this, 'eluna_raf_progress_page'));
         }
     }
