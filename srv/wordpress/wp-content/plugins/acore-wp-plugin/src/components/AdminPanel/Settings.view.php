@@ -294,7 +294,7 @@ class SettingsView {
 
         // Now display the settings editing screen
 
-        echo '<div class="wrap">';
+        ?><div class="wrap"><?php
 
         // header
 
@@ -302,6 +302,8 @@ class SettingsView {
 
         // settings form
         ?>
+
+        <p>Configure database connection for Eluna script that need use of the CMS.</p>
 
         <form name="form-acore-eluna-settings" method="post" action="">
             <table class="form-table" role="presentation">
