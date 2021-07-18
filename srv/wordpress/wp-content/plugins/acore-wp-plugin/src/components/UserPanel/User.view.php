@@ -23,40 +23,9 @@ class UserView {
         $user = wp_get_current_user();
         $acServices = ACoreServices::I();
 
-        if (!$rafPersonalInfo) {
-            $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
-            ?>
-            <div class="notice notice-info">
-                <p>Hey! You have not been recruited by anyone.</p>
-                <?php if ($maxRecruitDatetime >= (new \DateTime())) { ?>
-                <p>You still have until <b><?php echo $maxRecruitDatetime->format('Y-m-d H:i'); ?> [server time]</b> to be recruited by a friend, enter his username here: </p>
-                <form method="post">
-                    <p>
-                        <input type="text" name="recruited" value="" placeholder="Recruiter username" size="20" >
-                        <input type="submit" name="Submit" class="button-primary" value="Recruit me!" />
-                    </p>
-                </form>
-                <?php } ?>
-            </div>
-        <?php
-        } else {
-            $recruiterName = $acServices->getUserNameByUserId($rafPersonalInfo['recruiter_account']);
-            ?>
-            <div class="notice notice-info">
-                <p>You have been recluted by <b><?php echo $recruiterName; ?></b></p>
-            </div>
-        <?php }
+        ?>
 
-        if (!$rafRecruitedInfo) {
-            ?>
-            <div class="notice notice-info">
-                <p>Hey! You don't have recruited anyone yet, what are you waiting for!.</p>
-                <p>Invite your friends to play using your personal code: <b><?php echo $user->get("user_login"); ?></b></p>
-            </div>
-        <?php
-        } else {
-            ?>
-            <style>
+        <style>
             :root {
                 --color-white: #fff;
                 --color-black: #333;
@@ -202,16 +171,53 @@ class UserView {
                 bottom: -20px;
                 background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%208%208%22%3E%3Cpath%20fill%3D%22%23ed1c24%22%20d%3D%22M4%200l4%208H0z%22%2F%3E%3C%2Fsvg%3E');
             }
-            #dashboard-widgets #postbox-container-1 {
-                width: 50% !important;
+
+            .notice {
+                margin-left: 0;
             }
 
-
+            .w50 {
+                width: 50% !important;
+            }
             </style>
+        <?php
 
+        if (!$rafPersonalInfo) {
+            $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
+            ?>
+            <div class="notice notice-info w50">
+                <p>Hey! You have not been recruited by anyone.</p>
+                <?php if ($maxRecruitDatetime >= (new \DateTime())) { ?>
+                <p>You still have until <b><?php echo $maxRecruitDatetime->format('Y-m-d H:i'); ?> [server time]</b> to be recruited by a friend, enter his username here: </p>
+                <form method="post">
+                    <p>
+                        <input type="text" name="recruited" value="" placeholder="Recruiter username" size="20" >
+                        <input type="submit" name="Submit" class="button-primary" value="Recruit me!" />
+                    </p>
+                </form>
+                <?php } ?>
+            </div>
+        <?php
+        } else {
+            $recruiterName = $acServices->getUserNameByUserId($rafPersonalInfo['recruiter_account']);
+            ?>
+            <div class="notice notice-info w50">
+                <p>You have been recruited by <b><?php echo $recruiterName; ?></b></p>
+            </div>
+        <?php }
+
+        if (!$rafRecruitedInfo) {
+            ?>
+            <div class="notice notice-info w50">
+                <p>Hey! You don't have recruited anyone yet, what are you waiting for!.</p>
+                <p>Invite your friends to play using your personal code: <b><?php echo $user->get("user_login"); ?></b></p>
+            </div>
+        <?php
+        } else {
+            ?>
             <div id="dashboard-widgets-wrap">
                 <div id="dashboard-widgets" class="metabox-holder">
-                    <div id="postbox-container-1" class="postbox-container">
+                    <div id="postbox-container-1" class="postbox-container w50">
                         <div id="normal-sortables" class="meta-box-sortables">
                             <div id="dashboard_site_health" class="postbox ">
                                 <div class="postbox-header"><h2 class="hndle">Recruiter progress</h2>
