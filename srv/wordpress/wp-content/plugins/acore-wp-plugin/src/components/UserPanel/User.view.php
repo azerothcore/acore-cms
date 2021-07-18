@@ -223,7 +223,7 @@ class UserView {
                                 <div class="postbox-header"><h2 class="hndle">Recruiter progress</h2>
                                 </div>
                                 <div class="inside">
-                                    <h4>Your personal progress is: <b><?php echo min([$rafPersonalProgress['reward_level'], 10]); ?>/10</b></h4>
+                                    <h4>Your personal reward progress is: <b><?php echo min([$rafPersonalProgress['reward_level'], 10]); ?>/10</b></h4>
                                     <section>
                                         <ol class="progress-bar">
                                             <li class="<?php if ($rafPersonalProgress['reward_level'] <= 0) { echo 'is-active'; } else if ($rafPersonalProgress['reward_level'] > 0) { echo 'is-complete'; } ?>"><span>0</span></li>
@@ -232,23 +232,19 @@ class UserView {
                                             <li class="<?php if ($rafPersonalProgress['reward_level'] >= 10) { echo 'is-complete'; } else if ($rafPersonalProgress['reward_level'] > 3 && $rafPersonalProgress['reward_level'] < 10) { echo 'is-active'; } ?>"><span>10</span></li>
                                         </ol>
                                     </section>
-                                    <h4>Detail of recruited players</h4>
+                                    <h4>Recruited players</h4>
                                     <table class="wp-list-table widefat fixed striped table-view-list"><thead>
                                         <tr>
-                                            <th>Recruit Player</th>
-                                            <th>Status</th>
+                                            <th style='width:50px;'>#</th>
+                                            <th>Player</th>
                                         </tr>
                                         </thead><tbody>
                                         <?php
-                                        $i = $top;
+                                        $i = 1;
                                         foreach ($rafRecruitedInfo as $player) {
-                                            echo "<tr><td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td>";
-                                            if ($player['time_stamp'] == 1) {
-                                                echo "<td>Completed <span class='dashicons dashicons-saved'></span></td></tr>";
-                                                $i--;
-                                            } else {
-                                                echo "<td>Pending</td></tr>";
-                                            }
+                                            echo "<tr><td>" . $i . "</td>";
+                                            echo "<td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td></tr>";
+                                            $i++;
                                         }
                                         ?>
                                         </tbody></table>
