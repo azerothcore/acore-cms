@@ -203,7 +203,14 @@ class UserView {
             $recruiterName = $acServices->getUserNameByUserId($rafPersonalInfo['recruiter_account']);
             ?>
             <div class="notice notice-info w50">
-                <p>You have been recruited by <b><?php echo $recruiterName; ?></b></p>
+                <p>You were recruited by <b><?php echo $recruiterName; ?></b> <?php
+                if ($player['time_stamp'] > 1) {
+                    echo "<td>and is still Active</td></tr>";
+                } if ($player['time_stamp'] = 1) {
+                    echo "<td>and you have reached the level-limit in time and gave the reward to your recruiter.</td></tr>";
+                } else {
+                    echo "<td>but it has been Removed/Expired</td></tr>";
+                } ?></p>
             </div>
         <?php }
 
@@ -247,7 +254,13 @@ class UserView {
                                         foreach ($rafRecruitedInfo as $player) {
                                             echo "<tr><td>" . $i . "</td>";
                                             echo "<td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td>";
-                                            echo "<td>" . ($player['time_stamp'] > 0 ? 'Active' : 'Removed/Expired') . "</td></tr>";
+                                            if ($player['time_stamp'] > 1) {
+                                                echo "<td>Active</td></tr>";
+                                            } if ($player['time_stamp'] = 1) {
+                                                echo "<td>Completed</td></tr>";
+                                            } else {
+                                                echo "<td>Removed/Expired</td></tr>";
+                                            }
                                             $i++;
                                         }
                                         ?>
