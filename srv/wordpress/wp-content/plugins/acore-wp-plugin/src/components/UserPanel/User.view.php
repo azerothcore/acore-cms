@@ -206,7 +206,7 @@ class UserView {
                 <p>You were recruited by <b><?php echo $recruiterName; ?></b> <?php
                 if ($rafPersonalInfo['time_stamp'] > 1) {
                     echo "<td>and is still Active.</td></tr>";
-                } if ($rafPersonalInfo['time_stamp'] == 1) {
+                } else if ($rafPersonalInfo['time_stamp'] == 1) {
                     echo "<td>and you have reached the level-limit in time, giving a reward to your recruiter.</td></tr>";
                 } else {
                     echo "<td>but it has been Removed/Expired.</td></tr>";
@@ -256,7 +256,7 @@ class UserView {
                                             echo "<td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td>";
                                             if ($player['time_stamp'] > 1) {
                                                 echo "<td>Active</td></tr>";
-                                            } if ($player['time_stamp'] == 1) {
+                                            } else if ($player['time_stamp'] == 1) {
                                                 echo "<td>Completed</td></tr>";
                                             } else {
                                                 echo "<td>Removed/Expired</td></tr>";
