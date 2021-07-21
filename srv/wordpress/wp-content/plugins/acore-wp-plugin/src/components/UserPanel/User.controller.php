@@ -35,8 +35,8 @@ class UserController {
                 if (!isset($_POST["recruited"])) {
                     wp_die('<div class="notice notice-error"><p>No recruiter value sent.</p></div>');
                 }
-                $recruiterName = $_POST["recruited"];
-                $existingRecruiterId = $acServices->getAcoreAccountIdByName($recruiterName);
+                $recruiterCode = $_POST["recruited"];
+                $existingRecruiterId = $acServices->getUserNameByUserId($recruiterCode);
                 $newRecruitId = $acServices->getAcoreAccountId();
                 if (!$newRecruitId || !$existingRecruiterId) {
                     wp_die('<div class="notice notice-error"><p>Recruiter id or user id not found, please try again or contact a staff member.</p></div>');
@@ -46,7 +46,7 @@ class UserController {
                 if ($res instanceof \Exception) {
                     wp_die('<div class="notice notice-error"><p>Sorry, the server seems to be offline, try again later!</p></div>');
                 }
-                $res = $soap->executeCommand("bindraf $newRecruitId $existingRecruiterId");
+                $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
                 ?><div class="notice notice-info">
                     <p><?php echo $res; ?></p>
                 </div>

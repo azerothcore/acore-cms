@@ -22,6 +22,7 @@ class UserView {
         ob_start();
         $user = wp_get_current_user();
         $acServices = ACoreServices::I();
+        $userId = $acServices->getAcoreAccountId();
 
         ?>
 
@@ -210,7 +211,7 @@ class UserView {
             ?>
             <div class="notice notice-info w50">
                 <p>Hey! You don't have recruited anyone yet, what are you waiting for!.</p>
-                <p>Invite your friends to play using your personal code: <b><?php echo $user->get("user_login"); ?></b></p>
+                <p>Invite your friends to play using your personal code: <b><?php echo $userId ?></b></p>
             </div>
         <?php
         } else {
@@ -223,6 +224,7 @@ class UserView {
                                 <div class="postbox-header"><h2 class="hndle">Recruiter progress</h2>
                                 </div>
                                 <div class="inside">
+                                    <h4>Your personal recruit code is: <b><?php echo $userId; ?></b></h4>
                                     <h4>Your personal reward progress is: <b><?php echo min([$rafPersonalProgress['reward_level'], 10]); ?>/10</b></h4>
                                     <section>
                                         <ol class="progress-bar">
@@ -237,13 +239,15 @@ class UserView {
                                         <tr>
                                             <th style='width:50px;'>#</th>
                                             <th>Player</th>
+                                            <th>Status</th>
                                         </tr>
                                         </thead><tbody>
                                         <?php
                                         $i = 1;
                                         foreach ($rafRecruitedInfo as $player) {
                                             echo "<tr><td>" . $i . "</td>";
-                                            echo "<td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td></tr>";
+                                            echo "<td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td>";
+                                            echo "<td>" . ($player['time_stamp'] > 0 ? 'Active' : 'Removed/Expired') . "</td></tr>";
                                             $i++;
                                         }
                                         ?>
