@@ -25,7 +25,7 @@ class CharactersMenu
 
     function acore_characters_menu()
     {
-        add_submenu_page('profile.php', 'Characters', 'Characters', 'subscriber', 'acore-characters-menu', array($this, 'acore_characters_menu_page'));
+        add_submenu_page('profile.php', 'Characters', 'Characters', 'read', 'acore-characters-menu', array($this, 'acore_characters_menu_page'));
         wp_enqueue_script('jquery-ui-sortable');
     }
 
