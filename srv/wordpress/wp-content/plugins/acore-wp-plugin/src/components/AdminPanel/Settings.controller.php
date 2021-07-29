@@ -63,6 +63,32 @@ class SettingsController {
         echo $this->getView()->getSettingsRender();
     }
 
+    public function loadElunaSettings() {
+        //must check that the user has the required capability
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        // See if the user has posted us some information
+        // If they did, this hidden field will be set to 'Y'
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            foreach (Opts::I()->getConfs() as $key => $value) {
+                if (isset($_POST[$key])) {
+                    $this->model->storeConf($key, $_POST[$key]);
+                }
+            }
+
+            $this->data = $this->model->loadData(); // reload confs
+            // Put a "settings saved" message on the screen
+            ?>
+            <div class="updated"><p><strong>Eluna options are saved</strong></p></div>
+            <?php
+        }
+
+        echo $this->getView()->getElunaSettingsRender();
+    }
+
     public function loadPvpRewards() {
         //must check that the user has the required capability
         if (!current_user_can('manage_options')) {

@@ -20,7 +20,7 @@ class CharactersController {
             <?php
         }
 
-        $accId = $this->getAcoreAccountId();
+        $accId = ACoreServices::I()->getAcoreAccountId();
         $query = "SELECT
             `guid`, `name`, `order`, `race`, `class`, `level`, `gender`
             FROM `characters`
@@ -36,21 +36,6 @@ class CharactersController {
 
     public function getView() {
         return $this->view;
-    }
-
-    private function getAcoreAccountId() {
-        $user = wp_get_current_user();
-
-        $query = "SELECT `id`
-            FROM `account`
-            WHERE `username` = ?
-        ";
-        $conn = ACoreServices::I()->getAccountMgr()->getConnection();
-        $stmt = $conn->prepare($query);
-        $stmt->bindValue(1, $user->get("user_login"));
-        $stmt->execute();
-        $res = $stmt->fetch();
-        return $res["id"];
     }
 
     private function saveCharacterOrder() {

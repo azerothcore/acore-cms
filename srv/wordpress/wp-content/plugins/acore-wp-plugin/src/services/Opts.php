@@ -3,14 +3,14 @@
 namespace ACore;
 
 class Opts {
-    
+
     private static $instance=null;
-    
+
     public $acore_plg_name="AzerothCore WP Integration";
     public $acore_org_name="ACore";
     public $acore_org_alias="acore";
     public $acore_page_alias="wp-acore";
-    public $acore_realm_alias="";
+    public $acore_realm_alias="AzerothCore";
     public $acore_soap_host="";
     public $acore_soap_port="";
     public $acore_soap_user="";
@@ -30,6 +30,12 @@ class Opts {
     public $acore_db_world_user="";
     public $acore_db_world_pass="";
     public $acore_db_world_name="";
+    public $acore_db_eluna_host="";
+    public $acore_db_eluna_port="";
+    public $acore_db_eluna_user="";
+    public $acore_db_eluna_pass="";
+    public $acore_db_eluna_name="";
+    public $eluna_recruit_a_friend="";
 
     public function __get($property) {
         if (property_exists($this, $property)) {
@@ -42,24 +48,24 @@ class Opts {
             $this->$property = $value;
         }
     }
-    
+
     public function loadFromArray($confs) {
         foreach ($confs as $conf => $value) {
             $this->$conf=$value; // variables variable ( created dynamically if not exists )
         }
     }
-    
+
     public function loadFromDb() {
         $confs=$this->getConfs();
         foreach ($confs as $conf => $value) {
             $this->$conf=get_option($conf, $value); // variables variable ( created dynamically if not exists )
         }
     }
-    
+
     private function __construct() {
         $this->loadFromDb();
     }
-    
+
     /**
      * Singleton
      * @return Opts
@@ -68,11 +74,40 @@ class Opts {
         if (!self::$instance) {
             self::$instance=new self();
         }
-        
+
         return self::$instance;
     }
-    
+
     public function getConfs() {
         return \get_object_vars($this);
+    }
+
+    public static function getRealmAliasUri() {
+        // remove html tags
+        $clean = strip_tags($this->acore_realm_alias);
+        // transliterate
+        $clean = transliterator_transliterate('Any-Latin;Latin-ASCII;', $clean);
+        // remove non-number and non-letter characters
+        $clean = str_replace('--', '-', preg_replace('/[^a-z0-9-\_]/i', '', preg_replace(array(
+            '/\s/',
+            '/[^\w-\.\-]/'
+        ), array(
+            '_',
+            ''
+        ), $clean)));
+        // replace '-' for '_'
+        $clean = strtr($clean, array(
+            '-' => '_'
+        ));
+        // remove double '__'
+        $positionInString = stripos($clean, '__');
+        while ($positionInString !== false) {
+            $clean = str_replace('__', '_', $clean);
+            $positionInString = stripos($clean, '__');
+        }
+        // remove '_' from the end and beginning of the string
+        $clean = rtrim(ltrim($clean, '_'), '_');
+        // lowercase the string
+        return strtolower($clean);
     }
 }
