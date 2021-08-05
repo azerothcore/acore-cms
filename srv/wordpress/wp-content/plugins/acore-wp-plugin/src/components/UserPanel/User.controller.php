@@ -26,9 +26,9 @@ class UserController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
-            if ($maxRecruitDatetime >= (new \DateTime())) {
+            if ($maxRecruitDatetime < (new \DateTime())) {
                 ?><div class="notice notice-error">
-                    <p>You can't be recruited by a friend, the 7 days limit are passed.</p>
+                    <p>You can't be recruited by a friend, the 7 days limit has passed.</p>
                 </div>
                 <?php
             } else {

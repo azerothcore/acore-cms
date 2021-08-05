@@ -192,7 +192,7 @@ class UserView {
                 <p>You still have until <b><?php echo $maxRecruitDatetime->format('Y-m-d H:i'); ?> [server time]</b> to be recruited by a friend, enter his username here: </p>
                 <form method="post">
                     <p>
-                        <input type="text" name="recruited" value="" placeholder="Recruiter username" size="20" >
+                        <input type="text" name="recruited" value="" placeholder="Recruiter code" size="20" >
                         <input type="submit" name="Submit" class="button-primary" value="Recruit me!" />
                     </p>
                 </form>
