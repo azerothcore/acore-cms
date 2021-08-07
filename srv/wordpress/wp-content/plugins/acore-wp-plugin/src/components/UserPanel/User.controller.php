@@ -26,9 +26,9 @@ class UserController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
-            if ($maxRecruitDatetime >= (new \DateTime())) {
+            if ($maxRecruitDatetime < (new \DateTime())) {
                 ?><div class="notice notice-error">
-                    <p>You can't be recruited by a friend, the 7 days limit are passed.</p>
+                    <p>You can't be recruited by a friend, the 7 days limit has passed.</p>
                 </div>
                 <?php
             } else {
@@ -63,13 +63,17 @@ class UserController {
         $stmt = $conn->query($query);
         $rafPersonalInfo = $stmt->fetch();
 
-        $query = "SELECT COALESCE(`reward_level`, '0') as reward_level
+        $query = "SELECT COALESCE(`reward_level`, 0) as reward_level
             FROM `recruit_a_friend_rewards`
             WHERE `recruiter_account` = $accId
         ";
         $conn = $acServices->getDatabaseMgr()->getConnection();
         $stmt = $conn->query($query);
         $rafPersonalProgress = $stmt->fetch();
+
+        if (!isset($rafPersonalProgress['reward_level'])) {
+            $rafPersonalProgress = ['reward_level' => 0];
+        }
 
         $query = "SELECT `account_id`, `recruiter_account`, `time_stamp`, `ip_abuse_counter`, `kick_counter`
             FROM `recruit_a_friend_links`
