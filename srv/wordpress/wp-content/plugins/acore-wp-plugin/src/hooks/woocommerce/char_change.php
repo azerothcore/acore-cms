@@ -168,6 +168,9 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                     switch ($item["acore_item_sku"]) {
                         case "char-change-name":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
+                            if (!$charName) {
+                                throw new \Exception("No character found, please check your selection.");
+                            }
                             $res = $soap->changeName($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character rename on $charName - " . $res->getMessage());
@@ -175,6 +178,9 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                             break;
                         case "char-change-faction":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
+                            if (!$charName) {
+                                throw new \Exception("No character found, please check your selection.");
+                            }
                             $res = $soap->changeFaction($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change faction on $charName - " . $res->getMessage());
@@ -182,6 +188,9 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                             break;
                         case "char-change-race":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
+                            if (!$charName) {
+                                throw new \Exception("No character found, please check your selection.");
+                            }
                             $res = $soap->changeRace($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change race on $charName - " . $res->getMessage());
@@ -189,6 +198,9 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                             break;
                         case "char-change-customize":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
+                            if (!$charName) {
+                                throw new \Exception("No character found, please check your selection.");
+                            }
                             $res = $soap->charCustomization($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character customization on $charName - " . $res->getMessage());
@@ -196,6 +208,9 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                             break;
                         case "char-restore-delete":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"], true);
+                            if (!$charName) {
+                                throw new \Exception("No character found, please check your selection.");
+                            }
                             $res = $soap->charRestore($charName);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character restore delete on $charName - " . $res->getMessage());
