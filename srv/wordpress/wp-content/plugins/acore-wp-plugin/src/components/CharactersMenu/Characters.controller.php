@@ -44,7 +44,7 @@ class CharactersController {
         }
 
         // We need the account id to make sure people don't change the order for characters that do not belong to them
-        $accId = $this->getAcoreAccountId();
+        $accId = ACoreServices::I()->getAcoreAccountId();
 
         $query = "UPDATE `characters`
             SET `order` = ?
