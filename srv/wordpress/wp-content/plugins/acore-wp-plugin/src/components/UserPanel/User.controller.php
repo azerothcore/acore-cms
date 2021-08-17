@@ -46,7 +46,7 @@ class UserController {
                     wp_die('<div class="notice notice-error"><p>Recruiter id or user id not found, please try again or contact a staff member.</p></div>');
                 }
 
-                if (getUserNameByUserId == $user->ID) {
+                if ($recruiterCode == $newRecruitId) {
                     wp_die('<div class="notice notice-error"><p>You are trying to recruit yourself.</p></div>');
                 }
 
