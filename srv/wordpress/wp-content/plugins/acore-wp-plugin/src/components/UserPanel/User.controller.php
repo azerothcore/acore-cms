@@ -26,8 +26,10 @@ class UserController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
+
             if ($maxRecruitDatetime < (new \DateTime())) {
-                ?><div class="notice notice-error">
+                ?>
+                <div class="notice notice-error">
                     <p>You can't be recruited by a friend, the 7 days limit has passed.</p>
                 </div>
                 <?php
@@ -35,18 +37,28 @@ class UserController {
                 if (!isset($_POST["recruited"])) {
                     wp_die('<div class="notice notice-error"><p>No recruiter value sent.</p></div>');
                 }
+
                 $recruiterCode = $_POST["recruited"];
                 $existingRecruiterId = $acServices->getUserNameByUserId($recruiterCode);
                 $newRecruitId = $acServices->getAcoreAccountId();
+
                 if (!$newRecruitId || !$existingRecruiterId) {
                     wp_die('<div class="notice notice-error"><p>Recruiter id or user id not found, please try again or contact a staff member.</p></div>');
                 }
+
+                if ($recruiterCode == $newRecruitId) {
+                    wp_die('<div class="notice notice-error"><p>You are trying to recruit yourself.</p></div>');
+                }
+
                 $soap = ACoreServices::I()->getServerSoap();
                 $res = $soap->serverInfo();
+
                 if ($res instanceof \Exception) {
                     wp_die('<div class="notice notice-error"><p>Sorry, the server seems to be offline, try again later!</p></div>');
                 }
+
                 $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
+
                 ?><div class="notice notice-info">
                     <p><?php echo $res; ?></p>
                 </div>
