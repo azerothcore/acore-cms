@@ -224,7 +224,7 @@ class UserView {
                     $deadline = new \Datetime();
                     // TODO Allow custom period for RAF
                     $deadline->setTimestamp($rafPersonalInfo['time_stamp'])->modify('+30days');
-                    echo "<td>and is still Active, with deadline <b>" . $deadline->format('Y-m-d H:i:s') . "</b>.</td></tr>";
+                    echo "<td>and is still Active, with deadline at <b>" . $deadline->format('D, d M Y H:i') . "h</b>.</td></tr>";
                 } else if ($rafPersonalInfo['time_stamp'] == 1) {
                     echo "<td>and you have reached the level-limit in time, giving a reward to your recruiter.</td></tr>";
                 } else {
@@ -276,7 +276,7 @@ class UserView {
                                             if ($player['time_stamp'] > 1) {
                                                 $deadline = new \Datetime();
                                                 $deadline->setTimestamp($player['time_stamp'])->modify('+30days');
-                                                echo "<td>Active<br><small>[Deadline <b>" . $deadline->format('Y-m-d H:i:s') . "]</small></td></tr>";
+                                                echo "<td>Active<br><small>[Deadline at <b>" . $deadline->format('D, d M Y H:i') . "h]</small></td></tr>";
                                             } else if ($player['time_stamp'] == 1) {
                                                 echo "<td>Completed</td></tr>";
                                             } else {
