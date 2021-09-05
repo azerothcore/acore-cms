@@ -51,6 +51,10 @@ class UserView {
                 margin: 2rem;
             }
 
+            .js .postbox .hndle, .js .widget .widget-top {
+                cursor: default;
+            }
+
             .progress-bar {
                 display: flex;
                 justify-content: space-between;
@@ -99,6 +103,12 @@ class UserView {
             .progress-bar li:last-child:before {
                 right: 0;
                 left: auto;
+            }
+
+            .progress-bar .is-complete:first-child span,
+            .progress-bar .is-active:first-child span {
+                position: absolute;
+                left: 3px;
             }
             .progress-bar span {
                 transition: opacity .3s ease-in-out;
@@ -180,6 +190,12 @@ class UserView {
             .w50 {
                 width: 50% !important;
             }
+            .table-middle th {
+                font-weight: 600;
+            }
+            .table-middle th, .table-middle td {
+                vertical-align: middle;
+            }
             </style>
         <?php
 
@@ -205,7 +221,10 @@ class UserView {
             <div class="notice notice-info w50">
                 <p>You were recruited by <b><?php echo $recruiterName; ?></b> <?php
                 if ($rafPersonalInfo['time_stamp'] > 1) {
-                    echo "<td>and is still Active.</td></tr>";
+                    $deadline = new \Datetime();
+                    // TODO Allow custom period for RAF
+                    $deadline->setTimestamp($rafPersonalInfo['time_stamp'])->modify('+30days');
+                    echo "<td>and is still Active, with deadline at <b>" . $deadline->format('D, d M Y H:i') . "h</b>.</td></tr>";
                 } else if ($rafPersonalInfo['time_stamp'] == 1) {
                     echo "<td>and you have reached the level-limit in time, giving a reward to your recruiter.</td></tr>";
                 } else {
@@ -241,8 +260,8 @@ class UserView {
                                             <li class="<?php if ($rafPersonalProgress['reward_level'] >= 10) { echo 'is-complete'; } else if ($rafPersonalProgress['reward_level'] > 3 && $rafPersonalProgress['reward_level'] < 10) { echo 'is-active'; } ?>"><span>10</span></li>
                                         </ol>
                                     </section>
-                                    <h4>Recruited players</h4>
-                                    <table class="wp-list-table widefat fixed striped table-view-list"><thead>
+                                    <h4><b>Recruited friends</b></h4>
+                                    <table class="wp-list-table widefat fixed striped table-view-list table-middle"><thead>
                                         <tr>
                                             <th style='width:50px;'>#</th>
                                             <th>Player</th>
@@ -255,7 +274,9 @@ class UserView {
                                             echo "<tr><td>" . $i . "</td>";
                                             echo "<td>" . $acServices->getUserNameByUserId($player['account_id']) . "</td>";
                                             if ($player['time_stamp'] > 1) {
-                                                echo "<td>Active</td></tr>";
+                                                $deadline = new \Datetime();
+                                                $deadline->setTimestamp($player['time_stamp'])->modify('+30days');
+                                                echo "<td>Active<br><small>[Deadline at <b>" . $deadline->format('D, d M Y H:i') . "h]</small></td></tr>";
                                             } else if ($player['time_stamp'] == 1) {
                                                 echo "<td>Completed</td></tr>";
                                             } else {

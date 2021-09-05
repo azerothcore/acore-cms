@@ -22,6 +22,7 @@ class UserController {
         } catch (\Exception $e) {
             wp_die(__($e->getMessage()));
         }
+        $errorMessage = null;
         $user = wp_get_current_user();
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -35,7 +36,7 @@ class UserController {
                 <?php
             } else {
                 if (!isset($_POST["recruited"])) {
-                    wp_die('<div class="notice notice-error"><p>No recruiter value sent.</p></div>');
+                    $errorMessage = "No recruiter value sent";
                 }
 
                 $recruiterCode = $_POST["recruited"];
@@ -43,26 +44,30 @@ class UserController {
                 $newRecruitId = $acServices->getAcoreAccountId();
 
                 if (!$newRecruitId || !$existingRecruiterId) {
-                    wp_die('<div class="notice notice-error"><p>Recruiter id or user id not found, please try again or contact a staff member.</p></div>');
+                    $errorMessage = "Recruiter id or user id not found, please try again or contact a staff member.";
                 }
 
                 if ($recruiterCode == $newRecruitId) {
-                    wp_die('<div class="notice notice-error"><p>You are trying to recruit yourself.</p></div>');
+                    $errorMessage = "You can't recruit yourself.";
                 }
 
-                $soap = ACoreServices::I()->getServerSoap();
-                $res = $soap->serverInfo();
+                if ($errorMessage) {
+                    ?><div class="notice notice-error"><p><?= $errorMessage ?></p></div><?php
+                } else {
+                    $soap = ACoreServices::I()->getServerSoap();
+                    $res = $soap->serverInfo();
 
-                if ($res instanceof \Exception) {
-                    wp_die('<div class="notice notice-error"><p>Sorry, the server seems to be offline, try again later!</p></div>');
+                    if ($res instanceof \Exception) {
+                        wp_die('<div class="notice notice-error"><p>Sorry, the server seems to be offline, try again later!</p></div>');
+                    }
+
+                    $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
+
+                    ?><div class="notice notice-info">
+                        <p><?php echo $res; ?></p>
+                    </div>
+                    <?php
                 }
-
-                $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
-
-                ?><div class="notice notice-info">
-                    <p><?php echo $res; ?></p>
-                </div>
-                <?php
             }
         }
 
