@@ -22,56 +22,58 @@ class UserController {
         } catch (\Exception $e) {
             wp_die(__($e->getMessage()));
         }
-        $errorMessage = null;
+        $errorMessages = [];
         $user = wp_get_current_user();
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
 
             if ($maxRecruitDatetime < (new \DateTime())) {
-                ?>
-                <div class="notice notice-error">
-                    <p>You can't be recruited by a friend, the 7 days limit has passed.</p>
-                </div>
-                <?php
+                $errorMessages[] = "You can't be recruited by a friend, the 7 days limit has passed.";
             } else {
                 if (!isset($_POST["recruited"])) {
-                    $errorMessage = "No recruiter value sent";
-                }
-
-                $recruiterCode = $_POST["recruited"];
-                $existingRecruiterId = $acServices->getUserNameByUserId($recruiterCode);
-                $newRecruitId = $acServices->getAcoreAccountId();
-
-                if (!$newRecruitId || !$existingRecruiterId) {
-                    $errorMessage = "Recruiter id or user id not found, please try again or contact a staff member.";
-                }
-
-                if ($recruiterCode == $newRecruitId) {
-                    $errorMessage = "You can't recruit yourself.";
-                }
-
-                if ($errorMessage) {
-                    ?><div class="notice notice-error"><p><?= $errorMessage ?></p></div><?php
+                    $errorMessages[] = "No recruiter value sent.";
                 } else {
-                    $soap = ACoreServices::I()->getServerSoap();
-                    $res = $soap->serverInfo();
+                    $recruiterCode = $_POST["recruited"];
+                    $existingRecruiterId = $acServices->getUserNameByUserId($recruiterCode);
+                    $newRecruitId = $acServices->getAcoreAccountId();
 
-                    if ($res instanceof \Exception) {
-                        wp_die('<div class="notice notice-error"><p>Sorry, the server seems to be offline, try again later!</p></div>');
+                    if (!$newRecruitId || !$existingRecruiterId) {
+                        $errorMessages[] = "Recruiter id or user id not found, please try again or contact a staff member.";
                     }
 
-                    $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
+                    if ($recruiterCode == $newRecruitId) {
+                        $errorMessages[] = "You can't recruit yourself.";
+                    }
 
-                    ?><div class="notice notice-info">
-                        <p><?php echo $res; ?></p>
-                    </div>
-                    <?php
+                    if (count($errorMessages) == 0) {
+                        $soap = ACoreServices::I()->getServerSoap();
+                        $res = $soap->serverInfo();
+
+                        if ($res instanceof \Exception) {
+                            $errorMessages[] = "The server seems to be offline, try again later!";
+                        } else {
+                            $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
+
+                            ?><div class="notice notice-info">
+                                <p><?php echo $res; ?></p>
+                            </div>
+                            <?php
+                        }
+
+                    }
                 }
+
+            }
+            if (count($errorMessages) > 0) {
+                ?><div class="notice notice-error"><p><?= implode(" ", $errorMessages) ?></p></div><?php
             }
         }
 
         $accId = $acServices->getAcoreAccountId();
+        if (!isset($accId)) {
+            wp_die("<div class=\"notice notice-error\"><p>An error ocurred while loading your account information, please try again later. If this errors continues, please ask for support.</p></div>");
+        }
         $query = "SELECT `account_id`, `recruiter_account`, `time_stamp`, `ip_abuse_counter`, `kick_counter`
             FROM `recruit_a_friend_links`
             WHERE `account_id` = $accId

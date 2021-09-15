@@ -203,15 +203,16 @@ class UserView {
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
             ?>
             <div class="notice notice-info w50">
-                <p>Hey! You have not been recruited by anyone.</p>
                 <?php if ($maxRecruitDatetime >= (new \DateTime())) { ?>
                 <p>You still have until <b><?php echo $maxRecruitDatetime->format('Y-m-d H:i'); ?> [server time]</b> to be recruited by a friend, enter his username here: </p>
                 <form method="post">
                     <p>
-                        <input type="text" name="recruited" value="" placeholder="Recruiter code" size="20" >
+                        <input type="text" name="recruited" value="" placeholder="Recruiter code" size="20" required />
                         <input type="submit" name="Submit" class="button-primary" value="Recruit me!" />
                     </p>
                 </form>
+                <?php } else { ?>
+                    <p>You are not recruited by no one. Only the first 7 days you can be recruited by someone.</p>
                 <?php } ?>
             </div>
         <?php
@@ -236,8 +237,7 @@ class UserView {
         if (!$rafRecruitedInfo) {
             ?>
             <div class="notice notice-info w50">
-                <p>Hey! You don't have recruited anyone yet, what are you waiting for!.</p>
-                <p>Invite your friends to play using your personal code: <b><?php echo $userId ?></b></p>
+                <p>Start recruiting friends now and win unique prices by using your personal code: <b><?php echo $userId ?></b></p>
             </div>
         <?php
         } else {
