@@ -33,16 +33,18 @@ class SettingsView {
 
         // settings form
         ?>
-
-        <p>Welcome to AzerothCore WP Plugin.</p>
-        <p>Please take a look to the following links before continue:</p>
-        <ul>
-            <li><a href="https://www.azerothcore.org/">Project Homepage</a></li>
-            <li><a href="https://github.com/AzerothCore/">Github Repositories</a></li>
-            <li><a href="https://www.azerothcore.org/wiki/">Wiki</a></li>
-            <li><a href="https://salt.bountysource.com/checkout/amount?team=azerothcore">Donations</a></li>
+        <div class="card w-100">
+        <p class="fs-6"><b>Welcome to AzerothCore WP Plugin.</b></p>
+        <p class="fs-6">Please take a look to the following links before continue:</p>
+        <ul class="list-unstyled">
+            <li><a href="https://www.azerothcore.org/" target="_blank">Project Homepage</a></li>
+            <li><a href="https://github.com/AzerothCore/" target="_blank">Github Repositories</a></li>
+            <li><a href="https://www.azerothcore.org/wiki/" target="_blank">Wiki</a></li>
+            <li><a href="https://www.paypal.com/donate/?hosted_button_id=L69ANPSR8BJDU" target="_blank">Sponsor</a></li>
+            <li><a href="https://salt.bountysource.com/checkout/amount?team=azerothcore" target="_blank">Donations</a></li>
         </ul>
-        <p>This project is fully open-source.</p>
+        <p class="fs-6">This project is fully open-source.</p>
+        </div>
         </div>
 
         <?php
@@ -64,6 +66,13 @@ class SettingsView {
         ?>
 
         <form name="form-acore-settings" method="post" action="">
+
+        <div class="card p-0">
+            <div class="card-body">
+                <h5>
+                General Settings
+                </h5>
+            <hr>
             <table class="form-table" role="presentation">
                 <tbody>
                     <tr>
@@ -260,8 +269,9 @@ class SettingsView {
                     <tr>
                 </tbody>
             </table>
+            </div>
+            </div>
 
-            <hr />
             <div id="ajax-message"></div>
 
             <p class="submit">
