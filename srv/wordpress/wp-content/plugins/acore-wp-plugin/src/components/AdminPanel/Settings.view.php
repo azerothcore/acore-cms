@@ -25,26 +25,23 @@ class SettingsView {
 
         // Now display the settings editing screen
 
-        echo '<div class="wrap">';
-
-        // header
-
-        echo "<h2>" . __('AzerothCore', Opts::I()->page_alias) . "</h2>";
-
-        // settings form
         ?>
-        <div class="card w-100">
-        <p class="fs-6"><b>Welcome to AzerothCore WP Plugin.</b></p>
-        <p class="fs-6">Please take a look to the following links before continue:</p>
-        <ul class="list-unstyled">
-            <li><a href="https://www.azerothcore.org/" target="_blank">Project Homepage</a></li>
-            <li><a href="https://github.com/AzerothCore/" target="_blank">Github Repositories</a></li>
-            <li><a href="https://www.azerothcore.org/wiki/" target="_blank">Wiki</a></li>
-            <li><a href="https://www.paypal.com/donate/?hosted_button_id=L69ANPSR8BJDU" target="_blank">Sponsor</a></li>
-            <li><a href="https://salt.bountysource.com/checkout/amount?team=azerothcore" target="_blank">Donations</a></li>
-        </ul>
-        <p class="fs-6">This project is fully open-source.</p>
-        </div>
+        <div class="wrap">
+        <?php
+        echo "<h2>" . __('AzerothCore', Opts::I()->page_alias) . "</h2>";
+        ?>
+            <div class="card w-100">
+                <p class="fs-6"><b>Welcome to AzerothCore WP Plugin.</b></p>
+                <p class="fs-6">Please take a look to the following links before continue:</p>
+                <ul class="list-unstyled">
+                    <li><a href="https://www.azerothcore.org/" target="_blank">Project Homepage</a></li>
+                    <li><a href="https://github.com/AzerothCore/" target="_blank">Github Repositories</a></li>
+                    <li><a href="https://www.azerothcore.org/wiki/" target="_blank">Wiki</a></li>
+                    <li><a href="https://www.paypal.com/donate/?hosted_button_id=L69ANPSR8BJDU" target="_blank">Sponsor</a></li>
+                    <li><a href="https://salt.bountysource.com/checkout/amount?team=azerothcore" target="_blank">Donations</a></li>
+                </ul>
+                <p class="fs-6">AzerothCore is made with ❤️ and is fully open-source.</p>
+            </div>
         </div>
 
         <?php
@@ -56,230 +53,223 @@ class SettingsView {
 
         // Now display the settings editing screen
 
-        echo '<div class="wrap">';
-
-        // header
-
-        echo "<h2>" . __('AzerothCore Settings', Opts::I()->page_alias) . "</h2>";
-
-        // settings form
         ?>
-
+        <div class="wrap">
+        <?php
+        echo "<h2>" . __('AzerothCore Settings', Opts::I()->page_alias) . "</h2>";
+        ?>
         <form name="form-acore-settings" method="post" action="">
+            <div class="card p-0">
+                <div class="card-body">
+                    <h5>
+                    General Settings
+                    </h5>
+                    <hr>
+                    <table class="form-table" role="presentation">
+                        <tbody>
+                            <tr>
+                                <th scope="row">
+                                    <label for="acore_realm_alias">Realm Alias:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_realm_alias" value="<?= Opts::I()->acore_realm_alias; ?>" size="20">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr />
+                    <table class="form-table" role="presentation">
+                        <tbody>
+                            <tr>
+                                <th scope="row">
+                                    <label for="acore_soap_host">Soap Host:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_soap_host" value="<?= Opts::I()->acore_soap_host; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_soap_port">Soap Port:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_soap_port" value="<?= Opts::I()->acore_soap_port; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_soap_user">Soap User:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_soap_user" value="<?= Opts::I()->acore_soap_user; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_realm_alias">Soap Pass:</label>
+                                </th>
+                                <td>
+                                    <input type="password" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                        </tbody>
+                    </table>
 
-        <div class="card p-0">
-            <div class="card-body">
-                <h5>
-                General Settings
-                </h5>
-            <hr>
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                            <label for="acore_realm_alias">Realm Alias:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_realm_alias" value="<?= Opts::I()->acore_realm_alias; ?>" size="20">
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                    <hr />
 
-            <hr />
+                    <table class="form-table" role="presentation">
+                        <tbody>
+                            <tr>
+                                <th scope="row">
+                                <label for="acore_db_auth_host">Database Auth Host:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_auth_host" value="<?= Opts::I()->acore_db_auth_host; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_auth_port">Database Auth Port:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_auth_port" value="<?= Opts::I()->acore_db_auth_port; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_auth_user">Database Auth User:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_auth_user" value="<?= Opts::I()->acore_db_auth_user; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_realm_alias">Database Auth Pass:</label>
+                                </th>
+                                <td>
+                                    <input type="password" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_auth_name">Database Auth Name:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_auth_name" value="<?= Opts::I()->acore_db_auth_name; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                        </tbody>
+                    </table>
 
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                             <label for="acore_soap_host">Soap Host:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_soap_host" value="<?= Opts::I()->acore_soap_host; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_soap_port">Soap Port:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_soap_port" value="<?= Opts::I()->acore_soap_port; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_soap_user">Soap User:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_soap_user" value="<?= Opts::I()->acore_soap_user; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_realm_alias">Soap Pass:</label>
-                        </th>
-                        <td>
-                            <input type="password" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                </tbody>
-            </table>
+                    <hr />
 
-            <hr />
+                    <table class="form-table" role="presentation">
+                        <tbody>
+                            <tr>
+                                <th scope="row">
+                                    <label for="acore_db_char_host">Database Characters Host:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_char_host" value="<?= Opts::I()->acore_db_char_host; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_char_port">Database Characters Port:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_char_port" value="<?= Opts::I()->acore_db_char_port; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_char_user">Database Characters User:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_char_user" value="<?= Opts::I()->acore_db_char_user; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_realm_alias">Database Characters Pass:</label>
+                                </th>
+                                <td>
+                                    <input type="password" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_char_name">Database Characters Name:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_char_name" value="<?= Opts::I()->acore_db_char_name; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                        </tbody>
+                    </table>
 
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                        <label for="acore_db_auth_host">Database Auth Host:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_auth_host" value="<?= Opts::I()->acore_db_auth_host; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_auth_port">Database Auth Port:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_auth_port" value="<?= Opts::I()->acore_db_auth_port; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_auth_user">Database Auth User:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_auth_user" value="<?= Opts::I()->acore_db_auth_user; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_realm_alias">Database Auth Pass:</label>
-                        </th>
-                        <td>
-                            <input type="password" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_auth_name">Database Auth Name:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_auth_name" value="<?= Opts::I()->acore_db_auth_name; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                </tbody>
-            </table>
+                    <hr />
 
-            <hr />
+                    <table class="form-table" role="presentation">
+                        <tbody>
+                            <tr>
+                                <th scope="row">
+                                <label for="acore_db_world_host">Database World Host:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_world_host" value="<?= Opts::I()->acore_db_world_host; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_world_port">Database World Port:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_world_port" value="<?= Opts::I()->acore_db_world_port; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_world_user">Database World User:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_world_user" value="<?= Opts::I()->acore_db_world_user; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_realm_alias">Database World Pass:</label>
+                                </th>
+                                <td>
+                                    <input type="password" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_world_name">Database World Name:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_world_name" value="<?= Opts::I()->acore_db_world_name; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
 
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                            <label for="acore_db_char_host">Database Characters Host:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_char_host" value="<?= Opts::I()->acore_db_char_host; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_char_port">Database Characters Port:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_char_port" value="<?= Opts::I()->acore_db_char_port; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_char_user">Database Characters User:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_char_user" value="<?= Opts::I()->acore_db_char_user; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_realm_alias">Database Characters Pass:</label>
-                        </th>
-                        <td>
-                            <input type="password" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_char_name">Database Characters Name:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_char_name" value="<?= Opts::I()->acore_db_char_name; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                </tbody>
-            </table>
+                <div id="ajax-message"></div>
 
-            <hr />
+                <p class="submit">
+                    <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
+                    <input type="button" name="check-soap" id="check-soap" class="button-secondary" value="<?php esc_attr_e('Check SOAP', Opts::I()->page_alias) ?>" />
+                </p>
 
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                        <label for="acore_db_world_host">Database World Host:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_world_host" value="<?= Opts::I()->acore_db_world_host; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_world_port">Database World Port:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_world_port" value="<?= Opts::I()->acore_db_world_port; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_world_user">Database World User:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_world_user" value="<?= Opts::I()->acore_db_world_user; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_realm_alias">Database World Pass:</label>
-                        </th>
-                        <td>
-                            <input type="password" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_world_name">Database World Name:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_world_name" value="<?= Opts::I()->acore_db_world_name; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                </tbody>
-            </table>
-            </div>
-            </div>
-
-            <div id="ajax-message"></div>
-
-            <p class="submit">
-                <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
-                <input type="button" name="check-soap" id="check-soap" class="button-secondary" value="<?php esc_attr_e('Check SOAP', Opts::I()->page_alias) ?>" />
-            </p>
-
-        </form>
+            </form>
         </div>
 
         <script>
@@ -304,115 +294,112 @@ class SettingsView {
 
         // Now display the settings editing screen
 
-        ?><div class="wrap"><?php
-
-        // header
-
-        echo "<h2>" . __('AzerothCore Settings', Opts::I()->page_alias) . "</h2>";
-
-        // settings form
         ?>
+        <div class="wrap">
+            <?php
+            echo "<h2>" . __('AzerothCore Settings', Opts::I()->page_alias) . "</h2>";
+            ?>
 
-        <p>Configure database connection for Eluna script that need use of the CMS.</p>
+            <p>Configure database connection for Eluna script that need use of the CMS.</p>
 
-        <form name="form-acore-eluna-settings" method="post" action="">
-            <div class="row">
-                <div class="col-md-6">
-                <div class="card w-100 p-0">
-                    <div class="card-body">
-                    <h5>
-                    Eluna configuration
-                    </h5>
-                    <hr>
-                    <table class="form-table" role="presentation">
-                        <tbody>
-                            <tr>
-                                <th scope="row">
-                                <label for="acore_db_eluna_host">Database Eluna Host:</label>
-                                </th>
-                                <td>
-                                    <input type="text" name="acore_db_eluna_host" value="<?= Opts::I()->acore_db_eluna_host; ?>" size="20">
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <label for="acore_db_eluna_port">Database Eluna Port:</label>
-                                </th>
-                                <td>
-                                    <input type="text" name="acore_db_eluna_port" value="<?= Opts::I()->acore_db_eluna_port; ?>" size="20">
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <label for="acore_db_eluna_user">Database Eluna User:</label>
-                                </th>
-                                <td>
-                                    <input type="text" name="acore_db_eluna_user" value="<?= Opts::I()->acore_db_eluna_user; ?>" size="20" >
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <label for="acore_realm_alias">Database Eluna Pass:</label>
-                                </th>
-                                <td>
-                                    <input type="password" name="acore_db_eluna_pass" value="<?= Opts::I()->acore_db_eluna_pass; ?>" size="20" >
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    <label for="acore_db_eluna_name">Database Eluna Name:</label>
-                                </th>
-                                <td>
-                                    <input type="text" name="acore_db_eluna_name" value="<?= Opts::I()->acore_db_eluna_name; ?>" size="20" >
-                                </td>
-                            </tr>
-                            <tr>
-                        </tbody>
-                    </table>
-                </div>
-                </div>
-                <p class="submit">
-                    <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
-                </p>
-            </div>
-            <div class="col-md-6">
-                <div class="card w-100 p-0">
-                    <div class="card-body">
-                        <h5>
-                            Eluna Modules
-                        </h5>
-                        <hr>
-                        <table class="form-table" role="presentation">
-                            <tbody>
-                                <tr>
-                                    <th>
-                                        <label for="eluna_recruit_a_friend">Recruit a Friend <a href="https://github.com/55Honey/Acore_RecruitAFriend" target="_blank"><span class="dashicons dashicons-external"></span></a></label>
-                                    </th>
-                                    <td>
-                                        <select name="eluna_recruit_a_friend" id="eluna_recruit_a_friend">
-                                            <option value="0">Disabled</option>
-                                            <option value="1" <?php if (Opts::I()->eluna_recruit_a_friend == '1') echo 'selected'; ?>>Enabled</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr id="eluna_raf_config" style="display:none;">
-                                    <th>
-                                        <label for="eluna_raf_config[check_ip]">RAF: Check IP abuse</label>
-                                    </th>
-                                    <td>
-                                        <select name="eluna_raf_config[check_ip]" id="eluna_raf_config_check_ip">
-                                            <option value="0">Disabled</option>
-                                            <option value="1" <?php if (Opts::I()->eluna_raf_config['check_ip'] === '1') echo 'selected'; ?>>Enabled</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <form name="form-acore-eluna-settings" method="post" action="">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card w-100 p-0">
+                            <div class="card-body">
+                                <h5>
+                                Eluna configuration
+                                </h5>
+                                <hr>
+                                <table class="form-table" role="presentation">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">
+                                            <label for="acore_db_eluna_host">Database Eluna Host:</label>
+                                            </th>
+                                            <td>
+                                                <input type="text" name="acore_db_eluna_host" value="<?= Opts::I()->acore_db_eluna_host; ?>" size="20">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_db_eluna_port">Database Eluna Port:</label>
+                                            </th>
+                                            <td>
+                                                <input type="text" name="acore_db_eluna_port" value="<?= Opts::I()->acore_db_eluna_port; ?>" size="20">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_db_eluna_user">Database Eluna User:</label>
+                                            </th>
+                                            <td>
+                                                <input type="text" name="acore_db_eluna_user" value="<?= Opts::I()->acore_db_eluna_user; ?>" size="20" >
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_realm_alias">Database Eluna Pass:</label>
+                                            </th>
+                                            <td>
+                                                <input type="password" name="acore_db_eluna_pass" value="<?= Opts::I()->acore_db_eluna_pass; ?>" size="20" >
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_db_eluna_name">Database Eluna Name:</label>
+                                            </th>
+                                            <td>
+                                                <input type="text" name="acore_db_eluna_name" value="<?= Opts::I()->acore_db_eluna_name; ?>" size="20" >
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p class="submit">
+                            <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card w-100 p-0">
+                            <div class="card-body">
+                                <h5>
+                                    Eluna Modules
+                                </h5>
+                                <hr>
+                                <table class="form-table" role="presentation">
+                                    <tbody>
+                                        <tr>
+                                            <th>
+                                                <label for="eluna_recruit_a_friend">Recruit a Friend <a href="https://github.com/55Honey/Acore_RecruitAFriend" target="_blank"><span class="dashicons dashicons-external"></span></a></label>
+                                            </th>
+                                            <td>
+                                                <select name="eluna_recruit_a_friend" id="eluna_recruit_a_friend">
+                                                    <option value="0">Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->eluna_recruit_a_friend == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr class="eluna_raf_config" <?php if (Opts::I()->eluna_recruit_a_friend != '1') echo 'style="display:none;"'?>>
+                                            <th>
+                                                <label for="eluna_raf_config[check_ip]">RAF: Check IP abuse</label>
+                                            </th>
+                                            <td>
+                                                <select name="eluna_raf_config[check_ip]" id="eluna_raf_config_check_ip">
+                                                    <option value="0">Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->eluna_raf_config['check_ip'] === '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            </div>
-        </form>
+            </form>
         </div>
 
         <script>
@@ -428,17 +415,8 @@ class SettingsView {
                 })
             });
             jQuery('#eluna_recruit_a_friend').on('change', function() {
-                if (this.value == '1') {
-                    jQuery('#eluna_raf_config').show();;
-                } else {
-                    jQuery('#eluna_raf_config').hide();
-                }
+                jQuery('.eluna_raf_config').toggle();
             })
-            jQuery(document).on('ready', function() {
-                if (jQuery('#eluna_recruit_a_friend').val() == '1') {
-                    jQuery('#eluna_raf_config').show();
-                }
-            });
         </script>
         <?php
         return ob_get_clean();

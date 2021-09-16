@@ -51,12 +51,12 @@ class UserController {
                         $activeUserIp = "";
                         if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
                         //check ip from share internet
-                        $activeUserIp = $_SERVER['HTTP_CLIENT_IP'];
+                            $activeUserIp = $_SERVER['HTTP_CLIENT_IP'];
                         } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
                         //to check ip is pass from proxy
-                        $activeUserIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
+                            $activeUserIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
                         } else {
-                        $activeUserIp = $_SERVER['REMOTE_ADDR'];
+                            $activeUserIp = $_SERVER['REMOTE_ADDR'];
                         }
 
                         $activeUserIp = apply_filters( 'wpb_get_ip', $activeUserIp );
