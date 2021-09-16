@@ -260,6 +260,33 @@ class ACoreServices
         return $res["id"];
     }
 
+    public function getAcoreAccountLastIp() {
+        $user = wp_get_current_user();
+        $query = "SELECT `last_ip`
+            FROM `account`
+            WHERE `username` = ?
+        ";
+        $conn = $this->getAccountMgr()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $user->get("user_login"));
+        $stmt->execute();
+        $res = $stmt->fetch();
+        return $res["last_ip"];
+    }
+
+    public function getAcoreAccountLastIpById($id) {
+        $query = "SELECT `last_ip`
+            FROM `account`
+            WHERE `id` = ?
+        ";
+        $conn = $this->getAccountMgr()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $id);
+        $stmt->execute();
+        $res = $stmt->fetch();
+        return $res["last_ip"];
+    }
+
     public function getAcoreAccountIdByName($username) {
         $query = "SELECT `id`
             FROM `account`

@@ -36,6 +36,7 @@ class Opts {
     public $acore_db_eluna_pass="";
     public $acore_db_eluna_name="";
     public $eluna_recruit_a_friend="";
+    public $eluna_raf_config=["check_ip" => '0'];
 
     public function __get($property) {
         if (property_exists($this, $property)) {
