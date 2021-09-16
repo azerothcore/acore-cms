@@ -46,6 +46,16 @@ class UserController {
                         $errorMessages[] = "You can't recruit yourself.";
                     }
 
+                    if (Opts::I()->eluna_raf_config['check_ip'] === '1') {
+                        $userIp = $acServices->getAcoreAccountLastIp();
+                        $recruiterIp = $acServices->getAcoreAccountLastIpById($recruiterCode);
+                        if (isset($userIp) && isset($recruiterIp)) {
+                            if ($userIp != '127.0.0.1' && $recruiterIp != '127.0.0.1' && $userIp == $recruiterIp) {
+                                $errorMessages[] = "You can't be recruited by a player with your same IP.";
+                            }
+                        }
+                    }
+
                     if (count($errorMessages) == 0) {
                         $soap = ACoreServices::I()->getServerSoap();
                         $res = $soap->serverInfo();
@@ -54,11 +64,9 @@ class UserController {
                             $errorMessages[] = "The server seems to be offline, try again later!";
                         } else {
                             $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
-
-                            ?><div class="notice notice-info">
-                                <p><?php echo $res; ?></p>
-                            </div>
-                            <?php
+                            if ($res instanceof \Exception) {
+                                $errorMessages[] = "An error ocurred while binding accounts. Please try again later.";
+                            }
                         }
 
                     }

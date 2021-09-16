@@ -316,79 +316,102 @@ class SettingsView {
         <p>Configure database connection for Eluna script that need use of the CMS.</p>
 
         <form name="form-acore-eluna-settings" method="post" action="">
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                        <label for="acore_db_eluna_host">Database Eluna Host:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_eluna_host" value="<?= Opts::I()->acore_db_eluna_host; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_eluna_port">Database Eluna Port:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_eluna_port" value="<?= Opts::I()->acore_db_eluna_port; ?>" size="20">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_eluna_user">Database Eluna User:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_eluna_user" value="<?= Opts::I()->acore_db_eluna_user; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_realm_alias">Database Eluna Pass:</label>
-                        </th>
-                        <td>
-                            <input type="password" name="acore_db_eluna_pass" value="<?= Opts::I()->acore_db_eluna_pass; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="acore_db_eluna_name">Database Eluna Name:</label>
-                        </th>
-                        <td>
-                            <input type="text" name="acore_db_eluna_name" value="<?= Opts::I()->acore_db_eluna_name; ?>" size="20" >
-                        </td>
-                    </tr>
-                    <tr>
-                </tbody>
-            </table>
-
-            <hr />
-
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                        <label>Eluna modules:</label>
-                        </th>
-                    </tr>
-                    <tr>
-                        <th>
-                            <label for="eluna_recruit_a_friend">Recruit a Friend <a href="https://github.com/55Honey/Acore_RecruitAFriend" target="_blank"><span class="dashicons dashicons-external"></span></a></label>
-                        </th>
-                        <td>
-                            <select name="eluna_recruit_a_friend">
-                                <option value="0">Disabled</option>
-                                <option value="1" <?php if (Opts::I()->eluna_recruit_a_friend == '1') echo 'selected'; ?>>Enabled</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <hr />
-            <p class="submit">
-                <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
-            </p>
-
+            <div class="row">
+                <div class="col-md-6">
+                <div class="card w-100 p-0">
+                    <div class="card-body">
+                    <h5>
+                    Eluna configuration
+                    </h5>
+                    <hr>
+                    <table class="form-table" role="presentation">
+                        <tbody>
+                            <tr>
+                                <th scope="row">
+                                <label for="acore_db_eluna_host">Database Eluna Host:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_eluna_host" value="<?= Opts::I()->acore_db_eluna_host; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_eluna_port">Database Eluna Port:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_eluna_port" value="<?= Opts::I()->acore_db_eluna_port; ?>" size="20">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_eluna_user">Database Eluna User:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_eluna_user" value="<?= Opts::I()->acore_db_eluna_user; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_realm_alias">Database Eluna Pass:</label>
+                                </th>
+                                <td>
+                                    <input type="password" name="acore_db_eluna_pass" value="<?= Opts::I()->acore_db_eluna_pass; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="acore_db_eluna_name">Database Eluna Name:</label>
+                                </th>
+                                <td>
+                                    <input type="text" name="acore_db_eluna_name" value="<?= Opts::I()->acore_db_eluna_name; ?>" size="20" >
+                                </td>
+                            </tr>
+                            <tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <p class="submit">
+                    <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
+                </p>
+            </div>
+            <div class="col-md-6">
+                <div class="card w-100 p-0">
+                    <div class="card-body">
+                        <h5>
+                            Eluna Modules
+                        </h5>
+                        <hr>
+                        <table class="form-table" role="presentation">
+                            <tbody>
+                                <tr>
+                                    <th>
+                                        <label for="eluna_recruit_a_friend">Recruit a Friend <a href="https://github.com/55Honey/Acore_RecruitAFriend" target="_blank"><span class="dashicons dashicons-external"></span></a></label>
+                                    </th>
+                                    <td>
+                                        <select name="eluna_recruit_a_friend" id="eluna_recruit_a_friend">
+                                            <option value="0">Disabled</option>
+                                            <option value="1" <?php if (Opts::I()->eluna_recruit_a_friend == '1') echo 'selected'; ?>>Enabled</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr id="eluna_raf_config" style="display:none;">
+                                    <th>
+                                        <label for="eluna_raf_config[check_ip]">RAF: Check IP abuse</label>
+                                    </th>
+                                    <td>
+                                        <select name="eluna_raf_config[check_ip]" id="eluna_raf_config_check_ip">
+                                            <option value="0">Disabled</option>
+                                            <option value="1" <?php if (Opts::I()->eluna_raf_config['check_ip'] === '1') echo 'selected'; ?>>Enabled</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            </div>
         </form>
         </div>
 
@@ -403,6 +426,18 @@ class SettingsView {
                         jQuery('#ajax-message').html('<div class="notice notice-error"><p>An unknown error happens requesting SOAP status.</div>');
                     },
                 })
+            });
+            jQuery('#eluna_recruit_a_friend').on('change', function() {
+                if (this.value == '1') {
+                    jQuery('#eluna_raf_config').show();;
+                } else {
+                    jQuery('#eluna_raf_config').hide();
+                }
+            })
+            jQuery(document).on('ready', function() {
+                if (jQuery('#eluna_recruit_a_friend').val() == '1') {
+                    jQuery('#eluna_raf_config').show();
+                }
             });
         </script>
         <?php
