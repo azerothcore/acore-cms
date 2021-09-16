@@ -48,9 +48,21 @@ class UserController {
 
                     if (Opts::I()->eluna_raf_config['check_ip'] === '1') {
                         $userIp = $acServices->getAcoreAccountLastIp();
+                        $activeUserIp = "";
+                        if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+                        //check ip from share internet
+                        $activeUserIp = $_SERVER['HTTP_CLIENT_IP'];
+                        } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+                        //to check ip is pass from proxy
+                        $activeUserIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
+                        } else {
+                        $activeUserIp = $_SERVER['REMOTE_ADDR'];
+                        }
+
+                        $activeUserIp = apply_filters( 'wpb_get_ip', $activeUserIp );
                         $recruiterIp = $acServices->getAcoreAccountLastIpById($recruiterCode);
                         if (isset($userIp) && isset($recruiterIp)) {
-                            if ($userIp != '127.0.0.1' && $recruiterIp != '127.0.0.1' && $userIp == $recruiterIp) {
+                            if ($userIp != '127.0.0.1' && $recruiterIp != '127.0.0.1' && ($userIp == $recruiterIp || $activeUserIp == $recruiterIp)) {
                                 $errorMessages[] = "You can't be recruited by a player with your same IP.";
                             }
                         }
