@@ -50,12 +50,13 @@ class UserController {
                         $userIp = $acServices->getAcoreAccountLastIp();
                         $activeUserIp = "";
                         if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-                        //check ip from share internet
+                            // check ip from share internet
                             $activeUserIp = $_SERVER['HTTP_CLIENT_IP'];
                         } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-                        //to check ip is pass from proxy
+                            // to check ip is pass from proxy
                             $activeUserIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
                         } else {
+                            // use default remote ip
                             $activeUserIp = $_SERVER['REMOTE_ADDR'];
                         }
 
