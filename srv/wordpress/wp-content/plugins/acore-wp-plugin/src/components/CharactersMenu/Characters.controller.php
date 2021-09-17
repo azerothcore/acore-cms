@@ -14,9 +14,8 @@ class CharactersController {
     public function loadHome() {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $this->saveCharacterOrder();
-
             ?>
-            <div class="updated"><p><strong>Option saved</strong></p></div>
+            <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
             <?php
         }
 

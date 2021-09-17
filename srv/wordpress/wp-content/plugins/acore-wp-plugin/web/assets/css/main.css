@@ -1,0 +1,171 @@
+/*
+Acore plugin main css file
+*/
+
+body {
+    background: #f0f0f1; /* wordpress default */
+    color: var(--bs-dark);
+}
+
+.card {
+    max-width: initial;
+    margin-top: initial;
+    padding: initial;
+}
+
+.bg-teal {
+    background-color: var(--bs-teal) !important;
+}
+
+/* start char-order */
+#acore-characters-order .menu-item-handle {
+}
+
+#acore-characters-order .item-type {
+    padding: 0px;
+    margin-top: 5px;
+}
+
+#acore-characters-order .item-type img {
+    display: inline-block;
+    vertical-align: middle;
+    height: 32px;
+    transform: translateZ(0); /* prevent blurry image on chrome */
+}
+
+#acore-characters-order input {
+    display: none;
+}
+
+/* end char order */
+
+/* start raf progress view */
+.acore-progress-bar {
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+}
+.acore-progress-bar li {
+    flex: 2;
+    position: relative;
+    padding: 0 0 14px 0;
+    font-size: var(--font-size-default);
+    line-height: 1.5;
+    color: var(--bs-teal);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: visible;
+    min-width: 0;
+    text-align: center;
+    border-bottom: 2px solid var(--bs-gray-400);
+}
+.acore-progress-bar li:first-child,
+.acore-progress-bar li:last-child {
+    flex: 1;
+}
+.acore-progress-bar li:last-child {
+    text-align: right;
+}
+.acore-progress-bar li:before {
+    content: "";
+    display: block;
+    width: 0.8em;
+    height: 0.8em;
+    background-color: var(--bs-gray-400);
+    border-radius: 50%;
+    border: 2px solid var(--bs-white);
+    position: absolute;
+    left: calc(50% - 6px);
+    bottom: -7px;
+    z-index: 3;
+    transition: all .2s ease-in-out;
+}
+.acore-progress-bar li:first-child:before {
+    left: 0;
+}
+.acore-progress-bar li:last-child:before {
+    right: 0;
+    left: auto;
+}
+
+.acore-progress-bar .is-complete:first-child span,
+.acore-progress-bar .is-active:first-child span {
+    position: absolute;
+    left: 3px;
+}
+.acore-progress-bar span {
+    transition: opacity .3s ease-in-out;
+}
+.acore-progress-bar li:not(.is-active) span {
+    opacity: 0;
+}
+.acore-progress-bar .is-complete:not(:first-child):after,
+.acore-progress-bar .is-active:not(:first-child):after {
+    content: "";
+    display: block;
+    width: 100%;
+    position: absolute;
+    bottom: -2px;
+    left: -50%;
+    z-index: 2;
+    border-bottom: 2px solid var(--bs-teal);
+}
+.acore-progress-bar li:last-child span {
+    width: 200%;
+    display: inline-block;
+    position: absolute;
+    left: -100%;
+}
+
+.acore-progress-bar .is-complete:last-child:after,
+.acore-progress-bar .is-active:last-child:after {
+    width: 200%;
+    left: -100%;
+}
+
+.acore-progress-bar .is-complete:before {
+    background-color: var(--bs-teal);
+}
+
+.acore-progress-bar .is-active:before,
+.acore-progress-bar li:hover:before,
+.acore-progress-bar .is-hovered:before {
+    background-color: var(--bs-white);
+    border-color: var(--bs-teal);
+}
+.acore-progress-bar li:hover:before,
+.acore-progress-bar .is-hovered:before {
+    transform: scale(1.33);
+}
+
+.acore-progress-bar li:hover span,
+.acore-progress-bar li.is-hovered span {
+    opacity: 1;
+}
+
+.acore-progress-bar:hover li:not(:hover) span {
+    opacity: 0;
+}
+
+.x-ray .acore-progress-bar,
+.x-ray .acore-progress-bar li {
+    border: 1px dashed red;
+}
+
+.acore-progress-bar .has-changes {
+    opacity: 1 !important;
+}
+.acore-progress-bar .has-changes:before {
+    content: "";
+    display: block;
+    width: 8px;
+    height: 8px;
+    position: absolute;
+    left: calc(50% - 4px);
+    bottom: -20px;
+    background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%208%208%22%3E%3Cpath%20fill%3D%22%23ed1c24%22%20d%3D%22M4%200l4%208H0z%22%2F%3E%3C%2Fsvg%3E');
+}
+
+/* end raf progress view */

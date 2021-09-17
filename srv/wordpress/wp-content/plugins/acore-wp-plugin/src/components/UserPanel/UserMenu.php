@@ -28,7 +28,7 @@ class UserMenu
     function acore_user_menu()
     {
         if (Opts::I()->eluna_recruit_a_friend == '1') {
-            add_submenu_page('profile.php', 'Recruit a Friend', 'Recruit a Friend', 'read', 'eluna-raf-progress', array($this, 'eluna_raf_progress_page'));
+            add_submenu_page('profile.php', 'Recruit a Friend', 'Recruit a Friend', 'read', ACORE_SLUG . '-eluna-raf-progress', array($this, 'eluna_raf_progress_page'));
         }
     }
 
