@@ -21,6 +21,9 @@ class SettingsView {
     }
 
     public function getHomeRender() {
+
+        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css', array(), '5.1.1');
+        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js', array(), '5.1.1');
         ob_start();
 
         // Now display the settings editing screen
@@ -49,6 +52,9 @@ class SettingsView {
     }
 
     public function getSettingsRender() {
+
+        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css', array(), '5.1.1');
+        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js', array(), '5.1.1');
         ob_start();
 
         // Now display the settings editing screen
@@ -290,6 +296,9 @@ class SettingsView {
     }
 
     public function getElunaSettingsRender() {
+
+        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css', array(), '5.1.1');
+        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js', array(), '5.1.1');
         ob_start();
 
         // Now display the settings editing screen
@@ -423,6 +432,9 @@ class SettingsView {
     }
 
     public function getPvpRewardsRender($amount, $isWinner, $bracket, $month, $year, $top, $fixedAmount, $stepAmount, $result) {
+
+        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css', array(), '5.1.1');
+        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js', array(), '5.1.1');
         ob_start();
 
         // Now display the settings editing screen

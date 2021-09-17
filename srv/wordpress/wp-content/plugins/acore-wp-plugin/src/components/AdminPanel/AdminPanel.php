@@ -83,8 +83,6 @@ class AdminPanel
             'pvp-rewards',
             array($this, 'acore_pvpreward_page')
         );
-        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css', array(), '5.1.1');
-        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js', array(), '5.1.1');
 
     }
 
