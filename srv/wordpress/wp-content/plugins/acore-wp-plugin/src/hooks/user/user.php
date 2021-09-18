@@ -30,14 +30,12 @@ function user_profile_update_errors($errors, $update, $user)
 
     $accRepo = ACoreServices::I()->getAccountRepo();
 
-    if (!$update) {
-        $gameUser = $accRepo->findOneByUsername($user->user_login);
-    } else {
-        $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
-    }
-
-    if ($gameUser && strtoupper($user->user_login) != strtoupper($gameUser->getUsername())) {
-        $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
+    $gameUser = $accRepo->findOneByUsername($user->user_login);
+    if ($update) {
+        $userByEmail = $accRepo->findOneBy(array('email' => $user->user_email));
+        if ($gameUser && $userByEmail && strtoupper($user->user_login) != strtoupper($userByEmail->getUsername())) {
+            $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
+        }
     }
 }
 
@@ -68,6 +66,7 @@ function user_registration_errors($errors, $sanitized_user_login, $user_email)
 
     return $errors;
 }
+
 add_filter('registration_errors', __NAMESPACE__ . '\user_registration_errors', 10, 3);
 
 /**
