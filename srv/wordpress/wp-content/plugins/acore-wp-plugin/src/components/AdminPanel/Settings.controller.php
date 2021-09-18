@@ -134,6 +134,7 @@ class SettingsController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             global $wpdb;
+            global $mycred_log_table;
             $rewards = [];
             if (isset($_POST["amount"])) {
                 $amount = (int) $_POST['amount'];
@@ -210,6 +211,7 @@ class SettingsController {
                 $query = "INSERT INTO temp_pvp_rewards (`account`, `points`) VALUES " . implode(', ', $insertTempValues);
                 $wpdb->query($query);
 
+                // Add pvp rewards to players who already have mycred points
                 $query = "UPDATE `{$wpdb->prefix}usermeta` um
                     LEFT JOIN `{$wpdb->prefix}users` u ON u.`ID` = um.user_id
                     LEFT JOIN temp_pvp_rewards t ON t.account = u.user_login
@@ -219,12 +221,25 @@ class SettingsController {
                     AND um.meta_key = '$mycredTokenName'";
                 $wpdb->query($query);
 
+                // Add pvp rewards to players who haven't mycred points
                 $query = "INSERT INTO `{$wpdb->prefix}usermeta` (`user_id`, `meta_key`, `meta_value`)
                         SELECT u.`ID`, '$mycredTokenName', t.`points`
                         FROM `{$wpdb->prefix}users` u
                         LEFT JOIN temp_pvp_rewards t ON t.account = u.user_login
                         WHERE t.`points` IS NOT NULL
                         AND u.`ID` NOT IN (SELECT `user_id` FROM `{$wpdb->prefix}usermeta` WHERE meta_key = '$mycredTokenName')";
+                $wpdb->query($query);
+
+                // log every transaction
+                $time = current_time( 'timestamp' );
+                $rewardPeriod = (new \DateTime("01-$month-$year"))->format('M Y');
+                $userId = get_current_user_id();
+                $query = "INSERT INTO `{$mycred_log_table}` (`ref`, `ref_id`, `user_id`, `creds`, `ctype`, `time`, `entry`, `data`)
+                    SELECT 'pvp-rewards', $userId, u.`ID`, t.`points`, '$mycredTokenName', $time, '$rewardPeriod', 'a:1:{s:8:\"ref_type\";s:4:\"user\";}'
+                    FROM `{$wpdb->prefix}users` u
+                    LEFT JOIN temp_pvp_rewards t ON t.account = u.user_login
+                    WHERE t.`points` IS NOT NULL
+                    AND u.`ID` IS NOT NULL";
                 $wpdb->query($query);
             }
             ?>
