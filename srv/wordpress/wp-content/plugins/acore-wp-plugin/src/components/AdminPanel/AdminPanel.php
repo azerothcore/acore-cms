@@ -60,7 +60,7 @@ class AdminPanel
             __('ACore Settings Panel', Opts::I()->org_alias),
             __('Realm Settings', Opts::I()->org_alias),
             'manage_options',
-            'settings',
+            ACORE_SLUG . '-settings',
             array($this, 'acore_settings_page')
         );
 
@@ -70,7 +70,7 @@ class AdminPanel
             __('ACore Settings Panel', Opts::I()->org_alias),
             __('Eluna', Opts::I()->org_alias),
             'manage_options',
-            'eluna-settings',
+            ACORE_SLUG . '-eluna-settings',
             array($this, 'acore_eluna_settings')
         );
 
@@ -80,11 +80,9 @@ class AdminPanel
             __('ACore Settings Panel', Opts::I()->org_alias),
             __('PvP Rewards', Opts::I()->org_alias),
             'manage_options',
-            'pvp-rewards',
+            ACORE_SLUG . '-pvp-rewards',
             array($this, 'acore_pvpreward_page')
         );
-        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css', array(), '5.1.1');
-        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js', array(), '5.1.1');
 
     }
 
@@ -96,7 +94,7 @@ class AdminPanel
             __('ACore Home', Opts::I()->org_alias),
             __('AzerothCore', Opts::I()->org_alias),
             'manage_options',
-            'acore',
+            ACORE_SLUG,
             array($this, 'acore_home_page'),
             'data:image/svg+xml;base64,' . base64_encode($file)
         );

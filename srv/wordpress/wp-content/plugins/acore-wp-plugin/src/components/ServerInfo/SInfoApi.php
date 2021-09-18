@@ -16,7 +16,7 @@ class SInfoApi {
 
 
 add_action( 'rest_api_init', function () {
-   register_rest_route( 'wp-acore/v1', 'server-info', array(
+   register_rest_route( ACORE_SLUG . '/v1', 'server-info', array(
        'methods'  => 'GET',
        'callback' => function( $request ) {
             $data = ['message' => SInfoApi::serverInfo()];
