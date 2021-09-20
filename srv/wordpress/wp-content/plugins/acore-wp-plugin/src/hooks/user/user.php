@@ -251,12 +251,19 @@ function validateComplexPassword($errors)
 
 /**
  * AzerothCore supports a limited length password
- * So the wordpress automatic generated password
- * must be truncated
+ * This filter, will generate a random password
+ * based on a list of valid characters
  */
-add_filter('random_password', function ($pass) {
-    return substr($pass, 0, Conf::PASSWORD_LENGTH);
-}, 10, 1);
+
+add_filter( 'random_password', function ($pass) {
+    $characters = Conf::PASSWORD_CHARS_LIST;
+    $password = '';
+    for( $i = 0; $i < Conf::PASSWORD_LENGTH; $i++ ) {
+        $password .= substr( $characters , wp_rand( 0, strlen( $characters ) - 1 ), 1 );
+    }
+    return $password;
+}, 10, 1 );
+
 
 /**
  * User extra fields
