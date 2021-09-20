@@ -46,3 +46,58 @@ function user_menu_init()
     add_action( 'admin_menu', array( $userMenu, 'acore_user_menu' ) );
 
 }
+
+function remove_dashboard_meta() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        remove_meta_box( 'dashboard_incoming_links', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_primary', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_secondary', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
+        remove_meta_box( 'dashboard_recent_comments', 'dashboard', 'normal' );
+        remove_meta_box( 'dashboard_right_now', 'dashboard', 'normal' );
+        //remove_meta_box( 'dashboard_activity', 'dashboard', 'normal');// hide update notifications
+    }
+    if (! current_user_can('update_core') ) {
+        remove_action( 'admin_notices', 'update_nag', 3 );
+    }
+}
+
+add_action( 'admin_init', __NAMESPACE__ . '\\remove_dashboard_meta' );
+
+/**
+ * Add a widget to the dashboard.
+ *
+ * This function is hooked into the 'wp_dashboard_setup' action below.
+ */
+function acore_user_dashboard() {
+    add_meta_box(
+        'wpexplorer_dashboard_widget', // Widget slug.
+        __( 'Personal player stats', 'textdomain'), // Title.
+        __NAMESPACE__ . '\\personal_player_stats', // Display function.
+        'dashboard',
+        'side',
+        'high'
+    );
+}
+add_action( 'wp_dashboard_setup', __NAMESPACE__ . '\\acore_user_dashboard' );
+
+/**
+ * Create the function to output the contents of your Dashboard Widget.
+ */
+function personal_player_stats() {
+    $user = wp_get_current_user();
+    $startDate = (new \DateTime($user->get("user_registered")))->format('D, d M Y H:i');
+    $acServices = ACoreServices::I();
+    $totalPlaytime = $acServices->getAcoreAccountTotaltime(true);
+    echo "<p>You are here since <b>$startDate</b></p>";
+    echo "<p>Your total playtime is <b>$totalPlaytime</b></p>";
+}
+
+// Custom Admin footer
+function acore_copyright () {
+    echo '<span id="footer-thankyou">Made with ❤️ by <a href="https://www.azerothcore.org/" target="_blank">AzerothCore</a>. Powered by <a href="https://wordpress.org/" target="_blank">WordPress</a>.</span>';
+}
+
+add_filter( 'admin_footer_text', __NAMESPACE__ . '\\acore_copyright' );
