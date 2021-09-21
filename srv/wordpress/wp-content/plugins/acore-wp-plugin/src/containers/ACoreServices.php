@@ -274,6 +274,33 @@ class ACoreServices
         return $res["last_ip"];
     }
 
+    public function getAcoreAccountTotaltime($beauty=false) {
+        $user = wp_get_current_user();
+        $query = "SELECT `totaltime`
+            FROM `account`
+            WHERE `username` = ?
+        ";
+        $conn = $this->getAccountMgr()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $user->get("user_login"));
+        $stmt->execute();
+        $res = $stmt->fetch();
+        $total = isset($res["totaltime"]) ? (int) $res["totaltime"] : 0;
+        if ($beauty) {
+            $days = floor($total / (3600 * 24));
+            $hours = floor(($total / 3600) % 24);
+            $minutes = floor(($total % 3600) / 60);
+            if ($days > 0) {
+                return "$days day(s), $hours hour(s) and $minutes minute(s)";
+            } elseif ($hours > 0) {
+                return "$hours hour(s) and $minutes minute(s)";
+            } else {
+                return "$minutes minute(s)";
+            }
+        }
+        return $total;
+    }
+
     public function getAcoreAccountLastIpById($id) {
         $query = "SELECT `last_ip`
             FROM `account`

@@ -30,14 +30,12 @@ function user_profile_update_errors($errors, $update, $user)
 
     $accRepo = ACoreServices::I()->getAccountRepo();
 
-    if (!$update) {
-        $gameUser = $accRepo->findOneByUsername($user->user_login);
-    } else {
-        $gameUser = $accRepo->findOneBy(array('email' => $user->user_email));
-    }
-
-    if ($gameUser && strtoupper($user->user_login) != strtoupper($gameUser->getUsername())) {
-        $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
+    $gameUser = $accRepo->findOneByUsername($user->user_login);
+    if ($update) {
+        $userByEmail = $accRepo->findOneBy(array('email' => $user->user_email));
+        if ($gameUser && $userByEmail && strtoupper($user->user_login) != strtoupper($userByEmail->getUsername())) {
+            $errors->add('invalid_email', __('ACore Error: This email has been already used', 'acore-wp-plugin'));
+        }
     }
 }
 
@@ -68,6 +66,7 @@ function user_registration_errors($errors, $sanitized_user_login, $user_email)
 
     return $errors;
 }
+
 add_filter('registration_errors', __NAMESPACE__ . '\user_registration_errors', 10, 3);
 
 /**
@@ -252,12 +251,19 @@ function validateComplexPassword($errors)
 
 /**
  * AzerothCore supports a limited length password
- * So the wordpress automatic generated password
- * must be truncated
+ * This filter, will generate a random password
+ * based on a list of valid characters
  */
-add_filter('random_password', function ($pass) {
-    return substr($pass, 0, Conf::PASSWORD_LENGTH);
-}, 10, 1);
+
+add_filter( 'random_password', function ($pass) {
+    $characters = Conf::PASSWORD_CHARS_LIST;
+    $password = '';
+    for( $i = 0; $i < Conf::PASSWORD_LENGTH; $i++ ) {
+        $password .= substr( $characters , wp_rand( 0, strlen( $characters ) - 1 ), 1 );
+    }
+    return $password;
+}, 10, 1 );
+
 
 /**
  * User extra fields
