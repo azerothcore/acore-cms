@@ -32,12 +32,12 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
 
     public static function init() {
         add_action('woocommerce_before_shop_loop_item_title', self::sprefix() . 'catalogue_list', 9999);
-        add_filter('the_title', self::sprefix() . 'the_title', 10);
+        add_filter('the_title', self::sprefix() . 'the_title', 20);
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
-        add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 10, 5);
-        add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 10, 3);
-        add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 10, 2);
-        add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 10, 2);
+        add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 20, 5);
+        add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
+        add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
+        add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
         add_action('woocommerce_new_order_item', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
     }
@@ -105,7 +105,6 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
         try {
             self::getCharInfo(); // check char validity
         } catch (\Exception $e) {
-            \wc_add_notice(__($e->getMessage(), 'woocommerce'), 'error');
             return false;
         }
 
@@ -262,15 +261,21 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
         $name = "";
         if (isset($_REQUEST['acore_char_dest']) && $_REQUEST['acore_char_dest']) {
             $name = $_REQUEST['acore_char_dest'];
+            if (intval($name) === 0) {
+                throw new \Exception("No selected character");
+            }
             $char = $charRepo->findOneByName($name);
 
             if (!$char) {
-                throw new \Exception("The character $name doesn't exist!");
+                throw new \Exception("No selected character");
             }
 
             $guid = $char->getGuid();
         } else {
             $guid = intval($_REQUEST['acore_char_sel']);
+            if ($guid === 0) {
+                throw new \Exception("No selected character");
+            }
             $name = $WoWSrv->getCharName($guid);
         }
 
