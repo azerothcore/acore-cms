@@ -26,8 +26,8 @@ class CharacterSoapMgr {
         return $this->executeCommand(".character customize $charName");
     }
 
-    public function charRestore($charName) {
-        return $this->executeCommand(".character deleted restore $charName");
+    public function charRestore($charGuid, $newName = NULL) {
+        return $this->executeCommand(".character deleted restore $charGuid $newName");
     }
 
 }

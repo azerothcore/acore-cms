@@ -174,19 +174,40 @@ class WC_CharChange extends \ACore\Lib\WpClass {
                             break;
                         case "char-restore-delete":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"], true);
-                            if (!$charName) {
-                                throw new \Exception("No character found, please check your selection.");
-                            }
-                            $res = $soap->charRestore($charName);
-                            if ($res instanceof \Exception) {
-                                throw new \Exception("There was an error with character restore delete on $charName - " . $res->getMessage());
-                            }
+                            $guid = $item["acore_char_sel"];
+                            self::charRestore($guid, $charName);
                             break;
                     }
                 }
             }
         } catch (\Exception $e) {
             $logs->add("acore_log", $e->getMessage());
+        }
+    }
+
+    private static function charRestore($guid, $charName) {
+        $soap = ACoreServices::I()->getCharactersSoap();
+        $query = "SELECT `guid`, `name` FROM `characters` WHERE `characters`.`name` = '$charName';";
+        $conn = ACoreServices::I()->getCharactersMgr()->getConnection();
+        $stmt = $conn->query($query);
+        $chars = $stmt->fetchAll();
+
+        $newName = false;
+
+        if ($chars && count($chars) > 0) {
+            $res = $soap->charRestore($guid, $charName . "èè");
+            $newName = true;
+        } else {
+            $res = $soap->charRestore($guid);
+        }
+
+        if ($res instanceof \Exception) {
+            throw new \Exception("There was an error with character restore delete on $charName - " . $res->getMessage());
+        } else if ($newName) {
+            $res = $soap->changeName($charName . "èè");
+            if ($res instanceof \Exception) {
+                throw new \Exception("There was an error renaming your character " . $res->getMessage());
+            }
         }
     }
 
