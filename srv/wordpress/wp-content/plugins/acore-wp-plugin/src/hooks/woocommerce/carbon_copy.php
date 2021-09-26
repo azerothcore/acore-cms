@@ -13,7 +13,7 @@ class WC_CarbonCopy extends \ACore\Lib\WpClass {
     public static function init() {
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
-        add_action('woocommerce_new_order_item', self::sprefix() . 'add_order_item_meta', 1, 3);
+        add_action('woocommerce_add_order_item_meta', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
     }
 
