@@ -17,7 +17,6 @@ class WC_CharChange extends \ACore\Lib\WpClass {
 
     public static function init() {
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
-        add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 20, 5);
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
@@ -37,44 +36,6 @@ class WC_CharChange extends \ACore\Lib\WpClass {
         if ($current_user) {
             FieldElements::charList($current_user->user_login, self::isDeletedSKU($product->get_sku()));
         }
-    }
-
-    // 2) VALIDATION
-    // This code will do the validation for name-on-tshirt field.
-    public static function add_to_cart_validation($flaq, $product_id, $quantity, $variation_id = null, $variations = null) {
-        $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
-        if (!in_array($product->get_sku(), self::$skuList)) {
-            return true;
-        }
-
-        $guid = intval($_REQUEST['acore_char_sel']);
-
-        if (!$guid) {
-            \wc_add_notice(__('No selected character', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        $ACoreSrv = ACoreServices::I();
-        $accRepo = $ACoreSrv->getAccountRepo();
-        $charRepo = $ACoreSrv->getCharactersRepo();
-
-        $current_user = wp_get_current_user();
-
-        if (!$current_user) {
-            \wc_add_notice(__('You must be logged to buy it!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        $accountId = $accRepo->findOneByUsername($current_user->user_login)->getId();
-
-        $char = $charRepo->findOneByGuid($guid);
-
-        if (!isset($char) || ($char->getAccount() != $accountId && !self::isDeletedSKU($product->get_sku()))) {
-            \wc_add_notice(__('This character is not available in your account!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        return true;
     }
 
     // 3) SAVE INTO ITEM DATA

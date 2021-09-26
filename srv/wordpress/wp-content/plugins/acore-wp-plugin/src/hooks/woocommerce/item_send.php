@@ -34,7 +34,6 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
         add_action('woocommerce_before_shop_loop_item_title', self::sprefix() . 'catalogue_list', 9999);
         add_filter('the_title', self::sprefix() . 'the_title', 20);
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
-        add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 20, 5);
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
@@ -91,31 +90,6 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
             <br>
             <?php
         }
-    }
-
-    // 2) VALIDATION
-    // This code will do the validation for name-on-tshirt field.
-    public static function add_to_cart_validation($flaq, $product_id, $quantity, $variation_id = null, $variations = null) {
-        $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
-        $sku = self::getSkuItem($product->get_sku());
-        if (!$sku) {
-            return true;
-        }
-
-        try {
-            self::getCharInfo(); // check char validity
-        } catch (\Exception $e) {
-            return false;
-        }
-
-        $current_user = wp_get_current_user();
-
-        if (!$current_user) {
-            \wc_add_notice(__('You must be logged to buy this product!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        return true;
     }
 
     // 3) SAVE INTO ITEM DATA

@@ -12,7 +12,6 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
 
     public static function init() {
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
-        add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 20, 5);
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
         add_action('woocommerce_new_order_item', self::sprefix() . 'add_order_item_meta', 1, 3);
@@ -33,71 +32,6 @@ class WC_CharTransfer extends \ACore\Lib\WpClass {
             FieldElements::charList($current_user->user_login);
             FieldElements::destAccount();
         }
-    }
-
-    // 2) VALIDATION
-    // This code will do the validation for name-on-tshirt field.
-    public static function add_to_cart_validation($flaq, $product_id, $quantity, $variation_id = null, $variations = null) {
-        $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
-        if (!in_array($product->get_sku(), self::$skuList)) {
-            return true;
-        }
-
-        $guid = intval($_REQUEST['acore_char_sel']);
-
-        if (!$guid) {
-            \wc_add_notice(__('No selected character', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        $accountName = $_REQUEST['acore_dest_account'];
-
-        $WoWSrv = ACoreServices::I();
-        $accRepo = $WoWSrv->getAccountRepo();
-        $charRepo = $WoWSrv->getCharactersRepo();
-        $charBanRepo = $WoWSrv->getCharactersBannedRepo();
-        $accBanRepo = $WoWSrv->getAccountBannedRepo();
-
-        $current_user = wp_get_current_user();
-
-        if (!$current_user) {
-            \wc_add_notice(__('You must be logged to buy it!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        $accountId = $accRepo->findOneByUsername($current_user->user_login)->getId();
-
-        $char = $charRepo->findOneByGuid($guid);
-
-        if (!$char || $char->getAccount() != $accountId) {
-            \wc_add_notice(__('This character is not in your account!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        if ($charBanRepo->isActiveByGuid($guid)) {
-            \wc_add_notice(__('This character is banned!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-
-        if ($accBanRepo->isActiveById($accountId)) {
-            \wc_add_notice(__('This account is banned!', 'woocommerce'), 'error');
-            return false;
-        }
-
-        $destAcc = $accRepo->findOneByUsername($accountName);
-
-        if (!$destAcc || $destAcc->getId() == $accountId) {
-            \wc_add_notice(__('Destination account not valid!', 'woocommerce'), 'error');
-            return false;
-        }
-
-        if ($accBanRepo->isActiveById($destAcc->getId())) {
-            \wc_add_notice(__('Destination account is banned!', 'woocommerce'), 'error');
-            return false;
-        }
-
-        return true;
     }
 
     // 3) SAVE INTO ITEM DATA

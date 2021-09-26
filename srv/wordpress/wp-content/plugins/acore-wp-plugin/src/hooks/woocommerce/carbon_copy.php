@@ -11,29 +11,10 @@ class WC_CarbonCopy extends \ACore\Lib\WpClass {
     );
 
     public static function init() {
-        add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 20, 5);
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
         add_action('woocommerce_new_order_item', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
-    }
-
-    // VALIDATION
-    // This code will do the validation for name-on-tshirt field.
-    public static function add_to_cart_validation($flaq, $product_id, $quantity, $variation_id = null, $variations = null) {
-        $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
-        if (!in_array($product->get_sku(), self::$skuList)) {
-            return true;
-        }
-
-        $current_user = wp_get_current_user();
-
-        if (!$current_user) {
-            \wc_add_notice(__('You must be logged to buy it!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
-
-        return true;
     }
 
     // SAVE INTO ITEM DATA
