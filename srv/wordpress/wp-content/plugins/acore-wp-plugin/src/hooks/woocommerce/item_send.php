@@ -235,7 +235,7 @@ class WC_ItemSend extends \ACore\Lib\WpClass {
         $name = "";
         if (isset($_REQUEST['acore_char_dest']) && $_REQUEST['acore_char_dest']) {
             $name = $_REQUEST['acore_char_dest'];
-            if (intval($name) === 0) {
+            if (!$name || $name == "") {
                 throw new \Exception("No selected character");
             }
             $char = $charRepo->findOneByName($name);
