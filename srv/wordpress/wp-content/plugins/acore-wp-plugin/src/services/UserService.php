@@ -31,7 +31,6 @@ class UserService
                 implode(' ', $invalidChars)
             );
         }
-        wp_die(__('asdf.'));
 
         //#### Password looks good
         return true;
