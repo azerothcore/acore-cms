@@ -26,7 +26,7 @@ class WcCartValidation extends \ACore\Lib\WpClass {
     public static function add_to_cart_validation($flaq, $product_id, $quantity, $variation_id = null, $variations = null) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
         $sku = $product->get_sku();
-        if (!isset(self::$skuList[$sku]) && strpos("itemsend", $sku) === false) {
+        if (!isset(self::$skuList[$sku]) && strpos($sku, "itemsend") === false) {
             return true;
         }
 
@@ -44,7 +44,14 @@ class WcCartValidation extends \ACore\Lib\WpClass {
         $charRepo = $ACoreSrv->getCharactersRepo();
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
 
-        $accountId = $accRepo->findOneByUsername($current_user->user_login)->getId();
+        $account = $accRepo->findOneByUsername($current_user->user_login);
+
+        if (!isset($account)) {
+            \wc_add_notice(__('Account not found. Please reconnect and try again.', 'woocommerce'), 'error');
+            return false;
+        }
+
+        $accountId = $account->getId();
 
         if ($accBanRepo->isActiveById($accountId)) {
             \wc_add_notice(__('This account is banned!', 'woocommerce'), 'error');
