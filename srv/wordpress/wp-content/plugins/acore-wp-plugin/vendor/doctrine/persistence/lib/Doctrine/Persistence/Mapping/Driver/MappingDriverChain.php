@@ -4,9 +4,9 @@ namespace Doctrine\Persistence\Mapping\Driver;
 
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\MappingException;
+
 use function array_keys;
-use function class_exists;
-use function interface_exists;
+use function assert;
 use function spl_object_hash;
 use function strpos;
 
@@ -73,8 +73,8 @@ class MappingDriverChain implements MappingDriver
      */
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
-        /** @var MappingDriver $driver */
         foreach ($this->drivers as $namespace => $driver) {
+            assert($driver instanceof MappingDriver);
             if (strpos($className, $namespace) === 0) {
                 $driver->loadMetadataForClass($className, $metadata);
 
@@ -99,8 +99,8 @@ class MappingDriverChain implements MappingDriver
         $classNames    = [];
         $driverClasses = [];
 
-        /** @var MappingDriver $driver */
         foreach ($this->drivers as $namespace => $driver) {
+            assert($driver instanceof MappingDriver);
             $oid = spl_object_hash($driver);
 
             if (! isset($driverClasses[$oid])) {
@@ -130,8 +130,8 @@ class MappingDriverChain implements MappingDriver
      */
     public function isTransient($className)
     {
-        /** @var MappingDriver $driver */
         foreach ($this->drivers as $namespace => $driver) {
+            assert($driver instanceof MappingDriver);
             if (strpos($className, $namespace) === 0) {
                 return $driver->isTransient($className);
             }
@@ -144,6 +144,3 @@ class MappingDriverChain implements MappingDriver
         return true;
     }
 }
-
-class_exists(\Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain::class);
-interface_exists(ClassMetadata::class);

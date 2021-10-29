@@ -3,7 +3,6 @@
 namespace Doctrine\Persistence;
 
 use Doctrine\Persistence\Mapping\ClassMetadata;
-use function interface_exists;
 
 /**
  * Makes a Persistent Objects aware of its own object-manager.
@@ -24,11 +23,9 @@ interface ObjectManagerAware
     /**
      * Injects responsible ObjectManager and the ClassMetadata into this persistent object.
      *
+     * @psalm-param ClassMetadata<object> $classMetadata
+     *
      * @return void
      */
     public function injectObjectManager(ObjectManager $objectManager, ClassMetadata $classMetadata);
 }
-
-interface_exists(\Doctrine\Common\Persistence\ObjectManagerAware::class);
-interface_exists(ClassMetadata::class);
-interface_exists(ObjectManager::class);

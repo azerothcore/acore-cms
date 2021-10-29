@@ -4,7 +4,6 @@ namespace Doctrine\Persistence;
 
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\ClassMetadataFactory;
-use function interface_exists;
 
 /**
  * Contract for a Doctrine persistence layer ObjectManager class to implement.
@@ -18,8 +17,12 @@ interface ObjectManager
      *
      * @param string $className The class name of the object to find.
      * @param mixed  $id        The identity of the object to find.
+     * @psalm-param class-string<T> $className
      *
      * @return object|null The found object.
+     * @psalm-return T|null
+     *
+     * @template T of object
      */
     public function find($className, $id);
 
@@ -80,9 +83,6 @@ interface ObjectManager
      * Objects which previously referenced the detached object will continue to
      * reference it.
      *
-     * @deprecated Detach operation is deprecated and will be removed in Persistence 2.0. Please use
-     *             {@see ObjectManager::clear()} instead.
-     *
      * @param object $object The object to detach.
      *
      * @return void
@@ -112,8 +112,12 @@ interface ObjectManager
      * Gets the repository for a class.
      *
      * @param string $className
+     * @psalm-param class-string<T> $className
      *
      * @return ObjectRepository
+     * @psalm-return ObjectRepository<T>
+     *
+     * @template T
      */
     public function getRepository($className);
 
@@ -124,8 +128,12 @@ interface ObjectManager
      * (as it is returned by get_class($obj)).
      *
      * @param string $className
+     * @psalm-param class-string<T> $className
      *
      * @return ClassMetadata
+     * @psalm-return ClassMetadata<T>
+     *
+     * @template T of object
      */
     public function getClassMetadata($className);
 
@@ -133,6 +141,7 @@ interface ObjectManager
      * Gets the metadata factory used to gather the metadata of classes.
      *
      * @return ClassMetadataFactory
+     * @psalm-return ClassMetadataFactory<ClassMetadata<object>>
      */
     public function getMetadataFactory();
 
@@ -156,5 +165,3 @@ interface ObjectManager
      */
     public function contains($object);
 }
-
-interface_exists(\Doctrine\Common\Persistence\ObjectManager::class);

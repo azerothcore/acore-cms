@@ -4,7 +4,7 @@ namespace Doctrine\Persistence\Event;
 
 use Doctrine\Persistence\ObjectManager;
 use InvalidArgumentException;
-use function class_exists;
+
 use function get_class;
 use function sprintf;
 
@@ -112,5 +112,3 @@ class PreUpdateEventArgs extends LifecycleEventArgs
         }
     }
 }
-
-class_exists(\Doctrine\Common\Persistence\Event\PreUpdateEventArgs::class);

@@ -4,11 +4,11 @@ namespace Doctrine\Persistence\Mapping\Driver;
 
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\Mapping\MappingException;
+
 use function array_keys;
 use function array_merge;
 use function array_unique;
-use function class_exists;
-use function interface_exists;
+use function array_values;
 use function is_file;
 use function str_replace;
 
@@ -25,7 +25,10 @@ abstract class FileDriver implements MappingDriver
     /** @var FileLocator */
     protected $locator;
 
-    /** @var ClassMetadata[]|null */
+    /**
+     * @var ClassMetadata[]|null
+     * @psalm-var array<class-string, ClassMetadata<object>>|null
+     */
     protected $classCache;
 
     /** @var string|null */
@@ -75,8 +78,10 @@ abstract class FileDriver implements MappingDriver
      * This will lazily load the mapping file if it is not loaded yet.
      *
      * @param string $className
+     * @psalm-param class-string $className
      *
      * @return ClassMetadata The element of schema meta data.
+     * @psalm-return ClassMetadata<object>
      *
      * @throws MappingException
      */
@@ -129,10 +134,10 @@ abstract class FileDriver implements MappingDriver
             return (array) $this->locator->getAllClassNames($this->globalBasename);
         }
 
-        return array_unique(array_merge(
+        return array_values(array_unique(array_merge(
             array_keys($this->classCache),
             (array) $this->locator->getAllClassNames($this->globalBasename)
-        ));
+        )));
     }
 
     /**
@@ -142,6 +147,7 @@ abstract class FileDriver implements MappingDriver
      * @param string $file The mapping file to load.
      *
      * @return ClassMetadata[]
+     * @psalm-return array<class-string, ClassMetadata<object>>
      */
     abstract protected function loadMappingFile($file);
 
@@ -188,12 +194,11 @@ abstract class FileDriver implements MappingDriver
 
     /**
      * Sets the locator used to discover mapping files by className.
+     *
+     * @return void
      */
     public function setLocator(FileLocator $locator)
     {
         $this->locator = $locator;
     }
 }
-
-class_exists(\Doctrine\Common\Persistence\Mapping\Driver\FileDriver::class);
-interface_exists(FileLocator::class);

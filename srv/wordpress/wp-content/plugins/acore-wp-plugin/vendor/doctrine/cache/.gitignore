@@ -1,6 +1,0 @@
-vendor/
-build/
-phpunit.xml
-clover.xml
-.phpcs-cache
-phpcs.xml

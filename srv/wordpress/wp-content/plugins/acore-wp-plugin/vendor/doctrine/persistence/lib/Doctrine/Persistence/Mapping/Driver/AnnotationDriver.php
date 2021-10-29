@@ -10,9 +10,10 @@ use RecursiveIteratorIterator;
 use RecursiveRegexIterator;
 use ReflectionClass;
 use RegexIterator;
+
 use function array_merge;
 use function array_unique;
-use function class_exists;
+use function assert;
 use function get_class;
 use function get_declared_classes;
 use function in_array;
@@ -60,13 +61,14 @@ abstract class AnnotationDriver implements MappingDriver
      * Cache for AnnotationDriver#getAllClassNames().
      *
      * @var string[]|null
+     * @psalm-var list<class-string>|null
      */
     protected $classNames;
 
     /**
      * Name of the entity annotations as keys.
      *
-     * @var string[]
+     * @var array<class-string, bool|int>
      */
     protected $entityAnnotationClasses = [];
 
@@ -113,6 +115,8 @@ abstract class AnnotationDriver implements MappingDriver
      * Append exclude lookup paths to metadata driver.
      *
      * @param string[] $paths
+     *
+     * @return void
      */
     public function addExcludePaths(array $paths)
     {
@@ -168,9 +172,7 @@ abstract class AnnotationDriver implements MappingDriver
      * A class is non-transient if it is annotated with an annotation
      * from the {@see AnnotationDriver::entityAnnotationClasses}.
      *
-     * @param string $className
-     *
-     * @return bool
+     * {@inheritDoc}
      */
     public function isTransient($className)
     {
@@ -223,7 +225,9 @@ abstract class AnnotationDriver implements MappingDriver
                 }
 
                 foreach ($this->excludePaths as $excludePath) {
-                    $exclude = str_replace('\\', '/', realpath($excludePath));
+                    $realExcludePath = realpath($excludePath);
+                    assert($realExcludePath !== false);
+                    $exclude = str_replace('\\', '/', $realExcludePath);
                     $current = str_replace('\\', '/', $sourceFile);
 
                     if (strpos($current, $exclude) !== false) {
@@ -254,5 +258,3 @@ abstract class AnnotationDriver implements MappingDriver
         return $classes;
     }
 }
-
-class_exists(\Doctrine\Common\Persistence\Mapping\Driver\AnnotationDriver::class);
