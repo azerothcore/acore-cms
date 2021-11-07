@@ -110,4 +110,9 @@ function admin_panel_init()
         add_action( 'admin_menu', array( $adminPanel, 'acore_add_pages' ), 8);
     }
 
+    // get administrator role and add new acore capabilities
+    $role = get_role( 'administrator' );
+    $role->add_cap( 'game_master' );
+    $role->add_cap( 'manage_pvp_rewards' );
+
 }
