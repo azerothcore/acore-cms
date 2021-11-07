@@ -92,9 +92,13 @@ function personal_player_stats() {
     $user = wp_get_current_user();
     $startDate = (new \DateTime($user->get("user_registered")))->format('D, d M Y H:i');
     $acServices = ACoreServices::I();
-    $totalPlaytime = $acServices->getAcoreAccountTotaltime(true);
-    echo "<p>You are here since <b>$startDate</b></p>";
-    echo "<p>Your total playtime is <b>$totalPlaytime</b></p>";
+    try {
+        $totalPlaytime = $acServices->getAcoreAccountTotaltime(true);
+        echo "<p>You are here since <b>$startDate</b></p>";
+        echo "<p>Your total playtime is <b>$totalPlaytime</b></p>";
+    } catch (\Exception $e) {
+        echo "";
+    }
 }
 
 // Custom Admin footer
