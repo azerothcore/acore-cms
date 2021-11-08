@@ -463,7 +463,7 @@ class SettingsView {
                             <h5>Give rewards</h5>
                             <hr>
                             <form name="pvp-rewards" method="post" id="pvp-rewards" class="initial-form hide-if-no-js">
-                                <input type="hidden" name="page" value="pvp-rewards" />
+                                <input type="hidden" name="page" value="acore-pvp-rewards" />
                                 <table class="form-table table table-borderless" role="presentation">
                                     <tbody>
                                         <tr>
