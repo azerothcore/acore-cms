@@ -22,7 +22,7 @@ class SettingsController {
 
     public function loadHome() {
         //must check that the user has the required capability
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can('game_master')) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
 
@@ -34,7 +34,7 @@ class SettingsController {
 
     public function loadSettings() {
         //must check that the user has the required capability
-        if (!current_user_can('manage_options')) {
+        if (!is_admin()) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
 
@@ -60,7 +60,7 @@ class SettingsController {
 
     public function loadElunaSettings() {
         //must check that the user has the required capability
-        if (!current_user_can('manage_options')) {
+        if (!is_admin()) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
 
@@ -86,7 +86,7 @@ class SettingsController {
 
     public function loadPvpRewards() {
         //must check that the user has the required capability
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can('manage_pvp_rewards')) {
             wp_die(__('<div class="notice notice-error"><p>You do not have sufficient permissions to access this page.</p></div>'));
         }
 
