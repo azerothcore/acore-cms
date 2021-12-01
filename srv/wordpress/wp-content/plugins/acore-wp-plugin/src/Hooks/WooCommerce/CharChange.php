@@ -187,9 +187,9 @@ class CharChange extends \ACore\Lib\WpClass {
 
     private static function charRestore($guid, $charName) {
         $soap = ACoreServices::I()->getCharactersSoap();
-        $query = "SELECT `guid`, `name` FROM `characters` WHERE `characters`.`name` = '$charName';";
+        $query = "SELECT `guid`, `name` FROM `characters` WHERE `characters`.`name` = ?";
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
-        $queryResult = $conn->executeQuery($query);
+        $queryResult = $conn->executeQuery($query, [$charName]);
         $chars = $queryResult->fetchAllAssociative();
 
         $newName = false;

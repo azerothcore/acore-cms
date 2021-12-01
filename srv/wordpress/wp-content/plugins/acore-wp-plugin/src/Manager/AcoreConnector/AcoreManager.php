@@ -60,7 +60,7 @@ class AcoreManager {
 
     /**
      * Shortcut for query
-     * @param type $query
+     * @param string $query
      * @return \Doctrine\DBAL\Driver\Statement
      */
     public function query($query, $params = array(), $types = array()) {
@@ -68,7 +68,7 @@ class AcoreManager {
     }
 
     public function getVar($query, $params = array(), $types = array()) {
-        $queryResult = $this->executeQuery($query, $params, $types);
+        $queryResult = $this->getCurrentConnection()->executeQuery($query, $params, $types);
         return $queryResult->fetchOne();
     }
 
@@ -82,7 +82,7 @@ class AcoreManager {
     }
 
     public function fetchAllObj($class, $query, $params = array(), $types = array()) {
-        $queryResult = $this->executeQuery($query, $params, $types);
+        $queryResult = $this->getCurrentConnection()->executeQuery($query, $params, $types);
 
         return $queryResult->fetchAllAssociative();
     }

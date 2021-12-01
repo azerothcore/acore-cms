@@ -125,13 +125,15 @@ class CharTransfer extends \ACore\Lib\WpClass {
                         case "char-transfer-sku":
                             $charId = $item["acore_char_sel"];
                             $destAcc = $item["acore_dest_account"];
-                            $charMgr = ACoreServices::I()->getCharacterEm();
                             $accRepo = ACoreServices::I()->getAccountRepo();
 
                             $accId = $accRepo->findOneByUsername($destAcc)->getId();
 
-                            $charMgr->getCharDB()
-                                    ->query("UPDATE characters SET account = :account WHERE guid = :guid", array("account" => $accId, "guid" => $charId));
+                            $chrConn = ACoreServices::I()->getCharacterEm()->getConnection();
+                            $chrConn->executeQuery(
+                                "UPDATE characters SET account = :account WHERE guid = :guid",
+                                array("account" => $accId, "guid" => $charId)
+                            );
                             break;
                     }
                 }

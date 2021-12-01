@@ -125,7 +125,6 @@ class SettingsController {
         $stepAmount = 0;
         $mycredTokenName = $myCredConfs['cred_id'];
         $authDbName = Opts::I()->acore_db_auth_name;
-        $charDbName = Opts::I()->acore_db_char_name;
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             global $wpdb;
@@ -167,15 +166,18 @@ class SettingsController {
             INNER JOIN characters ON pvpstats_players.character_guid = characters.guid
             INNER JOIN `$authDbName`.account AS account ON characters.account = account.id
             WHERE characters.deleteDate IS NULL
-                AND pvpstats_players.winner = $isWinner
+                AND pvpstats_players.winner = :winner
                 $bracketAnd
-                AND MONTH(date) = $month
-                AND YEAR(date) = $year
+                AND MONTH(date) = :month
+                AND YEAR(date) = :year
             GROUP BY character_guid
             ORDER BY COUNT(character_guid) DESC";
 
             $connection = ACoreServices::I()->getCharacterEm()->getConnection();
-            $queryResult = $connection->executeQuery($query);
+            $queryResult = $connection->executeQuery(
+                $query,
+                array('winner' => $isWinner, 'month' => $month, 'year' => $year)
+            );
             $result = $queryResult->fetchAllAssociative();
             if ($result) {
                 $accountCounter = 0;
@@ -287,16 +289,19 @@ class SettingsController {
             INNER JOIN characters ON pvpstats_players.character_guid = characters.guid
             INNER JOIN `$authDbName`.account AS account ON characters.account = account.id
             WHERE characters.deleteDate IS NULL
-                AND pvpstats_players.winner = $isWinner
+                AND pvpstats_players.winner = :isWinner
                 $bracketAnd
-                AND MONTH(date) = $month
-                AND YEAR(date) = $year
+                AND MONTH(date) = :month
+                AND YEAR(date) = :year
             GROUP BY character_guid
             ORDER BY total_battle DESC
             LIMIT 10";
 
             $connection = ACoreServices::I()->getCharacterEm()->getConnection();
-            $queryResult = $connection->executeQuery($query);
+            $queryResult = $connection->executeQuery(
+                $query,
+                array('winner' => $isWinner, 'month' => $month, 'year' => $year)
+            );
             $result = $queryResult->fetchAllAssociative();
         }
 

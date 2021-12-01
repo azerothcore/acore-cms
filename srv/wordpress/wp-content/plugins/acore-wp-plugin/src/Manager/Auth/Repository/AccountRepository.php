@@ -9,8 +9,8 @@ class AccountRepository extends AcoreRepository {
     /**
      * Verify account and returns user info
      *
-     * @param type $username
-     * @param type $password
+     * @param string $username
+     * @param string $password
      * @return Account
      */
     public function verifyAccount($username, $password) {
@@ -69,8 +69,8 @@ class AccountRepository extends AcoreRepository {
 
     /**
      *
-     * @param type $username
-     * @param type $ip
+     * @param string $username
+     * @param string $ip
      * @param boolean $lock true|false
      */
     public function setAccountLock($username, $ip = '127.0.0.1', $lock = true) {
@@ -83,7 +83,7 @@ class AccountRepository extends AcoreRepository {
                 ->where('a.username = :username')
                 ->setParameter("last_ip", $ip)
                 ->setParameter("locked", $lock)
-                ->setParameter("username", $username)->getQuery()->executeQuery();
+                ->setParameter("username", $username)->getQuery()->execute();
     }
 
     /**

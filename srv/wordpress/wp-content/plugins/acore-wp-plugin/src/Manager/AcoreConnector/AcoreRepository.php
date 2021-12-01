@@ -6,7 +6,7 @@ class AcoreRepository extends \Doctrine\ORM\EntityRepository {
 
     /**
      * Helper function for direct queries
-     * @param type $query
+     * @param string $query
      *
      * @return \Doctrine\DBAL\Driver\Statement
      */

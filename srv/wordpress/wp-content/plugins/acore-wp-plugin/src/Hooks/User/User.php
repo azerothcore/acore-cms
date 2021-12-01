@@ -91,9 +91,12 @@ function user_profile_update($user_id, $old_user_data)
         if ($result instanceof \Exception)
             die("Game server error: " . $result->getMessage());*/
 
-        $accRepo = ACoreServices::I()->getAccountRepo();
+        $conn = ACoreServices::I()->getAccountEm()->getConnection();
 
-        $accRepo->executeQuery("UPDATE account SET email= '" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
+        $conn->executeQuery(
+            "UPDATE account SET email = :email WHERE username = :username",
+            array('email' => $user->user_email, 'username' => $user->user_login)
+        );
     }
 
     if (isset($_POST['pass1']) && $_POST['pass1'] != '') {
