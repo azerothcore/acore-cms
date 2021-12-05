@@ -6,6 +6,8 @@ use ACore\Manager\Common;
 use ACore\Manager\ACoreServices;
 use ACore\Manager\UserValidator;
 use ACore\Manager\Auth\Entity\AccountAccessEntity;
+use Doctrine\DBAL\Exception\ConnectionException;
+use PDOException;
 
 /**
  * Fires before user profile update errors are returned.
@@ -150,7 +152,17 @@ add_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 
 function create_account_if_not_exists($user, $password): void {
-    $accRepo = ACoreServices::I()->getAccountRepo();
+    try {
+        $accRepo = ACoreServices::I()->getAccountRepo();
+    } catch (PDOException $e) {
+        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
+        echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
+        exit;
+    } catch (ConnectionException $e) {
+        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
+        echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
+        exit;
+    }
 
     if (!$accRepo->findOneByUsername($user->user_login)) {
         $soap = ACoreServices::I()->getAccountSoap();

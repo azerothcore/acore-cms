@@ -5,7 +5,8 @@ namespace ACore\Components\AdminPanel;
 use ACore\Manager\Opts;
 use ACore\Manager\ACoreServices;
 use ACore\Components\AdminPanel\SettingsView;
-
+use Doctrine\DBAL\Exception\ConnectionException;
+use PDOException;
 
 class SettingsController {
 
@@ -36,6 +37,14 @@ class SettingsController {
         //must check that the user has the required capability
         if (!is_admin()) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        try {
+            ACoreServices::I()->getAccountRepo();
+        } catch (PDOException $e) {
+            echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
+        } catch (ConnectionException $e) {
+            echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your AzerothCore server settings.</p></div><";
         }
 
         // See if the user has posted us some information
