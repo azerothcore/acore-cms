@@ -150,26 +150,31 @@ add_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 
 function create_account_if_not_exists($user, $password): void {
-  $accRepo = ACoreServices::I()->getAccountRepo();
+    $accRepo = ACoreServices::I()->getAccountRepo();
 
-  if (!$accRepo->findOneByUsername($user->user_login)) {
-      $soap = ACoreServices::I()->getAccountSoap();
+    if (!$accRepo->findOneByUsername($user->user_login)) {
+        $soap = ACoreServices::I()->getAccountSoap();
 
-      $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
+        $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
 
-      if ($res !== true) {
-          die($res->getMessage());
-      }
+        if ($res !== true) {
+            die($res->getMessage());
+        }
 
-      $res = $soap->setAccountPassword($user->user_login, $password);
+        $res = $soap->setAccountPassword($user->user_login, $password);
 
-      if (!!$res !== true && $res->getMessage()) {
-          die($res->getMessage());
-      }
+        if (!!$res !== true && $res->getMessage()) {
+            die($res->getMessage());
+        }
 
-      // workaround since soap doesn't work
-      $accRepo->executeQuery("UPDATE account SET email= '" . $user->user_email . "', reg_mail='" . $user->user_email . "' WHERE username = '" . $user->user_login . "'");
-  }
+        // workaround since soap doesn't work
+        $conn = ACoreServices::I()->getAccountEm()->getConnection();
+
+        $conn->executeQuery(
+            "UPDATE account SET email = :email, reg_mail = :email WHERE username = :username",
+            array('email' => $user->user_email, 'username' => $user->user_login)
+        );
+    }
 }
 
 // this requires the plugin "Auto Login New User After Registration"
