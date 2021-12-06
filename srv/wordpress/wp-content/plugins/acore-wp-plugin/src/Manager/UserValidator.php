@@ -19,14 +19,14 @@ class UserValidator {
 
     public static function validatePassword($password)
     {
-        if (strlen($password) > Common::PASSWORD_LENGTH) {
+        if (strlen($password) > UserValidator::PASSWORD_LENGTH) {
             return sprintf(
                 __("Password is too long (%s), please use less then %s characters", 'acore_wp_plugin'),
-                strlen($password), Common::PASSWORD_LENGTH
+                strlen($password), PASSWORD_LENGTH
             );
         }
 
-        if (strlen($password) < Common::PASSWORD_MIN_LENGTH) {
+        if (strlen($password) < UserValidator::PASSWORD_MIN_LENGTH) {
             return sprintf(
                 __("Password is too short (%s), please use more then 4 characters", 'acore_wp_plugin'),
                 strlen($password)
@@ -34,9 +34,9 @@ class UserValidator {
         }
 
         $match = [];
-        preg_match( Common::PASSWORD_VALID_CHARS, $password, $match );
+        preg_match( UserValidator::PASSWORD_VALID_CHARS, $password, $match );
         if (!isset($match[0]) || empty($match[0]) || $match[0] !== $password) {
-            $invalidChars = str_split(preg_replace(Common::PASSWORD_VALID_CHARS, '', $password));
+            $invalidChars = str_split(preg_replace(UserValidator::PASSWORD_VALID_CHARS, '', $password));
             return sprintf(
                 __("Password has the following invalid characters: <b>%s</b>", 'acore_wp_plugin'),
                 implode(' ', $invalidChars)
