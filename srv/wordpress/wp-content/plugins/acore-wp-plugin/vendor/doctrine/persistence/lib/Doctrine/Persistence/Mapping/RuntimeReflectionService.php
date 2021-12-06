@@ -2,13 +2,16 @@
 
 namespace Doctrine\Persistence\Mapping;
 
-use Doctrine\Common\Reflection\RuntimePublicReflectionProperty;
-use Doctrine\Common\Reflection\TypedNoDefaultReflectionProperty;
+use Doctrine\Persistence\Reflection\RuntimePublicReflectionProperty;
+use Doctrine\Persistence\Reflection\TypedNoDefaultReflectionProperty;
+use Doctrine\Persistence\Reflection\TypedNoDefaultRuntimePublicReflectionProperty;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionProperty;
+
 use function array_key_exists;
+use function assert;
 use function class_exists;
 use function class_parents;
 use function phpversion;
@@ -36,7 +39,11 @@ class RuntimeReflectionService implements ReflectionService
             throw MappingException::nonExistingClass($class);
         }
 
-        return class_parents($class);
+        $parents = class_parents($class);
+
+        assert($parents !== false);
+
+        return $parents;
     }
 
     /**
@@ -60,7 +67,13 @@ class RuntimeReflectionService implements ReflectionService
     }
 
     /**
-     * {@inheritDoc}
+     * @param string $class
+     * @psalm-param class-string<T> $class
+     *
+     * @return ReflectionClass
+     * @psalm-return ReflectionClass<T>
+     *
+     * @template T of object
      */
     public function getClass($class)
     {
@@ -74,10 +87,14 @@ class RuntimeReflectionService implements ReflectionService
     {
         $reflectionProperty = new ReflectionProperty($class, $property);
 
-        if ($reflectionProperty->isPublic()) {
+        if ($this->supportsTypedPropertiesWorkaround && ! array_key_exists($property, $this->getClass($class)->getDefaultProperties())) {
+            if ($reflectionProperty->isPublic()) {
+                $reflectionProperty = new TypedNoDefaultRuntimePublicReflectionProperty($class, $property);
+            } else {
+                $reflectionProperty = new TypedNoDefaultReflectionProperty($class, $property);
+            }
+        } elseif ($reflectionProperty->isPublic()) {
             $reflectionProperty = new RuntimePublicReflectionProperty($class, $property);
-        } elseif ($this->supportsTypedPropertiesWorkaround && ! array_key_exists($property, $this->getClass($class)->getDefaultProperties())) {
-            $reflectionProperty = new TypedNoDefaultReflectionProperty($class, $property);
         }
 
         $reflectionProperty->setAccessible(true);
@@ -99,5 +116,3 @@ class RuntimeReflectionService implements ReflectionService
         return $reflectionMethod->isPublic();
     }
 }
-
-class_exists(\Doctrine\Common\Persistence\Mapping\RuntimeReflectionService::class);

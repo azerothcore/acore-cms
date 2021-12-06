@@ -1,7 +1,22 @@
 <?php
+
 namespace Doctrine\Common;
 
+use function class_exists;
+use function interface_exists;
+use function is_array;
+use function is_file;
+use function reset;
+use function spl_autoload_functions;
+use function spl_autoload_register;
+use function spl_autoload_unregister;
+use function str_replace;
+use function stream_resolve_include_path;
+use function strpos;
+use function trait_exists;
 use function trigger_error;
+
+use const DIRECTORY_SEPARATOR;
 use const E_USER_DEPRECATED;
 
 @trigger_error(ClassLoader::class . ' is deprecated.', E_USER_DEPRECATED);
@@ -14,9 +29,6 @@ use const E_USER_DEPRECATED;
  *
  * If no include path is configured through the constructor or {@link setIncludePath}, a ClassLoader
  * relies on the PHP <code>include_path</code>.
- *
- * @author Roman Borschel <roman@code-factory.org>
- * @since 2.0
  *
  * @deprecated The ClassLoader is deprecated and will be removed in version 4.0 of doctrine/common.
  */
@@ -158,7 +170,9 @@ class ClassLoader
      *
      * @param string $className The name of the class to load.
      *
-     * @return boolean TRUE if the class has been successfully loaded, FALSE otherwise.
+     * @return bool TRUE if the class has been successfully loaded, FALSE otherwise.
+     *
+     * @psalm-param class-string $className
      */
     public function loadClass($className)
     {
@@ -166,7 +180,7 @@ class ClassLoader
             return true;
         }
 
-        if ( ! $this->canLoadClass($className)) {
+        if (! $this->canLoadClass($className)) {
             return false;
         }
 
@@ -183,7 +197,9 @@ class ClassLoader
      *
      * @param string $className The fully-qualified name of the class.
      *
-     * @return boolean TRUE if this ClassLoader can load the class, FALSE otherwise.
+     * @return bool TRUE if this ClassLoader can load the class, FALSE otherwise.
+     *
+     * @psalm-param class-string $className
      */
     public function canLoadClass($className)
     {
@@ -197,7 +213,7 @@ class ClassLoader
             return is_file($this->includePath . DIRECTORY_SEPARATOR . $file);
         }
 
-        return (false !== stream_resolve_include_path($file));
+        return stream_resolve_include_path($file) !== false;
     }
 
     /**
@@ -220,7 +236,9 @@ class ClassLoader
      *
      * @param string $className The fully-qualified name of the class.
      *
-     * @return boolean TRUE if the class exists as per the definition given above, FALSE otherwise.
+     * @return bool TRUE if the class exists as per the definition given above, FALSE otherwise.
+     *
+     * @psalm-param class-string $className
      */
     public static function classExists($className)
     {
@@ -234,15 +252,19 @@ class ClassLoader
      * @param string $className The name of the class.
      *
      * @return ClassLoader|null The <tt>ClassLoader</tt> for the class or NULL if no such <tt>ClassLoader</tt> exists.
+     *
+     * @psalm-param class-string $className
      */
     public static function getClassLoader($className)
     {
         foreach (spl_autoload_functions() as $loader) {
-            if (is_array($loader)
-               && ($classLoader = reset($loader))
-               && $classLoader instanceof ClassLoader
-               && $classLoader->canLoadClass($className)
-            ) {
+            if (! is_array($loader)) {
+                continue;
+            }
+
+            $classLoader = reset($loader);
+
+            if ($classLoader instanceof ClassLoader && $classLoader->canLoadClass($className)) {
                 return $classLoader;
             }
         }

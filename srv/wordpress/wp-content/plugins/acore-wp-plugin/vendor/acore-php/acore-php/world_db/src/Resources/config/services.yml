@@ -1,6 +1,0 @@
-services:
-    world_db.world_db_mgr:
-        class: ACore\WorldDb\Services\WorldDbMgr
-        calls:
-          - [ setContainer,['@service_container'] ]
-          - [ setWorldDb, ['@database.doctrine_db'] ]

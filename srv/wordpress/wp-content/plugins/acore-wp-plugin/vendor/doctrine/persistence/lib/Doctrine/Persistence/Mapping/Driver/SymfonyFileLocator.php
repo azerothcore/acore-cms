@@ -6,10 +6,10 @@ use Doctrine\Persistence\Mapping\MappingException;
 use InvalidArgumentException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use const DIRECTORY_SEPARATOR;
+
 use function array_keys;
 use function array_merge;
-use function class_exists;
+use function assert;
 use function is_dir;
 use function is_file;
 use function realpath;
@@ -19,6 +19,8 @@ use function strpos;
 use function strrpos;
 use function strtr;
 use function substr;
+
+use const DIRECTORY_SEPARATOR;
 
 /**
  * The Symfony File Locator makes a simplifying assumptions compared
@@ -182,16 +184,24 @@ class SymfonyFileLocator implements FileLocator
                     // NOTE: All files found here means classes are not transient!
                     if (isset($this->prefixes[$path])) {
                         // Calculate namespace suffix for given prefix as a relative path from basepath to file path
+                        $basepath = realpath($path);
+                        $filepath = realpath($file->getPath());
+                        assert($basepath !== false);
+                        assert($filepath !== false);
                         $nsSuffix = strtr(
-                            substr(realpath($file->getPath()), strlen(realpath($path))),
+                            substr($filepath, strlen($basepath)),
                             $this->nsSeparator,
                             '\\'
                         );
 
-                        $classes[] = $this->prefixes[$path] . str_replace(DIRECTORY_SEPARATOR, '\\', $nsSuffix) . '\\' . str_replace($this->nsSeparator, '\\', $fileName);
+                        /** @psalm-var class-string */
+                        $class = $this->prefixes[$path] . str_replace(DIRECTORY_SEPARATOR, '\\', $nsSuffix) . '\\' . str_replace($this->nsSeparator, '\\', $fileName);
                     } else {
-                        $classes[] = str_replace($this->nsSeparator, '\\', $fileName);
+                        /** @psalm-var class-string */
+                        $class = str_replace($this->nsSeparator, '\\', $fileName);
                     }
+
+                    $classes[] = $class;
                 }
             }
         }
@@ -226,8 +236,6 @@ class SymfonyFileLocator implements FileLocator
             }
         }
 
-        throw MappingException::mappingFileNotFound($className, substr($className, strrpos($className, '\\') + 1) . $this->fileExtension);
+        throw MappingException::mappingFileNotFound($className, substr($className, (int) strrpos($className, '\\') + 1) . $this->fileExtension);
     }
 }
-
-class_exists(\Doctrine\Common\Persistence\Mapping\Driver\SymfonyFileLocator::class);

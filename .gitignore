@@ -67,6 +67,7 @@ patches-*
 # exclude in all levels
 nbproject/private/
 .sync.ffs_db
+/.vscode/
 
 #
 # Eclipse
@@ -104,7 +105,7 @@ package-lock.json
 
 #
 # AzerothShard
-# 
+#
 
 data/sql
 

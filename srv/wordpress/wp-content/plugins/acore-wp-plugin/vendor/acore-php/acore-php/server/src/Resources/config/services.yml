@@ -1,6 +1,0 @@
-services:
-    server.server_soap_mgr:
-        class: ACore\Server\Services\ServerSoapMgr
-        calls:
-          - [ setContainer,['@service_container'] ]
-          - [ setSoap, ['@soap.soap_mgr'] ]
