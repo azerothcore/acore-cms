@@ -435,7 +435,7 @@ class SettingsView {
         return ob_get_clean();
     }
 
-    public function getPvpRewardsRender($amount, $isWinner, $bracket, $month, $year, $top, $fixedAmount, $stepAmount, $result) {
+    public function getPvpRewardsRender($data, $result) {
 
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');
@@ -484,7 +484,7 @@ class SettingsView {
                                                 <label for="amount">Amount per result</label>
                                             </th>
                                             <td>
-                                                <input type="number" name="amount" id="amount" autocomplete="off" min=0 value=<?php echo $amount; ?> required />
+                                                <input type="number" name="amount" id="amount" autocomplete="off" min=0 value=<?php echo $data['amount']; ?> required />
                                             </td>
                                         </tr>
                                         <tr>
@@ -494,8 +494,8 @@ class SettingsView {
                                             <td>
                                                 <select name="is_winner" id="result" required>
                                                     <option value=null selected disabled>Select result</option>
-                                                    <option value=0 <?php if ($isWinner == 0) echo 'selected'; ?>>Looser</option>
-                                                    <option value=1 <?php if ($isWinner == 1) echo 'selected'; ?>>Winner</option>
+                                                    <option value=0 <?php if ($data['isWinner'] == 0) echo 'selected'; ?>>Looser</option>
+                                                    <option value=1 <?php if ($data['isWinner'] == 1) echo 'selected'; ?>>Winner</option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -505,15 +505,15 @@ class SettingsView {
                                             </th>
                                             <td>
                                                 <select name="bracket" id="bracket" required>
-                                                    <option value=0 <?php if ($bracket == 0) echo 'selected'; ?>>All</option>
-                                                    <option value=1 <?php if ($bracket == 1) echo 'selected'; ?>>10-19</option>
-                                                    <option value=2 <?php if ($bracket == 2) echo 'selected'; ?>>20-29</option>
-                                                    <option value=3 <?php if ($bracket == 3) echo 'selected'; ?>>30-39</option>
-                                                    <option value=4 <?php if ($bracket == 4) echo 'selected'; ?>>40-49</option>
-                                                    <option value=5 <?php if ($bracket == 5) echo 'selected'; ?>>50-59</option>
-                                                    <option value=6 <?php if ($bracket == 6) echo 'selected'; ?>>60-69</option>
-                                                    <option value=7 <?php if ($bracket == 7) echo 'selected'; ?>>70-79</option>
-                                                    <option value=8 <?php if ($bracket == 8) echo 'selected'; ?>>80</option>
+                                                    <option value=0 <?php if ($data['bracket'] == 0) echo 'selected'; ?>>All</option>
+                                                    <option value=1 <?php if ($data['bracket'] == 1) echo 'selected'; ?>>10-19</option>
+                                                    <option value=2 <?php if ($data['bracket'] == 2) echo 'selected'; ?>>20-29</option>
+                                                    <option value=3 <?php if ($data['bracket'] == 3) echo 'selected'; ?>>30-39</option>
+                                                    <option value=4 <?php if ($data['bracket'] == 4) echo 'selected'; ?>>40-49</option>
+                                                    <option value=5 <?php if ($data['bracket'] == 5) echo 'selected'; ?>>50-59</option>
+                                                    <option value=6 <?php if ($data['bracket'] == 6) echo 'selected'; ?>>60-69</option>
+                                                    <option value=7 <?php if ($data['bracket'] == 7) echo 'selected'; ?>>70-79</option>
+                                                    <option value=8 <?php if ($data['bracket'] == 8) echo 'selected'; ?>>80</option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -523,19 +523,19 @@ class SettingsView {
                                             </th>
                                             <td>
                                                 <select name="month" id="month" required>
-                                                    <option value=0 <?php if ($month == 0) echo 'selected'; ?> disabled>Select month</option>
-                                                    <option value=1 <?php if ($month == 1) echo 'selected'; ?>>January</option>
-                                                    <option value=2 <?php if ($month == 2) echo 'selected'; ?>>February</option>
-                                                    <option value=3 <?php if ($month == 3) echo 'selected'; ?>>March</option>
-                                                    <option value=4 <?php if ($month == 4) echo 'selected'; ?>>April</option>
-                                                    <option value=5 <?php if ($month == 5) echo 'selected'; ?>>May</option>
-                                                    <option value=6 <?php if ($month == 6) echo 'selected'; ?>>June</option>
-                                                    <option value=7 <?php if ($month == 7) echo 'selected'; ?>>July</option>
-                                                    <option value=8 <?php if ($month == 8) echo 'selected'; ?>>August</option>
-                                                    <option value=9 <?php if ($month == 9) echo 'selected'; ?>>September</option>
-                                                    <option value=10 <?php if ($month == 10) echo 'selected'; ?>>October</option>
-                                                    <option value=11 <?php if ($month == 11) echo 'selected'; ?>>November</option>
-                                                    <option value=12 <?php if ($month == 12) echo 'selected'; ?>>December</option>
+                                                    <option value=0 <?php if ($data['month'] == 0) echo 'selected'; ?> disabled>Select month</option>
+                                                    <option value=1 <?php if ($data['month'] == 1) echo 'selected'; ?>>January</option>
+                                                    <option value=2 <?php if ($data['month'] == 2) echo 'selected'; ?>>February</option>
+                                                    <option value=3 <?php if ($data['month'] == 3) echo 'selected'; ?>>March</option>
+                                                    <option value=4 <?php if ($data['month'] == 4) echo 'selected'; ?>>April</option>
+                                                    <option value=5 <?php if ($data['month'] == 5) echo 'selected'; ?>>May</option>
+                                                    <option value=6 <?php if ($data['month'] == 6) echo 'selected'; ?>>June</option>
+                                                    <option value=7 <?php if ($data['month'] == 7) echo 'selected'; ?>>July</option>
+                                                    <option value=8 <?php if ($data['month'] == 8) echo 'selected'; ?>>August</option>
+                                                    <option value=9 <?php if ($data['month'] == 9) echo 'selected'; ?>>September</option>
+                                                    <option value=10 <?php if ($data['month'] == 10) echo 'selected'; ?>>October</option>
+                                                    <option value=11 <?php if ($data['month'] == 11) echo 'selected'; ?>>November</option>
+                                                    <option value=12 <?php if ($data['month'] == 12) echo 'selected'; ?>>December</option>
                                                 </select>
                                             </td>
                                         </tr>
@@ -566,31 +566,37 @@ class SettingsView {
                                             </th>
                                             <td>
                                                 <select name="top" id="result" required>
-                                                    <option value=0 <?php if ($top == 0) echo 'selected'; ?>>None</option>
-                                                    <option value=5 <?php if ($top == 5) echo 'selected'; ?>>Top 5</option>
-                                                    <option value=10 <?php if ($top == 10) echo 'selected'; ?>>Top 10</option>
-                                                    <option value=15 <?php if ($top == 15) echo 'selected'; ?>>Top 15</option>
-                                                    <option value=20 <?php if ($top == 20) echo 'selected'; ?>>Top 20</option>
-                                                    <option value=25 <?php if ($top == 25) echo 'selected'; ?>>Top 25</option>
+                                                    <option value=0 <?php if ($data['top'] == 0) echo 'selected'; ?>>None</option>
+                                                    <option value=5 <?php if ($data['top'] == 5) echo 'selected'; ?>>Top 5</option>
+                                                    <option value=10 <?php if ($data['top'] == 10) echo 'selected'; ?>>Top 10</option>
+                                                    <option value=15 <?php if ($data['top'] == 15) echo 'selected'; ?>>Top 15</option>
+                                                    <option value=20 <?php if ($data['top'] == 20) echo 'selected'; ?>>Top 20</option>
+                                                    <option value=25 <?php if ($data['top'] == 25) echo 'selected'; ?>>Top 25</option>
                                                 </select>
                                             </td>
                                         </tr>
                                         <tr>
                                             <th scope="row">
-                                            <label for="token">
                                                 <label for="fixed_amount">Fixed amount</label>
                                             </th>
                                             <td>
-                                                <input type="number" name="fixed_amount" id="fixed_amount" autocomplete="off" min=0 value=<?php echo $fixedAmount; ?> required />
+                                                <input type="number" name="fixed_amount" id="fixed_amount" autocomplete="off" min=0 value=<?php echo $data['fixedAmount']; ?> required />
                                             </td>
                                         </tr>
                                         <tr>
                                             <th scope="row">
-                                            <label for="token">
                                                 <label for="step_amount">Step amount</label>
                                             </th>
                                             <td>
-                                                <input type="number" name="step_amount" id="step_amount" autocomplete="off" min=0 value=<?php echo $stepAmount; ?> required />
+                                                <input type="number" name="step_amount" id="step_amount" autocomplete="off" min=0 value=<?php echo $data['stepAmount']; ?> required />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">
+                                                <label for="limit_rewards">Limit rewards</label>
+                                            </th>
+                                            <td>
+                                                <input type="number" name="limit_rewards" id="limit_rewards" autocomplete="off" min=0 value=<?php echo $data['limitRewards']; ?> required />
                                             </td>
                                         </tr>
                                         <tr>
@@ -627,7 +633,7 @@ class SettingsView {
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $i = $top;
+                                    $i = $data['top'];
                                     foreach ($result as $item) {
                                         echo "<tr><td>" . $item['username'] . "</td>";
                                         echo "<td>" . $item['character_name'] . "</td>";
@@ -639,7 +645,7 @@ class SettingsView {
                                             $myCredConfs['format']['separators']['thousand']);
                                         echo "<td>" . $points . "</td>";
                                         if ($i > 0) {
-                                            $temp = $fixedAmount + ($stepAmount * $i);
+                                            $temp = $data['fixedAmount'] + ($data['stepAmount'] * $i);
                                             $points = number_format(
                                                 $temp,
                                                 $myCredConfs['format']['decimals'],
