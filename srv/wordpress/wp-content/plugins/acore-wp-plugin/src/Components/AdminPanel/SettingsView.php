@@ -555,6 +555,14 @@ class SettingsView {
                                         </tr>
                                         <tr>
                                             <th scope="row">
+                                                <label for="limit_rewards">Limit rewards <span class="dashicons dashicons-info fs-6" data-bs-toggle="tooltip" title="Limit rewards by a total of characters (use 0 for no limit)."></span></label>
+                                            </th>
+                                            <td>
+                                                <input type="number" name="limit_rewards" id="limit_rewards" autocomplete="off" min=0 value=<?php echo $data['limitRewards']; ?> required />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">
                                                 <label>Top Extra Rewards</label>
                                             </th>
                                             <td><hr>
@@ -562,7 +570,7 @@ class SettingsView {
                                         </tr>
                                         <tr>
                                             <th scope="row">
-                                                <label for="top">Top</label>
+                                                <label for="top">Top <span class="dashicons dashicons-info fs-6" data-bs-toggle="tooltip" title="Add an extra reward for a specific total of Top characters."></span></label>
                                             </th>
                                             <td>
                                                 <select name="top" id="result" required>
@@ -577,7 +585,7 @@ class SettingsView {
                                         </tr>
                                         <tr>
                                             <th scope="row">
-                                                <label for="fixed_amount">Fixed amount</label>
+                                                <label for="fixed_amount">Fixed amount <span class="dashicons dashicons-info fs-6" data-bs-toggle="tooltip" title="Give an equal extra reward to the selected Top value."></span></label>
                                             </th>
                                             <td>
                                                 <input type="number" name="fixed_amount" id="fixed_amount" autocomplete="off" min=0 value=<?php echo $data['fixedAmount']; ?> required />
@@ -585,18 +593,10 @@ class SettingsView {
                                         </tr>
                                         <tr>
                                             <th scope="row">
-                                                <label for="step_amount">Step amount</label>
+                                                <label for="step_amount">Step amount <span class="dashicons dashicons-info fs-6" data-bs-toggle="tooltip" title="Give a decreasing amount based on a step value by the selected Top."></span></label>
                                             </th>
                                             <td>
                                                 <input type="number" name="step_amount" id="step_amount" autocomplete="off" min=0 value=<?php echo $data['stepAmount']; ?> required />
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row">
-                                                <label for="limit_rewards">Limit rewards</label>
-                                            </th>
-                                            <td>
-                                                <input type="number" name="limit_rewards" id="limit_rewards" autocomplete="off" min=0 value=<?php echo $data['limitRewards']; ?> required />
                                             </td>
                                         </tr>
                                         <tr>
@@ -684,6 +684,13 @@ class SettingsView {
                 var r = confirm("You sure you want to continue?");
                 return r;
             });
+            jQuery(document).on('ready', function() {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
+            });
+
         </script>
         </div>
 
