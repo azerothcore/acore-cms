@@ -127,6 +127,10 @@ class UserController {
         echo $this->getView()->getRafProgressRender($rafPersonalInfo, $rafPersonalProgress, $rafRecruitedInfo);
     }
 
+    public function showItemRestorationPage() {
+        echo $this->getView()->getItemRestorationRender();
+    }
+
     /**
      *
      * @return UserView

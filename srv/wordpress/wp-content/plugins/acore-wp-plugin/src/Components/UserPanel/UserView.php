@@ -132,4 +132,62 @@ class UserView {
         return ob_get_clean();
     }
 
+    function getItemRestorationRender() {
+        ob_start();
+        wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
+        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');
+        wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
+        wp_enqueue_script('power-js', 'https://wow.zamimg.com/widgets/power.js', array());
+        
+        ?>
+        <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
+        <div class="wrap">
+            <h2><?= __('Item Restoration Tool') ?></h2>
+            <p>Restore lost items</p>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="text-uppercase">recoverable items</h4>
+                            <hr>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary">Choose Character</button>
+                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Character Name</a></li>
+                                    <li><a class="dropdown-item" href="#">Character Name</a></li>
+                                    <li><a class="dropdown-item" href="#">Character Name</a></li>
+                                </ul>
+                            </div>
+                            <hr>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="text-uppercase">Item</th>
+                                            <th scope="col" class="text-uppercase"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="text-primary">
+                                            <td>
+                                                <a href="#" data-wowhead="item=2828" class="text-primary important">Nissa's Remains</a>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-info text-uppercase">restore</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p class="text-muted m-0"><em>Restored items will be sent to your characters mailbox.</em></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php 
+    }
 }

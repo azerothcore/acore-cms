@@ -32,6 +32,9 @@ class UserMenu
         if (Opts::I()->eluna_recruit_a_friend == '1') {
             add_submenu_page('profile.php', 'Recruit a Friend', 'Recruit a Friend', 'read', ACORE_SLUG . '-eluna-raf-progress', array($this, 'eluna_raf_progress_page'));
         }
+        // if (Opts::I()->item_restoration_Tool == '1') {
+            add_submenu_page('profile.php', 'Item Restoration', 'Item Restoration', 'read', ACORE_SLUG . '-item-restoration', array($this, 'item_restoration_page'));
+        // }
     }
 
     // action function for above hook
@@ -40,13 +43,18 @@ class UserMenu
         $SettingsCtrl = new UserController();
         $SettingsCtrl->showRafProgress();
     }
+
+    function item_restoration_page()
+    {
+        $SettingsCtrl = new UserController();
+        $SettingsCtrl->showItemRestorationPage();
+    }
 }
 
 function user_menu_init()
 {
     $userMenu = UserMenu::I();
     add_action( 'admin_menu', array( $userMenu, 'acore_user_menu' ) );
-
 }
 
 function remove_dashboard_meta() {
