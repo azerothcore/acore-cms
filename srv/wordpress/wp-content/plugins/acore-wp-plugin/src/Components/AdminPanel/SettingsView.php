@@ -505,15 +505,18 @@ class SettingsView {
                                             </th>
                                             <td>
                                                 <select name="bracket" id="bracket" required>
-                                                    <option value=0 <?php if ($data['bracket'] == 0) echo 'selected'; ?>>All</option>
-                                                    <option value=1 <?php if ($data['bracket'] == 1) echo 'selected'; ?>>10-19</option>
-                                                    <option value=2 <?php if ($data['bracket'] == 2) echo 'selected'; ?>>20-29</option>
-                                                    <option value=3 <?php if ($data['bracket'] == 3) echo 'selected'; ?>>30-39</option>
-                                                    <option value=4 <?php if ($data['bracket'] == 4) echo 'selected'; ?>>40-49</option>
-                                                    <option value=5 <?php if ($data['bracket'] == 5) echo 'selected'; ?>>50-59</option>
-                                                    <option value=6 <?php if ($data['bracket'] == 6) echo 'selected'; ?>>60-69</option>
-                                                    <option value=7 <?php if ($data['bracket'] == 7) echo 'selected'; ?>>70-79</option>
-                                                    <option value=8 <?php if ($data['bracket'] == 8) echo 'selected'; ?>>80</option>
+                                                    <?php $maxPrefixLevel = 8; // add a setting to set realm max level.
+                                                        for ($i = 0; $i <= $maxPrefixLevel; $i++) {
+                                                        echo "<option value={$i}" . ($data['bracket'] == $i ? ' selected' : "") . ">";
+                                                        if ($i == 0) {
+                                                            echo "All";
+                                                        } elseif ($i == $maxPrefixLevel) {
+                                                            echo "{$i}0";
+                                                        } else {
+                                                            echo "{$i}0-{$i}9";
+                                                        }
+                                                        echo "</option>";
+                                                    }?>
                                                 </select>
                                             </td>
                                         </tr>
@@ -524,18 +527,16 @@ class SettingsView {
                                             <td>
                                                 <select name="month" id="month" required>
                                                     <option value=0 <?php if ($data['month'] == 0) echo 'selected'; ?> disabled>Select month</option>
-                                                    <option value=1 <?php if ($data['month'] == 1) echo 'selected'; ?>>January</option>
-                                                    <option value=2 <?php if ($data['month'] == 2) echo 'selected'; ?>>February</option>
-                                                    <option value=3 <?php if ($data['month'] == 3) echo 'selected'; ?>>March</option>
-                                                    <option value=4 <?php if ($data['month'] == 4) echo 'selected'; ?>>April</option>
-                                                    <option value=5 <?php if ($data['month'] == 5) echo 'selected'; ?>>May</option>
-                                                    <option value=6 <?php if ($data['month'] == 6) echo 'selected'; ?>>June</option>
-                                                    <option value=7 <?php if ($data['month'] == 7) echo 'selected'; ?>>July</option>
-                                                    <option value=8 <?php if ($data['month'] == 8) echo 'selected'; ?>>August</option>
-                                                    <option value=9 <?php if ($data['month'] == 9) echo 'selected'; ?>>September</option>
-                                                    <option value=10 <?php if ($data['month'] == 10) echo 'selected'; ?>>October</option>
-                                                    <option value=11 <?php if ($data['month'] == 11) echo 'selected'; ?>>November</option>
-                                                    <option value=12 <?php if ($data['month'] == 12) echo 'selected'; ?>>December</option>
+                                                    <?php
+                                                    $start    = (new \DateTime('2010-01-01'));
+                                                    $end      = (new \DateTime('2011-01-01'));
+                                                    $interval = \DateInterval::createFromDateString('1 month');
+                                                    $period   = new \DatePeriod($start, $interval, $end);
+
+                                                    foreach ($period as $dt) {
+                                                        echo $dt->format("Y-m") . "<br>\n";
+                                                        echo "<option value=" . $dt->format("n") . ($data['month'] == $dt->format("n") ? " selected >" : " >" ) .$dt->format("F") . "</option>";
+                                                    }?>
                                                 </select>
                                             </td>
                                         </tr>
@@ -575,11 +576,9 @@ class SettingsView {
                                             <td>
                                                 <select name="top" id="result" required>
                                                     <option value=0 <?php if ($data['top'] == 0) echo 'selected'; ?>>None</option>
-                                                    <option value=5 <?php if ($data['top'] == 5) echo 'selected'; ?>>Top 5</option>
-                                                    <option value=10 <?php if ($data['top'] == 10) echo 'selected'; ?>>Top 10</option>
-                                                    <option value=15 <?php if ($data['top'] == 15) echo 'selected'; ?>>Top 15</option>
-                                                    <option value=20 <?php if ($data['top'] == 20) echo 'selected'; ?>>Top 20</option>
-                                                    <option value=25 <?php if ($data['top'] == 25) echo 'selected'; ?>>Top 25</option>
+                                                    <?php for ($i = 1; $i <= 5; $i++) {
+                                                        echo "<option value=" . ($i*5) . ($data['top'] == $i*5 ? ' selected' : " ") . ">Top " . ($i*5) . "</option>";
+                                                    } ?>
                                                 </select>
                                             </td>
                                         </tr>
@@ -681,12 +680,11 @@ class SettingsView {
                 jQuery('#pvp-rewards').attr('method', 'POST');
             });
             jQuery('#pvp-rewards').on('submit', function(e) {
-                var r = confirm("You sure you want to continue?");
-                return r;
+                return confirm("You sure you want to continue?");
             });
             jQuery(document).on('ready', function() {
-                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.forEach(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl)
                 });
             });
