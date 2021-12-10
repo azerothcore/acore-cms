@@ -15,9 +15,8 @@ class UserView {
     }
 
     /* Page: Item Restoration */
-    function getItemRestorationRender() {
-        $test = "test";
-        extract([$test]);
+    function getItemRestorationRender($characters) {
+        extract([$characters]);
         ob_start();
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');

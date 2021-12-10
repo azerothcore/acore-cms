@@ -338,6 +338,19 @@ class ACoreServices
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
+
+    public function getRestorableItemsByCharacter($character) {
+        $query = "SELECT `Id`, `ItemEntry`
+            FROM `recovery_item`
+            WHERE `Guid` = ?
+        ";
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $character);
+        $stmt->executeQuery();
+        $res = $stmt->executeQuery();
+        return $res->fetchAllAssociative();
+    }
 }
 
 
