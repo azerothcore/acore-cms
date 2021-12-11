@@ -26,6 +26,9 @@
                     <div id="errorBox" class="text-uppercase text-danger"></div>
                     <div id="successBox" class="alert alert-success invisible" role="alert"></div>
                     <hr>
+                    <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
+                        <span>There is no items to recover for the selected character</span>
+                    </div>
                     <div class="table-responsive invisible" style="background: #1d2327" id="itemContainer">
                         <table class="table table-bordered table-hover align-middle">
                             <thead>
@@ -53,6 +56,7 @@
     const activeCharacter = document.getElementById('activeCharacter');
     const error = document.getElementById('errorBox');
     const success = document.getElementById('successBox');
+    const noResults =  document.getElementById('item-list-no-content');
     characters.forEach(character => character.addEventListener('click', selectCharacter));
 
     // Character Selection
@@ -67,8 +71,7 @@
             return response.json();
         }).then(function(items) {
             if (!items || !items.length > 0) {
-                // TODO - update with a div instead
-                error.innerHTML = "No items to restore!";
+                noResults.classList.remove('hidden');
                 return;
             }
 
@@ -95,8 +98,6 @@
                 button.addEventListener('click', restoreItem);
                 buttonCell.appendChild(button);
             });
-
-            // TODO - Add restore button
         })
         .finally(() => $WowheadPower.refreshLinks())
         .catch((msg) => {
@@ -137,5 +138,6 @@
         success.innerHTML = "";
         error.innerHTML = "";
         success.classList.add('invisible');
+        noResults.classList.add('hidden');
     }
 </script>
