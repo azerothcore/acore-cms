@@ -34,7 +34,6 @@ class SettingsController {
     }
 
     public function loadSettings() {
-        //must check that the user has the required capability
         if (!is_admin()) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
@@ -326,6 +325,15 @@ class SettingsController {
             $result
         );
     }
+
+    public function loadTools() {
+        if (!is_admin()) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        echo $this->getView()->getToolsRender();
+    }
+
 
     public function storeConf($conf, $value) {
         update_option($conf, $value);
