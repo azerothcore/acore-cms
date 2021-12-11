@@ -19,7 +19,7 @@
                                 <tbody>
                                     <tr>
                                         <th>
-                                            <label for="acore_item_restoration">Restore Items Service</label>
+                                            <label for="acore_item_restoration">Item Restoration Service</label>
                                         </th>
                                         <td>
                                             <select name="acore_item_restoration" id="acore_item_restoration">

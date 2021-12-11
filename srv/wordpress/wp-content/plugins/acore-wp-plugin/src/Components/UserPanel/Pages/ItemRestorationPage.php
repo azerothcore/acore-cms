@@ -1,35 +1,41 @@
+<?php
+    use ACore\Manager\Opts;
+?>
+
 <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
 <div class="wrap">
-    <h2><?= __('Item Restoration Tool') ?></h2>
-    <p>Restore lost items <?= $test ?></p>
+    <h2><?= __('AzerothCore Settings', Opts::I()->page_alias) ?></h2>
     <div class="row">
-        <div class="col-sm-6">
+        <div>
             <div class="card">
                 <div class="card-body">
-                    <h4 class="text-uppercase">recoverable items</h4>
+                    <h4 class="text-uppercase">Item restoration service</h4>
                     <hr>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary" id="activeCharacter">Choose Character</button>
-                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="visually-hidden"></span>
-                        </button>
-                        <?php if ($characters): ?>
-                            <ul class="dropdown-menu" id="characterList">
-                           <?php foreach ($characters as $character): ?>
-                                <li cguid="<?= $character['guid']?>"><a class="dropdown-item" href="#"><?= $character['name']?></a></li>
-                            <?php endforeach; ?>
-                            </ul>
-                        <?php else: ?>
-                            <span>No characters found.</span>
-                        <?php endif; ?>
+                    <div class="mx-auto" style="width: 12em">
+                        <div class="btn-group">
+                            <div  class="bg-secondary p-2 text-white border rounded-left" id="activeCharacter">Choose Character</div>
+                            <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden"></span>
+                            </button>
+                            <?php if ($characters): ?>
+                                <ul class="dropdown-menu" id="characterList">
+                            <?php foreach ($characters as $character): ?>
+                                    <li cguid="<?= $character['guid']?>"><a class="dropdown-item" href="#"><?= $character['name']?></a></li>
+                                <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <span>No characters found.</span>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <div id="errorBox" class="text-uppercase text-danger"></div>
                     <div id="successBox" class="alert alert-success invisible" role="alert"></div>
+                    <p class="text-muted m-0"><em>Restored items will be sent to the selected characters mailbox.</em></p>
                     <hr>
                     <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
                         <span>There is no items to recover for the selected character</span>
                     </div>
-                    <div class="table-responsive invisible" style="background: #1d2327" id="itemContainer">
+                    <div class="table-responsive hidden" id="itemContainer">
                         <table class="table table-bordered table-hover align-middle">
                             <thead>
                                 <tr>
@@ -37,10 +43,17 @@
                                     <th scope="col" class="text-uppercase"></th>
                                 </tr>
                             </thead>
-                            <tbody class="text-primary important" id="itemList">
+                            <tbody style="text-shadow: 1px 1px 5px #000000; font-weight: 800;" id="itemList">
+                            <?php
+                                for ($i = 0; $i < 5; $i++): 
+                            ?>
+                                <tr class="loading-item-list hidden">
+                                    <td class="placeholder-glow"><p><span class="placeholder col-12 bg-secondary"></span></p></td>
+                                    <td><p class="placeholder-glow"><span class="placeholder col-12"></span></p></td>
+                                </tr>
+                            <?php endfor; ?>
                             </tbody>
                         </table>
-                        <p class="text-muted m-0"><em>Restored items will be sent to your characters mailbox.</em></p>
                     </div>
                 </div>
             </div>
@@ -53,6 +66,7 @@
     const characters = document.querySelectorAll('#characterList li');
     const itemContainer = document.getElementById('itemContainer');
     const itemList = document.getElementById('itemList');
+    const itemListLoaders = document.querySelectorAll('.loading-item-list');
     const activeCharacter = document.getElementById('activeCharacter');
     const error = document.getElementById('errorBox');
     const success = document.getElementById('successBox');
@@ -62,6 +76,8 @@
     // Character Selection
     function selectCharacter() {
         resetState();
+        itemListLoaders.forEach(element => element.classList.remove('hidden'));
+        itemContainer.classList.remove('hidden');
         const character = this.getAttribute('cguid');
         const characterName = this.firstChild.innerHTML;
         activeCharacter.innerHTML = characterName;
@@ -75,7 +91,6 @@
                 return;
             }
 
-            itemContainer.classList.remove('invisible');
             items.forEach(item => {
                 const row = itemList.insertRow();
                 row.id = "row" + item['Id'];
@@ -99,9 +114,12 @@
                 buttonCell.appendChild(button);
             });
         })
-        .finally(() => $WowheadPower.refreshLinks())
         .catch((msg) => {
             error.innerHTML = msg;
+        })
+        .finally(() => {
+            $WowheadPower.refreshLinks();
+            itemListLoaders.forEach(element => element.classList.add('hidden'));
         });
     }
 
@@ -110,6 +128,14 @@
         resetState();
         const item = this.getAttribute('item');
         const cname = this.getAttribute('cname');
+
+        const loadingDiv = document.createElement('div');
+        const loader = document.createElement('span');
+        loader.classList.add('placeholder', 'col-12', 'bg-warning');
+        loadingDiv.classList.add('placeholder-glow');
+        loadingDiv.appendChild(loader);
+        this.parentElement.appendChild(loadingDiv);
+        this.parentElement.removeChild(this);
         fetch('<?= get_rest_url(null, 'acore/v1/item-restore'); ?>', {
             method: "POST",
             headers: {
@@ -124,10 +150,12 @@
         .then(function(response) {
             return response.json();
         }).then(function(data) {
-            error.innerHTML = "";
-            success.innerHTML = data;
-            document.getElementById('row' + item).parentElement.removeChild(document.getElementById('row' + item))
-            success.classList.remove('invisible');
+            if (data.toLowerCase().includes('mail')) {
+                success.innerHTML = data;
+                document.getElementById('row' + item).parentElement.removeChild(document.getElementById('row' + item))
+                success.classList.remove('invisible');
+            } 
+            else error.innerHTML = data;
         })
         .catch((msg) => {
             error.innerHTML = msg;

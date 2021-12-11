@@ -334,9 +334,8 @@ class SettingsController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             foreach (Opts::I()->getConfs() as $key => $value) {
                 if (isset($_POST[$key])) {
-
                     // If item restore service, make a test call to see that it's enabled in worldserver config
-                    if ($key = 'acore_item_restoration' && isset($_POST[$key]) == 1) {
+                    if ($key == 'acore_item_restoration' && $_POST[$key] == "1") {
                         $result = ACoreServices::I()->getServerSoap()->executeCommand("item restore list");
                          if (strpos($result, '.item restore list'))
                             $this->storeConf($key, $_POST[$key]);
