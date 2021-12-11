@@ -3,17 +3,40 @@
 ?>
 
 <div class="wrap">
-    <h2><?= __('AzerothCore', Opts::I()->page_alias)?></h2>
+    <h1><?= __('AzerothCore', Opts::I()->page_alias)?></h1>
     <div class="card w-50">
         <div class="card-body">
-            <p class="fs-6"><b>Tools</b></p>
-            <ul class="list-unstyled">
-                <li><a href="https://www.azerothcore.org/" target="_blank">Project Homepage</a></li>
-                <li><a href="https://github.com/AzerothCore/" target="_blank">Github Repositories</a></li>
-                <li><a href="https://www.azerothcore.org/wiki/" target="_blank">Wiki</a></li>
-                <li><a href="https://www.paypal.com/donate/?hosted_button_id=L69ANPSR8BJDU" target="_blank">Sponsor</a></li>
-                <li><a href="https://salt.bountysource.com/checkout/amount?team=azerothcore" target="_blank">Donations</a></li>
-            </ul>
+            <h2>Tools</h2>
+            <form method="post">
+                <div class="col-sm-6">
+                    <div class="card p-0">
+                        <div class="card-body">
+                            <h5>
+                                Worldserver integration
+                            </h5>
+                            <hr>
+                            <table class="form-table table table-borderless" role="presentation">
+                                <tbody>
+                                    <tr>
+                                        <th>
+                                            <label for="acore_item_restoration">Restore Items Service</label>
+                                        </th>
+                                        <td>
+                                            <select name="acore_item_restoration" id="acore_item_restoration">
+                                                <option value="0">Disabled</option>
+                                                <option value="1" <?php if (Opts::I()->acore_item_restoration == '1') echo 'selected'; ?>>Enabled</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="submit">
+                    <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>" />
+                </div>
+            </form>
         </div>
     </div>
 </div>
