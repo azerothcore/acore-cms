@@ -79,7 +79,7 @@ class ItemSend extends \ACore\Lib\WpClass {
             <textarea maxlength="200" id="acore_msg_dest" class="acore_msg_dest" name="acore_msg_dest"></textarea>
             <br>
             <br>
-            <a target="_blank" href='https://wowgaming.altervista.org/aowow/?item=<?= $sku->itemId ?>'><?=__('Show details', 'acore-wp-plugin')?></a>
+            <a target="_blank" href='https://wowgaming.altervista.org/aowow/?item=<?= $sku->itemId ?>'><?=__('Show details', 'acore-wp-plugin')?> </a>
             <br>
             <br>
             <?php
@@ -132,7 +132,7 @@ class ItemSend extends \ACore\Lib\WpClass {
 
             $custom_items[] = array("name" => 'Character', "value" => $charName);
             $custom_items[] = array("name" => 'Item', "value" => $sku->itemId);
-            $custom_items[] = array("name" => 'Details', "value" => "<a target='_blank' href='https://wowgaming.altervista.org/aowow/?item=" . $sku->itemId . "'>Show details</a>");
+            $custom_items[] = array("name" => 'Details', "value" => "<a target='_blank' href='https://wowgaming.altervista.org/aowow/?item=" . $sku->itemId . "'>Show details</a> ");
         }
         return $custom_items;
     }
@@ -200,9 +200,12 @@ class ItemSend extends \ACore\Lib\WpClass {
                         $res = NULL;
                         if ($sku->isStackable) {
                             $res = $soap->sendItem($charName, $obj, $msg, $sku->itemId, $qty);
+                            // todo: use a conf to switch with senditemAndBind()
+                            // $res = $soap->sendItemAndBind($item["acore_char_guid"], $msg, $sku->itemId, $qty);
                         } else {
                             for ($i = 0; $i < $qty; $i++) {
                                 $res = $soap->sendItem($charName, $obj, $msg, $sku->itemId, 1);
+                                // $res = $soap->sendItemAndBind($item["acore_char_guid"], $msg, $sku->itemId, 1);
                             }
                         }
 
