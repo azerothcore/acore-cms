@@ -14,7 +14,7 @@ class FieldElements {
         $account = $accRepo->findOneByUsername($username);
         if (!$account) {
           // if the account does not exist in the core database
-          echo '<br><br><span style="color: red;">You have not an active WoW account!</span><br>';
+          echo '<br><br><span style="color: #ff7961;">Please <a href="/wp-login.php">log-in</a> or <a href="/wp-login.php?action=register">register</a> an account.</span><br>';
           return;
         }
 
@@ -25,7 +25,7 @@ class FieldElements {
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
 
         if ($accBanRepo->isActiveById($accountId)) {
-            echo '<br><br><span style="color: red;">Your account is banned!</span><br>';
+            echo '<br><br><span style="color: #ff7961;">Your account is banned!</span><br>';
             return;
         }
 
