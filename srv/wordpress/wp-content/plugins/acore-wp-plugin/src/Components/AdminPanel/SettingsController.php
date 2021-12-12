@@ -132,6 +132,7 @@ class SettingsController {
         $top = 0;
         $fixedAmount = 0;
         $stepAmount = 0;
+        $limitRewards = 0;
         $mycredTokenName = $myCredConfs['cred_id'];
         $authDbName = Opts::I()->acore_db_auth_name;
 
@@ -146,7 +147,7 @@ class SettingsController {
                 $isWinner = (int) $_POST['is_winner'];
             }
             if (isset($_POST["bracket"])) {
-                if ((int) $_POST['bracket'] != 0) {
+                if (filter_var($_POST["bracket"], FILTER_VALIDATE_INT)) {
                     $bracket = $_POST['bracket'];
                     $bracketAnd = 'AND bracket_id = ' . $_POST['bracket'];
                 }
@@ -166,6 +167,9 @@ class SettingsController {
             if (isset($_POST["step_amount"])) {
                 $stepAmount = (int) $_POST['step_amount'];
             }
+            if (isset($_POST["limit_rewards"]) && filter_var($_POST["limit_rewards"], FILTER_VALIDATE_INT)) {
+                $limitRewards = (int) $_POST['limit_rewards'];
+            }
             $query = "SELECT
                 character_guid,
                 COUNT(character_guid) * $amount AS points,
@@ -180,7 +184,12 @@ class SettingsController {
                 AND MONTH(date) = :month
                 AND YEAR(date) = :year
             GROUP BY character_guid
-            ORDER BY COUNT(character_guid) DESC";
+            ORDER BY COUNT(character_guid) DESC
+            ";
+
+            if ($limitRewards) {
+                $query .= " LIMIT $limitRewards";
+            }
 
             $connection = ACoreServices::I()->getCharacterEm()->getConnection();
             $queryResult = $connection->executeQuery(
@@ -288,6 +297,9 @@ class SettingsController {
             if (isset($_GET["step_amount"])) {
                 $stepAmount = (int) $_GET['step_amount'];
             }
+            if (isset($_GET["limit_rewards"]) && filter_var($_GET["limit_rewards"], FILTER_VALIDATE_INT)) {
+                $limitRewards = (int) $_GET['limit_rewards'];
+            }
             $query = "SELECT
                 count(character_guid) total_battle,
                 characters.name as character_name,
@@ -309,20 +321,25 @@ class SettingsController {
             $connection = ACoreServices::I()->getCharacterEm()->getConnection();
             $queryResult = $connection->executeQuery(
                 $query,
-                array('winner' => $isWinner, 'month' => $month, 'year' => $year)
+                array('isWinner' => $isWinner, 'month' => $month, 'year' => $year)
             );
             $result = $queryResult->fetchAllAssociative();
         }
 
+        $data = [
+            'amount' => $amount,
+            'isWinner' => $isWinner,
+            'bracket' => $bracket,
+            'month' => $month,
+            'year' => $year,
+            'top' => $top,
+            'fixedAmount' => $fixedAmount,
+            'stepAmount' => $stepAmount,
+            'limitRewards' => $limitRewards,
+        ];
+
         echo $this->getView()->getPvpRewardsRender(
-            $amount,
-            $isWinner,
-            $bracket,
-            $month,
-            $year,
-            $top,
-            $fixedAmount,
-            $stepAmount,
+            $data,
             $result
         );
     }
