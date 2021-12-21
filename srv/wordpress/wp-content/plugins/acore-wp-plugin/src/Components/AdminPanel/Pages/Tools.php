@@ -7,6 +7,7 @@
     <div class="card w-50">
         <div class="card-body">
             <h2>Tools</h2>
+            <hr>
             <form method="post">
                 <div class="col-sm-6">
                     <div class="card p-0">

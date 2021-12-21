@@ -11,10 +11,10 @@
                 <div class="card-body">
                     <h4 class="text-uppercase">Item restoration service</h4>
                     <hr>
-                    <div class="mx-auto" style="width: 12em">
+                    <div style="width: 12em">
                         <div class="btn-group">
-                            <div  class="bg-secondary p-2 text-white border rounded-left" id="activeCharacter">Choose Character</div>
-                            <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="bg-secondary p-2 text-white border rounded-left" id="activeCharacter">Choose Character</div>
+                            <button type="button" class="button-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="visually-hidden"></span>
                             </button>
                             <?php if ($characters): ?>
@@ -37,13 +37,13 @@
                     </div>
                     <div class="table-responsive hidden" id="itemContainer">
                         <table class="table table-bordered table-hover align-middle">
-                            <thead>
+                            <thead style="background: #1d2327; color: #fff;">
                                 <tr>
-                                    <th scope="col" class="text-uppercase">Item</th>
-                                    <th scope="col" class="text-uppercase"></th>
+                                    <th scope="col" class="text-uppercase">item name</th>
+                                    <th scope="col" class="text-uppercase">action</th>
                                 </tr>
                             </thead>
-                            <tbody style="text-shadow: 1px 1px 5px #000000; font-weight: 800;" id="itemList">
+                            <tbody style="background: #2c3338;" id="itemList">
                             <?php
                                 for ($i = 0; $i < 5; $i++): 
                             ?>
@@ -105,7 +105,7 @@
                 // Button
                 const buttonCell = row.insertCell();
                 const button = document.createElement('button');
-                button.classList.add('btn', 'btn-info', 'text-uppercase');
+                button.classList.add('button-primary', 'text-uppercase');
                 button.setAttribute('type', 'button');
                 button.setAttribute('item', item['Id']);
                 button.setAttribute('cname', characterName);
@@ -113,6 +113,8 @@
                 button.addEventListener('click', restoreItem);
                 buttonCell.appendChild(button);
             });
+
+            checkHasRecoverableItems();
         })
         .catch((msg) => {
             error.innerHTML = msg;
@@ -154,12 +156,37 @@
                 success.innerHTML = data;
                 document.getElementById('row' + item).parentElement.removeChild(document.getElementById('row' + item))
                 success.classList.remove('invisible');
+
+                checkHasRecoverableItems();
             } 
             else error.innerHTML = data;
         })
         .catch((msg) => {
             error.innerHTML = msg;
         });        
+    }
+
+    function checkHasRecoverableItems() {
+        // 5 is minimum count due to placeholders (loaders)
+        if (itemList.childElementCount == 5) {
+            const row = itemList.insertRow();
+            row.id = "no-recoverable-items";
+            const spanCell = row.insertCell();
+            const infoSpan = document.createElement('span');
+            infoSpan.style = "color: #fff";
+            infoSpan.innerHTML = "No items to recover for the selected character.";
+            spanCell.appendChild(infoSpan);
+            
+            // Add empty cell as well (to fill otherwise empty whitespace)
+            row.insertCell();
+        }
+
+        else {
+            const infoRow = document.getElementById('no-recoverable-items');
+            if (infoRow) {
+                infoRow.parentElement.removeChild(infoRow);
+            }
+        }
     }
 
     function resetState() {
