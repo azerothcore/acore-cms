@@ -127,6 +127,27 @@ class UserController {
         echo $this->getView()->getRafProgressRender($rafPersonalInfo, $rafPersonalProgress, $rafRecruitedInfo);
     }
 
+    public function showItemRestorationPage() {
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $this->saveCharacterOrder();
+            ?>
+            <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
+            <?php
+        }
+
+        $account = ACoreServices::I()->getAcoreAccountId();
+        $conn = ACoreServices::I()->getCharacterEm()->getConnection();
+        $queryResult = $conn->executeQuery(
+            "   SELECT `guid`, `name`, `order`
+                FROM `characters`
+                WHERE `characters`.`deleteDate` IS NULL AND `account` = $account
+                ORDER BY `order`, `guid`
+            "
+        );
+
+        echo $this->getView()->getItemRestorationRender($queryResult->fetchAllAssociative());
+    }
+
     /**
      *
      * @return UserView

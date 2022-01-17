@@ -34,7 +34,6 @@ class SettingsController {
     }
 
     public function loadSettings() {
-        //must check that the user has the required capability
         if (!is_admin()) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
@@ -343,6 +342,38 @@ class SettingsController {
             $result
         );
     }
+
+    public function loadTools() {
+        if (!is_admin()) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            foreach (Opts::I()->getConfs() as $key => $value) {
+                if (isset($_POST[$key])) {
+                    // If item restore service, make a test call to see that it's enabled in worldserver config
+                    if ($key == 'acore_item_restoration' && $_POST[$key] == "1") {
+                        $result = ACoreServices::I()->getServerSoap()->executeCommand("item restore list");
+                         if (strpos($result, '.item restore list'))
+                            $this->storeConf($key, $_POST[$key]);
+                        else 
+                         print "<div class='error'><p><strong>Item restore service error: $result</strong></p></div>";
+                    }
+                    else {
+                        $this->storeConf($key, $_POST[$key]);
+                    }
+                }
+            }
+
+            // Reload configs
+            $this->data = $this->loadData(); 
+            ?>
+                <div class="updated"><p><strong>Tools have been saved</strong></p></div>
+            <?php
+        }
+        echo $this->getView()->getToolsRender();
+    }
+
 
     public function storeConf($conf, $value) {
         update_option($conf, $value);
