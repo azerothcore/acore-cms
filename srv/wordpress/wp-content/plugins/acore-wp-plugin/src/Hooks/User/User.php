@@ -218,9 +218,14 @@ add_action('wp_authenticate', function ($username, $password) {
         }
 
         if (!\username_exists($username)) {
-            $accRepo = ACoreServices::I()->getAccountRepo();
-
-            $userInfo = $accRepo->verifyAccount($username, $password);
+            try {
+                $accRepo = ACoreServices::I()->getAccountRepo();
+                $userInfo = $accRepo->verifyAccount($username, $password);
+            } catch (PDOException $e) {
+                $userInfo = null;
+            } catch (ConnectionException $e) {
+                $userInfo = null;
+            }
 
             if ($userInfo) {
                 $userdata = array(
