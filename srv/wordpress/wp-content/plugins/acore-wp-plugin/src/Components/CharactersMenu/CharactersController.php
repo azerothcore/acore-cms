@@ -25,7 +25,7 @@ class CharactersController {
             `guid`, `name`, `order`, `race`, `class`, `level`, `gender`
             FROM `characters`
             WHERE `characters`.`deleteDate` IS NULL AND `account` = $accId
-            ORDER BY `order`, `guid`
+            ORDER BY COALESCE(`order`, `guid`)
         ";
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
         $queryResult = $conn->executeQuery($query);
