@@ -33,9 +33,8 @@ $userId = $acServices->getAcoreAccountId();
                         <?php } ?>
                     <?php
                     } else {
-                        $recruiterName = $acServices->getUserNameByUserId($rafPersonalInfo['recruiter_account']);
                         ?>
-                            <p>You were recruited by <b><?php echo $recruiterName; ?></b> <?php
+                            <p>You were recruited by <b>#<?php echo $rafPersonalInfo['recruiter_account']; ?></b> <?php
                             if ($rafPersonalInfo['time_stamp'] > 1) {
                                 $deadline = new \Datetime();
                                 // TODO Allow custom period for RAF
@@ -85,7 +84,7 @@ $userId = $acServices->getAcoreAccountId();
                             $i = 1;
                             foreach ($rafRecruitedInfo as $player) {
                                 echo "<tr><th scope=\"row\">" . $i . "</th>";
-                                echo "<td>" . ($acServices->getUserNameByUserId($player['account_id'])) . "</td>";
+                                echo "<td>#" . $player['account_id'] . "</td>";
                                 if ($player['time_stamp'] > 1) {
                                     $deadline = new \Datetime();
                                     $deadline->setTimestamp($player['time_stamp'])->modify('+30days');
