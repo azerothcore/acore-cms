@@ -140,7 +140,6 @@ function after_delete($user_id)
     global $wpdb;
 
     $user_obj = get_userdata($user_id);
-    $email = $user_obj->user_email;
     $username = $user_obj->user_login;
 
     $soap = ACoreServices::I()->getAccountSoap();
@@ -309,8 +308,9 @@ function extra_user_profile_fields($user)
 
     $curGameUser = $curUser->ID != $user->ID ? $accRepo->findOneByUsername($user->user_login) : $gameUser;
 
-    if (!in_array($userExpansion,Common::EXPANSIONS))
+    if (!in_array($userExpansion,Common::EXPANSIONS)) {
         $userExpansion = Common::EXPANSION_WOTLK;
+    }
 
     ?>
     <h3><?php _e("AzerothCore Fields", "blank"); ?></h3>
@@ -400,14 +400,69 @@ function save_extra_user_profile_fields( $user_id ) {
         $accMgr->flush();
     }
 
-    if (false) {
-        $accessEntity = new AccountAccessEntity();
-        $accessEntity->setId($gameUser->getId());
-        $accessEntity->setGmLevel(0);
-        $accessEntity->setRealmID(-1);
+    // if (false) {
+    //     $accessEntity = new AccountAccessEntity();
+    //     $accessEntity->setId($gameUser->getId());
+    //     $accessEntity->setGmLevel(0);
+    //     $accessEntity->setRealmID(-1);
 
-        $accMgr->persist($accessEntity);
-        $accMgr->flush();
-    }
+    //     $accMgr->persist($accessEntity);
+    //     $accMgr->flush();
+    // }
 }
+
+function login_checks() {
+    ?>
+    <script>
+        function errorFactory(id, parent) {
+            const elemError = document.createElement("p");
+                elemError.style.color = "red";
+                elemError.id = id;
+                parent.appendChild(elemError)
+        }
+
+        function checkError(fieldLength, id, errorText) {
+            let error = "";
+            if (fieldLength > 16) {
+                error = errorText;
+            }
+            document.querySelector(id).innerHTML = error;
+
+            return error != "";
+        }
+
+        window.onload = function(){
+            const username = document.querySelector("#user_login");
+            const password = document.querySelector("#password1");
+
+            if (username) {
+                errorFactory("username-error", username.parentElement);
+            }
+            if (password) {
+                errorFactory("password-error", password.parentElement);
+            }
+
+            document.querySelector("#registerform").onsubmit = function() {
+                if (username) {
+                    const isInvalidUsernameLength = checkError(username.value.length, "#username-error", "Username must have maximum 16 characters!");
+                    if (isInvalidUsernameLength) {
+                        return false;
+                    }
+                }
+
+                if (password) {
+                    const isInvalidPasswordLength = checkError(password.value.length, "#password-error", "Password must have maximum 16 characters!");
+                    if (isInvalidPasswordLength) {
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+        };
+    </script>
+    <?php
+}
+
+add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\login_checks' );
 
