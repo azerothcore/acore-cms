@@ -127,11 +127,12 @@ class GuildChange extends \ACore\Lib\WpClass {
             $items = $order->get_items();
 
             $soap = $WoWSrv->getGuildSoap();
-
+            
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     if ($item["acore_item_sku"] == "guild-rename") {
-                        $res = $soap->guildRename("Test", $item["acore_new_guild_name"]);
+                        
+                        $res = $soap->guildRename("\"Test\"", "\"". $item["acore_new_guild_name"]. "\"");
                         if ($res instanceof \Exception) {
                             throw new \Exception("There was an error renaming your guild." . $res->getMessage());
                         }
