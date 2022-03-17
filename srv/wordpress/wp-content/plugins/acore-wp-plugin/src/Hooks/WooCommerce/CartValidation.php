@@ -15,6 +15,7 @@ class CartValidation extends \ACore\Lib\WpClass {
         "char-restore-delete" => ['acore_char_sel'],
         "char-transfer-sku" => ['acore_char_sel', 'acore_dest_account'],
         "itemsend" => ['acore_char_sel'],
+        "guild-rename" => ['acore_char_sel'],
         "carboncopy-tickets" => []
     );
 
