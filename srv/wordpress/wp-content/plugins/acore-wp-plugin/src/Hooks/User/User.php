@@ -277,7 +277,7 @@ function validateComplexPassword($errors)
  * based on a list of valid characters
  */
 
-add_filter( 'random_password', function ($pass) {
+add_filter( 'random_password', function (/* $pass */) {
     $characters = UserValidator::PASSWORD_CHARS_LIST;
     $password = '';
     for( $i = 0; $i < UserValidator::PASSWORD_LENGTH; $i++ ) {
@@ -423,7 +423,7 @@ function login_checks() {
 
         function checkError(fieldLength, id, errorText) {
             let error = "";
-            if (fieldLength > 16) {
+            if (fieldLength > <?= UserValidator::USERNAME_LENGTH ?>) { // this will be used also for password length
                 error = errorText;
             }
             document.querySelector(id).innerHTML = error;
@@ -451,6 +451,14 @@ function login_checks() {
                 }
 
                 if (password) {
+                    const regex = <?= UserValidator::PASSWORD_VALID_CHARS ?>;
+                    for (const c of password.value.split('')) {
+                        if (!regex.test(c)) {
+                            document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+                            return false;
+                        }
+                    }
+
                     const isInvalidPasswordLength = checkError(password.value.length, "#password-error", "Password must have maximum 16 characters!");
                     if (isInvalidPasswordLength) {
                         return false;

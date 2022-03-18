@@ -43,7 +43,7 @@ class UserValidator {
             );
         }
 
-        //#### Password looks good
+        // password looks good
         return true;
     }
 }
