@@ -15,6 +15,8 @@ When your CMS is up you still need to connect it with your game server through t
 If during the registration it fails it can depend on the permissions of the access of your local mysql database, be sure to grant the permission to external connection (like the docker container with wordpress inside) can access to the mysql database.
 See the **Troubleshooting** section for more details.
 
+## Important:
+Some of shop elements will not load properly if your database credentials are not correct, such as the add to cart button on the product page.
 
 ### - Register account on the game server
 
