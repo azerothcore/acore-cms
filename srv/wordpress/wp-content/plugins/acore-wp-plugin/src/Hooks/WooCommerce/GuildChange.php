@@ -33,7 +33,7 @@ class GuildChange extends \ACore\Lib\WpClass {
             <br>
             <br>
             <label for="acore_new_guild_name">Please enter a new guild name:</label>
-            <input type="text" maxlength="20" id="acore_new_guild_name" class="acore_new_guild_name" name="acore_new_guild_name">
+            <input type="text" maxlength="24" id="acore_new_guild_name" class="acore_new_guild_name" name="acore_new_guild_name">
             <br>
             <br>
             <?php
