@@ -374,7 +374,7 @@ class ACoreServices
     public function getGuildNameByLeader($guildLeaderGuid) {
         $query = "SELECT `name`
             FROM `guild`
-            WHERE `leaderguild` = ?
+            WHERE `leaderguid` = ?
         ";
         $conn = $this->getCharacterEm()->getConnection();
         $stmt = $conn->prepare($query);
