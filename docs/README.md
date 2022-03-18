@@ -37,6 +37,16 @@ It will download the related dependencies of the containers and start the acore-
 $ npm run docker:start
 ```
 
+### On Windows:
+
+Open your command prompt (PowerShell, for example), navigate to the repository folder and issue the command:
+
+```
+docker-compose up
+```
+
+It will set up the docker container and download the necessary dependencies within.
+
 Now you can see the website in [http://localhost:80/](http://localhost:80/).
 
 Make sure that your port 80 is not already used by another service like Apache2, nginx etc.
