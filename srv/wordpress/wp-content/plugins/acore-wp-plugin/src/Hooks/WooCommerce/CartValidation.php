@@ -103,7 +103,7 @@ class CartValidation extends \ACore\Lib\WpClass {
         if (in_array('acore_new_guild_name', self::$skuList[$activeSku])) {
             $guid = intval($_REQUEST['acore_char_sel']);
 
-            if (empty($AcoreSrv->getGuildNameByLeader($guid))) {
+            if (empty($ACoreSrv->getGuildNameByLeader($guid))) {
                 \wc_add_notice(__('The character is not a guild master.', 'acore-wp-plugin'), 'error');
                 return false;
             }
