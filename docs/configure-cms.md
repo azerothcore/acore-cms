@@ -54,6 +54,7 @@ After the installation remember to enable `Paypal standard` from `Admin Panel ->
 ![Shop](shop.png)
 
 Besides items you can also sell:
+- Guild Rename (using as SKU `guild-rename`)
 - Character Rename (using as SKU `char-change-name`)
 - Character Customization (using as SKU `char-change-customize`), include rename
 - Change Race (using as SKU `char-change-race`), include rename and customization
