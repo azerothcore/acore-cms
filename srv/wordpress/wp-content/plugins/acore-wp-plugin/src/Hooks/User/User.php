@@ -414,6 +414,8 @@ function save_extra_user_profile_fields( $user_id ) {
 function login_checks() {
     ?>
     <script>
+        const regex = <?= UserValidator::PASSWORD_VALID_CHARS ?>;
+
         function errorFactory(id, parent) {
             const elemError = document.createElement("p");
                 elemError.style.color = "red";
@@ -431,19 +433,30 @@ function login_checks() {
             return error != "";
         }
 
-        window.onload = function(){
-            const username = document.querySelector("#user_login");
-            const password = document.querySelector("#password1");
-
-            if (username) {
-                errorFactory("username-error", username.parentElement);
-            }
-            if (password) {
-                errorFactory("password-error", password.parentElement);
+        function validPasswordChars(password) {
+            for (const c of password.split('')) {
+                if (!regex.test(c)) {
+                    return false;
+                }
             }
 
+            return true;
+        }
+
+        window.onload = function() {
+            // register form
             const registerForm = document.querySelector("#registerform");
             if (registerForm) {
+                const username = document.querySelector("#user_login");
+                const password = document.querySelector("#password1");
+
+                if (username) {
+                    errorFactory("username-error", username.parentElement);
+                }
+                if (password) {
+                    errorFactory("password-error", password.parentElement);
+                }
+
                 registerForm.onsubmit = function() {
                     if (username) {
                         const isInvalidUsernameLength = checkError(username.value.length, "#username-error", "Username must have maximum 16 characters!");
@@ -453,12 +466,9 @@ function login_checks() {
                     }
 
                     if (password) {
-                        const regex = <?= UserValidator::PASSWORD_VALID_CHARS ?>;
-                        for (const c of password.value.split('')) {
-                            if (!regex.test(c)) {
-                                document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
-                                return false;
-                            }
+                        if (!validPasswordChars(password.value)) {
+                          document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+                          return false;
                         }
 
                         const isInvalidPasswordLength = checkError(password.value.length, "#password-error", "Password must have maximum 16 characters!");
@@ -469,6 +479,29 @@ function login_checks() {
 
                     return true;
                 };
+            }
+
+            // reset password form
+            const resetPasswordForm = document.querySelector("#resetpassform");
+            if (resetPasswordForm) {
+                resetPasswordForm.onsubmit = function() {
+                    const pass1 = document.querySelector("#pass1");
+                    if (pass1) {
+                        errorFactory("pass1-error", pass1.parentElement);
+                    }
+
+                    if (!validPasswordChars(pass1.value)) {
+                      document.querySelector("#pass1-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+                      return false;
+                    }
+
+                    const isInvalidPasswordLength = checkError(pass1.value.length, "#pass1-error", "Password must have maximum 16 characters!");
+                    if (isInvalidPasswordLength) {
+                        return false;
+                    }
+
+                    return true;
+                }
             }
         };
     </script>
