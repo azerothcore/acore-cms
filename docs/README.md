@@ -37,9 +37,7 @@ It will download the related dependencies of the containers and start the acore-
 $ npm run docker:start
 ```
 
-### On Windows:
-
-Open your command prompt (PowerShell, for example), navigate to the repository folder and issue the command:
+Open your command prompt terminal (on Windows is for example PowerShell), navigate to the repository folder and issue the command:
 
 ```
 docker-compose up
