@@ -15,7 +15,7 @@ class CartValidation extends \ACore\Lib\WpClass {
         "char-restore-delete" => ['acore_char_sel'],
         "char-transfer-sku" => ['acore_char_sel', 'acore_dest_account'],
         "itemsend" => ['acore_char_sel'],
-        "guild-rename" => ['acore_char_sel'],
+        "guild-rename" => ['acore_char_sel', 'acore_new_guild_name'],
         "carboncopy-tickets" => []
     );
 
@@ -96,6 +96,15 @@ class CartValidation extends \ACore\Lib\WpClass {
 
             if ($accBanRepo->isActiveById($destAcc->getId())) {
                 \wc_add_notice(__('Destination account is banned!', 'woocommerce'), 'error');
+                return false;
+            }
+        }
+
+        if (in_array('acore_new_guild_name', self::$skuList[$activeSku])) {
+            $guid = intval($_REQUEST['acore_char_sel']);
+
+            if (empty($AcoreSrv->getGuildNameByLeader($guid))) {
+                \wc_add_notice(__('The character is not a guild master.', 'acore-wp-plugin'), 'error');
                 return false;
             }
         }

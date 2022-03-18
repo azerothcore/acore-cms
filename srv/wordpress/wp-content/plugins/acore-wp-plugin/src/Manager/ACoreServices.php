@@ -365,6 +365,24 @@ class ACoreServices
         $res = $stmt->executeQuery();
         return $res->fetchAllAssociative();
     }
+
+    /** 
+     *  @param int $guildLeaderGuid
+     *  @return string
+     *  Returns the guild name searching by guild leader.
+    */
+    public function getGuildNameByLeader($guildLeaderGuid) {
+        $query = "SELECT `name`
+            FROM `guild`
+            WHERE `leaderguild` = ?
+        ";
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $guildLeaderGuid);
+        $stmt->executeQuery();
+        $res = $stmt->executeQuery();
+        return $res->fetchOne();
+    }
 }
 
 
