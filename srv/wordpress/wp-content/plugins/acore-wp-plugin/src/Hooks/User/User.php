@@ -442,31 +442,34 @@ function login_checks() {
                 errorFactory("password-error", password.parentElement);
             }
 
-            document.querySelector("#registerform").onsubmit = function() {
-                if (username) {
-                    const isInvalidUsernameLength = checkError(username.value.length, "#username-error", "Username must have maximum 16 characters!");
-                    if (isInvalidUsernameLength) {
-                        return false;
-                    }
-                }
-
-                if (password) {
-                    const regex = <?= UserValidator::PASSWORD_VALID_CHARS ?>;
-                    for (const c of password.value.split('')) {
-                        if (!regex.test(c)) {
-                            document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+            const registerForm = document.querySelector("#registerform");
+            if (registerForm) {
+                registerForm.onsubmit = function() {
+                    if (username) {
+                        const isInvalidUsernameLength = checkError(username.value.length, "#username-error", "Username must have maximum 16 characters!");
+                        if (isInvalidUsernameLength) {
                             return false;
                         }
                     }
 
-                    const isInvalidPasswordLength = checkError(password.value.length, "#password-error", "Password must have maximum 16 characters!");
-                    if (isInvalidPasswordLength) {
-                        return false;
-                    }
-                }
+                    if (password) {
+                        const regex = <?= UserValidator::PASSWORD_VALID_CHARS ?>;
+                        for (const c of password.value.split('')) {
+                            if (!regex.test(c)) {
+                                document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+                                return false;
+                            }
+                        }
 
-                return true;
-            };
+                        const isInvalidPasswordLength = checkError(password.value.length, "#password-error", "Password must have maximum 16 characters!");
+                        if (isInvalidPasswordLength) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                };
+            }
         };
     </script>
     <?php
