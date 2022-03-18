@@ -26,7 +26,7 @@ class GuildChange extends \ACore\Lib\WpClass {
 
         if ($current_user) {
             ?>
-            <p>You must select the guild master character.</p>
+            <p>Please select the guild master of the guild whose name you wish to change.</p>
             <?php
             FieldElements::charList($current_user->user_login);
             ?>
