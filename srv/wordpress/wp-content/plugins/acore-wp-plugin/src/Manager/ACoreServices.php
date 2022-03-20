@@ -10,6 +10,7 @@ use ACore\Manager\Character\CharacterManager;
 use ACore\Manager\Soap\AcoreSoap;
 use ACore\Manager\Soap\AccountService;
 use ACore\Manager\Soap\CharacterService;
+use ACore\Manager\Soap\GuildService;
 use ACore\Manager\Soap\MailService;
 use ACore\Manager\Soap\ServerService;
 use ACore\Manager\World\WorldManager;
@@ -97,6 +98,7 @@ class ACoreServices
         //$char = $inst->getCharactersRepo();
         $inst->getCharactersSoap();
         $inst->getGameMailSoap();
+        $inst->getGuildSoap();
         $soap = $inst->getServerSoap();
 
         echo $soap->serverInfo();
@@ -207,6 +209,18 @@ class ACoreServices
     public function getCharactersSoap()
     {
         $mgr = new CharacterService();
+        $mgr->setSoap(new AcoreSoap());
+        $mgr->configure($this->soapParams);
+        return $mgr;
+    }
+
+    /**
+     *
+     * @return ACore\Manager\Soap\GuildService
+     */
+    public function getGuildSoap()
+    {
+        $mgr = new GuildService();
         $mgr->setSoap(new AcoreSoap());
         $mgr->configure($this->soapParams);
         return $mgr;
@@ -350,6 +364,24 @@ class ACoreServices
         $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchAllAssociative();
+    }
+
+    /** 
+     *  @param int $guildLeaderGuid
+     *  @return string
+     *  Returns the guild name searching by guild leader.
+    */
+    public function getGuildNameByLeader($guildLeaderGuid) {
+        $query = "SELECT `name`
+            FROM `guild`
+            WHERE `leaderguid` = ?
+        ";
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare($query);
+        $stmt->bindValue(1, $guildLeaderGuid);
+        $stmt->executeQuery();
+        $res = $stmt->executeQuery();
+        return $res->fetchOne();
     }
 }
 
