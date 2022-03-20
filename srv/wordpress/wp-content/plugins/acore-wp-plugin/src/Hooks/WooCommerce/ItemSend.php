@@ -10,8 +10,9 @@ class ItemSend extends \ACore\Lib\WpClass {
     private static function getSkuItem($sku) {
         $parts = explode("_", $sku);
 
-        if ($parts[0] != "itemsend" || !is_numeric($parts[1]))
+        if ($parts[0] != "itemsend" || !is_numeric($parts[1])) {
             return false;
+        }
 
         $sku = new ItemSku();
 
@@ -38,32 +39,36 @@ class ItemSend extends \ACore\Lib\WpClass {
     public static function catalogue_list() {
         global $product;
         $sku = self::getSkuItem($product->get_sku());
-        if (!$sku)
+        if (!$sku) {
             return;
+        }
 
         $link="https://wowgaming.altervista.org/aowow/?item=" . $sku->itemId;
 
         echo "<p><a href='$link' target='_blank'>Details</a></p>";
     }
 
-    public static function the_title($title) {
+    public static function the_title($title)/* : string | void */ {
         if (( \function_exists("\is_product") && \is_product() && \in_the_loop())) {
             global $product;
             $sku = self::getSkuItem($product->get_sku());
-            if (!$sku)
+            if (!$sku) {
                 return;
+            }
             return "<a href='https://wowgaming.altervista.org/aowow/?item=" . $sku->itemId . "'>$title</a>";
         }
-        //Return the normal Title if conditions aren't met
+
+        // return the normal Title if conditions aren't met
         return $title;
     }
 
-    // 1) LIST
+    // LIST
     public static function before_add_to_cart_button() {
         global $product;
         $sku = self::getSkuItem($product->get_sku());
-        if (!$sku)
+        if (!$sku) {
             return;
+        }
 
         $current_user = wp_get_current_user();
 
@@ -86,7 +91,7 @@ class ItemSend extends \ACore\Lib\WpClass {
         }
     }
 
-    // 3) SAVE INTO ITEM DATA
+    // SAVE INTO ITEM DATA
     // This code will store the custom fields ( for the product that is being added to cart ) into cart item data
     // ( each cart item has their own data )
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
@@ -108,7 +113,7 @@ class ItemSend extends \ACore\Lib\WpClass {
         return $cart_item_data;
     }
 
-    // 4) Render on checkout
+    // RENDER ON CHECKOUT
     public static function get_item_data($cart_data, $cart_item = null) {
         $custom_items = array();
         if (!empty($cart_data)) {
@@ -137,7 +142,7 @@ class ItemSend extends \ACore\Lib\WpClass {
         return $custom_items;
     }
 
-    // 5) ADD DATA TO FINAL ORDER META
+    // ADD DATA TO FINAL ORDER META
     // This is a piece of code that will add your custom field with order meta.
     public static function add_order_item_meta($item_id, $values, $cart_item_key) {
         $sku = self::getSkuItem($values['acore_item_sku']);
@@ -151,7 +156,7 @@ class ItemSend extends \ACore\Lib\WpClass {
         wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
     }
 
-    // 6) check before payment
+    // CHECK BEFORE PAYMENT
     public static function checkout_order_processed($order_id, $posted_data) {
         $logs = new \WC_Logger();
 

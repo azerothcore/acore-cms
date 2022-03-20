@@ -6,7 +6,7 @@ use ACore\Manager\ACoreServices;
 
 class FieldElements {
 
-    public static function charList($username, $deleted = false) {
+    public static function charList($username, $deleted = false): void {
         $ACoreSrv = ACoreServices::I();
         $accRepo = $ACoreSrv->getAccountRepo();
         $charRepo = $ACoreSrv->getCharactersRepo();
@@ -64,7 +64,7 @@ class FieldElements {
         }
     }
 
-    public static function destCharacter($label) {
+    public static function destCharacter($label): void {
         ?>
         <label for="acore_char_dest"><?= $label ?></label>
         <input type="text" placeholder="Character name..." id="acore_char_dest" class="acore_char_dest" name="acore_char_dest">
@@ -72,7 +72,7 @@ class FieldElements {
         <?php
     }
 
-    public static function destAccount() {
+    public static function destAccount(): void {
         ?>
         <label for="acore_dest_account">Destination account: </label>
         <input required type="text" id="acore_dest_account" class="acore_dest_account" name="acore_dest_account">
