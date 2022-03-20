@@ -6,6 +6,10 @@ use ACore\Manager\ACoreServices;
 
 class GuildChange extends \ACore\Lib\WpClass {
 
+    private static $skuList = array(
+        "guild-rename"
+    );
+
     public static function init() {
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
@@ -47,7 +51,7 @@ class GuildChange extends \ACore\Lib\WpClass {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
 
         if ($product->get_sku() != "guild-rename") {
-            return;
+            return $cart_item_data;
         }
 
         if (isset($_REQUEST['acore_char_sel']) && isset($_REQUEST['acore_new_guild_name'])) {
@@ -63,6 +67,14 @@ class GuildChange extends \ACore\Lib\WpClass {
 
     // 4) Render on checkout
     public static function get_item_data($cart_data, $cart_item = null) {
+        $custom_items = array();
+        if (!empty($cart_data)) {
+            $custom_items = $cart_data;
+        }
+
+        if (!in_array($cart_item['acore_item_sku'], self::$skuList)) {
+            return $custom_items;
+        }
 
         if (isset($cart_item['acore_char_sel'])) {
             $ACoreSrv = ACoreServices::I();
