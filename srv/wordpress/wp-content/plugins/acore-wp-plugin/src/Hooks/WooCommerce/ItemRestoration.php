@@ -173,8 +173,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
           <table class="table table-bordered table-hover align-middle">
               <thead style="background: #1d2327; color: #fff;">
                   <tr>
-                      <th scope="col" class="text-uppercase">item name</th>
-                      <th scope="col" class="text-uppercase">#</th>
+                      <th scope="col">ITEMS</th>
                   </tr>
               </thead>
               <tbody style="background: #2c3338;" id="itemList">
