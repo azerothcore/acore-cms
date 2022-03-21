@@ -167,7 +167,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       <br>
       <hr>
       <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
-          <span>There is no items to recover for the selected character</span>
+          <span>There are no items to recover for the selected character</span>
       </div>
       <div class="table-responsive hidden" id="itemContainer" style="overflow: auto; height: 300px;">
           <table class="table table-bordered table-hover align-middle">
