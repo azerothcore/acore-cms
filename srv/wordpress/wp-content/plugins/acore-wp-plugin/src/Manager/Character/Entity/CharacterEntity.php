@@ -48,6 +48,27 @@ class CharacterEntity {
      */
     protected $deleteInfosAccount;
 
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="race", type="integer")
+     */
+    protected $race;
+
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="gender", type="integer")
+     */
+    protected $gender;
+
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="class", type="integer")
+     */
+    protected $class;
+
     public function getGuid() {
         return $this->guid;
     }
@@ -77,6 +98,18 @@ class CharacterEntity {
     public function setName($name) {
         $this->name = $name;
         return $this;
+    }
+
+    public function getRace() {
+        return $this->race;
+    }
+
+    public function getClass() {
+        return $this->class;
+    }
+
+    public function getGender() {
+        return $this->gender;
     }
 
 }

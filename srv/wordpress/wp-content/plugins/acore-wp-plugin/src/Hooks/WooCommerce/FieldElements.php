@@ -37,6 +37,8 @@ class FieldElements {
         $bannedChars = array();
         ?>
         <label for="acore_char_sel">Select the character: </label>
+        <img id="char-icon" src="<" />
+        <img id="class-icon" src="" />
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
             <?php
 
@@ -46,17 +48,28 @@ class FieldElements {
                         $bannedChars[] = $value->getName();
                         continue;
                     }
-                    echo '<option value="' . $value->getGuid() . '">' . $value->getName() . '</option>';
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . ACORE_URL_PLG . "web/assets/race/" . $value->getRace() . ($value->getGender() == 0 ? "m" : "f") . ".webp" . '" data-classicon="' . ACORE_URL_PLG . "web/assets/class/" . $value->getClass() . ".webp" . '">' . $value->getName() . '</option>';
                 endforeach;
             } else {
                 foreach ($deletedCharacters as $key => $value):
-                    echo '<option value="' . $value->getGuid() . '">' . $value->getDeletedName() . '</option>';
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . ACORE_URL_PLG . "web/assets/race/" . $value->getRace() . ($value->getGender() == 0 ? "m" : "f") . ".webp" . '" data-classicon="' . ACORE_URL_PLG . "web/assets/class/" . $value->getClass() . ".webp" . '">' . $value->getDeletedName() . '</option>';
                 endforeach;
             }
 
             ?>
         </select>
         <br>
+        <script>
+            function setIcon() {
+                var charicon = document.getElementById("char-icon");
+                var classicon = document.getElementById("class-icon");
+                var selected = jQuery(this).find("option:selected");
+                charicon.src = selected.data("charicon");
+                classicon.src = selected.data("classicon")
+                return false;
+            }
+            document.getElementById("acore_char_sel").onchange = setIcon;
+        </script>
         <?php
         if ($bannedChars) {
             echo "Some characters in your account are banned: <br>";
