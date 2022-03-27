@@ -23,6 +23,8 @@ class FieldElements {
         $deletedCharacters = $charRepo->findByDeleteInfos_Account($accountId);
         $charBanRepo = $ACoreSrv->getCharactersBannedRepo();
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
+       // $charRaceIcon = ACORE_URL_PLG . "web/assets/race/" . $value->getRace() . ($value->getGender() == 0 ? "m" : "f") . ".webp";
+        //$charClassIcon = ACORE_URL_PLG . "web/assets/class/" . $value->getClass() . ".webp";
 
         if ($accBanRepo->isActiveById($accountId)) {
             echo '<br><br><span style="color: #ff7961;">Your account is banned!</span><br>';
@@ -37,8 +39,8 @@ class FieldElements {
         $bannedChars = array();
         ?>
         <label for="acore_char_sel">Select the character: </label>
-        <img id="char-icon" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
-        <img id="class-icon" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
+        <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
+        <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
             <?php
 
@@ -61,11 +63,11 @@ class FieldElements {
         <br>
         <script>
             function setIcon() {
-                var charicon = document.getElementById("char-icon");
-                var classicon = document.getElementById("class-icon");
-                var selected = jQuery(this).find("option:selected");
+                const charicon = document.getElementById("char-icon");
+                const classicon = document.getElementById("class-icon");
+                let selected = jQuery(this).find("option:selected");
                 charicon.src = selected.data("charicon");
-                classicon.src = selected.data("classicon")
+                classicon.src = selected.data("classicon");
                 return false;
             }
             document.getElementById("acore_char_sel").onchange = setIcon;

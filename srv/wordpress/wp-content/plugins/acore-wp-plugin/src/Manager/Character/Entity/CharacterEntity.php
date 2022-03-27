@@ -100,15 +100,15 @@ class CharacterEntity {
         return $this;
     }
 
-    public function getRace() {
+    public function getRace(): int {
         return $this->race;
     }
 
-    public function getClass() {
+    public function getClass(): int {
         return $this->class;
     }
 
-    public function getGender() {
+    public function getGender(): int {
         return $this->gender;
     }
 
