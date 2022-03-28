@@ -48,11 +48,11 @@ class FieldElements {
                         $bannedChars[] = $value->getName();
                         continue;
                     }
-                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharUrl() . '" data-classicon="' . $value->getClassUrl() . '">' . $value->getName() . '</option>';
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharIconUrl() . '" data-classicon="' . $value->getClassIconUrl() . '">' . $value->getName() . '</option>';
                 endforeach;
             } else {
                 foreach ($deletedCharacters as $key => $value):
-                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharUrl() . '" data-classicon="' . $value->getClassUrl() . '">' . $value->getDeletedName() . '</option>';
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharIconUrl() . '" data-classicon="' . $value->getClassIconUrl() . '">' . $value->getDeletedName() . '</option>';
                 endforeach;
             }
 
