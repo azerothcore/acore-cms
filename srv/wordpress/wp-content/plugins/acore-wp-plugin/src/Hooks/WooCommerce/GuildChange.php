@@ -30,16 +30,12 @@ class GuildChange extends \ACore\Lib\WpClass {
 
         if ($current_user) {
             ?>
-            <p>Please select the guild master of the guild whose name you wish to change.</p>
+            <span>Please select the guild master of the guild whose name you wish to change.</span>
             <?php
             FieldElements::charList($current_user->user_login);
             ?>
-            <br>
-            <br>
             <label for="acore_new_guild_name">Please enter a new guild name:</label>
             <input type="text" maxlength="24" id="acore_new_guild_name" class="acore_new_guild_name" name="acore_new_guild_name" style="width: 300px;">
-            <br>
-            <br>
             <?php
         }
     }
