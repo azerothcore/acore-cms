@@ -112,4 +112,12 @@ class CharacterEntity {
         return $this->gender;
     }
 
+    public function getCharUrl() {
+       return ACORE_URL_PLG . "web/assets/race/" . $this->getRace() . ($this->getGender() == 0 ? "m" : "f") . ".webp";
+    }
+
+    public function getClassUrl() {
+       return ACORE_URL_PLG . "web/assets/class/" . $this->getClass() . ".webp";
+    }
+
 }

@@ -23,8 +23,6 @@ class FieldElements {
         $deletedCharacters = $charRepo->findByDeleteInfos_Account($accountId);
         $charBanRepo = $ACoreSrv->getCharactersBannedRepo();
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
-       // $charRaceIcon = ACORE_URL_PLG . "web/assets/race/" . $value->getRace() . ($value->getGender() == 0 ? "m" : "f") . ".webp";
-        //$charClassIcon = ACORE_URL_PLG . "web/assets/class/" . $value->getClass() . ".webp";
 
         if ($accBanRepo->isActiveById($accountId)) {
             echo '<br><br><span style="color: #ff7961;">Your account is banned!</span><br>';
@@ -50,11 +48,11 @@ class FieldElements {
                         $bannedChars[] = $value->getName();
                         continue;
                     }
-                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . ACORE_URL_PLG . "web/assets/race/" . $value->getRace() . ($value->getGender() == 0 ? "m" : "f") . ".webp" . '" data-classicon="' . ACORE_URL_PLG . "web/assets/class/" . $value->getClass() . ".webp" . '">' . $value->getName() . '</option>';
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharUrl() . '" data-classicon="' . $value->getClassUrl() . '">' . $value->getName() . '</option>';
                 endforeach;
             } else {
                 foreach ($deletedCharacters as $key => $value):
-                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . ACORE_URL_PLG . "web/assets/race/" . $value->getRace() . ($value->getGender() == 0 ? "m" : "f") . ".webp" . '" data-classicon="' . ACORE_URL_PLG . "web/assets/class/" . $value->getClass() . ".webp" . '">' . $value->getDeletedName() . '</option>';
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharUrl() . '" data-classicon="' . $value->getClassUrl() . '">' . $value->getDeletedName() . '</option>';
                 endforeach;
             }
 
@@ -65,7 +63,7 @@ class FieldElements {
             function setIcon() {
                 const charicon = document.getElementById("char-icon");
                 const classicon = document.getElementById("class-icon");
-                let selected = jQuery(this).find("option:selected");
+                const selected = jQuery(this).find("option:selected");
                 charicon.src = selected.data("charicon");
                 classicon.src = selected.data("classicon");
                 return false;
