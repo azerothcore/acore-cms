@@ -48,6 +48,27 @@ class CharacterEntity {
      */
     protected $deleteInfosAccount;
 
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="race", type="integer")
+     */
+    protected $race;
+
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="gender", type="integer")
+     */
+    protected $gender;
+
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="class", type="integer")
+     */
+    protected $class;
+
     public function getGuid() {
         return $this->guid;
     }
@@ -77,6 +98,26 @@ class CharacterEntity {
     public function setName($name) {
         $this->name = $name;
         return $this;
+    }
+
+    public function getRace(): int {
+        return $this->race;
+    }
+
+    public function getClass(): int {
+        return $this->class;
+    }
+
+    public function getGender(): int {
+        return $this->gender;
+    }
+
+    public function getCharIconUrl(): string {
+       return  ACORE_URL_PLG . "web/assets/race/" . $this->getRace() . ($this->getGender() == 0 ? "m" : "f") . ".webp";
+    }
+
+    public function getClassIconUrl(): string {
+       return ACORE_URL_PLG . "web/assets/class/" . $this->getClass() . ".webp";
     }
 
 }
