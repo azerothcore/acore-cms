@@ -195,10 +195,21 @@ class ItemRestoration extends \ACore\Lib\WpClass {
 
       const charList = document.querySelector("#acore_char_sel");
       selectCharacter(charList.value);
-      document.querySelector("#acore_char_sel").onchange = (event) => {
-        selectCharacter(event.target.value);
-      };
 
+      charList.onchange = (function (onchange) {
+        return function(evt) {
+            // reference to event to pass argument properly
+            evt  = evt || event;
+
+            // if an existing event already existed then execute it.
+            if (onchange) {
+                onchange(evt);
+            }
+
+            // new code "injection"
+            selectCharacter(evt.target.value);
+        }
+        })(charList.onchange);
 
       function selectCharacter(charGuid) {
         noResults.style.display = 'none';

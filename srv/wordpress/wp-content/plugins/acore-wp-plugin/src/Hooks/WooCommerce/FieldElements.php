@@ -37,6 +37,7 @@ class FieldElements {
         $bannedChars = array();
         ?>
         <label for="acore_char_sel">Select the character: </label>
+        <br>
         <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
         <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
@@ -63,9 +64,9 @@ class FieldElements {
             function setIcon() {
                 const charicon = document.getElementById("char-icon");
                 const classicon = document.getElementById("class-icon");
-                const selected = jQuery(this).find("option:selected");
-                charicon.src = selected.data("charicon");
-                classicon.src = selected.data("classicon");
+                const selected = document.querySelector("#acore_char_sel").selectedOptions[0];
+                charicon.src = selected.dataset.charicon;
+                classicon.src = selected.dataset.classicon;
                 return false;
             }
             document.getElementById("acore_char_sel").onchange = setIcon;
