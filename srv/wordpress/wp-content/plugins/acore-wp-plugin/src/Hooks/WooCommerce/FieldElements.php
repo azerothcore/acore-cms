@@ -36,6 +36,8 @@ class FieldElements {
 
         $bannedChars = array();
         ?>
+        <br>
+        <br>
         <label for="acore_char_sel">Select the character: </label>
         <br>
         <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
@@ -59,6 +61,7 @@ class FieldElements {
 
             ?>
         </select>
+        <br>
         <br>
         <script>
             function setIcon() {
