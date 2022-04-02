@@ -34,14 +34,21 @@ class FieldElements {
             return;
         }
 
+        if (!$characters || count($characters) == 0) {
+            echo '<br><span style="color: red;">You have to create a character in-game to use this service</span><br><br><br>';
+            return;
+        }
+
         $bannedChars = array();
         ?>
         <br>
         <br>
         <label for="acore_char_sel">Select the character: </label>
         <br>
-        <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
-        <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
+        <?php  if ($characters && count($characters) > 0) { ?>
+            <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
+            <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
+        <?php  } ?>
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
             <?php
 
