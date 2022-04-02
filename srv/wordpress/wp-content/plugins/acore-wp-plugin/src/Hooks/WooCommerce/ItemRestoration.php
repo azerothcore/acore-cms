@@ -163,7 +163,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
     public static function showItemRestorationPerCharacter() {
       ?>
       <br>
-      <p class="text-muted m-0"><em>Restored items will be sent to the selected characters mailbox.</em></p>
+      <p class="m-0"><em>Restored items will be sent to the selected characters mailbox.</em></p>
       <br>
       <hr>
       <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
