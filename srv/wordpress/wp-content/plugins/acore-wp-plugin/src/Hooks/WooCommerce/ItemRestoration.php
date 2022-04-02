@@ -166,6 +166,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       <p class="m-0"><em>Restored items will be sent to the selected characters mailbox.</em></p>
       <br>
       <hr>
+      <div id="loader-icon">Loading...</div>
       <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
           <span>There are no items to recover for the selected character</span>
       </div>
@@ -192,7 +193,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       const itemList = document.getElementById('itemList');
       const itemListLoaders = document.querySelectorAll('.loading-item-list');
       const noResults =  document.getElementById('item-list-no-content');
-
+      const loaderIcon = document.getElementById('loader-icon');
       const charList = document.querySelector("#acore_char_sel");
       selectCharacter(charList.value);
 
@@ -213,6 +214,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
 
       function selectCharacter(charGuid) {
         noResults.style.display = 'none';
+        loaderIcon.style.display = 'block';
 
         itemListLoaders.forEach(element => element.classList.remove('hidden'));
           itemContainer.classList.remove('hidden');
@@ -222,6 +224,9 @@ class ItemRestoration extends \ACore\Lib\WpClass {
           fetch('<?= get_rest_url(null, 'acore/v1/item-restore/list/'); ?>' + character)
           .then((response) => response.json())
           .then(function(items) {
+
+              loaderIcon.style.display = 'none';
+
               if (!items || !items.length > 0) {
                   noResults.style.display = 'block';
                   itemList.style.display = 'none';
@@ -277,6 +282,88 @@ class ItemRestoration extends \ACore\Lib\WpClass {
           });
       }
       </script>
+      <style>
+            #loader-icon {
+                color: black;
+                font-size: 1.5em;
+                text-indent: -9999em;
+                overflow: hidden;
+                width: 1em;
+                height: 1em;
+                border-radius: 50%;
+                margin: 72px auto;
+                position: relative;
+                -webkit-transform: translateZ(0);
+                -ms-transform: translateZ(0);
+                transform: translateZ(0);
+                -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+                animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+            }
+            @-webkit-keyframes load6 {
+            0% {
+                box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+            }
+            5%,
+            95% {
+                box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+            }
+            10%,
+            59% {
+                box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em, -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em, -0.297em -0.775em 0 -0.477em;
+            }
+            20% {
+                box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em, -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em, -0.749em -0.34em 0 -0.477em;
+            }
+            38% {
+                box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em, -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em, -0.82em -0.09em 0 -0.477em;
+            }
+            100% {
+                box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+            }
+            }
+            @keyframes load6 {
+            0% {
+                box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+            }
+            5%,
+            95% {
+                box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+            }
+            10%,
+            59% {
+                box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em, -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em, -0.297em -0.775em 0 -0.477em;
+            }
+            20% {
+                box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em, -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em, -0.749em -0.34em 0 -0.477em;
+            }
+            38% {
+                box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em, -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em, -0.82em -0.09em 0 -0.477em;
+            }
+            100% {
+                box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+            }
+            }
+            @-webkit-keyframes round {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+            }
+            @keyframes round {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+            }
+       </style>
       <?php
     }
 
