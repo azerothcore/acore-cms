@@ -17,6 +17,7 @@ class CartValidation extends \ACore\Lib\WpClass {
         "itemsend" => ['acore_char_sel'],
         "guild-rename" => ['acore_char_sel', 'acore_new_guild_name'],
         "item-restoration" => ['acore_char_sel', 'acore_restore_item_sel'],
+        "transmog-item" => ['acore_char_sel', 'acore_transmog_item'],
         "carboncopy-tickets" => []
     );
 
