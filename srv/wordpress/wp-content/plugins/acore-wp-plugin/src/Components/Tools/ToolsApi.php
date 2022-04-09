@@ -55,7 +55,7 @@ add_action( 'rest_api_init', function () {
 
     ));
 
-    register_rest_route( ACORE_SLUG . '/v1', 'item-transmog/(?P<cguid>\d+)', array(
+    register_rest_route( ACORE_SLUG . '/v1', 'item-transmog/list/(?P<cguid>\d+)', array(
         'methods' => 'GET',
         'callback' => function( $request ) {
             return ToolsApi::UnlockedTransmogList($request);

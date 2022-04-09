@@ -2,6 +2,7 @@
 
 namespace ACore\Hooks\WooCommerce;
 
+use ACore\Components\Tools\ToolsApi;
 use ACore\Manager\ACoreServices;
 
 class TransmogItem extends \Acore\Lib\WpClass {
@@ -142,7 +143,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
                         $charGuid = $item["acore_char_sel"];
 
                         if (!$itemId) {
-                            throw new \Exception("Exception here");
+                            throw new \Exception("Fill in an item to transmog!");
                         }
 
                         $ACoreSrv = ACoreServices::I();
@@ -151,6 +152,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
 
                         if ($char) {
                             $data = array('item' => $itemId, 'cname' => $char->getName());
+                            ToolsApi::ItemTransmog($data);
                           } else {
                               throw new \Exception("Select a character!");
                           }
@@ -193,24 +195,11 @@ class TransmogItem extends \Acore\Lib\WpClass {
         const noResults =  document.getElementById('item-list-no-content');
         const loaderIcon = document.getElementById('loader-icon');
         const charList = document.querySelector("#acore_char_sel");
-        selectCharacter(charList.value);
+        const inputField = document.getElementById('acore_transmog_item');
 
-        charList.onchange = (function (onchange) {
-            return function(evt) {
-                // reference to event to pass argument properly
-                evt  = evt || event;
+        inputField.onkeypress = function() { transmogItem() };
 
-                // if an existing event already existed then execute it.
-                if (onchange) {
-                    onchange(evt);
-                }
-
-                // new code "injection"
-                selectCharacter(evt.target.value);
-            }
-            })(charList.onchange);
-
-        function selectCharacter(charGuid) {
+        function transmogItem(charGuid) {
             noResults.style.display = 'none';
             loaderIcon.style.display = 'block';
 
@@ -245,7 +234,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
                     itemLink.setAttribute('data-wowhead', `item=${item['ItemEntry']}`);
                     itemLink.style.padding = "20px 0px 20px 66px";
                     itemLink.id = "row-item-" + item['Id'];
-                    itemLink.className = "icon-item-deleted";
+                    itemLink.className = "icon-item-transmog";
                     itemCell.appendChild(itemLink);
                 });
             })
@@ -255,7 +244,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
 
                 // make larger the icon and fix css style
                 setTimeout(() => {
-                    document.querySelectorAll(".icon-item-deleted").forEach(itemImg => {
+                    document.querySelectorAll(".icon-item-transmog").forEach(itemImg => {
                     itemImg.style.background = itemImg.style.background.replace('.gif', '.jpg').replace('/tiny/', '/large/');
                     itemImg.style.paddingLeft = "66px";
                     });
