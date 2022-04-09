@@ -34,7 +34,7 @@ class FieldElements {
             return;
         }
 
-        if (!$characters || count($characters) == 0) {
+        if (!$deleted && (!$characters || count($characters) == 0)) {
             echo '<br><span style="color: red;">You have to create a character in-game to use this service</span><br><br><br>';
             return;
         }
