@@ -7,7 +7,7 @@ use ACore\Manager\ACoreServices;
 class TransmogItem extends \Acore\Lib\WpClass {
 
     private static $skuList = array(
-        "transmog-item"
+        "transmogification"
     );
 
     public static function init() {
@@ -23,7 +23,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
     public static function before_add_to_cart_button() {
         global $product;
 
-        if ($product->get_sku() != "transmog-item") {
+        if ($product->get_sku() != "transmogification") {
             return;
         }
 
@@ -34,9 +34,8 @@ class TransmogItem extends \Acore\Lib\WpClass {
             <span>Please select the character you want to transmog gear on.</span>
             <?php
             FieldElements::charList($current_user->user_login);
-            ?>
-            <span>Gear selecter or something</span>
-            <?php
+            wp_enqueue_script('power-js', 'https://wow.zamimg.com/widgets/power.js', array());
+            self::showTransmogItem();
         }
     }
 
@@ -46,7 +45,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
 
-        if ($product->get_sku() != "transmog-item") {
+        if ($product->get_sku() != "transmogification") {
             return $cart_item_data;
         }
 
@@ -93,7 +92,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
     // ADD DATA TO FINAL ORDER META
     // This is a piece of code that will add your custom field with order meta.
     public static function add_order_item_meta($item_id, $values, $cart_item_key) {
-        if ($values['acore_item_sku'] != "transmog-item") {
+        if ($values['acore_item_sku'] != "transmogification") {
             return;
         }
 
@@ -115,7 +114,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
 
         foreach ($items as $item) {
             if ($item["acore_item_sku"]) {
-                if ($item["acore_item_sku"] == "transmog-item") {
+                if ($item["acore_item_sku"] == "transmogification") {
                     $res = $soap->serverInfo();
                     if ($res instanceof \Exception) {
                         throw new \Exception(__('The server seems to be offline, try again later!', 'woocommerce'));
@@ -138,8 +137,8 @@ class TransmogItem extends \Acore\Lib\WpClass {
             
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
-                    if ($item["acore_item_sku"] == "transmog-item") {
-                        $itemId = $item["acore_restore_item_sel"];
+                    if ($item["acore_item_sku"] == "transmogification") {
+                        $itemId = $item["acore_transmog_item"];
                         $charGuid = $item["acore_char_sel"];
 
                         if (!$itemId) {
@@ -161,6 +160,192 @@ class TransmogItem extends \Acore\Lib\WpClass {
         } catch (\Exception $e) {
             $logs->add("acore_log", $e->getMessage());
         }
+    }
+
+    public static function showTransmogItem() {
+        ?>
+        <label for="acore_transmog_item">Please enter the item to transmog:</label>
+        <input type="text" maxlength="24" id="acore_transmog_item" class="acore_transmog_item" name="acore_transmog_item" style="width: 300px;">
+        <br><br>
+        <div id="loader-icon">Loading...</div>
+        <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
+            <span>That item doesn't excist</span>
+        </div>
+        <div class="table-responsive hidden" id="itemContainer" style="overflow: auto; height: 300px;">
+            <table class="table table-bordered table-hover align-middle">
+                <tbody style="background: #2c3338;" id="itemList">
+                    <tr class="loading-item-list hidden">
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br>
+
+        <!-- 3D view of character here, not supported yet -->
+
+        <script>
+        const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};
+
+        // Register event listeners & element specifiers
+        const itemContainer = document.getElementById('itemContainer');
+        const itemList = document.getElementById('itemList');
+        const itemListLoaders = document.querySelectorAll('.loading-item-list');
+        const noResults =  document.getElementById('item-list-no-content');
+        const loaderIcon = document.getElementById('loader-icon');
+        const charList = document.querySelector("#acore_char_sel");
+        selectCharacter(charList.value);
+
+        charList.onchange = (function (onchange) {
+            return function(evt) {
+                // reference to event to pass argument properly
+                evt  = evt || event;
+
+                // if an existing event already existed then execute it.
+                if (onchange) {
+                    onchange(evt);
+                }
+
+                // new code "injection"
+                selectCharacter(evt.target.value);
+            }
+            })(charList.onchange);
+
+        function selectCharacter(charGuid) {
+            noResults.style.display = 'none';
+            loaderIcon.style.display = 'block';
+
+            itemListLoaders.forEach(element => element.classList.remove('hidden'));
+            itemContainer.classList.remove('hidden');
+            const character = charGuid;
+            const characterName = charList.options[charList.selectedIndex].innerText;
+
+            fetch('<?= get_rest_url(null, 'acore/v1/item-transmog/list/'); ?>' + character)
+            .then((response) => response.json())
+            .then(function(items) {
+
+                loaderIcon.style.display = 'none';
+
+                if (!items || !items.length > 0) {
+                    noResults.style.display = 'block';
+                    itemList.style.display = 'none';
+                    return;
+                }
+                
+                document.querySelector("#itemList").innerHTML = "";
+                itemList.style.display = 'block';
+
+                items.forEach(item => {
+                    const row = itemList.insertRow();
+                    row.id = "row--" + item['Id'];
+
+                    // Item
+                    const itemCell = row.insertCell();
+                    const itemLink = document.createElement('a');
+                    itemLink.href = "#";
+                    itemLink.setAttribute('data-wowhead', `item=${item['ItemEntry']}`);
+                    itemLink.style.padding = "20px 0px 20px 66px";
+                    itemLink.id = "row-item-" + item['Id'];
+                    itemLink.className = "icon-item-deleted";
+                    itemCell.appendChild(itemLink);
+                });
+            })
+            .finally(() => {
+                $WowheadPower.refreshLinks();
+                itemListLoaders.forEach(element => element.classList.add('hidden'));
+
+                // make larger the icon and fix css style
+                setTimeout(() => {
+                    document.querySelectorAll(".icon-item-deleted").forEach(itemImg => {
+                    itemImg.style.background = itemImg.style.background.replace('.gif', '.jpg').replace('/tiny/', '/large/');
+                    itemImg.style.paddingLeft = "66px";
+                    });
+                }, 1000);
+            });
+        }
+        </script>
+        <style>
+                #loader-icon {
+                    color: black;
+                    font-size: 1.5em;
+                    text-indent: -9999em;
+                    overflow: hidden;
+                    width: 1em;
+                    height: 1em;
+                    border-radius: 50%;
+                    margin: 72px auto;
+                    position: relative;
+                    -webkit-transform: translateZ(0);
+                    -ms-transform: translateZ(0);
+                    transform: translateZ(0);
+                    -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+                    animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+                }
+                @-webkit-keyframes load6 {
+                0% {
+                    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+                }
+                5%,
+                95% {
+                    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+                }
+                10%,
+                59% {
+                    box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em, -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em, -0.297em -0.775em 0 -0.477em;
+                }
+                20% {
+                    box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em, -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em, -0.749em -0.34em 0 -0.477em;
+                }
+                38% {
+                    box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em, -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em, -0.82em -0.09em 0 -0.477em;
+                }
+                100% {
+                    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+                }
+                }
+                @keyframes load6 {
+                0% {
+                    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+                }
+                5%,
+                95% {
+                    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+                }
+                10%,
+                59% {
+                    box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em, -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em, -0.297em -0.775em 0 -0.477em;
+                }
+                20% {
+                    box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em, -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em, -0.749em -0.34em 0 -0.477em;
+                }
+                38% {
+                    box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em, -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em, -0.82em -0.09em 0 -0.477em;
+                }
+                100% {
+                    box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em, 0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+                }
+                }
+                @-webkit-keyframes round {
+                0% {
+                    -webkit-transform: rotate(0deg);
+                    transform: rotate(0deg);
+                }
+                100% {
+                    -webkit-transform: rotate(360deg);
+                    transform: rotate(360deg);
+                }
+                }
+                @keyframes round {
+                0% {
+                    -webkit-transform: rotate(0deg);
+                    transform: rotate(0deg);
+                }
+                100% {
+                    -webkit-transform: rotate(360deg);
+                    transform: rotate(360deg);
+                }
+                }
+        </style>
+        <?php
     }
 
 }

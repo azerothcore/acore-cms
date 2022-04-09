@@ -15,6 +15,16 @@ class ToolsApi {
         $cname = $data['cname'];
         return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $cname");
     }
+
+    public static function UnlockedTransmogList($request) {
+        return ACoreServices::I()->getUnlockedTransmogbyCharacter($request['cguid']);
+    }
+
+    public static function ItemTransmog($data) {
+        $item = $data['item'];
+        $cname = $data['cname'];
+        return ACoreServices::I()->getServerSoap()->executeCommand("item transmog $item $cname");
+    }
 }
 
 add_action( 'rest_api_init', function () {
@@ -42,5 +52,27 @@ add_action( 'rest_api_init', function () {
 
         return ToolsApi::ItemRestore($data);
     }
-));
+
+    ));
+
+    register_rest_route( ACORE_SLUG . '/v1', 'item-transmog/(?P<cguid>\d+)', array(
+        'methods' => 'GET',
+        'callback' => function( $request ) {
+            return ToolsApi::UnlockedTransmogList($request);
+        }
+    ));
+
+    register_rest_route( ACORE_SLUG . '/v1', 'item-transmog', array(
+        'methods' => 'POST',
+        'callback' => function($request) {
+
+            $data = $request->get_json_params();
+            // return  var_dump($data);
+            if (! $data['cname'] ) {
+                return http_response_code(401);
+            }
+    
+            return ToolsApi::ItemTransmog($data);
+        }
+    ));
 });

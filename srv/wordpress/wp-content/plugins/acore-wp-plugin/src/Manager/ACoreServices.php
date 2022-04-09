@@ -383,6 +383,19 @@ class ACoreServices
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
+
+    public function getUnlockedTransmogbyCharacter($character) {
+        $query = "SELECT `Id`, `FakeEntry`
+            FROM `custom_transmogrification`
+            WHERE `Guid` = ?
+            ";
+            $conn = $this->getCharacterEm()->getConnection();
+            $stmt = $conn->prepare($query);
+            $stmt->bindValue(1, $character);
+            $stmt->executeQuery();
+            $res = $stmt->executeQuery();
+            return $res->fetchAllAssociative();
+    }
 }
 
 
