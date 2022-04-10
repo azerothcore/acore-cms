@@ -166,7 +166,7 @@ class TransmogItem extends \Acore\Lib\WpClass {
 
     public static function showTransmogItem() {
         ?>
-        <label for="acore_transmog_item">Please enter the item to transmog:</label>
+        <label for="acore_transmog_item">Please enter the transmog item:</label>
         <input type="text" maxlength="24" id="acore_transmog_item" class="acore_transmog_item" name="acore_transmog_item" style="width: 300px;">
         <br><br>
         <div id="loader-icon">Loading...</div>
@@ -199,16 +199,14 @@ class TransmogItem extends \Acore\Lib\WpClass {
 
         inputField.onkeypress = function() { transmogItem() };
 
-        function transmogItem(charGuid) {
+        function transmogItem() {
             noResults.style.display = 'none';
             loaderIcon.style.display = 'block';
 
             itemListLoaders.forEach(element => element.classList.remove('hidden'));
-            itemContainer.classList.remove('hidden');
-            const character = charGuid;
-            const characterName = charList.options[charList.selectedIndex].innerText;
+            itemContainer.classList.remove('hidden');;
 
-            fetch('<?= get_rest_url(null, 'acore/v1/item-transmog/list/'); ?>' + character)
+            fetch('<?= get_rest_url(null, 'acore/v1/transmog-items/list/'); ?>')
             .then((response) => response.json())
             .then(function(items) {
 

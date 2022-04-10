@@ -396,6 +396,19 @@ class ACoreServices
             $res = $stmt->executeQuery();
             return $res->fetchAllAssociative();
     }
+
+    public function getItemInfoByName($itemName) {
+        $query = "SELECT `Id`, `entry`
+            FROM `item_template`
+            WHERE `name` = ?
+            ";
+            $conn = $this->getCharacterEm()->getConnection();
+            $stmt = $conn->prepare($query); 
+            $stmt->bindValue(1, $itemName);
+            $stmt->executeQuery();
+            $res = $stmt->executeQuery();
+            return $res->fetchOne();
+    }
 }
 
 
