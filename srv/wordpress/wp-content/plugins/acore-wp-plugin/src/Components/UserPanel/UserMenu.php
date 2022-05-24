@@ -112,7 +112,7 @@ function personal_player_stats() {
 
 // Custom Admin footer
 function acore_copyright () {
-    echo '<span id="footer-thankyou">Made with ❤️ by <a href="https://www.azerothcore.org/" target="_blank">AzerothCore</a>. Powered by <a href="https://wordpress.org/" target="_blank">WordPress</a>.</span>';
+    echo '<span id="footer-thankyou">Made with ❤️  by <a href="https://www.azerothcore.org/" target="_blank">AzerothCore</a>. Powered by <a href="https://wordpress.org/" target="_blank">WordPress</a>.</span>';
 }
 
 add_filter( 'admin_footer_text', __NAMESPACE__ . '\\acore_copyright' );
