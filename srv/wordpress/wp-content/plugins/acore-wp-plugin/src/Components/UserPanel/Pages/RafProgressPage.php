@@ -12,7 +12,7 @@ $userId = $acServices->getAcoreAccountId();
     echo "<h2>" . __('Recruit a Friend', Opts::I()->page_alias) . "</h2>";
     ?>
     <p>Recruit your friends, help them to level up and get very awesome unique prizes.</p>
-    <p style="color: red; font-size: 20px;">Recruiting from the same IP adress will cause the RAF to be automatically removed and no new RAF can be applied again.</p>
+    <p style="color: red; font-size: 20px;">Recruiting from the same IP address will cause the RAF to be automatically removed and no new RAF can be applied again.</p>
     <div class="row">
         <div class="col-sm-6">
             <div class="card">
