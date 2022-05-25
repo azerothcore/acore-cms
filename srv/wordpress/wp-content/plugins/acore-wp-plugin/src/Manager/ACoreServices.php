@@ -12,6 +12,7 @@ use ACore\Manager\Soap\AccountService;
 use ACore\Manager\Soap\CharacterService;
 use ACore\Manager\Soap\GuildService;
 use ACore\Manager\Soap\MailService;
+use ACore\Manager\Soap\TransmogService;
 use ACore\Manager\Soap\ServerService;
 use ACore\Manager\World\WorldManager;
 
@@ -233,6 +234,18 @@ class ACoreServices
     public function getGameMailSoap()
     {
         $mgr = new MailService();
+        $mgr->setSoap(new AcoreSoap());
+        $mgr->configure($this->soapParams);
+        return $mgr;
+    }
+
+    /**
+     *
+     * @return ACore\Manager\Soap\TransmogService
+     */
+    public function getTransmogSoap()
+    {
+        $mgr = new TransmogService();
         $mgr->setSoap(new AcoreSoap());
         $mgr->configure($this->soapParams);
         return $mgr;
