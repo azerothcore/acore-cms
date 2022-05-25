@@ -3,9 +3,8 @@
 namespace ACore\Hooks\WooCommerce;
 
 use ACore\Manager\ACoreServices;
-use ACore\Hooks\Various\ItemSku;
 
-class ItemSend extends \ACore\Lib\WpClass {
+class TransmogItemSend extends \ACore\Lib\WpClass {
 
     private static function getItemId($sku) {
         $parts = explode("_", $sku);
@@ -19,40 +18,12 @@ class ItemSend extends \ACore\Lib\WpClass {
     }
 
     public static function init() {
-        add_action('woocommerce_before_shop_loop_item_title', self::sprefix() . 'catalogue_list', 9999);
-        add_filter('the_title', self::sprefix() . 'the_title', 20);
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
         add_action('woocommerce_add_order_item_meta', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
-    }
-
-    public static function catalogue_list() {
-        global $product;
-        $itemId = self::getItemId($product->get_sku());
-        if (!$itemId) {
-            return;
-        }
-
-        $link="https://wowgaming.altervista.org/aowow/?item=" . $itemId;
-
-        echo "<p><a href='$link' target='_blank'>Details</a></p>";
-    }
-
-    public static function the_title($title)/* : string | void */ {
-        if (( \function_exists("\is_product") && \is_product() && \in_the_loop())) {
-            global $product;
-            $itemId = self::getItemId($product->get_sku());
-            if (!$itemId) {
-                return;
-            }
-            return "<a href='https://wowgaming.altervista.org/aowow/?item=" . $itemId . "'>$title</a>";
-        }
-
-        // return the normal Title if conditions aren't met
-        return $title;
     }
 
     // LIST
@@ -67,20 +38,6 @@ class ItemSend extends \ACore\Lib\WpClass {
 
         if ($current_user) {
             FieldElements::charList($current_user->user_login);
-            ?>
-            <br>
-            <?php
-            FieldElements::destCharacter(__("Or send it as a present for: ", 'acore-wp-plugin'));
-            ?>
-            <br>
-            <label for="acore_msg_dest">Send a message (optional):</label>
-            <textarea maxlength="200" id="acore_msg_dest" class="acore_msg_dest" name="acore_msg_dest"></textarea>
-            <br>
-            <br>
-            <a target="_blank" href='https://wowgaming.altervista.org/aowow/?item=<?= $itemId ?>'><?=__('Show details', 'acore-wp-plugin')?> </a>
-            <br>
-            <br>
-            <?php
         }
     }
 
@@ -94,14 +51,12 @@ class ItemSend extends \ACore\Lib\WpClass {
             return $cart_item_data;
         }
 
-        $charInfo = self::getCharInfo();
-
-        $cart_item_data['acore_msg_dest'] = substr(sanitize_text_field($_REQUEST['acore_msg_dest']), 0, 200);
-        $cart_item_data['acore_char_name'] = $charInfo["name"];
-        $cart_item_data['acore_char_guid'] = $charInfo["guid"];
-        $cart_item_data['acore_item_sku'] = $product->get_sku();
-        /* below statement make sure every add to cart action as unique line item */
-        $cart_item_data['unique_key'] = md5(microtime() . rand());
+        if (isset($_REQUEST['acore_char_sel'])) {
+            $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
+            $cart_item_data['acore_item_sku'] = $product->get_sku();
+            /* below statement make sure every add to cart action as unique line item */
+            $cart_item_data['unique_key'] = md5(microtime() . rand());
+        }
 
         return $cart_item_data;
     }
@@ -118,11 +73,11 @@ class ItemSend extends \ACore\Lib\WpClass {
             return $custom_items;
         }
 
-        if (isset($cart_item['acore_char_guid'])) {
+        if (isset($cart_item['acore_char_sel'])) {
             $ACoreSrv = ACoreServices::I();
             $charRepo = $ACoreSrv->getCharactersRepo();
 
-            $charId = $cart_item['acore_char_guid'];
+            $charId = $cart_item['acore_char_sel'];
 
             $char = $charRepo->findOneByGuid($charId);
 
@@ -130,7 +85,6 @@ class ItemSend extends \ACore\Lib\WpClass {
 
             $custom_items[] = array("name" => 'Character', "value" => $charName);
             $custom_items[] = array("name" => 'Item', "value" => $itemId);
-            $custom_items[] = array("name" => 'Details', "value" => "<a target='_blank' href='https://wowgaming.altervista.org/aowow/?item=" . $itemId . "'>Show details</a> ");
         }
         return $custom_items;
     }
@@ -143,16 +97,14 @@ class ItemSend extends \ACore\Lib\WpClass {
             return;
         }
 
-        wc_add_order_item_meta($item_id, "acore_msg_dest", $values['acore_msg_dest']);
-        wc_add_order_item_meta($item_id, "acore_char_guid", $values['acore_char_guid']);
-        wc_add_order_item_meta($item_id, "acore_char_name", $values['acore_char_name']);
-        wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
+        if (isset($values['acore_char_sel']) && isset($values["acore_item_sku"])) {
+            \wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
+            \wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
+        }
     }
 
     // CHECK BEFORE PAYMENT
     public static function checkout_order_processed($order_id, $posted_data) {
-        $logs = new \WC_Logger();
-
         $order = new \WC_Order($order_id);
         $items = $order->get_items();
 
@@ -186,7 +138,7 @@ class ItemSend extends \ACore\Lib\WpClass {
                     $itemId = self::getItemId($item["acore_item_sku"]);
 
                     if ($itemId) {
-                        $charName = $WoWSrv->getCharName($item["acore_char_guid"]);
+                        $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
 
                         $res = $soap->addItemToPlayer($charName, $itemId);
 
@@ -200,36 +152,6 @@ class ItemSend extends \ACore\Lib\WpClass {
             $logs->add("acore_log", $e->getMessage());
         }
     }
-
-    private static function getCharInfo() {
-        $WoWSrv = ACoreServices::I();
-        $charRepo = $WoWSrv->getCharactersRepo();
-
-        $guid = NULL;
-        $name = "";
-        if (isset($_REQUEST['acore_char_dest']) && $_REQUEST['acore_char_dest']) {
-            $name = $_REQUEST['acore_char_dest'];
-            if (!$name || $name == "") {
-                throw new \Exception("No selected character");
-            }
-            $char = $charRepo->findOneByName($name);
-
-            if (!$char) {
-                throw new \Exception("No selected character");
-            }
-
-            $guid = $char->getGuid();
-        } else {
-            $guid = intval($_REQUEST['acore_char_sel']);
-            if ($guid === 0) {
-                throw new \Exception("No selected character");
-            }
-            $name = $WoWSrv->getCharName($guid);
-        }
-
-        return array("guid" => $guid, "name" => $name);
-    }
-
 }
 
-ItemSend::init();
+TransmogItemSend::init();
