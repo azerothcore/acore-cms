@@ -4,12 +4,12 @@ namespace ACore\Hooks\WooCommerce;
 
 use ACore\Manager\ACoreServices;
 
-class TransmogItemSend extends \ACore\Lib\WpClass {
+class TransmogItemsetSend extends \ACore\Lib\WpClass {
 
     private static function getItemId($sku) {
         $parts = explode("_", $sku);
 
-        if ($parts[0] != "transmog-item" || !is_numeric($parts[1])) {
+        if ($parts[0] != "transmog-itemset" || !is_numeric($parts[1])) {
             return false;
         }
 
@@ -84,7 +84,7 @@ class TransmogItemSend extends \ACore\Lib\WpClass {
             $charName = $char ? $char->getName() : "Character <$charId> doesn't exist!";
 
             $custom_items[] = array("name" => 'Character', "value" => $charName);
-            $custom_items[] = array("name" => 'Item', "value" => $itemId);
+            $custom_items[] = array("name" => 'Itemset', "value" => $itemId);
         }
         return $custom_items;
     }
@@ -138,7 +138,7 @@ class TransmogItemSend extends \ACore\Lib\WpClass {
                     if ($itemId) {
                         $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
 
-                        $res = $soap->addItemToPlayer($charName, $itemId);
+                        $res = $soap->addItemsetToPlayer($charName, $itemId);
 
                         if ($res instanceof \Exception) {
                             throw $res;
@@ -152,4 +152,4 @@ class TransmogItemSend extends \ACore\Lib\WpClass {
     }
 }
 
-TransmogItemSend::init();
+TransmogItemsetSend::init();
