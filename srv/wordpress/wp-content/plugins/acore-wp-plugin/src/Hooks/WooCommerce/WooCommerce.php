@@ -14,6 +14,7 @@ require_once __DIR__ . "/GuildChange.php";
 require_once __DIR__ . "/ItemRestoration.php";
 require_once __DIR__ . "/TransmogItemSend.php";
 require_once __DIR__ . "/TransmogItemsetSend.php";
+require_once __DIR__ . "/NameUnlock.php";
 require_once __DIR__ . "/CartValidation.php";
 
 // Add WooCommerce customer username to edit/view order admin page

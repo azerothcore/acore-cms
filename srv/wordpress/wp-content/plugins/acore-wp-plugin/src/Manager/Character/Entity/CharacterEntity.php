@@ -69,6 +69,13 @@ class CharacterEntity {
      */
     protected $class;
 
+    /**
+     * @var int
+     * 
+     *  @ORM\Column(name="level", type="integer")
+     */
+    protected $level;
+
     public function getGuid() {
         return $this->guid;
     }
@@ -110,6 +117,10 @@ class CharacterEntity {
 
     public function getGender(): int {
         return $this->gender;
+    }
+
+    public function getLevel(): int {
+        return $this->level;
     }
 
     public function getCharIconUrl(): string {

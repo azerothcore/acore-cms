@@ -66,6 +66,13 @@ class AccountEntity {
     protected $email;
 
     /**
+     * @var DateTime
+     *
+     * @ORM\Column(name="last_login", type="datetime")
+     */
+    protected $last_login;
+
+    /**
      * @var integer
      *
      * @ORM\Column(name="expansion", type="integer")
@@ -123,6 +130,10 @@ class AccountEntity {
     public function setEmail($email) {
         $this->email = $email;
         return $this;
+    }
+
+    public function getLastLogin() {
+        return $this->last_login;
     }
 
     public function getExpansion() {

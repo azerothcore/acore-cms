@@ -166,6 +166,15 @@ class ACoreServices
 
     /**
      *
+     * @return ACore\Manager\Auth\Repository\AccountAccessRepository
+     */
+    public function getAccountAccessRepo()
+    {
+        return $this->emAuth->getRepository('ACore\Manager\Auth\Entity\AccountAccessEntity');
+    }
+
+    /**
+     *
      * @return ACore\Manager\Auth\Repository\AccountBannedRepository
      */
     public function getAccountBannedRepo()
