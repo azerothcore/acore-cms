@@ -102,10 +102,7 @@
 
         if (i === undefined) {
             const $trs = $("#acore-name-unlock-thresholds tbody tr");
-            i = 0;
-            for (const tr of $trs) {
-                i = $(tr).data("i") + 1;
-            }
+            i = $($trs[$trs.length - 1]).data("i") + 1;
         }
 
         const $tr = $("<tr>").appendTo("#acore-name-unlock-thresholds tbody");
