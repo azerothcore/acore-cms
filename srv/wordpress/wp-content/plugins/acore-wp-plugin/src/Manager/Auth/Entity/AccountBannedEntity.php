@@ -17,7 +17,6 @@ class AccountBannedEntity {
      *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
 
@@ -25,6 +24,7 @@ class AccountBannedEntity {
      * @var int
      *
      * @ORM\Column(name="bandate", type="integer")
+     * @ORM\Id
      */
     protected $bandate;
 
@@ -32,6 +32,7 @@ class AccountBannedEntity {
      * @var int
      *
      * @ORM\Column(name="unbandate", type="integer")
+     * @ORM\Id
      */
     protected $unbandate;
 
@@ -78,6 +79,10 @@ class AccountBannedEntity {
 
     public function isActive() {
         return $this->active;
+    }
+
+    public function isPermanent() {
+        return $this->getUnbandate() <= $this->getBandate();
     }
 
     public function setBandate($bandate) {

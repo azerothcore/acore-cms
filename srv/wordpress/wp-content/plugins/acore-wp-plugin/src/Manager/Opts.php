@@ -38,6 +38,12 @@ class Opts {
     public $eluna_recruit_a_friend="";
     public $eluna_raf_config=["check_ip" => '0'];
     public $acore_item_restoration="";
+    public $acore_name_unlock_thresholds = [
+        [5, 30], // level < 5 -> 30 days
+        [30, 90], // level < 30 -> 90 days
+        [60, 180], // level < 60 -> 180 days
+        [81, 360], // else, 360 days
+    ];
 
     public function __get($property) {
         if (property_exists($this, $property)) {
