@@ -45,7 +45,7 @@ class NameUnlock extends \ACore\Lib\WpClass {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
 
         if ($product->get_sku() != self::$sku || !isset($_REQUEST['acore_name_to_unlock'])) {
-            return;
+            return $cart_item_data;
         }
 
         $charName = ucfirst(strtolower($_REQUEST['acore_name_to_unlock']));
@@ -133,8 +133,6 @@ class NameUnlock extends \ACore\Lib\WpClass {
 
     // Check before payment
     public static function checkout_order_processed($order_id, $posted_data) {
-        $logs = new \WC_Logger();
-
         $order = new \WC_Order($order_id);
         $items = $order->get_items();
 
