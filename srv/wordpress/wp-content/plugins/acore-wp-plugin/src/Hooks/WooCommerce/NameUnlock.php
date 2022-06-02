@@ -28,14 +28,18 @@ class NameUnlock extends \ACore\Lib\WpClass {
             return;
         }
 
+        $current_user = wp_get_current_user();
+
         ?>
         <p>Please enter the name you would like to unlock.</p>
         <label for="acore_name_to_unlock">Character name:</label>
         <br>
         <input type="text" maxlength="24" id="acore_name_to_unlock" class="acore_name_to_unlock" name="acore_name_to_unlock" style="width: 300px;">
         <br>
-        <br>
         <?php
+        if ($current_user) {
+            FieldElements::charList($current_user->user_login);
+        }
     }
 
     // SAVE INTO ITEM DATA
@@ -44,7 +48,7 @@ class NameUnlock extends \ACore\Lib\WpClass {
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
 
-        if ($product->get_sku() != self::$sku || !isset($_REQUEST['acore_name_to_unlock'])) {
+        if ($product->get_sku() != self::$sku || !isset($_REQUEST['acore_name_to_unlock']) || !isset($_REQUEST['acore_char_sel'])) {
             return $cart_item_data;
         }
 
@@ -108,6 +112,7 @@ class NameUnlock extends \ACore\Lib\WpClass {
             }
         }
 
+        $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
         $cart_item_data['acore_name_unlock_name'] = $char->getName();
         $cart_item_data['acore_name_unlock_id'] = $char->getGuid();
         $cart_item_data['acore_item_sku'] = $product->get_sku();
@@ -127,6 +132,7 @@ class NameUnlock extends \ACore\Lib\WpClass {
         if (isset($values["acore_item_sku"])) {
             \wc_add_order_item_meta($item_id, "acore_name_unlock_name", $values['acore_name_unlock_name']);
             \wc_add_order_item_meta($item_id, "acore_name_unlock_id", $values['acore_name_unlock_id']);
+            \wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
             \wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
         }
     }
@@ -167,6 +173,7 @@ class NameUnlock extends \ACore\Lib\WpClass {
                     $char = $charRepo->findOneByGuid($charId);
                     $acc = $accRepo->findOneById($char->getAccount());
                     $accSoap->banAccount($acc->getUsername(), "1m", "Name Unlock");
+                    $name = $char->getName();
 
                     $randomNameLen = 12;
                     $randomName = "";
@@ -176,8 +183,11 @@ class NameUnlock extends \ACore\Lib\WpClass {
                         $randomNameTaken = $charRepo->findOneByName($randomName) != null;
                     } while ($randomNameTaken);
 
-                    $charSoap->changeName($char->getName()); // Give a free rename
-                    $charSoap->changeName($char->getName(), $randomName); // Force a random name to unlock the current one
+                    $charSoap->changeName($name, $randomName); // Force a random name to unlock the current one
+                    $charSoap->changeName($randomName); // Give a free rename
+
+                    $target = $WoWSrv->getCharName($item["acore_char_sel"]);
+                    $charSoap->changeName($target, $name); // Rename the target with the unlocked name
                 }
             }
         } catch (\Exception $e) {
