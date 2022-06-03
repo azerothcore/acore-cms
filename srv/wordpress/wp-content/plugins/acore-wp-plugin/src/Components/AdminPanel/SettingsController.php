@@ -351,6 +351,17 @@ class SettingsController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             foreach (Opts::I()->getConfs() as $key => $value) {
                 if (isset($_POST[$key])) {
+                    if ($key == 'acore_name_unlock_allowed_banned_names_table') {
+                        $table = $_POST[$key] = trim($_POST[$key]);
+                        if ($table != "") {
+                            $sql = "CREATE TABLE IF NOT EXISTS $table (
+                                allowed_name VARCHAR(30) NOT NULL PRIMARY KEY
+                            );";
+                            $conn = ACoreServices::I()->getCharacterEm()->getConnection();
+                            $conn->executeQuery($sql);
+                        }
+                    }
+
                     // If item restore service, make a test call to see that it's enabled in worldserver config
                     if ($key == 'acore_item_restoration' && $_POST[$key] == "1") {
                         $result = ACoreServices::I()->getServerSoap()->executeCommand("item restore list");

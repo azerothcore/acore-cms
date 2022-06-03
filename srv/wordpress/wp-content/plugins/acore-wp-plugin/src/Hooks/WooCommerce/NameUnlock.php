@@ -106,7 +106,21 @@ class NameUnlock extends \ACore\Lib\WpClass {
                 continue;
             }
             if ($ban->isPermanent()) {
-                throw new \Exception(self::$errPermaBanned);
+                $allowedBannedNamesTable = Opts::I()->acore_name_unlock_allowed_banned_names_table;
+                if ($allowedBannedNamesTable != "") {
+                    $conn = $ACoreSrv->getCharacterEm()->getConnection();
+                    $sql = "SELECT allowed_name FROM $allowedBannedNamesTable WHERE allowed_name = :name";
+                    $stmt = $conn->executeQuery(
+                        $sql,
+                        ["name" => $char->getName()]
+                    );
+                    $row = $stmt->fetchAssociative();
+                    if ($row === false) {
+                        throw new \Exception(self::$errPermaBanned);
+                    }
+                } else {
+                    throw new \Exception(self::$errPermaBanned);
+                }
             } else {
                 throw new \Exception(self::$errTempBanned);
             }
