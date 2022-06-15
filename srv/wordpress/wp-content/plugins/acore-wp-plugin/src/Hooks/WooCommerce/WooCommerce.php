@@ -12,6 +12,8 @@ require_once __DIR__ . "/CharTransfer.php";
 require_once __DIR__ . "/CarbonCopy.php";
 require_once __DIR__ . "/GuildChange.php";
 require_once __DIR__ . "/ItemRestoration.php";
+require_once __DIR__ . "/TransmogItemSend.php";
+require_once __DIR__ . "/TransmogItemsetSend.php";
 require_once __DIR__ . "/NameUnlock.php";
 require_once __DIR__ . "/CartValidation.php";
 

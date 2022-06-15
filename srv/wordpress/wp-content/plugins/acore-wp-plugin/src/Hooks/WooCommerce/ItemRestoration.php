@@ -126,7 +126,6 @@ class ItemRestoration extends \ACore\Lib\WpClass {
 
     // DO THE FINAL ACTION
     public static function payment_complete($order_id) {
-        $WoWSrv = ACoreServices::I();
         $logs = new \WC_Logger();
         try {
             $order = new \WC_Order($order_id);
