@@ -55,6 +55,13 @@
                                     Name Unlock Settings
                                 </h5>
                                 <hr>
+
+                                <span>Allowed banned names table (characters database):</span>
+                                <input type="text" name="acore_name_unlock_allowed_banned_names_table"
+                                    value="<?= Opts::I()->acore_name_unlock_allowed_banned_names_table ?>">
+                                <br>
+                                <br>
+
                                 <span>Inactivity Thresholds per Level:</span>
                                 <table id="acore-name-unlock-thresholds" class="form-table table table-borderless" role="presentation">
                                     <thead>
