@@ -39,8 +39,8 @@ class AcoreSoap
             $user = wp_get_current_user();
             $userId = $user->ID;
             $soapLogsTableName = $wpdb->prefix . ACORE_SOAP_LOGS_TABLENAME;
-            $query = "INSERT INTO `$soapLogsTableName` (`user_id`, `command`, `success`, `result`, `order_id`)
-            VALUES ?, ?, ?, ?, ?";
+            $query = "INSERT INTO `$soapLogsTableName` (`user_id`, `command`, `success`, `result`, `order_id`, `executed_at`)
+            VALUES ?, ?, ?, ?, ?, NOW()";
         }
 
         try {
