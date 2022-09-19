@@ -13,14 +13,14 @@ class MailService {
         $_subject = addslashes($subject);
         $_itemId = intval($itemId);
         $_stack = intval($stack);
-        return $this->executeCommand('.send items  ' . $playerName . ' "' . $_subject . '" "' . $_message . '" ' . $_itemId . ':' . $_stack);
+        return $this->executeCommand(".send items $playerName \"$_subject\" \"$_message\" $_itemId :$_stack");
     }
 
     public function sendMoney($playerName, $subject, $message, $money) {
         $_message = addslashes(self::removeEmoji($message));
         $_subject = addslashes($subject);
         $money = intval($money);
-        return $this->executeCommand('.send items  ' . $playerName . ' "' . $_subject . '" "' . $_message . '" ' . $money);
+        return $this->executeCommand(".send items $playerName \"$_subject\" \"$_message\" $money");
     }
 
     // requires https://github.com/55Honey/Acore_SendAndBind
@@ -28,7 +28,7 @@ class MailService {
         $_message = addslashes(self::removeEmoji($message));
         $_itemId = intval($itemId);
         $_stack = intval($stack);
-        return $this->executeCommand('.senditemandbind ' . $guid . ' ' . $_itemId . ' ' . $_stack . ' ' . $_message);
+        return $this->executeCommand(".senditemandbind $guid $_itemId $_stack $_message");
     }
 
     public static function removeEmoji($text): string

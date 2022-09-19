@@ -47,9 +47,9 @@ class AccountService {
 
     /**
      * This is a static mail that won't change
-     * @param type $username
-     * @param type $email
-     * @return type
+     * @param string $username
+     * @param string $email
+     * @return mixed
      */
     public function setAccountRegMail($username, $email) {
         $email = strtolower($email);
@@ -83,7 +83,7 @@ class AccountService {
 
     // CarbonCopy tickets - https://github.com/55Honey/Acore_CarbonCopy/
     public function addCCTickets($accoutName, $quantity) {
-        return $this->executeCommand("CCACCOUNTTICKETS $accoutName $quantity");
+        return $this->executeCommand("CCACCOUNTTICKETS $accoutName $quantity", true);
     }
 
 }

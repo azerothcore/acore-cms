@@ -13,7 +13,7 @@ class ToolsApi {
     public static function ItemRestore($data) {
         $item = $data['item'];
         $cname = $data['cname'];
-        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $cname");
+        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $cname", true);
     }
 }
 

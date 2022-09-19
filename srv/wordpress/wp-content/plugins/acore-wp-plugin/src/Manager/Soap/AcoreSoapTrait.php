@@ -28,8 +28,8 @@ trait AcoreSoapTrait {
         $this->soap->configure($params);
     }
 
-    public function executeCommand($command) {
-        return $this->getSoap()->executeCommand($command);
+    public function executeCommand($command, $logCommand = false, $orderId = null) {
+        return $this->getSoap()->executeCommand($command, $logCommand, $orderId);
     }
 
 }
