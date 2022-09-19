@@ -59,6 +59,13 @@ class AdminPanel
         $SettingsCtrl->loadTools();
     }
 
+    // mt_settings_page() displays the page content for the Test settings submenu
+    function acore_soap_logs_page()
+    {
+        $SettingsCtrl = new SettingsController();
+        $SettingsCtrl->loadSoapLogs();
+    }
+
     // action function for above hook
     function acore_add_pages()
     {
@@ -100,6 +107,16 @@ class AdminPanel
             'manage_options',
             ACORE_SLUG . '-tools',
             array($this, 'acore_tools_page')
+        );
+
+        // Add a new submenu under Settings:
+        add_submenu_page(
+            'acore',
+            __('ACore Settings Panel', Opts::I()->org_alias),
+            __('Soap Logs', Opts::I()->org_alias),
+            'manage_options',
+            ACORE_SLUG . '-soap-logs',
+            array($this, 'acore_soap_logs_page')
         );
     }
 

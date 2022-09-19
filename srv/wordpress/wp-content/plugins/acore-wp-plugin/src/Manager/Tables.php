@@ -9,7 +9,6 @@ define("ACORE_SOAP_LOGS_TABLENAME", "acore_soap_logs");
  */
 function create_acore_soap_logs_table() {
     global $wpdb;
-    global $acore_db_version;
     $charset_collate = $wpdb->get_charset_collate();
 
     //* Create acore_soap_logs table
