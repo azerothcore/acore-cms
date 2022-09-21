@@ -13,24 +13,24 @@
                 <div class="card-body">
                     <h5>Soap Logs</h5>
                     <hr>
-                    <form class="row row-cols-lg-auto g-2" url="<?php echo menu_page_url(ACORE_SLUG . '-soap-logs'); ?>">
-                        <input type="hidden" value="<?php echo ACORE_SLUG . '-soap-logs'; ?>" name="page">
+                    <form class="row row-cols-lg-auto g-2" url="<?= menu_page_url(ACORE_SLUG . '-soap-logs'); ?>">
+                        <input type="hidden" value="<?= ACORE_SLUG . '-soap-logs'; ?>" name="page">
                         <div class="col">
                             <label class="visually-hidden" for="username">Username</label>
-                            <input type="text" class="form-control form-control-sm" id="username" name="username" placeholder="Username" value="<?php echo $data['username']; ?>">
+                            <input type="text" class="form-control form-control-sm" id="username" name="username" placeholder="Username" value="<?= $data['username']; ?>">
                         </div>
                         <div class="col">
                             <label class="visually-hidden" for="order_id">Order ID</label>
-                            <input type="text" class="form-control form-control-sm" id="order_id" name="order_id" placeholder="Order ID" value="<?php echo $data['order_id']; ?>">
+                            <input type="text" class="form-control form-control-sm" id="order_id" name="order_id" placeholder="Order ID" value="<?= $data['order_id']; ?>">
                         </div>
 
                         <div class="col">
                             <label class="visually-hidden" for="items">Items</label>
                             <select class="form-select" name="items" id="items">
                                 <option value="10">10</option>
-                                <option value="25" <?php echo $data['items'] == '25' ? 'selected' : ''; ?>>25</option>
-                                <option value="50" <?php echo $data['items'] == '50' ? 'selected' : ''; ?>>50</option>
-                                <option value="100" <?php echo $data['items'] == '100' ? 'selected' : ''; ?>>100</option>
+                                <option value="25" <?= $data['items'] == '25' ? 'selected' : ''; ?>>25</option>
+                                <option value="50" <?= $data['items'] == '50' ? 'selected' : ''; ?>>50</option>
+                                <option value="100" <?= $data['items'] == '100' ? 'selected' : ''; ?>>100</option>
                             </select>
                         </div>
 
@@ -58,7 +58,7 @@
 
                                         <li class="page-item disabled">
                                         <?php if ($data["count"] > 0): ?>
-                                        <a class="page-link">Results <?php echo ($data["pos"] - 1) * $data["items"] + 1; ?> to <?php echo $data["pos"] != $data["max_page"] ? $data["pos"] * $data["items"] : $data["count"]; ?> from <?php echo $data["count"]; ?> </a>
+                                        <a class="page-link">Results <?= ($data["pos"] - 1) * $data["items"] + 1; ?> to <?= $data["pos"] != $data["max_page"] ? $data["pos"] * $data["items"] : $data["count"]; ?> from <?= $data["count"]; ?> </a>
                                         <?php else: ?>
                                             <a class="page-link">No results </a>
                                         <?php endif; ?>
