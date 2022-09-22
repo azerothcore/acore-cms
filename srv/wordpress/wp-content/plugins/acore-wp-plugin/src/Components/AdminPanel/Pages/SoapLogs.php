@@ -44,15 +44,15 @@
                                     <?php
                                         $maxPagination = 3;
                                         $diff = $data["max_page"] - $data["pos"];
-                                        $start = $data["pos"] - $maxPagination > 0 && $diff >= 0 ? $data["pos"] - $maxPagination : 1;
-                                        $end = $data["pos"] + $maxPagination < $data["max_page"] && $diff > 0 ? $data["pos"] + $maxPagination : $data["max_page"];
+                                        $start = ($data["pos"] - $maxPagination > 0 && $diff >= 0) ? $data["pos"] - $maxPagination : 1;
+                                        $end = ($data["pos"] + $maxPagination < $data["max_page"] && $diff > 0) ? $data["pos"] + $maxPagination : $data["max_page"];
 
                                         $link = menu_page_url(ACORE_SLUG . '-soap-logs', false);
                                         if ($data["username"]) {
-                                            $link .= "&username" . $data["username"];
+                                            $link .= "&username=" . $data["username"];
                                         }
                                         if ($data["order_id"]) {
-                                            $link .= "&order_id" . $data["order_id"];
+                                            $link .= "&order_id=" . $data["order_id"];
                                         }
                                         ?>
 
@@ -67,9 +67,9 @@
                                         <?php
                                         $link .= "&items=" . $data["items"];
                                         if ($start > 1) {
-                                            echo "<li class=\"page-item\"><a class=\"page-link\" href=\"$link&pos=1\">1</a></li>";
+                                            echo '<li class="page-item"><a class="page-link" href="' . $link . '&pos=1">1</a></li>';
                                             if ($maxPagination <= $start) {
-                                                echo "<li class=\"page-item disabled\"><a class=\"page-link\">...</a></li>";
+                                                echo '<li class="page-item disabled"><a class="page-link">...</a></li>';
                                             }
                                         }
                                         for ($i = $start; $i <= $end; $i++) {
@@ -79,13 +79,13 @@
                                                 $href = "#";
                                                 $class = " active";
                                             }
-                                            echo "<li class=\"page-item{$class}\"><a class=\"page-link\" href=\"{$href}\">$i</a></li>";
+                                            echo '<li class="page-item' . $class . '"><a class="page-link" href="' . $href . '">' . $i . '</a></li>';
                                         }
                                         if ($end < $data["max_page"]) {
                                             if ($data["max_page"] - 1 != $end) {
-                                                echo "<li class=\"page-item disabled\"><a class=\"page-link\">...</a></li>";
+                                                echo '<li class="page-item disabled"><a class="page-link">...</a></li>';
                                             }
-                                            echo "<li class=\"page-item\"><a class=\"page-link\" href=\"$link&pos={$data["max_page"]}\">{$data["max_page"]}</a></li>";
+                                            echo '<li class="page-item"><a class="page-link" href="' . $link . '&pos=' . $data["max_page"] . '">' . $data["max_page"] . '</a></li>';
                                         }
                                     ?>
                                 </ul>
@@ -110,14 +110,14 @@
                             foreach ($result as $item) {
                                 echo "<tr><td>{$item->id}</td>";
                                 if ($item->success) {
-                                    echo "<td><span class=\"dashicons dashicons-yes text-success\"></span></td>";
+                                    echo '<td><span class="dashicons dashicons-yes text-success"></span></td>';
                                 } else {
-                                    echo "<td><span class=\"dashicons dashicons-no text-danger\"></span></td>";
+                                    echo '<td><span class="dashicons dashicons-no text-danger"></span></td>';
                                 }
                                 echo "<td>{$item->result}</td>";
                                 echo "<td>{$item->command}</td>";
                                 $user_info = get_userdata($item->user_id);
-                                echo "<td><a href=\"" . get_edit_user_link($item->user_id) . "\">{$user_info->user_login}</a></td>";
+                                echo '<td><a href="' . get_edit_user_link($item->user_id) . '">' . $user_info->user_login . '</a></td>';
                                 echo "<td>{$item->order_id}</td>";
                                 echo "<td>{$item->executed_at}</td></tr>";
                             }
@@ -128,19 +128,4 @@
             </div>
         </div>
     </div>
-    <hr />
-    <script>
-        jQuery('#preview').on('click', function (e) {
-            jQuery('#pvp-rewards').attr('method', 'GET');
-        });
-        jQuery('#pvp-rewards').on('submit', function (e) {
-            return confirm("You sure you want to continue?");
-        });
-        jQuery(document).on('ready', function () {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            });
-        });
-    </script>
 </div>
