@@ -390,20 +390,16 @@ class SettingsController {
         $soapLogsTableName = $wpdb->prefix . ACORE_SOAP_LOGS_TABLENAME;
         $query = "SELECT
             sl.*
-        FROM $soapLogsTableName sl
-        ##JOIN USERS##
-        WHERE
-            1=1
-            ##WHERE USERS##
-        ";
+        FROM $soapLogsTableName sl";
         if (isset($_GET["username"]) && !empty($_GET["username"])) {
             $userName = $_GET['username'];
-            $query = str_replace("##JOIN USERS##", "INNER JOIN {$wpdb->users} u ON sl.user_id = u.ID", $query);
-            $query = str_replace("##WHERE USERS##", " AND u.user_login LIKE '%{$wpdb->_real_escape($userName)}%'", $query);
-        } else {
-            $query = str_replace("##JOIN USERS##", "", $query);
-            $query = str_replace("##WHERE USERS##", "", $query);
+            $query .= " INNER JOIN {$wpdb->users} u ON sl.user_id = u.ID";
+            $query .= " AND u.user_login LIKE '%{$wpdb->_real_escape($userName)}%'";
         }
+        $query .= "
+        WHERE
+            1=1
+        ";
         if (isset($_GET["order_id"]) && filter_var($_GET["order_id"], FILTER_VALIDATE_INT)) {
             $orderId = (int) $_GET['order_id'];
             $query .= " AND sl.order_id = $orderId";
@@ -426,7 +422,7 @@ class SettingsController {
         $count = $wpdb->get_col("SELECT count(0) FROM ($query) total");
 
         $offset = ($pos - 1) * $items;
-        $query .= " LIMIT $items OFFSET $offset";
+        $query .= " ORDER BY id DESC LIMIT $items OFFSET $offset";
 
         $result = $wpdb->get_results($query);
         $maxPage = ceil((int) $count[0] / $items);
