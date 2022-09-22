@@ -38,20 +38,27 @@ class AcoreSoap
         if ($logCommand) {
             $user = wp_get_current_user();
             $userId = $user->ID;
+            if (!$orderId) {
+                $orderId = "NULL";
+            }
             $soapLogsTableName = $wpdb->prefix . ACORE_SOAP_LOGS_TABLENAME;
             $query = "INSERT INTO `$soapLogsTableName` (`user_id`, `command`, `success`, `result`, `order_id`, `executed_at`)
-            VALUES (?, ?, ?, ?, ?, NOW())";
+            VALUES ($userId, %s, %d, %s, $orderId, NOW())";
         }
 
         try {
             $result = $soap->executeCommand(new \SoapParam($command, 'command'));
             if ($logCommand) {
-                $wpdb->query($query, [$userId, $command, 1, $result, $orderId]);
+                $wpdb->query(
+                    $wpdb->prepare($query, [$command, 1, $result])
+                );
             }
             return $result;
         } catch (\Exception $e) {
             if ($logCommand) {
-                $wpdb->query($query, [$userId, $command, 0, $e->getMessage(), $orderId]);
+                $wpdb->query(
+                    $wpdb->prepare($query, [$command, 0, $e->getMessage()])
+                );
             }
             return $e->getMessage();
         }
