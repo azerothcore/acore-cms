@@ -104,3 +104,8 @@
         </div>
     </form>
 </div>
+<script>
+    jQuery('#eluna_recruit_a_friend').on('change', function() {
+        jQuery('.eluna_raf_config').toggle();
+    })
+</script>
