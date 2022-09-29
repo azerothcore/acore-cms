@@ -10,10 +10,14 @@ class ToolsApi {
         return ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
     }
 
-    public static function ItemRestore($data) {
+    public static function ItemRestore($data, $orderId = null) {
         $item = $data['item'];
         $cname = $data['cname'];
-        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $cname", true);
+        return ACoreServices::I()->getServerSoap()->executeCommand(
+            "item restore $item $cname",
+            true,
+            $orderId
+        );
     }
 }
 

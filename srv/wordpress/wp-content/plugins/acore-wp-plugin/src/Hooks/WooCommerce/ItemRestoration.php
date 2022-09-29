@@ -30,7 +30,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
         }
 
         $current_user = wp_get_current_user();
-  
+
         if ($current_user) {
             FieldElements::charList($current_user->user_login, false);
             wp_enqueue_script('power-js', 'https://wow.zamimg.com/widgets/power.js', array());
@@ -131,7 +131,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
         try {
             $order = new \WC_Order($order_id);
             $items = $order->get_items();
-            
+
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     if ($item["acore_item_sku"] == self::ITEM_RESTORATION_SKU) {
@@ -148,7 +148,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
 
                         if ($char) {
                           $data = array('item' => $itemId, 'cname' => $char->getName());
-                          ToolsApi::ItemRestore($data);
+                          ToolsApi::ItemRestore($data, $order_id);
                         } else {
                             throw new \Exception("Select a character!");
                         }
@@ -232,7 +232,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
                   itemList.style.display = 'none';
                   return;
               }
-              
+
               document.querySelector("#itemList").innerHTML = "";
               itemList.style.display = 'block';
 
