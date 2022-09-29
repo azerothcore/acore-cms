@@ -36,6 +36,10 @@ class SettingsView {
         return $this->loadPageLayout('Tools');
     }
 
+    public function getSoapLogsRender($data, $result) {
+        return $this->loadPageLayout('SoapLogs', ['data' => $data, 'result' => $result]);
+    }
+
     private function loadPageLayout($pageName, $varExtract=null) {
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');

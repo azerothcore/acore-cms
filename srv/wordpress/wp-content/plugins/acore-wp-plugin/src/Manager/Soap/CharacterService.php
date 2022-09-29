@@ -8,24 +8,44 @@ class CharacterService {
 
     use AcoreSoapTrait;
 
-    public function changeName($charName, $newName = NULL) {
-        return $this->executeCommand(".character rename $charName $newName");
+    public function changeName($charName, $newName = null, $orderId = null) {
+        return $this->executeCommand(
+            ".character rename $charName $newName",
+            true,
+            $orderId
+        );
     }
 
-    public function changeFaction($charName) {
-        return $this->executeCommand(".character changefaction $charName");
+    public function changeFaction($charName, $orderId = null) {
+        return $this->executeCommand(
+            ".character changefaction $charName",
+            true,
+            $orderId
+        );
     }
 
-    public function changeRace($charName) {
-        return $this->executeCommand(".character changerace $charName");
+    public function changeRace($charName, $orderId = null) {
+        return $this->executeCommand(
+            ".character changerace $charName",
+            true,
+            $orderId
+        );
     }
 
-    public function charCustomization($charName) {
-        return $this->executeCommand(".character customize $charName");
+    public function charCustomization($charName, $orderId = null) {
+        return $this->executeCommand(
+            ".character customize $charName",
+            true,
+            $orderId
+        );
     }
 
-    public function charRestore($charGuid, $newName = NULL) {
-        return $this->executeCommand(".character deleted restore $charGuid $newName");
+    public function charRestore($charGuid, $newName = null, $orderId = null) {
+        return $this->executeCommand(
+            ".character deleted restore $charGuid $newName",
+            true,
+            $orderId
+        );
     }
 
 }

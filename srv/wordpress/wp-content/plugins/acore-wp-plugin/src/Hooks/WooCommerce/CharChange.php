@@ -137,7 +137,7 @@ class CharChange extends \ACore\Lib\WpClass {
                             if (!$charName) {
                                 throw new \Exception("No character found, please check your selection.");
                             }
-                            $res = $soap->changeName($charName);
+                            $res = $soap->changeName($charName, null, $order_id);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character rename on $charName - " . $res->getMessage());
                             }
@@ -147,7 +147,7 @@ class CharChange extends \ACore\Lib\WpClass {
                             if (!$charName) {
                                 throw new \Exception("No character found, please check your selection.");
                             }
-                            $res = $soap->changeFaction($charName);
+                            $res = $soap->changeFaction($charName, $order_id);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change faction on $charName - " . $res->getMessage());
                             }
@@ -157,7 +157,7 @@ class CharChange extends \ACore\Lib\WpClass {
                             if (!$charName) {
                                 throw new \Exception("No character found, please check your selection.");
                             }
-                            $res = $soap->changeRace($charName);
+                            $res = $soap->changeRace($charName, $order_id);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character change race on $charName - " . $res->getMessage());
                             }
@@ -167,7 +167,7 @@ class CharChange extends \ACore\Lib\WpClass {
                             if (!$charName) {
                                 throw new \Exception("No character found, please check your selection.");
                             }
-                            $res = $soap->charCustomization($charName);
+                            $res = $soap->charCustomization($charName, $order_id);
                             if ($res instanceof \Exception) {
                                 throw new \Exception("There was an error with character customization on $charName - " . $res->getMessage());
                             }
@@ -175,7 +175,7 @@ class CharChange extends \ACore\Lib\WpClass {
                         case "char-restore-delete":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"], true);
                             $guid = $item["acore_char_sel"];
-                            self::charRestore($guid, $charName);
+                            self::charRestore($guid, $charName, $order_id);
                             break;
                     }
                 }
@@ -185,7 +185,7 @@ class CharChange extends \ACore\Lib\WpClass {
         }
     }
 
-    private static function charRestore($guid, $charName) {
+    private static function charRestore($guid, $charName, $order_id) {
         $soap = ACoreServices::I()->getCharactersSoap();
         $query = "SELECT `guid`, `name` FROM `characters` WHERE `characters`.`name` = ?";
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
@@ -198,13 +198,13 @@ class CharChange extends \ACore\Lib\WpClass {
             $res = $soap->charRestore($guid, $charName . "èè");
             $newName = true;
         } else {
-            $res = $soap->charRestore($guid);
+            $res = $soap->charRestore($guid, $order_id);
         }
 
         if ($res instanceof \Exception) {
             throw new \Exception("There was an error with character restore delete on $charName - " . $res->getMessage());
         } else if ($newName) {
-            $res = $soap->changeName($charName . "èè");
+            $res = $soap->changeName($charName . "èè", null, $order_id);
             if ($res instanceof \Exception) {
                 throw new \Exception("There was an error renaming your character " . $res->getMessage());
             }

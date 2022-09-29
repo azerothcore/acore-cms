@@ -8,7 +8,11 @@ class GuildService {
 
     use AcoreSoapTrait;
 
-    public function guildRename($oldname, $newname) {
-        return $this->executeCommand(".guild rename \"$oldname\" \"$newname\"");
+    public function guildRename($oldname, $newname, $orderId = null) {
+        return $this->executeCommand(
+            ".guild rename \"$oldname\" \"$newname\"",
+            true,
+            $orderId
+        );
     }
 }

@@ -204,13 +204,13 @@ class ItemSend extends \ACore\Lib\WpClass {
 
                         $res = NULL;
                         if ($sku->isStackable) {
-                            $res = $soap->sendItem($charName, $obj, $msg, $sku->itemId, $qty);
+                            $res = $soap->sendItem($charName, $obj, $msg, $sku->itemId, $qty, $order_id);
                             // todo: use a conf to switch with senditemAndBind()
-                            // $res = $soap->sendItemAndBind($item["acore_char_guid"], $msg, $sku->itemId, $qty);
+                            // $res = $soap->sendItemAndBind($item["acore_char_guid"], $msg, $sku->itemId, $qty, $order_id);
                         } else {
                             for ($i = 0; $i < $qty; $i++) {
-                                $res = $soap->sendItem($charName, $obj, $msg, $sku->itemId, 1);
-                                // $res = $soap->sendItemAndBind($item["acore_char_guid"], $msg, $sku->itemId, 1);
+                                $res = $soap->sendItem($charName, $obj, $msg, $sku->itemId, 1, $order_id);
+                                // $res = $soap->sendItemAndBind($item["acore_char_guid"], $msg, $sku->itemId, 1, $order_id);
                             }
                         }
 

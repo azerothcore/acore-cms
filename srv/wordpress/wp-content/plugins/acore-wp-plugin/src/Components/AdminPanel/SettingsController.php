@@ -367,7 +367,7 @@ class SettingsController {
                         $result = ACoreServices::I()->getServerSoap()->executeCommand("item restore list");
                          if (strpos($result, '.item restore list'))
                             $this->storeConf($key, $_POST[$key]);
-                        else 
+                        else
                          print "<div class='error'><p><strong>Item restore service error: $result</strong></p></div>";
                     }
                     else {
@@ -377,12 +377,82 @@ class SettingsController {
             }
 
             // Reload configs
-            $this->data = $this->loadData(); 
+            $this->data = $this->loadData();
             ?>
                 <div class="updated"><p><strong>Tools have been saved</strong></p></div>
             <?php
         }
         echo $this->getView()->getToolsRender();
+    }
+
+    public function loadSoapLogs() {
+        # defaults
+        $items = 10;
+        $pos = 1;
+        $userName = null;
+        $orderId = null;
+        $from = null;
+        $to = null;
+
+        if (!is_admin()) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        global $wpdb;
+        $soapLogsTableName = $wpdb->prefix . ACORE_SOAP_LOGS_TABLENAME;
+        $query = "SELECT
+            sl.*
+        FROM $soapLogsTableName sl";
+        if (isset($_GET["username"]) && !empty($_GET["username"])) {
+            $userName = $_GET['username'];
+            $query .= " INNER JOIN {$wpdb->users} u ON sl.user_id = u.ID";
+            $query .= " AND u.user_login LIKE '%{$wpdb->_real_escape($userName)}%'";
+        }
+        $query .= "
+        WHERE
+            1=1
+        ";
+        if (isset($_GET["order_id"]) && filter_var($_GET["order_id"], FILTER_VALIDATE_INT)) {
+            $orderId = (int) $_GET['order_id'];
+            $query .= " AND sl.order_id = $orderId";
+        }
+        if (isset($_GET["from"]) && isset($_GET["to"])) {
+            $from = $wpdb->_real_escape($_GET['from']);
+            $to = $wpdb->_real_escape($_GET['to']);
+            $query .= " AND sl.executed_at BETWEEN '{$from}::00:00:00' AND '{$to}::23:59:59'";
+        }
+        if (isset($_GET["items"]) && in_array($_GET["items"], ["10", "25", "50", "100"])) {
+            $items = (int) $_GET['items'];
+        }
+        if (isset($_GET["pos"])) {
+            $pos = (int) $_GET['pos'];
+            if ($pos <= 0) {
+                $pos = 1;
+            }
+        }
+
+        $count = $wpdb->get_col("SELECT count(0) FROM ($query) total");
+
+        $offset = ($pos - 1) * $items;
+        $query .= " ORDER BY id DESC LIMIT $items OFFSET $offset";
+
+        $result = $wpdb->get_results($query);
+        $maxPage = ceil((int) $count[0] / $items);
+
+        $data = [
+            'username' => $userName,
+            'order_id' => $orderId,
+            'from' => $from,
+            'to' => $to,
+            'items' => $items,
+            'pos' => $pos,
+            'count' => (int) $count[0],
+            'max_page' => $maxPage,
+        ];
+
+        echo $this->getView()->getSoapLogsRender(
+            $data,
+            $result
+        );
     }
 
 

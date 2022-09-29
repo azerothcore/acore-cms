@@ -16,3 +16,12 @@ require_once ACORE_PATH_PLG . 'src/Hooks/Various/tgmplugin_activator.php';
 require_once ACORE_PATH_PLG . 'src/Hooks/User/Include.php';
 
 require_once ACORE_PATH_PLG . 'src/Hooks/WooCommerce/WooCommerce.php';
+
+require_once ACORE_PATH_PLG . 'src/Manager/Tables.php';
+
+
+function activate_acore_wp_plugin()
+{
+    ACore\Manager\create_acore_soap_logs_table();
+    do_action('activate_acore_wp_plugin');
+}

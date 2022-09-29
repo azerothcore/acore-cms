@@ -8,27 +8,39 @@ class MailService {
 
     use AcoreSoapTrait;
 
-    public function sendItem($playerName, $subject, $message, $itemId, $stack) {
+    public function sendItem($playerName, $subject, $message, $itemId, $stack, $orderId = null) {
         $_message = addslashes(self::removeEmoji($message));
         $_subject = addslashes($subject);
         $_itemId = intval($itemId);
         $_stack = intval($stack);
-        return $this->executeCommand('.send items  ' . $playerName . ' "' . $_subject . '" "' . $_message . '" ' . $_itemId . ':' . $_stack);
+        return $this->executeCommand(
+            ".send items $playerName \"$_subject\" \"$_message\" $_itemId:$_stack",
+            true,
+            $orderId
+        );
     }
 
-    public function sendMoney($playerName, $subject, $message, $money) {
+    public function sendMoney($playerName, $subject, $message, $money, $orderId = null) {
         $_message = addslashes(self::removeEmoji($message));
         $_subject = addslashes($subject);
         $money = intval($money);
-        return $this->executeCommand('.send items  ' . $playerName . ' "' . $_subject . '" "' . $_message . '" ' . $money);
+        return $this->executeCommand(
+            ".send items $playerName \"$_subject\" \"$_message\" $money",
+            true,
+            $orderId
+        );
     }
 
     // requires https://github.com/55Honey/Acore_SendAndBind
-    public function sendItemAndBind($guid, $message, $itemId, $stack) {
+    public function sendItemAndBind($guid, $message, $itemId, $stack, $orderId = null) {
         $_message = addslashes(self::removeEmoji($message));
         $_itemId = intval($itemId);
         $_stack = intval($stack);
-        return $this->executeCommand('.senditemandbind ' . $guid . ' ' . $_itemId . ' ' . $_stack . ' ' . $_message);
+        return $this->executeCommand(
+            ".senditemandbind $guid $_itemId $_stack $_message",
+            true,
+            $orderId
+        );
     }
 
     public static function removeEmoji($text): string

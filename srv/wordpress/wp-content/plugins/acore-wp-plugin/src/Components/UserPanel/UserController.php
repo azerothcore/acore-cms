@@ -78,7 +78,7 @@ class UserController {
                         if ($res instanceof \Exception) {
                             $errorMessages[] = "The server seems to be offline, try again later!";
                         } else {
-                            $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode");
+                            $res = $soap->executeCommand("bindraf $newRecruitId $recruiterCode", true);
                             if ($res instanceof \Exception) {
                                 $errorMessages[] = "An error ocurred while binding accounts. Please try again later.";
                             }
@@ -129,7 +129,6 @@ class UserController {
 
     public function showItemRestorationPage() {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $this->saveCharacterOrder();
             ?>
             <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
             <?php

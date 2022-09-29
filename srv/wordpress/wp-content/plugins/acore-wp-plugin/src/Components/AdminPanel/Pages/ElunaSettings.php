@@ -104,19 +104,7 @@
         </div>
     </form>
 </div>
-
 <script>
-    jQuery('#check-soap').on('click', function(e) {
-        jQuery.ajax({
-            url: "<?php echo get_rest_url(null, 'wp-acore/v1/server-info'); ?>",
-            success: function(response) {
-                jQuery('#ajax-message').html('<div class="notice notice-info"><p>SOAP Response: <strong>' + response.message + '</strong></p></div>');
-            },
-            error: function(response) {
-                jQuery('#ajax-message').html('<div class="notice notice-error"><p>An unknown error happens requesting SOAP status.</div>');
-            },
-        })
-    });
     jQuery('#eluna_recruit_a_friend').on('change', function() {
         jQuery('.eluna_raf_config').toggle();
     })

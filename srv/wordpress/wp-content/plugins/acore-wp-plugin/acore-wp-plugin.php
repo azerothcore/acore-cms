@@ -21,3 +21,5 @@ $loader = require ACORE_PATH_PLG . 'vendor/autoload.php';
 AnnotationRegistry::registerLoader([$loader, 'loadClass']);
 
 require ACORE_PATH_PLG . "/src/boot.php";
+
+register_activation_hook( __FILE__, 'activate_acore_wp_plugin' );

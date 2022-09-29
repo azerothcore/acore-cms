@@ -222,7 +222,10 @@
 <script>
     jQuery('#check-soap').on('click', function(e) {
         jQuery.ajax({
-            url: "<?php echo get_rest_url(null, ACORE_SLUG . '/v1/server-info'); ?>",
+            url: "<?= get_rest_url(null, ACORE_SLUG . '/v1/server-info'); ?>",
+            data: {
+                _wpnonce: "<?= wp_create_nonce( 'wp_rest' ); ?>"
+            },
             success: function(response) {
                 jQuery('#ajax-message').html('<div class="notice notice-info"><p>SOAP Response: <strong>' + response.message + '</strong></p></div>');
             },
