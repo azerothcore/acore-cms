@@ -360,7 +360,18 @@ class SettingsController {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
 
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST')
+        {
+            try {
+                ACoreServices::I()->getAccountRepo();
+            } catch (PDOException $e) {
+                $errorString = __('It was not possible to entablish a connection with the database. Please check your server settings.');
+                wp_die("<div class='notice notice-error'><p>{$errorString}</p></div>");
+            } catch (ConnectionException $e) {
+                $errorString = __('It was not possible to entablish a connection with the database. Please check your AzerothCore server settings.');
+                wp_die("<div class='notice notice-error'><p>{$errorString}</p></div>");
+            }
+
             foreach (Opts::I()->getConfs() as $key => $value) {
                 if (isset($_POST[$key])) {
                     if ($key == 'acore_name_unlock_allowed_banned_names_table') {
