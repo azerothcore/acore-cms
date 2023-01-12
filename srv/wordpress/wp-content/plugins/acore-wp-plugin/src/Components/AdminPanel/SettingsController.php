@@ -41,9 +41,11 @@ class SettingsController {
         try {
             ACoreServices::I()->getAccountRepo();
         } catch (PDOException $e) {
-            echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
+            $errorString = __('It was not possible to entablish a connection with the database. Please check your server settings.');
+            wp_die("<div class='notice notice-error'><p>{$errorString}</p></div>");
         } catch (ConnectionException $e) {
-            echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your AzerothCore server settings.</p></div><";
+            $errorString = __('It was not possible to entablish a connection with the database. Please check your AzerothCore server settings.');
+            wp_die("<div class='notice notice-error'><p>{$errorString}</p></div>");
         }
 
         // See if the user has posted us some information
@@ -106,6 +108,16 @@ class SettingsController {
 
         if (!isset($myCredConfs['cred_id']) || empty($myCredConfs['cred_id'])) {
             wp_die(__('<div class="notice notice-error"><p>No Cred ID Found. Please check settings. <a href="' . admin_url( 'admin.php?page=' . MYCRED_SLUG . '-settings' ) . '" >' . __( 'MyCred Settings', 'mycred' ) . '</a></p></div>'));
+        }
+
+        try {
+            ACoreServices::I()->getAccountRepo();
+        } catch (PDOException $e) {
+            $errorString = __('It was not possible to entablish a connection with the database. Please check your server settings.');
+            wp_die("<div class='notice notice-error'><p>{$errorString}</p></div>");
+        } catch (ConnectionException $e) {
+            $errorString = __('It was not possible to entablish a connection with the database. Please check your AzerothCore server settings.');
+            wp_die("<div class='notice notice-error'><p>{$errorString}</p></div>");
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
