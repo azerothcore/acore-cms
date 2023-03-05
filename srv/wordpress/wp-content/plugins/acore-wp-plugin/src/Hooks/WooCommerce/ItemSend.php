@@ -49,7 +49,7 @@ class ItemSend extends \ACore\Lib\WpClass {
     }
 
     public static function the_title($title)/* : string | void */ {
-        if (( \function_exists("\is_product") && \is_product() && \in_the_loop())) {
+        if (( \function_exists("\is_product") && \is_product() && !\in_the_loop())) {
             global $product;
             $sku = self::getSkuItem($product->get_sku());
             if (!$sku) {
