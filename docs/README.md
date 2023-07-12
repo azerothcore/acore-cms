@@ -18,7 +18,7 @@ If you do not have **docker**, [install it](https://docs.docker.com/compose/inst
 
 On a Linux distro, you can install it via package manager, in a debian-based for example you can just run:
 ```
-$ sudo apt install docker docker-composer
+$ sudo apt install docker docker-compose
 ```
 
 About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
@@ -149,6 +149,3 @@ NOTE: by default sql files will be exported inside the /data/sql folder
 ### database import
 
 `npm run docker:db:import`
-
-
-
