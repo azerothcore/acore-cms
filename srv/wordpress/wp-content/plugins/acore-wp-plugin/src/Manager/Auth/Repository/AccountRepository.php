@@ -26,7 +26,11 @@ class AccountRepository extends AcoreRepository {
         $salt = $query->getOneOrNullResult();
 
         // calculate "verifier"
-        $enc_password = $this->CalculateSRP6Verifier($username, $password, $salt["salt"]);
+        if($salt !== null) {
+            $enc_password = $this->CalculateSRP6Verifier($username, $password, $salt["salt"]);
+        } else {
+            $enc_password = "";
+        }
 
         $qb=$authDb->createQueryBuilder();
         $query=$qb->select("a")
