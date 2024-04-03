@@ -62,16 +62,11 @@ class CartValidation extends \ACore\Lib\WpClass {
             return false;
         }
 
-        if(!isset($_REQUEST['acore_char_sel'])) {
-            \wc_add_notice(__('Character not found. Select character and try again.', 'woocommerce'), 'error');
-            return false;
-        }
-
         if (in_array('acore_char_sel', self::$skuList[$activeSku])) {
-            $guid = intval($_REQUEST['acore_char_sel']);
+            $guid = intval($_REQUEST['acore_char_sel'] ?? 0);
 
             if ($guid === 0) {
-                \wc_add_notice(__('No selected character', 'acore-wp-plugin'), 'error');
+                \wc_add_notice(__('No character selected. Please select a character and try again.', 'acore-wp-plugin'), 'error');
                 return false;
             }
 
