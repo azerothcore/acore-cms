@@ -4,7 +4,7 @@ services:
   wp-db:
     restart: unless-stopped
     image: mysql:8
-    command: 'mysqld --default-authentication-plugin=mysql_native_password'
+    command: 'mysqld --mysql-native-password=ON'
     volumes:
       - mysql-data:/var/lib/mysql
       - ./data:/data/
