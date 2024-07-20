@@ -5,15 +5,25 @@ namespace ACore\Hooks\WooCommerce;
 use ACore\Manager\Opts;
 use ACore\Manager\ACoreServices;
 
-class NameUnlock extends \ACore\Lib\WpClass {
+function check_user_membership($user_id)
+{
+    $membership_status = pmpro_getMembershipLevelForUser($user_id);
+
+    return !($membership_status === false || ($membership_status->enddate != null && $membership_status->enddate < time()));
+}
+
+class NameUnlock extends \ACore\Lib\WpClass
+{
     private static $sku = "name-unlock";
     private static $errEmptyCharName = "Please enter the character name you would like to unlock.";
     private static $errCharDoesNotExist = "This character does not exist.";
     private static $errNameUnavailable = "This name is not eligible for an unlock request.";
     private static $errTempBanned = "This character is banned temporarily. Please try again at a later date.";
     private static $errPermaBanned = "This character has been banned permanently. Please contact support to make sure the name is appropriate.";
+    private static $errSubscription = "The character with this name is behind an account with a subscription";
 
-    public static function init() {
+    public static function init()
+    {
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
@@ -22,7 +32,8 @@ class NameUnlock extends \ACore\Lib\WpClass {
     }
 
     // LIST
-    public static function before_add_to_cart_button() {
+    public static function before_add_to_cart_button()
+    {
         global $product;
         if ($product->get_sku() != self::$sku) {
             return;
@@ -30,13 +41,13 @@ class NameUnlock extends \ACore\Lib\WpClass {
 
         $current_user = wp_get_current_user();
 
-        ?>
+?>
         <p>Please enter the name you would like to unlock.</p>
         <label for="acore_name_to_unlock">Character name:</label>
         <br>
         <input type="text" maxlength="24" id="acore_name_to_unlock" class="acore_name_to_unlock" name="acore_name_to_unlock" style="width: 300px;">
         <br>
-        <?php
+<?php
         if ($current_user) {
             FieldElements::charList($current_user->user_login);
         }
@@ -45,7 +56,8 @@ class NameUnlock extends \ACore\Lib\WpClass {
     // SAVE INTO ITEM DATA
     // This code will store the custom fields ( for the product that is being added to cart ) into cart item data
     // ( each cart item has their own data )
-    public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
+    public static function add_cart_item_data($cart_item_data, $product_id, $variation_id)
+    {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
 
         if ($product->get_sku() != self::$sku || !isset($_REQUEST['acore_name_to_unlock']) || !isset($_REQUEST['acore_char_sel'])) {
@@ -126,6 +138,23 @@ class NameUnlock extends \ACore\Lib\WpClass {
             }
         }
 
+        // Check if account has membership
+        $membership_system_enabled = function_exists('pmpro_getMembershipLevelForUser');
+        if ($membership_system_enabled) {
+            $WoWSrv = ACoreServices::I();
+            $accRepo = $WoWSrv->getAccountRepo();
+            $acc = $accRepo->findOneById($char->getAccount());
+
+            $user = get_user_by('login', $acc->getUsername());
+            if ($user) {
+                $has_membership = check_user_membership($user->ID);
+
+                if ($has_membership) {
+                    throw new \Exception(self::$errSubscription);
+                }
+            }
+        }
+
         $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
         $cart_item_data['acore_name_unlock_name'] = $char->getName();
         $cart_item_data['acore_name_unlock_id'] = $char->getGuid();
@@ -138,21 +167,25 @@ class NameUnlock extends \ACore\Lib\WpClass {
 
     // ADD DATA TO FINAL ORDER META
     // This is a piece of code that will add your custom field with order meta.
-    public static function add_order_item_meta($item_id, $values, $cart_item_key) {
+    public static function add_order_item_meta($item_id, $values, $cart_item_key)
+    {
         if ($values['acore_item_sku'] != self::$sku) {
             return;
         }
 
         if (isset($values["acore_item_sku"])) {
+            $WoWSrv = ACoreServices::I();
             \wc_add_order_item_meta($item_id, "acore_name_unlock_name", $values['acore_name_unlock_name']);
             \wc_add_order_item_meta($item_id, "acore_name_unlock_id", $values['acore_name_unlock_id']);
             \wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
+            \wc_add_order_item_meta($item_id, "acore_char_sel_name", $WoWSrv->getCharName($values["acore_char_sel"]));
             \wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
         }
     }
 
     // Check before payment
-    public static function checkout_order_processed($order_id, $posted_data) {
+    public static function checkout_order_processed($order_id, $posted_data)
+    {
         $order = new \WC_Order($order_id);
         $items = $order->get_items();
 
@@ -170,7 +203,8 @@ class NameUnlock extends \ACore\Lib\WpClass {
     }
 
     // DO THE FINAL ACTION
-    public static function payment_complete($order_id) {
+    public static function payment_complete($order_id)
+    {
         $WoWSrv = ACoreServices::I();
         $logs = new \WC_Logger();
         try {

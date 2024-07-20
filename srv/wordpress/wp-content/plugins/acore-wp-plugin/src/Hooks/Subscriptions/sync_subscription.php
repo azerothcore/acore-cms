@@ -66,16 +66,17 @@ function bl_cron_exec_sync_subs()
   $query = $acore_auth_db->prepare("SELECT `account_name`, `membership_level` FROM `acore_cms_subscriptions`;");
   $current_subscriptions_in_game_rows = $acore_auth_db->get_results($query);
 
-
   // UPDATE membership level if changed
-  foreach ($current_subscriptions_in_game_rows as $row) {
-    if (array_key_exists($row->account_name, $all_active_accounts_obj)) {
-      if ($all_active_accounts_obj[$row->account_name]->membership_id != $row->membership_level) {
-        $query_update_membership_level = "UPDATE `acore_cms_subscriptions` SET `membership_level`= " . $all_active_accounts_obj[$row->account_name]->membership_id . " WHERE `account_name`=\"" . $row->account_name . "\";\n";
-        $query = $acore_auth_db->prepare($query_update_membership_level);
-        $acore_auth_db->get_results($query);
+  if ($current_subscriptions_in_game_rows != null) {
+    foreach ($current_subscriptions_in_game_rows as $row) {
+      if (array_key_exists($row->account_name, $all_active_accounts_obj)) {
+        if ($all_active_accounts_obj[$row->account_name]->membership_id != $row->membership_level) {
+          $query_update_membership_level = "UPDATE `acore_cms_subscriptions` SET `membership_level`= " . $all_active_accounts_obj[$row->account_name]->membership_id . " WHERE `account_name`=\"" . $row->account_name . "\";\n";
+          $query = $acore_auth_db->prepare($query_update_membership_level);
+          $acore_auth_db->get_results($query);
+        }
+        unset($all_active_accounts_obj[$row->account_name]);
       }
-      unset($all_active_accounts_obj[$row->account_name]);
     }
   }
 
