@@ -221,6 +221,7 @@
 
 <script>
     jQuery('#check-soap').on('click', function(e) {
+        jQuery('#ajax-message').html('');
         jQuery.ajax({
             url: "<?php echo get_rest_url(null, ACORE_SLUG . '/v1/server-info'); ?>",
             success: function(response) {
