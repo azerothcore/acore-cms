@@ -4,21 +4,20 @@
 
 First of all, **enable SOAP** in your core, so go to the `worldserver.conf` and enable SOAP changing the parameter `SOAP.Enabled` to `1`, than connect the CMS with your game server following the steps below.
 
-If you will work in localhost put as `SOAP.IP` your LOCAL IP address.
+If you will work in localhost put as `SOAP.IP` your `LOCAL IP` address or `0.0.0.0`.
 
 When your CMS is up you still need to connect it with your game server through the acore-wp-plugin, so step by step:
 
-- go to the admin panel of the CMS (`localhost:81/wp-admin.php`)
+- go to the admin panel of the CMS (`localhost/wp-admin/wp-admin.php`)
 - on `Plugins -> Installed Plugins`
 - Activate `AzerothCore Wordpress Integration`
-- Activated, go to `Settings -> Acore Settings Panel`, fill all the fields with the right credentials and save (if you have the game database in localhost use your LOCAL IP address instead of 127.0.0.1 or localhost)
+- Activated, go to `Settings -> Acore Settings Panel`, fill all the fields with the credentials and save (if you have the game database in localhost use your LOCAL IP address instead of 127.0.0.1 or localhost)
+- Note: for SOAP use an account with gmlevel 3, moreover, after saving the settings changes you can verify SOAP using the button "Check SOAP"
 
 If during the registration it fails it can depend on the permissions of the access of your local mysql database, be sure to grant the permission to external connection (like the docker container with wordpress inside) can access to the mysql database.
-See the **Troubleshooting** section for more details.
+See the **Troubleshooting** section below for more details.
 
-## Important:
-
-Some of shop elements will not load properly if your database credentials are not correct, such as the add to cart button on the product page.
+Important: some of shop elements will not load properly if your database credentials are not correct, such as the add to cart button on the product page.
 
 ### - Register account on the game server
 
@@ -78,17 +77,35 @@ Besides items you can also sell:
 
 For everything ask help on [Discord](https://discord.gg/gkt4y2x) in the channel `#acore-cms` (section `TOOLS`), you can also tag @Helias for any issue about this CMS.
 
-Errors:
+---
 
-- **During the registration I get some PDO errors**
-- **Host is not allowed to connect to this mysql**
+### Error: could not be connect to the host (during the registration)
+
+Check the SOAP configuration in `worldserver.conf` and into the CMS on `Admin Panel -> Settings -> Acore Settings Panel`.  
+To check the SOAP credentials you can use the script [here](https://stackoverflow.com/questions/59382665/how-to-send-commands-using-soap-to-azerothcore-worldserver-console).
+
+---
+
+### Error: SOAP Response: Error 403: HTTP 403 Forbidden
+
+You are probably using an account with gmlevel less than 3, you should upgrade it to 3 with:
+
+```
+account set gmlevel USERNAME 3 -1
+```
+
+replacing USERNAME with the game account name.
+
+---
+
+### During the registration I get some "PDO errors" OR "Host is not allowed to connect to this mysql"
 
 For both, the problem is probably related to the permissions of the access to your local mysql database.
 **How to solve:** edit the mysql permission and create a new user.
 
 Edit the mysql permission of mysql using:
 
-```
+```bash
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 
@@ -104,9 +121,3 @@ GRANT ALL PRIVILEGES ON *.* TO 'acore'@'%' WITH GRANT OPTION;
 ```
 
 Update the configuration into Wordpress `Admin Panel -> Settings -> Acore Settings Panel` with the new user and do not set "localhost" but the LOCAL IP ADDRESS of your machine.
-
----
-
-**Error**: could not be connect to the host (during the registration)
-**How to solve**: check the SOAP configuration in `worldserver.conf` and into the CMS on `Admin Panel -> Settings -> Acore Settings Panel`.
-To check the SOAP credentials you can use the script [here](https://stackoverflow.com/questions/59382665/how-to-send-commands-using-soap-to-azerothcore-worldserver-console).
