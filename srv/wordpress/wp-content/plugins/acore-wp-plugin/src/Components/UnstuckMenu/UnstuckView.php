@@ -7,7 +7,8 @@ class UnstuckView
 {
     private $controller;
 
-    public function __construct($controller) {
+    public function __construct($controller)
+    {
         $this->controller = $controller;
     }
 
@@ -18,7 +19,7 @@ class UnstuckView
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');
         wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
 
-        ?>
+?>
 
         <div class="wrap">
             <div class="col-sm-4">
@@ -40,7 +41,7 @@ class UnstuckView
                                                     <img src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
                                                 </span>
                                                 <button class="unstuck-button" data-char-name="<?= $char["name"] ?>">Unstuck</button>
-                                            </div>
+                                        </div>
                                     </div>
                                 </li>
                             <?php } ?>
@@ -52,11 +53,14 @@ class UnstuckView
         <script>
             jQuery(document).ready(function() {
                 jQuery('.unstuck-button').on('click', function() {
-                    var charName = jQuery(this).data('char-name');
+                    const charName = jQuery(this).data('char-name');
                     console.log(charName);
                     jQuery.ajax({
-                        type: 'POST',
-                        url: '<?php echo get_rest_url(null, ACORE_SLUG . '/v1/unstuck'); ?>?charName=' + charName,
+                        type: 'GET',
+                        url: '<?php echo get_rest_url(null, ACORE_SLUG . '/v1/unstuck'); ?>',
+                        data: {
+                            charName
+                        },
                         success: function(response) {
                             console.log(response);
                         },
