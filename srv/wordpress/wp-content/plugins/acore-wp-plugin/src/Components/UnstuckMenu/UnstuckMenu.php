@@ -4,6 +4,8 @@ namespace ACore\Components\UnstuckMenu;
 
 use ACore\Components\UnstuckMenu\UnstuckController;
 
+require_once 'UnstuckApi.php';
+
 add_action('init', __NAMESPACE__ . '\\unstuck_menu_init');
 
 class UnstuckMenu

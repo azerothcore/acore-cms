@@ -5,16 +5,19 @@ namespace ACore\Components\UnstuckMenu;
 use ACore\Manager\ACoreServices;
 use ACore\Components\UnstuckMenu\UnstuckView;
 
-class UnstuckController {
+class UnstuckController
+{
     private $view;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->view = new UnstuckView($this);
     }
 
-    public function loadCharacters() {
+    public function loadCharacters()
+    {
         $accId = ACoreServices::I()->getAcoreAccountId();
-        
+
         $query = "SELECT
             `guid`, `name`, `order`, `race`, `class`, `level`, `gender`
             FROM `characters`
@@ -28,24 +31,17 @@ class UnstuckController {
         echo $this->getView()->getUnstuckmenuRender($chars);
     }
 
-    public static function unstuck($charName) {
+    public static function unstuck($charName)
+    {
         $soap = ACoreServices::I()->getUnstuckSoap();
 
         $soap->teleportName($charName);
+
+        return "teleported!";
     }
 
-    public function getView() {
+    public function getView()
+    {
         return $this->view;
     }
 }
-
-add_action( 'rest_api_init', function () {
-    register_rest_route( ACORE_SLUG . '/v1', 'unstuck', array(
-        'methods'  => 'POST',
-        'callback' => function( $request ) {
-            $charName = $request->get_param( 'charName' );
-            $data = ['message' => UnstuckController::unstuck($charName)];
-            return $data;
-        }
-    ) );
- });

@@ -1,0 +1,30 @@
+<?php
+
+namespace ACore\Components\UnstuckMenu;
+
+use ACore\Components\UnstuckMenu\UnstuckController;
+use ACore\Manager\ACoreServices;
+
+class ServerInfoApi
+{
+  public static function serverInfo()
+  {
+    return ACoreServices::I()->getServerSoap()->executeCommand("server info");
+  }
+
+  public static function AccountCount()
+  {
+    return ACoreServices::I()->getAccountRepo()->count([]);
+  }
+}
+
+add_action('rest_api_init', function () {
+  register_rest_route(ACORE_SLUG . '/v1', 'unstuck', array(
+    'methods'  => 'GET',
+    'callback' => function ($request) {
+      $charName = $request->get_param('charName');
+      $data = ['message' => UnstuckController::unstuck($charName)]; // $charName];
+      return $data;
+    }
+  ));
+});
