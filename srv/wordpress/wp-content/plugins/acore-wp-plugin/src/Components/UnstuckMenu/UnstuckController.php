@@ -28,7 +28,7 @@ class UnstuckController {
         echo $this->getView()->getUnstuckmenuRender($chars);
     }
 
-    public function unstuck($charName) {
+    public static function unstuck($charName) {
         $soap = ACoreServices::I()->getUnstuckSoap();
 
         $soap->teleportName($charName);
@@ -38,3 +38,14 @@ class UnstuckController {
         return $this->view;
     }
 }
+
+add_action( 'rest_api_init', function () {
+    register_rest_route( ACORE_SLUG . '/v1', 'unstuck', array(
+        'methods'  => 'GET',
+        'callback' => function( $request ) {
+            $charName = $request->get_param( 'charName' );
+            $data = ['message' => UnstuckController::unstuck($charName)];
+            return $data;
+        }
+    ) );
+ });

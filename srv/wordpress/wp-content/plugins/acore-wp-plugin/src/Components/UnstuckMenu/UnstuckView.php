@@ -49,29 +49,24 @@ class UnstuckView
                 </div>
             </div>
         </div>
-
-        
-        <!-- TODO: HOW TO FIX THIS JS + PHP ? -->
         <script>
-    jQuery(document).ready(function($) {
-        $(".unstuck-button").click(function() {
-            var charName = $(this).data('char-name');
-
-            console.log("Button clicked!" + $(this).data('char-name'));
-
-            var data = {
-                action: 'unstuck',
-                char_name: charName,
-                nonce: '<?php echo wp_create_nonce('unstuck_nonce'); ?>'
-            };
-
-            $.post(ajaxurl, data, function(response) {
-                console.log(response);
+            jQuery(document).ready(function() {
+                jQuery('.unstuck-button').on('click', function() {
+                    var charName = jQuery(this).data('char-name');
+                    console.log(charName);
+                    jQuery.ajax({
+                        type: 'GET',
+                        url: '<?php echo get_rest_url(null, ACORE_SLUG . '/v1/unstuck'); ?>?charName=' + charName,
+                        success: function(response) {
+                            console.log(response);
+                        },
+                        error: function(xhr, status, error) {
+                            console.log(xhr.responseText);
+                        }
+                    });
+                });
             });
-        });
-    });
-</script>
-
+        </script>
 <?php
         return ob_get_clean();
     }
