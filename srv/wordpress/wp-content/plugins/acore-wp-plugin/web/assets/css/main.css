@@ -39,6 +39,36 @@ body {
 
 /* end char order */
 
+/* todo: Not sure what to customize */
+/* start char-unstuck */
+#acore-characters-unstuck .menu-item-handle {
+    cursor: default;
+}
+
+#acore-characters-unstuck .menu-item-handle .hearthstone-button {
+    z-index: 1; /* make the button sit on top of other elements */
+    cursor: pointer; /* make the button clickable */
+}
+
+#acore-characters-unstuck .item-type {
+    padding: 0px;
+    margin-top: 5px;
+}
+
+#acore-characters-unstuck .item-type img {
+    display: inline-block;
+    vertical-align: middle;
+    height: 32px;
+    transform: translateZ(0); /* prevent blurry image on chrome */
+}
+
+#acore-characters-unstuck input {
+    display: none;
+}
+
+/* end char unstuck */
+
+
 /* start raf progress view */
 .acore-progress-bar {
     display: flex;
