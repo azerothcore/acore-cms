@@ -33,7 +33,7 @@ class UnstuckMenu
     function acore_unstuck_menu_page()
     {
         $controller = new UnstuckController();
-        $controller->loadCharacters();
+        $controller->renderCharacters();
     }
 }
 
