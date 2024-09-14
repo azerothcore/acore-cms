@@ -54,9 +54,8 @@ class UnstuckView
             jQuery(document).ready(function() {
                 jQuery('.unstuck-button').on('click', function() {
                     const charName = jQuery(this).data('char-name');
-                    console.log(charName);
                     jQuery.ajax({
-                        type: 'GET',
+                        type: 'POST',
                         url: '<?php echo get_rest_url(null, ACORE_SLUG . '/v1/unstuck'); ?>',
                         data: {
                             charName

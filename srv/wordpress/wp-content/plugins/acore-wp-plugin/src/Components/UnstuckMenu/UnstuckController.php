@@ -37,7 +37,7 @@ class UnstuckController
 
         $soap->unstuckByName($charName);
 
-        return "unstucked!";
+        return $charName . " unstucked!";
     }
 
     public function getView()
