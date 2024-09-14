@@ -35,9 +35,9 @@ class UnstuckController
     {
         $soap = ACoreServices::I()->getUnstuckSoap();
 
-        $soap->teleportName($charName);
+        $soap->unstuckByName($charName);
 
-        return "teleported!";
+        return "unstucked!";
     }
 
     public function getView()

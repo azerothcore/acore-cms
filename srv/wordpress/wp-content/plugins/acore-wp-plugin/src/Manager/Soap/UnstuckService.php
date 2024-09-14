@@ -9,8 +9,8 @@ class UnstuckService
 
     use AcoreSoapTrait;
 
-    public function teleportName($charName)
+    public function unstuckByName($charName)
     {
-        return $this->executeCommand(".tele name $charName \$home");
+        return $this->executeCommand(".unstuck $charName");
     }
 }
