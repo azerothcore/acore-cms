@@ -50,10 +50,13 @@ class UnstuckController
         }    
 
         $query = "SELECT
-            `guid`, `name`, `order`, `race`, `class`, `level`, `gender`
-            FROM `characters`
-            WHERE `characters`.`deleteDate` IS NULL AND `account` = $accId
-            ORDER BY COALESCE(`order`, `guid`)
+            c.`guid`, c.`name`, c.`order`, c.`race`, c.`class`, c.`level`, c.`gender`, csc.`time`
+            FROM `characters` c
+            LEFT JOIN `character_spell_cooldown` csc  ON c.`guid` = csc.`guid`
+            AND c.`deleteDate` IS NULL 
+            AND csc.`spell` = 8690 # hearthstone spell
+            AND c.`account` = $accId
+            ORDER BY COALESCE(c.`order`, c.`guid`)
         ";
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
         $queryResult = $conn->executeQuery($query);

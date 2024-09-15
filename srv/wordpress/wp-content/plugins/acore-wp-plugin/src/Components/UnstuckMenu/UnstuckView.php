@@ -66,7 +66,11 @@ class UnstuckView
                         <p>Unstuck your characters and teleport them to the home location of each race</p>
                         <hr>
                         <ul id="acore-characters-unstuck" class="list-unstyled">
-                            <?php foreach ($chars as $char) { ?>
+                            <?php foreach ($chars as $char) {
+                                $currentTime = time();
+                                $isDisabled = ($char["time"] > $currentTime);
+                                $tooltipText = $isDisabled ? 'Unstuck is on cooldown' : ''; // Tooltip text if disabled
+                            ?>
                                 <li>
                                     <div class="menu-item-bar">
                                         <div class="menu-item-handle">
@@ -77,7 +81,13 @@ class UnstuckView
                                                     <img src="<?= ACORE_URL_PLG . "web/assets/race/" . $char["race"] . ($char["gender"] == 0 ? "m" : "f") . ".webp"; ?>">
                                                     <img src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
                                                 </span>
-                                                <button class="unstuck-button" data-char-name="<?= $char["name"] ?>">Unstuck</button>
+                                                <button
+                                                    class="unstuck-button"
+                                                    data-char-name="<?= $char["name"] ?>"
+                                                    <?= $isDisabled ? 'disabled' : '' ?>
+                                                    title="<?= $tooltipText ?>">
+                                                    Unstuck
+                                                </button>
                                         </div>
                                     </div>
                                 </li>
