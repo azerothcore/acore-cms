@@ -39,15 +39,21 @@ body {
 
 /* end char order */
 
-/* todo: Not sure what to customize */
 /* start char-unstuck */
 #acore-characters-unstuck .menu-item-handle {
     cursor: default;
 }
 
-#acore-characters-unstuck .menu-item-handle .hearthstone-button {
-    z-index: 1; /* make the button sit on top of other elements */
-    cursor: pointer; /* make the button clickable */
+.unstuck-button {
+    background-size: cover;
+    border: none;
+    color: transparent;
+    cursor: pointer;
+}
+
+.unstuck-button:disabled {
+    opacity: 0.5; /* Adjust the opacity for disabled state */
+    cursor: not-allowed;
 }
 
 #acore-characters-unstuck .item-type {

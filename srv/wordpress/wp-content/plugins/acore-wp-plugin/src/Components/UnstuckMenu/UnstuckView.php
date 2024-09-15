@@ -86,7 +86,7 @@ class UnstuckView
                                                     data-char-name="<?= $char["name"] ?>"
                                                     <?= $isDisabled ? 'disabled' : '' ?>
                                                     title="<?= $tooltipText ?>">
-                                                    Unstuck
+                                                    <img src="<?php echo ACORE_URL_PLG . 'web/assets/unstuck/hearthstone.jpg'; ?>" alt="Unstuck">
                                                 </button>
                                         </div>
                                     </div>
