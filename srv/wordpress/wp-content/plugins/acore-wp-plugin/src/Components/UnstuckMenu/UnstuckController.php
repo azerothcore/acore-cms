@@ -28,9 +28,9 @@ class UnstuckController
         $characters = self::getCharactersByAcId();
         foreach ($characters as $character) {
             if ($character['name'] === $charName) {
-                
+
                 $soap->unstuckByName($charName);
-                
+
                 self::updateUnstuckCD($charName);
 
                 return $charName . " unstucked!";
@@ -44,11 +44,6 @@ class UnstuckController
     {
         $accId = ACoreServices::I()->getAcoreAccountId();
 
-        // Logging Helpers
-        // echo '<script>console.log(' . $accId . ')</script>';
-        // echo '<script>console.log(' . wp_json_encode(wp_get_current_user()) . ')</script>';
-
-
         if (!isset($accId) || $accId === null || $accId === '' || trim($accId) === '' || !is_numeric($accId)) {
             throw new InvalidArgumentException("Invalid user account ID provided.");
         }
@@ -57,8 +52,8 @@ class UnstuckController
             c.`guid`, c.`name`, c.`order`, c.`race`, c.`class`, c.`level`, c.`gender`, csc.`time`
             FROM `characters` c
             LEFT JOIN `character_spell_cooldown` csc  ON c.`guid` = csc.`guid`
-            AND c.`deleteDate` IS NULL 
             AND csc.`spell` = 8690 # hearthstone spell
+            WHERE c.`deleteDate` IS NULL 
             AND c.`account` = $accId
             ORDER BY COALESCE(c.`order`, c.`guid`)
         ";
@@ -74,16 +69,28 @@ class UnstuckController
         $newTime = $newTime = time() + (15 * 60); // 15 minutes;
 
         $query = "
-         UPDATE `character_spell_cooldown` csc
-         LEFT JOIN `characters` c ON c.`guid` = csc.`guid`
-         SET csc.`time` = $newTime
-         WHERE c.`name` = '$charName'
-         AND csc.`spell` = 8690
-         AND c.`deleteDate` IS NULL
-         AND c.`account` = $accId
-     ";
+            INSERT INTO `character_spell_cooldown` (`guid`, `spell`, `time`)
+            SELECT c.`guid`, 8690, $newTime
+            FROM `characters` c
+            WHERE c.`name` = '$charName'
+            AND c.`deleteDate` IS NULL
+            AND c.`account` = $accId
+            ON DUPLICATE KEY UPDATE `time` = `character_spell_cooldown`.`time`
+        ";
 
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
-        $queryResult = $conn->executeQuery($query);
+
+        // Prepare and execute the query with parameters
+        try {
+            $stmt = $conn->prepare($query);
+            $stmt->execute([
+                ':newTime' => $newTime,
+                ':charName' => $charName,
+                ':accId' => $accId
+            ]);
+        } catch (\Exception $e) {
+            // Handle or log the exception as needed
+            error_log('Failed to update character cooldown: ' . $e->getMessage());
+        }
     }
 }

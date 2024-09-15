@@ -46,10 +46,10 @@ class UnstuckView
                             withCredentials: true // Ensure cookies are sent
                         },
                         success: function(response) {
+                            console.log(response);
                             location.reload();
                         },
                         error: function(xhr, status, error) {
-                            return http_response_code(500);
                         }
                     });
                 });
