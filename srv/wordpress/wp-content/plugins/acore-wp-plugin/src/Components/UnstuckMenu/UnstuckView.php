@@ -63,7 +63,7 @@ class UnstuckView
                 <div class="card">
                     <div class="card-body">
                         <h3>Unstuck</h3>
-                        <p>Unstuck your characters and teleport them to the home location of each race</p>
+                        <p>Unstuck your characters and teleport them to the hearthstone location</p>
                         <hr>
                         <ul id="acore-characters-unstuck" class="list-unstyled">
                             <?php foreach ($chars as $char) {
