@@ -19,42 +19,8 @@ class UnstuckView
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');
         wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
-
-        // Enqueue a dummy script for localization
-        wp_enqueue_script('dummy-script', plugins_url('dummy.js', __FILE__), [], null, true);
-        // Localize script to pass REST API nonce and URL
-        wp_localize_script('dummy-script', 'myData', [
-            'nonce' => wp_create_nonce('wp_rest'), // Pass REST API nonce
-            'restUrl' => get_rest_url(null, ACORE_SLUG . '/v1/unstuck') // Pass the REST URL
-        ]);
-
-        // Add inline script with the localization data
-        wp_add_inline_script('dummy-script', '
-            jQuery(document).ready(function() {
-                jQuery(".unstuck-button").on("click", function() {
-                    const charName = jQuery(this).data("char-name");
-                    jQuery.ajax({
-                        type: "POST",
-                        url: myData.restUrl, // Use the localized REST URL
-                        data: {
-                            charName: charName
-                        },
-                        headers: {
-                            "X-WP-Nonce": myData.nonce // Add the nonce to the request headers
-                        },
-                        xhrFields: {
-                            withCredentials: true // Ensure cookies are sent
-                        },
-                        success: function(response) {
-                            console.log(response);
-                            location.reload();
-                        },
-                        error: function(xhr, status, error) {
-                        }
-                    });
-                });
-            });
-        ');
+        wp_enqueue_script('jquery');
+        wp_enqueue_script('acore-unstuck-js', ACORE_URL_PLG . 'web/assets/unstuck/unstuck.js', array('jquery'), null, true);
 
 ?>
 
@@ -101,6 +67,13 @@ class UnstuckView
                 </div>
             </div>
         </div>
+
+        <script>
+            var unstuckData = {
+                nonce: "<?php echo wp_create_nonce('wp_rest'); ?>",
+                restUrl: "<?php echo get_rest_url(null, ACORE_SLUG . '/v1/unstuck'); ?>"
+            };
+        </script>
 <?php
         return ob_get_clean();
     }
