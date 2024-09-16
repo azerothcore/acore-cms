@@ -75,22 +75,22 @@ class UnstuckController
             WHERE c.`name` = '$charName'
             AND c.`deleteDate` IS NULL
             AND c.`account` = $accId
-            ON DUPLICATE KEY UPDATE `time` = `character_spell_cooldown`.`time`
+            ON DUPLICATE KEY UPDATE character_spell_cooldown.`time` = $newTime
         ";
 
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
 
-        // Prepare and execute the query with parameters
         try {
             $stmt = $conn->prepare($query);
-            $stmt->execute([
+            $result = $stmt->execute([
                 ':newTime' => $newTime,
                 ':charName' => $charName,
                 ':accId' => $accId
             ]);
+            return $result->rowCount();
         } catch (\Exception $e) {
-            // Handle or log the exception as needed
             error_log('Failed to update character cooldown: ' . $e->getMessage());
+            return -1;
         }
     }
 }
