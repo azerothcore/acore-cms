@@ -66,7 +66,7 @@ class UnstuckController
     public static function updateUnstuckCD($charName)
     {
         $accId = ACoreServices::I()->getAcoreAccountId();
-        $newTime = $newTime = time() + (15 * 60); // 15 minutes;
+        $newTime = $newTime = time() + (30 * 60); // 30 minutes;
 
         $query = "
             INSERT INTO `character_spell_cooldown` (`guid`, `spell`, `time`)
