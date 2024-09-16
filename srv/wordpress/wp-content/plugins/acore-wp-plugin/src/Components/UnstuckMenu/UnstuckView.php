@@ -70,6 +70,7 @@ class UnstuckView
                                 $currentTime = time();
                                 $isDisabled = ($char["time"] > $currentTime);
                                 $tooltipText = $isDisabled ? 'Unstuck is on cooldown' : ''; // Tooltip text if disabled
+                                $remainingCDTime = $isDisabled ? $char["time"] - $currentTime : 0;
                             ?>
                                 <li>
                                     <div class="menu-item-bar">
@@ -88,6 +89,9 @@ class UnstuckView
                                                     title="<?= $tooltipText ?>">
                                                     <img src="<?php echo ACORE_URL_PLG . 'web/assets/unstuck/hearthstone.jpg'; ?>" alt="Unstuck">
                                                 </button>
+                                                <span class="countdown" id="countdown-<?= $char['name'] ?>">
+                                                    <?= $isDisabled ? gmdate("H:i:s", $remainingCDTime) : ''; ?>
+                                                </span>
                                         </div>
                                     </div>
                                 </li>
