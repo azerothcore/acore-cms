@@ -23,6 +23,7 @@ services:
       MYSQL_PASSWORD: wordpress
     networks:
       - local-private-net
+      - ac-network
     healthcheck:
         test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
     cap_add:
@@ -59,6 +60,7 @@ services:
       PHP_OPCACHE_MAX_WASTED_PERCENTAGE: 5
     networks:
       - local-private-net
+      - ac-network
   web.local:
     restart: unless-stopped
     image: nginx
@@ -87,12 +89,16 @@ services:
     networks:
       - local-private-net
       - local-shared-net
+      - ac-network
 networks:
   local-shared-net:
     name: local-shared-net
     driver: bridge
   local-private-net:
     driver: bridge
+  ac-network:
+    name: azerothcore-wotlk_ac-network # default network name if you use the docker setup of ac
+    external: true
 volumes:
   mysql-data:
 
