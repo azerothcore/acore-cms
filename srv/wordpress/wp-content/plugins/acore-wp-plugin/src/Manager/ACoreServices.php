@@ -10,6 +10,7 @@ use ACore\Manager\Character\CharacterManager;
 use ACore\Manager\Soap\AcoreSoap;
 use ACore\Manager\Soap\AccountService;
 use ACore\Manager\Soap\CharacterService;
+use ACore\Manager\Soap\UnstuckService;
 use ACore\Manager\Soap\GuildService;
 use ACore\Manager\Soap\MailService;
 use ACore\Manager\Soap\TransmogService;
@@ -219,6 +220,18 @@ class ACoreServices
     public function getCharactersSoap()
     {
         $mgr = new CharacterService();
+        $mgr->setSoap(new AcoreSoap());
+        $mgr->configure($this->soapParams);
+        return $mgr;
+    }
+
+    /**
+     *
+     * @return ACore\Manager\Soap\UnstuckService
+     */
+    public function getUnstuckSoap()
+    {
+        $mgr = new UnstuckService();
         $mgr->setSoap(new AcoreSoap());
         $mgr->configure($this->soapParams);
         return $mgr;
