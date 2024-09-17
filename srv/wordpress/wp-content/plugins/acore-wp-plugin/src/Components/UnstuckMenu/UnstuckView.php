@@ -35,7 +35,7 @@ class UnstuckView
                             <?php foreach ($chars as $char) {
                                 $currentTime = time();
                                 $isDisabled = ($char["time"] > $currentTime);
-                                
+
                                 $tooltipText = $isDisabled ? 'Unstuck is on cooldown' : ''; // Tooltip text if disabled
                                 $remainingCDTime = $isDisabled ? $char["time"] - $currentTime : 0;
                                 $endTime = $isDisabled ? $char["time"] : 0;
@@ -47,8 +47,8 @@ class UnstuckView
                                             <span class="item-controls">
                                                 <span class="item-type">
                                                     level <?= $char["level"] ?>&ensp;
-                                                    <img src="<?= ACORE_URL_PLG . "web/assets/race/" . $char["race"] . ($char["gender"] == 0 ? "m" : "f") . ".webp"; ?>">
-                                                    <img src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
+                                                    <img height="32" width="32" src="<?= ACORE_URL_PLG . "web/assets/race/" . $char["race"] . ($char["gender"] == 0 ? "m" : "f") . ".webp"; ?>">
+                                                    <img height="32" width="32" src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
                                                 </span>
                                                 <button
                                                     class="unstuck-button"
@@ -57,7 +57,7 @@ class UnstuckView
                                                     title="<?= $tooltipText ?>">
                                                     <img src="<?php echo ACORE_URL_PLG . 'web/assets/unstuck/hearthstone.jpg'; ?>" alt="Unstuck">
                                                 </button>
-                                                <span class="countdown" id="countdown-<?= $char['name']?>" data-end-time="<?= $endTime ?>">
+                                                <span class="countdown" id="countdown-<?= $char['name'] ?>" data-end-time="<?= $endTime ?>">
                                                     <?= $isDisabled ? gmdate("H:i:s", $remainingCDTime) : ''; ?>
                                                 </span>
                                         </div>
