@@ -23,7 +23,7 @@ services:
       MYSQL_PASSWORD: wordpress
     networks:
       - local-private-net
-      - ac-network  # Add this line to connect to the ac-network
+      - ac-network
     healthcheck:
         test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
     cap_add:
@@ -60,7 +60,7 @@ services:
       PHP_OPCACHE_MAX_WASTED_PERCENTAGE: 5
     networks:
       - local-private-net
-      - ac-network  # Add this line to connect to the ac-network
+      - ac-network
   web.local:
     restart: unless-stopped
     image: nginx
@@ -89,7 +89,7 @@ services:
     networks:
       - local-private-net
       - local-shared-net
-      - ac-network  # Add this line to connect to the ac-network
+      - ac-network
 networks:
   local-shared-net:
     name: local-shared-net
@@ -97,8 +97,8 @@ networks:
   local-private-net:
     driver: bridge
   ac-network:
-    name: azerothcore-wotlk_ac-network
-    external: true  # Add this line to use the ac-network defined in the other docker-compose file  
+    name: azerothcore-wotlk_ac-network # default network name if you use the docker setup of ac
+    external: true
 volumes:
   mysql-data:
 
