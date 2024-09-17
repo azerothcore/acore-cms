@@ -1,6 +1,7 @@
 # ACore CMS
 
-ACore CMS based on Wordpress
+ACore CMS based on WordPress
+
 
 - [Requirements](https://github.com/azerothcore/acore-cms#requirements)
 - [Usage](https://github.com/azerothcore/acore-cms#usage)
