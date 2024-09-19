@@ -1,10 +1,12 @@
 # ACore CMS
 
-ACore CMS based on wordpress.
+ACore CMS based on WordPress
+
 
 - [Requirements](https://github.com/azerothcore/acore-cms#requirements)
 - [Usage](https://github.com/azerothcore/acore-cms#usage)
-- [Connect the CMS to AC and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
+- [Connect the CMS to AzerothCore server and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
+- [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
 
 Useful tutorials:
 - [How to restrict the access with credentials of a specific web page](https://ubiq.co/tech-blog/how-to-password-protect-directory-in-nginx/)
