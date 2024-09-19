@@ -28,8 +28,8 @@ Now, when a user will register on your website, after the **verification email p
 
 For the **verification email process** there are several different options:
 
-a. install a **Mail Server** in your webserver (you can find a lot of guides online)
-b. install the plugin **WP SMTP** via `Admin Panle -> Plugins -> Add new` and **[configure it with gmail or other SMTP server](https://www.wpbeginner.com/plugins/how-to-send-email-in-wordpress-using-the-gmail-smtp-server/)**, you just need to have a mail like GMAIL and connect it to WP .
+a. install a **Mail Server** in your webserver (you can find a lot of guides online)  
+b. install the plugin **WP SMTP** via `Admin Panle -> Plugins -> Add new` and **[configure it with gmail or other SMTP server](https://www.wpbeginner.com/plugins/how-to-send-email-in-wordpress-using-the-gmail-smtp-server/)**, you just need to have a mail like GMAIL and connect it to WP.  
 
 I recommend you to install the plugin `Manage Notification E-mails` to manage in detail the email sending from your website to the users or to the admins.
 
@@ -39,9 +39,9 @@ If you encounter errors, please see the [Troubleshooting](##Troubleshooting) sec
 
 To add the shop in your website selling items and services you have to:
 
-1. install and configure WooCommerce plugin using `Admin Panel -> Plugins -> Add new` (you can skip the configuration and remove all the shipment options).
-  Now the pages like `Cart, Shop, Checkout` will be created and added into your menu, you can edit them from `Pages`.
-  Remember to set the right currency and manage all the related woocommerce settings.
+1. install and configure WooCommerce plugin using `Admin Panel -> Plugins -> Add new` (you can skip the configuration and remove all the shipment options).  
+  Now the pages like `Cart, Shop, Checkout` will be created and added into your menu, you can edit them from `Pages`.  
+  Remember to set the right currency and manage all the related woocommerce settings.  
   <br>
 2. create a product
   - go to `Admin Panel -> Product -> Create new product`
@@ -49,8 +49,8 @@ To add the shop in your website selling items and services you have to:
   - put a price in the `General` section
   - set the SKU as `itemsend_28773` to sell the item 28773 `(Gorehowl)`
 
-3. well, you are selling items but there are no payments method you can install the plugin `WooCommerce PayPal Checkout Payment Gateway` to add PayPal but you can also add other plugins to add more payment method (example: `Woocommerce Stripe Gateway`).
-  After the installation remember to enable `Paypal standard` from `Admin Panel -> Woocommerce -> Settings -> Payments` and enable PayPal standard, later click on `Manage` and add your email to receive the payments.
+3. well, you are selling items but there are no payments method you can install the plugin `WooCommerce PayPal Checkout Payment Gateway` to add PayPal but you can also add other plugins to add more payment method (example: `Woocommerce Stripe Gateway`).  
+  After the installation remember to enable `Paypal standard` from `Admin Panel -> Woocommerce -> Settings -> Payments` and enable PayPal standard, later click on `Manage` and add your email to receive the payments.  
   <br>
   4. **(optional)** install the plugin `myCred` to add **"virtual points"** in your website, this will allow you to define a relation between money and your virtual point, so any user can buy items in the shopt through virtual points and buy virtual points with €/$
 
