@@ -39,7 +39,7 @@ function bl_cron_exec_sync_subs()
 
   // get all active accounts and membership level
   $query = $wpdb->prepare(
-    "SELECT user_id, wu.user_login AS AccountName, membership_id, status
+    "SELECT user_id, wu.user_login AS AccountName, membership_level_id, status
     FROM " . $wpdb->prefix . "pmpro_subscriptions wpmu
     LEFT JOIN " . $wpdb->prefix . "users wu ON wpmu.user_id = wu.ID
     WHERE wpmu.status=\"active\";"
@@ -70,8 +70,8 @@ function bl_cron_exec_sync_subs()
   if ($current_subscriptions_in_game_rows != null) {
     foreach ($current_subscriptions_in_game_rows as $row) {
       if (array_key_exists($row->account_name, $all_active_accounts_obj)) {
-        if ($all_active_accounts_obj[$row->account_name]->membership_id != $row->membership_level) {
-          $query_update_membership_level = "UPDATE `acore_cms_subscriptions` SET `membership_level`= " . $all_active_accounts_obj[$row->account_name]->membership_id . " WHERE `account_name`=\"" . $row->account_name . "\";\n";
+        if ($all_active_accounts_obj[$row->account_name]->membership_level_id != $row->membership_level) {
+          $query_update_membership_level = "UPDATE `acore_cms_subscriptions` SET `membership_level`= " . $all_active_accounts_obj[$row->account_name]->membership_level_id . " WHERE `account_name`=\"" . $row->account_name . "\";\n";
           $query = $acore_auth_db->prepare($query_update_membership_level);
           $acore_auth_db->get_results($query);
         }
@@ -83,7 +83,7 @@ function bl_cron_exec_sync_subs()
   // INSERT new accounts with membership if any
   $query_insert_membership_new = '';
   foreach ($all_active_accounts_obj as $row) {
-    $query_insert_membership_new .= "('" . $row->AccountName . "', " . $row->membership_id . "),\n";
+    $query_insert_membership_new .= "('" . $row->AccountName . "', " . $row->membership_level_id . "),\n";
   }
 
   if ($query_insert_membership_new != '') {
