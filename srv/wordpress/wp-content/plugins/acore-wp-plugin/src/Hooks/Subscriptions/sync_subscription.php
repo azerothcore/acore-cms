@@ -40,7 +40,7 @@ function bl_cron_exec_sync_subs()
   // get all active accounts and membership level
   $query = $wpdb->prepare(
     "SELECT user_id, wu.user_login AS AccountName, membership_id, status
-    FROM " . $wpdb->prefix . "pmpro_memberships_users wpmu
+    FROM " . $wpdb->prefix . "pmpro_subscriptions wpmu
     LEFT JOIN " . $wpdb->prefix . "users wu ON wpmu.user_id = wu.ID
     WHERE wpmu.status=\"active\";"
   );
