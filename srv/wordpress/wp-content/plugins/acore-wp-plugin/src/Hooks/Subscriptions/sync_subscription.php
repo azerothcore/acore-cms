@@ -7,7 +7,7 @@ function example_add_cron_interval($schedules)
 {
   $schedules['every_5_minutes'] = array(
     'interval' => 300,
-    'display'  => esc_html__('Every Five Minutes'),
+    'display'  => esc_html__('Sync pmpro subscriptions with azerothcore'),
   );
   return $schedules;
 }
