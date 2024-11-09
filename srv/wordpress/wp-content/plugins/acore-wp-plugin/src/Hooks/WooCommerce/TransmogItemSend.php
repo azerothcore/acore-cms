@@ -68,6 +68,10 @@ class TransmogItemSend extends \ACore\Lib\WpClass {
             $custom_items = $cart_data;
         }
 
+        if (!array_key_exists('acore_item_sku', $cart_item)) {
+            return $custom_items;
+        }
+
         $itemId = self::getItemId($cart_item["acore_item_sku"]);
         if (!$itemId) {
             return $custom_items;

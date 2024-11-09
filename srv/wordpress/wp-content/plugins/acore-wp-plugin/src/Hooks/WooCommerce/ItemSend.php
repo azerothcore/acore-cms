@@ -124,6 +124,10 @@ class ItemSend extends \ACore\Lib\WpClass {
             $custom_items = $cart_data;
         }
 
+        if (!array_key_exists('acore_item_sku', $cart_item)) {
+            return $custom_items;
+        }
+
         $sku = self::getSkuItem($cart_item["acore_item_sku"]);
         if (!$sku) {
             return $custom_items;

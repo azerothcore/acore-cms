@@ -63,6 +63,10 @@ class CharChange extends \ACore\Lib\WpClass {
             $custom_items = $cart_data;
         }
 
+        if (!array_key_exists('acore_item_sku', $cart_item)) {
+            return $custom_items;
+        }
+
         if (!in_array($cart_item['acore_item_sku'], self::$skuList)) {
             return $custom_items;
         }
