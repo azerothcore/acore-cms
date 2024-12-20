@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   wp-db:
     restart: unless-stopped
@@ -37,7 +35,8 @@ services:
         USER_ID: ${DOCKER_USER_ID:-1000}
         GROUP_ID: ${DOCKER_GROUP_ID:-1000}
     depends_on:
-      - wp-db
+      wp-db:
+        condition: service_healthy
     working_dir: "/var/www/html"
     volumes:
       - type: bind
@@ -98,7 +97,7 @@ networks:
     driver: bridge
   ac-network:
     name: azerothcore-wotlk_ac-network # default network name if you use the docker setup of ac
-    external: true
+    external: ${DOCKER_AC_NETWORK_EXTERNAL:-true}
 volumes:
   mysql-data:
 

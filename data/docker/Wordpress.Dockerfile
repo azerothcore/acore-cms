@@ -1,4 +1,4 @@
-FROM wordpress:6-fpm
+FROM wordpress:6-php7.4-fpm
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
