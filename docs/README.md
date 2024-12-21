@@ -62,8 +62,10 @@ More info about docker-configuration are available below
 
 ### AzerothCore integration
 
-ACore CMS is designed to work with AzerothCore. The ac-network included in our docker-compose file is a network that connects the AzerothCore server with the CMS. This network is flagged as external which means that you need an azerothcore server spinned up 
-using its own docker-compose file to make it work. If you are not using azerothcore with the docker-compose file provided by us, you can still running acore-cms with docker by setting DOCKER_AC_NETWORK_EXTERNAL to false in the .env file.
+ACore CMS is designed to work with AzerothCore. The ac-network included in our docker-compose file is a network that connects the AzerothCore server with the CMS. This network can be flagged as external which means that you need an azerothcore server spinned up using its own docker-compose file to make it work. 
+If you are using azerothcore with the docker-compose file provided by us, you can running acore-cms with docker by setting DOCKER_AC_NETWORK_EXTERNAL to true in the .env file.
+
+Please check this guide: [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
 
 ### CLI commands available
 
