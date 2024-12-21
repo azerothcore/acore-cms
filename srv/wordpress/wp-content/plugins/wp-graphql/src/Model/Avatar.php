@@ -23,64 +23,65 @@ class Avatar extends Model {
 	/**
 	 * Stores the incoming avatar to be modeled
 	 *
-	 * @var array $data
+	 * @var array<string,mixed>
 	 */
 	protected $data;
 
 	/**
 	 * Avatar constructor.
 	 *
-	 * @param array $avatar The incoming avatar to be modeled
-	 *
-	 * @throws \Exception Throws Exception.
+	 * @param array<string,mixed> $avatar The incoming avatar to be modeled.
 	 */
-	public function __construct( $avatar ) {
+	public function __construct( array $avatar ) {
 		$this->data = $avatar;
 		parent::__construct();
 	}
 
 	/**
-	 * Initializes the object
-	 *
-	 * @return void
+	 * @return bool
+	 */
+	protected function is_private() {
+		$show_avatars = get_option( 'show_avatars' );
+		return ! (bool) $show_avatars;
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
-				'size'         => function() {
+				'size'         => function () {
 					return ! empty( $this->data['size'] ) ? absint( $this->data['size'] ) : null;
 				},
-				'height'       => function() {
+				'height'       => function () {
 					return ! empty( $this->data['height'] ) ? absint( $this->data['height'] ) : null;
 				},
-				'width'        => function() {
+				'width'        => function () {
 					return ! empty( $this->data['width'] ) ? absint( $this->data['width'] ) : null;
 				},
-				'default'      => function() {
+				'default'      => function () {
 					return ! empty( $this->data['default'] ) ? $this->data['default'] : null;
 				},
-				'forceDefault' => function() {
-					return ( ! empty( $this->data['force_default'] ) && true === $this->data['force_default'] ) ? true : false;
+				'forceDefault' => function () {
+					return ! empty( $this->data['force_default'] );
 				},
-				'rating'       => function() {
+				'rating'       => function () {
 					return ! empty( $this->data['rating'] ) ? $this->data['rating'] : null;
 				},
-				'scheme'       => function() {
+				'scheme'       => function () {
 					return ! empty( $this->data['scheme'] ) ? $this->data['scheme'] : null;
 				},
-				'extraAttr'    => function() {
+				'extraAttr'    => function () {
 					return ! empty( $this->data['extra_attr'] ) ? $this->data['extra_attr'] : null;
 				},
-				'foundAvatar'  => function() {
-					return ! empty( $this->data['found_avatar'] && true === $this->data['found_avatar'] ) ? true : false;
+				'foundAvatar'  => function () {
+					return ! empty( $this->data['found_avatar'] );
 				},
-				'url'          => function() {
+				'url'          => function () {
 					return ! empty( $this->data['url'] ) ? $this->data['url'] : null;
 				},
 			];
-
 		}
 	}
 }

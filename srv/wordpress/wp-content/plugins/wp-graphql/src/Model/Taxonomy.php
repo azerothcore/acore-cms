@@ -43,12 +43,9 @@ class Taxonomy extends Model {
 	/**
 	 * Taxonomy constructor.
 	 *
-	 * @param \WP_Taxonomy $taxonomy The incoming Taxonomy to model
-	 *
-	 * @throws \Exception
+	 * @param \WP_Taxonomy $taxonomy The incoming Taxonomy to model.
 	 */
 	public function __construct( \WP_Taxonomy $taxonomy ) {
-
 		$this->data = $taxonomy;
 
 		$allowed_restricted_fields = [
@@ -69,99 +66,89 @@ class Taxonomy extends Model {
 		$capability = isset( $this->data->cap->edit_terms ) ? $this->data->cap->edit_terms : 'edit_terms';
 
 		parent::__construct( $capability, $allowed_restricted_fields );
-
 	}
 
 	/**
-	 * Method for determining if the data should be considered private or not
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
 	protected function is_private() {
-
 		if ( false === $this->data->public && ( ! isset( $this->data->cap->edit_terms ) || ! current_user_can( $this->data->cap->edit_terms ) ) ) {
 			return true;
 		}
 
 		return false;
-
 	}
 
 	/**
-	 * Initializes the object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
-				'id'                  => function() {
+				'id'                  => function () {
 					return ! empty( $this->data->name ) ? Relay::toGlobalId( 'taxonomy', $this->data->name ) : null;
 				},
-				'object_type'         => function() {
+				'object_type'         => function () {
 					return ! empty( $this->data->object_type ) ? $this->data->object_type : null;
 				},
-				'name'                => function() {
+				'name'                => function () {
 					return ! empty( $this->data->name ) ? $this->data->name : null;
 				},
-				'label'               => function() {
+				'label'               => function () {
 					return ! empty( $this->data->label ) ? $this->data->label : null;
 				},
-				'description'         => function() {
+				'description'         => function () {
 					return ! empty( $this->data->description ) ? $this->data->description : '';
 				},
-				'public'              => function() {
+				'public'              => function () {
 					return ! empty( $this->data->public ) ? (bool) $this->data->public : true;
 				},
-				'hierarchical'        => function() {
-					return ( true === $this->data->hierarchical ) ? true : false;
+				'hierarchical'        => function () {
+					return true === $this->data->hierarchical;
 				},
-				'showUi'              => function() {
-					return ( true === $this->data->show_ui ) ? true : false;
+				'showUi'              => function () {
+					return true === $this->data->show_ui;
 				},
-				'showInMenu'          => function() {
-					return ( true === $this->data->show_in_menu ) ? true : false;
+				'showInMenu'          => function () {
+					return true === $this->data->show_in_menu;
 				},
-				'showInNavMenus'      => function() {
-					return ( true === $this->data->show_in_nav_menus ) ? true : false;
+				'showInNavMenus'      => function () {
+					return true === $this->data->show_in_nav_menus;
 				},
-				'showCloud'           => function() {
-					return ( true === $this->data->show_tagcloud ) ? true : false;
+				'showCloud'           => function () {
+					return true === $this->data->show_tagcloud;
 				},
-				'showInQuickEdit'     => function() {
-					return ( true === $this->data->show_in_quick_edit ) ? true : false;
+				'showInQuickEdit'     => function () {
+					return true === $this->data->show_in_quick_edit;
 				},
-				'showInAdminColumn'   => function() {
-					return ( true === $this->data->show_admin_column ) ? true : false;
+				'showInAdminColumn'   => function () {
+					return true === $this->data->show_admin_column;
 				},
-				'showInRest'          => function() {
-					return ( true === $this->data->show_in_rest ) ? true : false;
+				'showInRest'          => function () {
+					return true === $this->data->show_in_rest;
 				},
-				'restBase'            => function() {
+				'restBase'            => function () {
 					return ! empty( $this->data->rest_base ) ? $this->data->rest_base : null;
 				},
-				'restControllerClass' => function() {
+				'restControllerClass' => function () {
 					return ! empty( $this->data->rest_controller_class ) ? $this->data->rest_controller_class : null;
 				},
-				'showInGraphql'       => function() {
-					return ( true === $this->data->show_in_graphql ) ? true : false;
+				'showInGraphql'       => function () {
+					return true === $this->data->show_in_graphql;
 				},
-				'graphqlSingleName'   => function() {
+				'graphqlSingleName'   => function () {
 					return ! empty( $this->data->graphql_single_name ) ? $this->data->graphql_single_name : null;
 				},
-				'graphql_single_name' => function() {
+				'graphql_single_name' => function () {
 					return ! empty( $this->data->graphql_single_name ) ? $this->data->graphql_single_name : null;
 				},
-				'graphqlPluralName'   => function() {
+				'graphqlPluralName'   => function () {
 					return ! empty( $this->data->graphql_plural_name ) ? $this->data->graphql_plural_name : null;
 				},
-				'graphql_plural_name' => function() {
+				'graphql_plural_name' => function () {
 					return ! empty( $this->data->graphql_plural_name ) ? $this->data->graphql_plural_name : null;
 				},
 			];
-
 		}
 	}
 }

@@ -13,7 +13,7 @@ use WPGraphQL\WPSchema;
 class SchemaRegistry {
 
 	/**
-	 * @var TypeRegistry
+	 * @var \WPGraphQL\Registry\TypeRegistry
 	 */
 	protected $type_registry;
 
@@ -29,17 +29,16 @@ class SchemaRegistry {
 	/**
 	 * Returns the Schema to use for execution of the GraphQL Request
 	 *
-	 * @return WPSchema
+	 * @return \WPGraphQL\WPSchema
 	 * @throws \Exception
 	 */
 	public function get_schema() {
-
 		$this->type_registry->init();
 
 		$schema_config             = new SchemaConfig();
 		$schema_config->query      = $this->type_registry->get_type( 'RootQuery' );
 		$schema_config->mutation   = $this->type_registry->get_type( 'RootMutation' );
-		$schema_config->typeLoader = function( $type ) {
+		$schema_config->typeLoader = function ( $type ) {
 			return $this->type_registry->get_type( $type );
 		};
 		$schema_config->types      = $this->type_registry->get_types();
@@ -47,17 +46,14 @@ class SchemaRegistry {
 		/**
 		 * Create a new instance of the Schema
 		 */
-		$schema = new WPSchema( $schema_config );
+		$schema = new WPSchema( $schema_config, $this->type_registry );
 
 		/**
 		 * Filter the Schema
 		 *
-		 * @param WPSchema       $schema The generated Schema
-		 * @param SchemaRegistry $this   The Schema Registry Instance
+		 * @param \WPGraphQL\WPSchema $schema The generated Schema
+		 * @param \WPGraphQL\Registry\SchemaRegistry $registry The Schema Registry Instance
 		 */
 		return apply_filters( 'graphql_schema', $schema, $this );
-
 	}
-
-
 }

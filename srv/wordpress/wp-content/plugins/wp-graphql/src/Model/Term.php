@@ -2,9 +2,7 @@
 
 namespace WPGraphQL\Model;
 
-use Exception;
 use GraphQLRelay\Relay;
-use WP_Post;
 use WP_Taxonomy;
 use WP_Term;
 
@@ -13,6 +11,7 @@ use WP_Term;
  *
  * @property string $id
  * @property int    $term_id
+ * @property int    $databaseId
  * @property int    $count
  * @property string $description
  * @property string $name
@@ -32,31 +31,30 @@ class Term extends Model {
 	/**
 	 * Stores the incoming WP_Term object
 	 *
-	 * @var WP_Term $data
+	 * @var \WP_Term $data
 	 */
 	protected $data;
 
 	/**
 	 * Stores the taxonomy object for the term being modeled
 	 *
-	 * @var null|WP_Taxonomy $taxonomy_object
+	 * @var \WP_Taxonomy|null $taxonomy_object
 	 */
 	protected $taxonomy_object;
 
 	/**
 	 * The global Post instance
 	 *
-	 * @var WP_Post
+	 * @var \WP_Post
 	 */
 	protected $global_post;
 
 	/**
 	 * Term constructor.
 	 *
-	 * @param WP_Term $term The incoming WP_Term object that needs modeling
+	 * @param \WP_Term $term The incoming WP_Term object that needs modeling
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
 	public function __construct( WP_Term $term ) {
 		$this->data            = $term;
@@ -66,12 +64,9 @@ class Term extends Model {
 	}
 
 	/**
-	 * Setup the global state for the model to have proper context when resolving
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	public function setup() {
-
 		global $wp_query, $post;
 
 		/**
@@ -79,12 +74,12 @@ class Term extends Model {
 		 */
 		$this->global_post = $post;
 
-		if ( ! empty( $this->data ) ) {
+		if ( $this->data instanceof WP_Term ) {
 
 			/**
 			 * Reset global post
 			 */
-			$GLOBALS['post'] = get_post( 0 );
+			$GLOBALS['post'] = get_post( 0 ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 
 			/**
 			 * Parse the query to tell WordPress
@@ -106,71 +101,65 @@ class Term extends Model {
 
 			$wp_query->queried_object    = get_term( $this->data->term_id, $this->data->taxonomy );
 			$wp_query->queried_object_id = $this->data->term_id;
-
 		}
-
 	}
 
 	/**
-	 * Reset global state after the model fields
-	 * have been generated
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	public function tear_down() {
-		$GLOBALS['post'] = $this->global_post;
+		$GLOBALS['post'] = $this->global_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride
 		wp_reset_postdata();
 	}
 
 	/**
-	 * Initializes the Term object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
-				'id'                       => function() {
+				'id'                       => function () {
 					return ( ! empty( $this->data->taxonomy ) && ! empty( $this->data->term_id ) ) ? Relay::toGlobalId( 'term', (string) $this->data->term_id ) : null;
 				},
-				'term_id'                  => function() {
+				'term_id'                  => function () {
 					return ( ! empty( $this->data->term_id ) ) ? absint( $this->data->term_id ) : null;
 				},
-				'count'                    => function() {
+				'databaseId'               => function () {
+					return ( ! empty( $this->data->term_id ) ) ? absint( $this->data->term_id ) : null;
+				},
+				'count'                    => function () {
 					return ! empty( $this->data->count ) ? absint( $this->data->count ) : null;
 				},
-				'description'              => function() {
+				'description'              => function () {
 					return ! empty( $this->data->description ) ? $this->html_entity_decode( $this->data->description, 'description' ) : null;
 				},
-				'name'                     => function() {
+				'name'                     => function () {
 					return ! empty( $this->data->name ) ? $this->html_entity_decode( $this->data->name, 'name', true ) : null;
 				},
-				'slug'                     => function() {
-					return ! empty( $this->data->slug ) ? $this->data->slug : null;
+				'slug'                     => function () {
+					return ! empty( $this->data->slug ) ? urldecode( $this->data->slug ) : null;
 				},
-				'termGroupId'              => function() {
+				'termGroupId'              => function () {
 					return ! empty( $this->data->term_group ) ? absint( $this->data->term_group ) : null;
 				},
-				'termTaxonomyId'           => function() {
+				'termTaxonomyId'           => function () {
 					return ! empty( $this->data->term_taxonomy_id ) ? absint( $this->data->term_taxonomy_id ) : null;
 				},
-				'taxonomyName'             => function() {
+				'taxonomyName'             => function () {
 					return ! empty( $this->taxonomy_object->name ) ? $this->taxonomy_object->name : null;
 				},
-				'link'                     => function() {
+				'link'                     => function () {
 					$link = get_term_link( $this->data->term_id );
 
 					return ( ! is_wp_error( $link ) ) ? $link : null;
 				},
-				'parentId'                 => function() {
+				'parentId'                 => function () {
 					return ! empty( $this->data->parent ) ? Relay::toGlobalId( 'term', (string) $this->data->parent ) : null;
 				},
-				'parentDatabaseId'         => function() {
+				'parentDatabaseId'         => function () {
 					return ! empty( $this->data->parent ) ? $this->data->parent : null;
 				},
-				'enqueuedScriptsQueue'     => function() {
+				'enqueuedScriptsQueue'     => static function () {
 					global $wp_scripts;
 					$wp_scripts->reset();
 					do_action( 'wp_enqueue_scripts' );
@@ -180,7 +169,7 @@ class Term extends Model {
 
 					return $queue;
 				},
-				'enqueuedStylesheetsQueue' => function() {
+				'enqueuedStylesheetsQueue' => static function () {
 					global $wp_styles;
 					do_action( 'wp_enqueue_scripts' );
 					$queue = $wp_styles->queue;
@@ -189,25 +178,26 @@ class Term extends Model {
 
 					return $queue;
 				},
-				'uri'                      => function() {
-					$link = get_term_link( $this->name );
+				'uri'                      => function () {
+					$link = $this->link;
 
-					if ( is_wp_error( $link ) ) {
-						return null;
+					$maybe_url = wp_parse_url( $link );
+
+					// If this isn't a URL, we can assume it's been filtered and just return the link value.
+					if ( false === $maybe_url ) {
+						return $link;
 					}
 
-					$stripped_link = str_ireplace( home_url(), '', $link );
-
-					return trailingslashit( $stripped_link );
+					// Replace the home_url in the link in order to return a relative uri.
+					// For subdirectory multisites, this replaces the home_url which includes the subdirectory.
+					return ! empty( $link ) ? str_ireplace( home_url(), '', $link ) : null;
 				},
 			];
 
-			if ( isset( $this->taxonomy_object ) && isset( $this->taxonomy_object->graphql_single_name ) ) {
+			if ( isset( $this->taxonomy_object, $this->taxonomy_object->graphql_single_name ) ) {
 				$type_id                  = $this->taxonomy_object->graphql_single_name . 'Id';
 				$this->fields[ $type_id ] = absint( $this->data->term_id );
 			}
 		}
-
 	}
-
 }

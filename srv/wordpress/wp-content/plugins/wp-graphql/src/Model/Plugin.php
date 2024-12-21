@@ -23,16 +23,14 @@ class Plugin extends Model {
 	/**
 	 * Stores the incoming plugin data to be modeled
 	 *
-	 * @var array $data
+	 * @var array<string,mixed> $data
 	 */
 	protected $data;
 
 	/**
 	 * Plugin constructor.
 	 *
-	 * @param array $plugin The incoming Plugin data to be modeled
-	 *
-	 * @throws \Exception
+	 * @param array<string,mixed> $plugin The incoming Plugin data to be modeled.
 	 */
 	public function __construct( $plugin ) {
 		$this->data = $plugin;
@@ -40,56 +38,53 @@ class Plugin extends Model {
 	}
 
 	/**
-	 * Method for determining if the data should be considered private or not
-	 *
-	 * @return bool
+	 * {@inheritDoc}
 	 */
 	protected function is_private() {
-
-		if ( ! current_user_can( 'update_plugins' ) ) {
+		if ( is_multisite() ) {
+				// update_, install_, and delete_ are handled above with is_super_admin().
+				$menu_perms = get_site_option( 'menu_items', [] );
+			if ( empty( $menu_perms['plugins'] ) && ! current_user_can( 'manage_network_plugins' ) ) {
+				return true;
+			}
+		} elseif ( ! current_user_can( 'activate_plugins' ) ) {
 			return true;
 		}
 
 		return false;
-
 	}
 
 	/**
-	 * Initializes the object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
-				'id'          => function() {
+				'id'          => function () {
 					return ! empty( $this->data['Path'] ) ? Relay::toGlobalId( 'plugin', $this->data['Path'] ) : null;
 				},
-				'name'        => function() {
+				'name'        => function () {
 					return ! empty( $this->data['Name'] ) ? $this->data['Name'] : null;
 				},
-				'pluginUri'   => function() {
+				'pluginUri'   => function () {
 					return ! empty( $this->data['PluginURI'] ) ? $this->data['PluginURI'] : null;
 				},
-				'description' => function() {
+				'description' => function () {
 					return ! empty( $this->data['Description'] ) ? $this->data['Description'] : null;
 				},
-				'author'      => function() {
+				'author'      => function () {
 					return ! empty( $this->data['Author'] ) ? $this->data['Author'] : null;
 				},
-				'authorUri'   => function() {
+				'authorUri'   => function () {
 					return ! empty( $this->data['AuthorURI'] ) ? $this->data['AuthorURI'] : null;
 				},
-				'version'     => function() {
+				'version'     => function () {
 					return ! empty( $this->data['Version'] ) ? $this->data['Version'] : null;
 				},
-				'path'        => function() {
+				'path'        => function () {
 					return ! empty( $this->data['Path'] ) ? $this->data['Path'] : null;
 				},
 			];
-
 		}
 	}
 }

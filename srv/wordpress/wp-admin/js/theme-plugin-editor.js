@@ -191,7 +191,7 @@ wp.themePluginEditor = (function( $ ) {
 			return;
 		}
 
-		// Scroll ot the line that has the error.
+		// Scroll to the line that has the error.
 		if ( component.lintErrors.length ) {
 			component.instance.codemirror.setCursor( component.lintErrors[0].from.line );
 			return;
@@ -328,7 +328,7 @@ wp.themePluginEditor = (function( $ ) {
 		 * @return {void}
 		 */
 		codeEditorSettings.onTabPrevious = function() {
-			$( '#templateside' ).find( ':tabbable' ).last().focus();
+			$( '#templateside' ).find( ':tabbable' ).last().trigger( 'focus' );
 		};
 
 		/**
@@ -339,7 +339,7 @@ wp.themePluginEditor = (function( $ ) {
 		 * @return {void}
 		 */
 		codeEditorSettings.onTabNext = function() {
-			$( '#template' ).find( ':tabbable:not(.CodeMirror-code)' ).first().focus();
+			$( '#template' ).find( ':tabbable:not(.CodeMirror-code)' ).first().trigger( 'focus' );
 		};
 
 		/**

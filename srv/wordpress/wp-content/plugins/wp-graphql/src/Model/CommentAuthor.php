@@ -2,7 +2,6 @@
 
 namespace WPGraphQL\Model;
 
-use Exception;
 use GraphQLRelay\Relay;
 use WP_Comment;
 
@@ -22,16 +21,14 @@ class CommentAuthor extends Model {
 	/**
 	 * Stores the comment author to be modeled
 	 *
-	 * @var WP_Comment $data The raw data passed to he model
+	 * @var \WP_Comment $data The raw data passed to he model
 	 */
 	protected $data;
 
 	/**
 	 * CommentAuthor constructor.
 	 *
-	 * @param WP_Comment $comment_author The incoming comment author array to be modeled
-	 *
-	 * @throws Exception
+	 * @param \WP_Comment $comment_author The incoming comment author array to be modeled
 	 */
 	public function __construct( WP_Comment $comment_author ) {
 		$this->data = $comment_author;
@@ -39,32 +36,27 @@ class CommentAuthor extends Model {
 	}
 
 	/**
-	 * Initializes the object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
 		if ( empty( $this->fields ) ) {
-
 			$this->fields = [
-				'id'         => function() {
+				'id'         => function () {
 					return ! empty( $this->data->comment_ID ) ? Relay::toGlobalId( 'comment_author', $this->data->comment_ID ) : null;
 				},
-				'databaseId' => function() {
+				'databaseId' => function () {
 					return ! empty( $this->data->comment_ID ) ? absint( $this->data->comment_ID ) : null;
 				},
-				'name'       => function() {
+				'name'       => function () {
 					return ! empty( $this->data->comment_author ) ? $this->data->comment_author : null;
 				},
-				'email'      => function() {
+				'email'      => function () {
 					return current_user_can( 'moderate_comments' ) && ! empty( $this->data->comment_author_email ) ? $this->data->comment_author_email : null;
 				},
-				'url'        => function() {
+				'url'        => function () {
 					return ! empty( $this->data->comment_author_url ) ? $this->data->comment_author_url : '';
 				},
 			];
-
 		}
 	}
 }

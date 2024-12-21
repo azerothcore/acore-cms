@@ -12,12 +12,14 @@ use GraphQL\Type\Schema;
 use GraphQL\Utils\Utils;
 use function is_array;
 use function is_callable;
+use function is_iterable;
 use function is_string;
 use function sprintf;
 
 /**
  * @todo Move complexity-related code to it's own place
  */
+#[\AllowDynamicProperties]
 class FieldDefinition
 {
     public const DEFAULT_COMPLEXITY_FN = 'GraphQL\Type\Definition\FieldDefinition::defaultComplexity';
@@ -95,9 +97,9 @@ class FieldDefinition
         if (is_callable($fields)) {
             $fields = $fields();
         }
-        if (! is_array($fields)) {
+        if (! is_iterable($fields)) {
             throw new InvariantViolation(
-                sprintf('%s fields must be an array or a callable which returns such an array.', $type->name)
+                sprintf('%s fields must be an iterable or a callable which returns such an iterable.', $type->name)
             );
         }
         $map = [];
@@ -123,6 +125,17 @@ class FieldDefinition
                 $fieldDef = self::create($field);
             } elseif ($field instanceof self) {
                 $fieldDef = $field;
+            } elseif (is_callable($field)) {
+                if (! is_string($name)) {
+                    throw new InvariantViolation(
+                        sprintf(
+                            '%s lazy fields must be an associative array with field names as keys.',
+                            $type->name
+                        )
+                    );
+                }
+
+                $fieldDef = new UnresolvedFieldDefinition($type, $name, $field);
             } else {
                 if (! is_string($name) || ! $field) {
                     throw new InvariantViolation(
@@ -137,7 +150,8 @@ class FieldDefinition
 
                 $fieldDef = self::create(['name' => $name, 'type' => $field]);
             }
-            $map[$fieldDef->name] = $fieldDef;
+
+            $map[$fieldDef->getName()] = $fieldDef;
         }
 
         return $map;
@@ -178,6 +192,11 @@ class FieldDefinition
         }
 
         return null;
+    }
+
+    public function getName() : string
+    {
+        return $this->name;
     }
 
     public function getType() : Type

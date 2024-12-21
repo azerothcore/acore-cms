@@ -8,9 +8,9 @@
 namespace GraphQLRelay\tests;
 
 
-use GraphQL\Schema;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Schema;
 use GraphQLRelay\Relay;
 
 class StarWarsSchema {
@@ -38,7 +38,7 @@ class StarWarsSchema {
 
     /**
      * Using our shorthand to describe type systems, the type system for our
-     * example will be the followng:
+     * example will be the following:
      *
      * interface Node {
      *   id: ID!

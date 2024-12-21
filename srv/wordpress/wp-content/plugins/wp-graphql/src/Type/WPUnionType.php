@@ -17,32 +17,39 @@ use WPGraphQL\Registry\TypeRegistry;
 class WPUnionType extends UnionType {
 
 	/**
-	 * @var TypeRegistry
+	 * @var \WPGraphQL\Registry\TypeRegistry
 	 */
 	public $type_registry;
 
 	/**
 	 * WPUnionType constructor.
 	 *
-	 * @param array        $config The Config to setup a Union Type
-	 * @param TypeRegistry $type_registry
+	 * @param array<string,mixed>              $config The Config to setup a Union Type
+	 * @param \WPGraphQL\Registry\TypeRegistry $type_registry
 	 *
 	 * @since 0.0.30
 	 */
-	public function __construct( $config = [], TypeRegistry $type_registry ) {
-
+	public function __construct( array $config, TypeRegistry $type_registry ) {
 		$this->type_registry = $type_registry;
 
 		/**
 		 * Set the Types to start with capitals
 		 */
-		$config['name'] = ucfirst( $config['name'] );
+		$name           = ucfirst( $config['name'] );
+		$config['name'] = apply_filters( 'graphql_type_name', $name, $config, $this );
 
-		$config['types'] = function() use ( $config ) {
+		$config['types'] = function () use ( $config ) {
 			$prepared_types = [];
 			if ( ! empty( $config['typeNames'] ) && is_array( $config['typeNames'] ) ) {
 				$prepared_types = [];
 				foreach ( $config['typeNames'] as $type_name ) {
+					/**
+					 * Skip if the type is excluded from the schema.
+					 */
+					if ( in_array( strtolower( $type_name ), $this->type_registry->get_excluded_types(), true ) ) {
+						continue;
+					}
+
 					$prepared_types[] = $this->type_registry->get_type( $type_name );
 				}
 			}
@@ -50,48 +57,48 @@ class WPUnionType extends UnionType {
 			return $prepared_types;
 		};
 
-		$config['resolveType'] = function( $object ) use ( $config ) {
+		$config['resolveType'] = function ( $obj ) use ( $config ) {
 			$type = null;
 			if ( is_callable( $config['resolveType'] ) ) {
-				$type = call_user_func( $config['resolveType'], $object );
+				$type = call_user_func( $config['resolveType'], $obj );
 			}
 
 			/**
 			 * Filter the resolve type method for all unions
 			 *
-			 * @param mixed       $type          The Type to resolve to, based on the object being resolved
-			 * @param mixed       $object        The Object being resolved
-			 * @param WPUnionType $wp_union_type The WPUnionType instance
+			 * @param mixed $type The Type to resolve to, based on the object being resolved
+			 * @param mixed $obj  The Object being resolved
+			 * @param \WPGraphQL\Type\WPUnionType $wp_union_type The WPUnionType instance
 			 */
-			return apply_filters( 'graphql_union_resolve_type', $type, $object, $this );
+			return apply_filters( 'graphql_union_resolve_type', $type, $obj, $this );
 		};
 
 		/**
 		 * Filter the possible_types to allow systems to add to the possible resolveTypes.
 		 *
-		 * @param array       $types         The possible types for the Union
-		 * @param array       $config        The config for the Union Type
-		 * @param WPUnionType $wp_union_type The WPUnionType instance
+		 * @param mixed                       $types         The possible types for the Union
+		 * @param array<string,mixed>         $config        The config for the Union Type
+		 * @param \WPGraphQL\Type\WPUnionType $wp_union_type The WPUnionType instance
 		 *
-		 * @return array
+		 * @return mixed|array
 		 */
 		$config['types'] = apply_filters( 'graphql_union_possible_types', $config['types'], $config, $this );
 
 		/**
 		 * Filter the config of WPUnionType
 		 *
-		 * @param array       $config        Array of configuration options passed to the WPUnionType when instantiating a new type
-		 * @param WPUnionType $wp_union_type The instance of the WPObjectType class
+		 * @param array<string,mixed>         $config        Array of configuration options passed to the WPUnionType when instantiating a new type
+		 * @param \WPGraphQL\Type\WPUnionType $wp_union_type The instance of the WPUnionType class
 		 *
 		 * @since 0.0.30
 		 */
 		$config = apply_filters( 'graphql_wp_union_type_config', $config, $this );
 
 		/**
-		 * Run an action when the WPObjectType is instantiating
+		 * Run an action when the WPUnionType is instantiating
 		 *
-		 * @param array       $config        Array of configuration options passed to the WPUnionType when instantiating a new type
-		 * @param WPUnionType $wp_union_type The instance of the WPObjectType class
+		 * @param array<string,mixed>       $config        Array of configuration options passed to the WPUnionType when instantiating a new type
+		 * @param \WPGraphQL\Type\WPUnionType $wp_union_type The instance of the WPUnionType class
 		 */
 		do_action( 'graphql_wp_union_type', $config, $this );
 

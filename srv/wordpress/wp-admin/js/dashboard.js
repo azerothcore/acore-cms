@@ -12,7 +12,7 @@ window.communityEventsData = window.communityEventsData || {};
  *
  * @since 2.7.0
  */
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var welcomePanel = $( '#welcome-panel' ),
 		welcomePanelHide = $('#wp_welcome_panel-hide'),
 		updateWelcomePanel;
@@ -92,7 +92,7 @@ jQuery(document).ready( function($) {
 				setTimeout( function(){
 					// Request the widget content.
 					p.load( ajaxurl + '?action=dashboard-widgets&widget=' + id + '&pagenow=' + pagenow, '', function() {
-						// Hide the parent and slide it out for visual fancyness.
+						// Hide the parent and slide it out for visual fanciness.
 						p.hide().slideDown('normal', function(){
 							$(this).css('display', '');
 						});
@@ -328,7 +328,7 @@ jQuery( function( $ ) {
 			 * @return {void}
 			 */
 			$container.on( 'submit', '.community-events-form', function( event ) {
-				var location = $.trim( $( '#community-events-location' ).val() );
+				var location = $( '#community-events-location' ).val().trim();
 
 				event.preventDefault();
 

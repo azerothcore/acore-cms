@@ -259,7 +259,6 @@ class AST
             }
             if (is_float($serialized)) {
                 // int cast with == used for performance reasons
-                // phpcs:ignore
                 if ((int) $serialized == $serialized) {
                     return new IntValueNode(['value' => (string) $serialized]);
                 }
@@ -584,6 +583,8 @@ class AST
     }
 
     /**
+     * @deprecated use getOperationAST instead.
+     *
      * Returns operation type ("query", "mutation" or "subscription") given a document and operation name
      *
      * @param string $operationName
@@ -607,5 +608,34 @@ class AST
         }
 
         return false;
+    }
+
+    /**
+     * Returns the operation within a document by name.
+     *
+     * If a name is not provided, an operation is only returned if the document has exactly one.
+     *
+     * @api
+     */
+    public static function getOperationAST(DocumentNode $document, ?string $operationName = null) : ?OperationDefinitionNode
+    {
+        $operation = null;
+        foreach ($document->definitions->getIterator() as $node) {
+            if (! $node instanceof OperationDefinitionNode) {
+                continue;
+            }
+
+            if ($operationName === null) {
+                // We found a second operation, so we bail instead of returning an ambiguous result.
+                if ($operation !== null) {
+                    return null;
+                }
+                $operation = $node;
+            } elseif ($node->name instanceof NameNode && $node->name->value === $operationName) {
+                return $node;
+            }
+        }
+
+        return $operation;
     }
 }
