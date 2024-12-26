@@ -45,10 +45,20 @@ class FieldElements {
         <br>
         <label for="acore_char_sel">Select the character: </label>
         <br>
-        <?php  if ($characters && count($characters) > 0) { ?>
-            <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
-            <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
-        <?php  } ?>
+        <?php
+         if (!$deleted) {
+             if ($characters && count($characters) > 0) { ?>
+                <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
+                <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
+            <?php  }
+         }
+         else {
+            if ($deletedCharacters && count($deletedCharacters) > 0) { ?>
+                <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $deletedCharacters[0]->getRace() . ($deletedCharacters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
+                <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $deletedCharacters[0]->getClass() . ".webp"; ?>" />
+            <?php  }
+         }
+        ?>
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
             <?php
 
