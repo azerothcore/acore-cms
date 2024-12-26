@@ -38,6 +38,17 @@ class TransmogItemsetSend extends \ACore\Lib\WpClass {
 
         if ($current_user) {
             FieldElements::charList($current_user->user_login);
+            ?>
+            <br>
+            <?php
+            FieldElements::destCharacter(__("Or send it as a present for: ", 'acore-wp-plugin'));
+            ?>
+            <br>
+            <br>
+            <a target="_blank" href='https://wowgaming.altervista.org/aowow/?itemset=<?= $itemId ?>'><?=__('Show details', 'acore-wp-plugin')?> </a>
+            <br>
+            <br>
+            <?php
         }
     }
 
@@ -51,8 +62,11 @@ class TransmogItemsetSend extends \ACore\Lib\WpClass {
             return $cart_item_data;
         }
 
+        $charInfo = self::getCharInfo();
+
         if (isset($_REQUEST['acore_char_sel'])) {
-            $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
+            $cart_item_data['acore_char_sel'] = $charInfo["guid"];
+            $cart_item_data['acore_char_sel_name'] = $charInfo["name"];
             $cart_item_data['acore_item_sku'] = $product->get_sku();
             /* below statement make sure every add to cart action as unique line item */
             $cart_item_data['unique_key'] = md5(microtime() . rand());
@@ -155,6 +169,35 @@ class TransmogItemsetSend extends \ACore\Lib\WpClass {
         } catch (\Exception $e) {
             $logs->add("acore_log", $e->getMessage());
         }
+    }
+
+    private static function getCharInfo() {
+        $WoWSrv = ACoreServices::I();
+        $charRepo = $WoWSrv->getCharactersRepo();
+
+        $guid = NULL;
+        $name = "";
+        if (isset($_REQUEST['acore_char_dest']) && $_REQUEST['acore_char_dest']) {
+            $name = $_REQUEST['acore_char_dest'];
+            if (!$name || $name == "") {
+                throw new \Exception("No selected character");
+            }
+            $char = $charRepo->findOneByName($name);
+
+            if (!$char) {
+                throw new \Exception("No selected character");
+            }
+
+            $guid = $char->getGuid();
+        } else {
+            $guid = intval($_REQUEST['acore_char_sel']);
+            if ($guid === 0) {
+                throw new \Exception("No selected character");
+            }
+            $name = $WoWSrv->getCharName($guid);
+        }
+
+        return array("guid" => $guid, "name" => $name);
     }
 }
 
