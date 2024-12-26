@@ -150,7 +150,8 @@ function after_delete($user_id)
 add_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 
-function create_account_if_not_exists($user, $password): void {
+function create_account_if_not_exists($user, $password): void
+{
     try {
         $accRepo = ACoreServices::I()->getAccountRepo();
     } catch (PDOException $e) {
@@ -189,10 +190,10 @@ function create_account_if_not_exists($user, $password): void {
 }
 
 // this requires the plugin "Auto Login New User After Registration"
-add_action( 'user_register',  function ($user_id) {
+add_action('user_register',  function ($user_id) {
     // check if the plugin is enabled and the related fields email and passwrd are available
     if (get_option("alnuar_add_password_fields") == true && isset($_POST['password1'])) {
-        $user = get_user_by( 'id', $user_id );
+        $user = get_user_by('id', $user_id);
         $user_password = $_POST['password1'];
         create_account_if_not_exists($user, $user_password);
     }
@@ -277,14 +278,20 @@ function validateComplexPassword($errors)
  * based on a list of valid characters
  */
 
-add_filter( 'random_password', function (/* $pass */) {
-    $characters = UserValidator::PASSWORD_CHARS_LIST;
-    $password = '';
-    for( $i = 0; $i < UserValidator::PASSWORD_LENGTH; $i++ ) {
-        $password .= substr( $characters , wp_rand( 0, strlen( $characters ) - 1 ), 1 );
+add_filter('random_password', function ($pass, $user) {
+    // Check if the request is related to a user, otherwise use the default password generation
+    if ($user instanceof \WP_User) {
+        $characters = UserValidator::PASSWORD_CHARS_LIST;
+        $password = '';
+        for ($i = 0; $i < UserValidator::PASSWORD_LENGTH; $i++) {
+            $password .= substr($characters, wp_rand(0, strlen($characters) - 1), 1);
+        }
+        return $password;
     }
-    return $password;
-}, 10, 1 );
+
+    // If this is not related to user password generation, return the default generated password
+    return $pass;
+}, 10, 2);
 
 
 /**
@@ -308,11 +315,11 @@ function extra_user_profile_fields($user)
 
     $curGameUser = $curUser->ID != $user->ID ? $accRepo->findOneByUsername($user->user_login) : $gameUser;
 
-    if (!in_array($userExpansion,Common::EXPANSIONS)) {
+    if (!in_array($userExpansion, Common::EXPANSIONS)) {
         $userExpansion = Common::EXPANSION_WOTLK;
     }
 
-    ?>
+?>
     <h3><?php _e("AzerothCore Fields", "blank"); ?></h3>
 
     <table class="form-table">
@@ -322,16 +329,16 @@ function extra_user_profile_fields($user)
                 <select id="acore-user-game-expansion" name="acore-user-game-expansion">
                     <?php
                     foreach (Common::EXPANSIONS as $key => $value) {
-                        ?><option value=<?=$value?> <?=$userExpansion == $value ? "selected" : ""?>><?=$key?></option>
-                  <?php
+                    ?><option value=<?= $value ?> <?= $userExpansion == $value ? "selected" : "" ?>><?= $key ?></option>
+                    <?php
                     }
-                  ?>
+                    ?>
                 </select>
                 <span class="description"><?php _e("Game expansion to enable", 'acore-wp-plugin'); ?></span>
             </td>
         </tr>
         <?php
-            /*
+        /*
             ?>
             <tr>
                 <th><label for="acore-user-account-access"><?php _e("Account Level", 'acore-wp-plugin'); ?></label></th>
@@ -352,15 +359,17 @@ function extra_user_profile_fields($user)
         ?>
     </table>
 
-    <h3><?php _e("Other fields...", "blank"); // needed to avoid mess them up with wordpress fields ?></h3>
+    <h3><?php _e("Other fields...", "blank"); // needed to avoid mess them up with wordpress fields 
+        ?></h3>
 <?php
 }
 
-add_action( 'personal_options_update',  __NAMESPACE__ . '\save_extra_user_profile_fields' );
-add_action( 'edit_user_profile_update',  __NAMESPACE__ . '\save_extra_user_profile_fields' );
+add_action('personal_options_update',  __NAMESPACE__ . '\save_extra_user_profile_fields');
+add_action('edit_user_profile_update',  __NAMESPACE__ . '\save_extra_user_profile_fields');
 
-function save_extra_user_profile_fields( $user_id ) {
-    if ( !current_user_can( 'edit_user', $user_id ) ) {
+function save_extra_user_profile_fields($user_id)
+{
+    if (!current_user_can('edit_user', $user_id)) {
         return false;
     }
 
@@ -378,17 +387,17 @@ function save_extra_user_profile_fields( $user_id ) {
 
             $gameUser = $accRepo->findOneByUsername($user->user_login);
             if (!$gameUser) {
-                throw new \Exception(__("Game account doesn't exist!","acore-wp-plugin"));
+                throw new \Exception(__("Game account doesn't exist!", "acore-wp-plugin"));
             }
         } else {
-            throw new \Exception(__("Game account doesn't exist! Change password to renew your game account.","acore-wp-plugin"));
+            throw new \Exception(__("Game account doesn't exist! Change password to renew your game account.", "acore-wp-plugin"));
         }
     }
 
 
     $expansion = $_POST['acore-user-game-expansion'];
 
-    if (!$expansion || !in_array($expansion,Common::EXPANSIONS)) {
+    if (!$expansion || !in_array($expansion, Common::EXPANSIONS)) {
         $expansion = Common::EXPANSION_WOTLK;
         // throw new \Exception(__("Invalid Expansion!", "acore-wp-plugin"));
     }
@@ -411,16 +420,17 @@ function save_extra_user_profile_fields( $user_id ) {
     // }
 }
 
-function login_checks() {
-    ?>
+function login_checks()
+{
+?>
     <script>
         const regex = <?= UserValidator::PASSWORD_VALID_CHARS ?>;
 
         function errorFactory(id, parent) {
             const elemError = document.createElement("p");
-                elemError.style.color = "red";
-                elemError.id = id;
-                parent.appendChild(elemError)
+            elemError.style.color = "red";
+            elemError.id = id;
+            parent.appendChild(elemError)
         }
 
         function checkError(fieldLength, id, errorText) {
@@ -467,8 +477,8 @@ function login_checks() {
 
                     if (password) {
                         if (!validPasswordChars(password.value)) {
-                          document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
-                          return false;
+                            document.querySelector("#password-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+                            return false;
                         }
 
                         const isInvalidPasswordLength = checkError(password.value.length, "#password-error", "Password must have maximum 16 characters!");
@@ -491,8 +501,8 @@ function login_checks() {
                     }
 
                     if (!validPasswordChars(pass1.value)) {
-                      document.querySelector("#pass1-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
-                      return false;
+                        document.querySelector("#pass1-error").innerHTML = "The password have to include these characters: " + regex.toString().replaceAll("\\", "");
+                        return false;
                     }
 
                     const isInvalidPasswordLength = checkError(pass1.value.length, "#pass1-error", "Password must have maximum 16 characters!");
@@ -505,8 +515,7 @@ function login_checks() {
             }
         };
     </script>
-    <?php
+<?php
 }
 
-add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\login_checks' );
-
+add_action('login_enqueue_scripts', __NAMESPACE__ . '\login_checks');

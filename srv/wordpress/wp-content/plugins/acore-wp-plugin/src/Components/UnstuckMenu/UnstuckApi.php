@@ -19,7 +19,10 @@ add_action('rest_api_init', function () {
           } catch (\Exception $e) {
               return new \WP_Error('server_error', 'An unexpected error occurred', array('status' => 500));
           }
-      }
+      },
+      'permission_callback' => function () {
+        return is_user_logged_in();  // Allow access to all logged-in users
+      },
   ));
 });
 

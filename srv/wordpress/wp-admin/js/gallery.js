@@ -4,7 +4,7 @@
 
 /* global unescape, getUserSetting, setUserSetting, wpgallery, tinymce */
 
-jQuery(document).ready(function($) {
+jQuery( function($) {
 	var gallerySortable, gallerySortableInit, sortIt, clearAll, w, desc = false;
 
 	gallerySortableInit = function() {
@@ -87,8 +87,6 @@ jQuery(document).ready(function($) {
 		}
 	}
 });
-
-jQuery(window).on( 'unload', function () { window.tinymce = window.tinyMCE = window.wpgallery = null; } ); // Cleanup.
 
 /* gallery settings */
 window.tinymce = null;

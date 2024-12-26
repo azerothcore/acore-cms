@@ -1,10 +1,12 @@
 # ACore CMS
 
-ACore CMS based on wordpress.
+ACore CMS based on WordPress
+
 
 - [Requirements](https://github.com/azerothcore/acore-cms#requirements)
 - [Usage](https://github.com/azerothcore/acore-cms#usage)
-- [Connect the CMS to AC and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
+- [Connect the CMS to AzerothCore server and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
+- [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
 
 Useful tutorials:
 - [How to restrict the access with credentials of a specific web page](https://ubiq.co/tech-blog/how-to-password-protect-directory-in-nginx/)
@@ -27,23 +29,16 @@ About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
 ### Docker container
 
 
-If you installed the requirements you are able to run the application using:
+If you installed the requirements, open your command prompt terminal (on Windows is for example PowerShell), navigate to the repository folder and issue the command:
+
 ```
-$ docker-compose up
+docker compose up
 ```
 
 It will download the related dependencies of the containers and start the acore-cms, next time you will need to just start the acore cms you can use:
 ```
 $ npm run docker:start
 ```
-
-Open your command prompt terminal (on Windows is for example PowerShell), navigate to the repository folder and issue the command:
-
-```
-docker-compose up
-```
-
-It will set up the docker container and download the necessary dependencies within.
 
 Now you can see the website in [http://localhost:80/](http://localhost:80/).
 
@@ -64,6 +59,13 @@ The env variables above are used to configure the ports within the docker-compos
 **WARNING: if you run this in production, comment the phpmyadmin section in docker-compose to not expose the phpmyadmin service to any user or change the mysql credentials**
 
 More info about docker-configuration are available below
+
+### AzerothCore integration
+
+ACore CMS is designed to work with AzerothCore. The ac-network included in our docker-compose file is a network that connects the AzerothCore server with the CMS. This network can be flagged as external which means that you need an azerothcore server spinned up using its own docker-compose file to make it work. 
+If you are using azerothcore with the docker-compose file provided by us, you can running acore-cms with docker by setting DOCKER_AC_NETWORK_EXTERNAL to true in the .env file.
+
+Please check this guide: [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
 
 ### CLI commands available
 

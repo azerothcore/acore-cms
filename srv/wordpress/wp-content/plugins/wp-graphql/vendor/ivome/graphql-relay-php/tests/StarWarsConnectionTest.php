@@ -9,8 +9,9 @@ namespace GraphQLRelay\tests;
 
 
 use GraphQL\GraphQL;
+use PHPUnit\Framework\TestCase;
 
-class StarWarsConnectionTest extends \PHPUnit_Framework_TestCase
+class StarWarsConnectionTest extends TestCase
 {
     public function testFetchesTheFirstShipOfTheRebels()
     {
@@ -135,7 +136,7 @@ class StarWarsConnectionTest extends \PHPUnit_Framework_TestCase
                                             'cursor' => 'YXJyYXljb25uZWN0aW9uOjM=',
                                             'node' =>
                                                 array (
-                                                    'name' => 'Millenium Falcon',
+                                                    'name' => 'Millennium Falcon',
                                                 ),
                                         ),
                                     2 =>
@@ -256,7 +257,7 @@ class StarWarsConnectionTest extends \PHPUnit_Framework_TestCase
                                         array (
                                             'node' =>
                                                 array (
-                                                    'name' => 'Millenium Falcon',
+                                                    'name' => 'Millennium Falcon',
                                                 ),
                                         ),
                                     2 =>
@@ -283,7 +284,7 @@ class StarWarsConnectionTest extends \PHPUnit_Framework_TestCase
      */
     private function assertValidQuery($query, $expected)
     {
-        $result = GraphQL::execute(StarWarsSchema::getSchema(), $query);
+        $result = GraphQL::executeQuery(StarWarsSchema::getSchema(), $query)->toArray();
 
         $this->assertEquals(['data' => $expected], $result);
     }

@@ -93,7 +93,7 @@
 
 		// If URL wasn't corrected last time and doesn't start with http:, https:, ? # or /, prepend http://.
 		correctURL: function () {
-			var url = $.trim( inputs.url.val() );
+			var url = inputs.url.val().trim();
 
 			if ( url && correctedURL !== url && ! /^(?:[a-z]+:|#|\?|\.|\/)/.test( url ) ) {
 				inputs.url.val( 'http://' + url );
@@ -105,6 +105,7 @@
 			var ed,
 				$body = $( document.body );
 
+			$( '#wpwrap' ).attr( 'aria-hidden', 'true' );
 			$body.addClass( 'modal-open' );
 			wpLink.modalOpen = true;
 
@@ -238,7 +239,7 @@
 				linkText = linkNode.text();
 				href = linkNode.attr( 'href' );
 
-				if ( ! $.trim( linkText ) ) {
+				if ( ! linkText.trim() ) {
 					linkText = text || '';
 				}
 
@@ -281,6 +282,7 @@
 
 		close: function( reset ) {
 			$( document.body ).removeClass( 'modal-open' );
+			$( '#wpwrap' ).removeAttr( 'aria-hidden' );
 			wpLink.modalOpen = false;
 
 			if ( reset !== 'noReset' ) {
@@ -312,7 +314,7 @@
 			wpLink.correctURL();
 
 			return {
-				href: $.trim( inputs.url.val() ),
+				href: inputs.url.val().trim(),
 				target: inputs.openInNewTab.prop( 'checked' ) ? '_blank' : null
 			};
 		},
@@ -321,7 +323,7 @@
 			var html = '<a href="' + attrs.href + '"';
 
 			if ( attrs.target ) {
-				html += ' rel="noopener" target="' + attrs.target + '"';
+				html += ' target="' + attrs.target + '"';
 			}
 
 			return html + '>';
@@ -425,7 +427,7 @@
 				if ( ! $link.length ) {
 					editor.execCommand( 'mceInsertLink', false, { href: '_wp_link_placeholder', 'data-wp-temp-link': 1 } );
 					$link = editor.$( 'a[data-wp-temp-link="1"]' ).removeAttr( 'data-wp-temp-link' );
-					hasText = $.trim( $link.text() );
+					hasText = $link.text().trim();
 				}
 
 				if ( ! $link.length ) {
@@ -483,7 +485,8 @@
 				}
 			}
 
-			selection = $.trim( selection );
+			selection = selection || '';
+			selection = selection.trim();
 
 			if ( selection && emailRegexp.test( selection ) ) {
 				// Selection is email address.
@@ -797,5 +800,5 @@
 		}
 	});
 
-	$( document ).ready( wpLink.init );
+	$( wpLink.init );
 })( jQuery, window.wpLinkL10n, window.wp );

@@ -282,7 +282,7 @@ class SchemaPrinter
                 return strlen($arg->description ?? '') === 0;
             }
         )) {
-            return '(' . implode(', ', array_map('static::printInputValue', $args)) . ')';
+            return '(' . implode(', ', array_map([static::class, 'printInputValue'], $args)) . ')';
         }
 
         return sprintf(
@@ -414,8 +414,21 @@ class SchemaPrinter
      */
     protected static function printInterface(InterfaceType $type, array $options) : string
     {
+        $interfaces            = $type->getInterfaces();
+        $implementedInterfaces = count($interfaces) > 0
+            ? ' implements ' . implode(
+                ' & ',
+                array_map(
+                    static function (InterfaceType $interface) : string {
+                        return $interface->name;
+                    },
+                    $interfaces
+                )
+            )
+            : '';
+
         return static::printDescription($options, $type) .
-            sprintf("interface %s {\n%s\n}", $type->name, static::printFields($options, $type));
+            sprintf("interface %s%s {\n%s\n}", $type->name, $implementedInterfaces, static::printFields($options, $type));
     }
 
     /**

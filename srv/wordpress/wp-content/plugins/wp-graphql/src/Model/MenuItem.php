@@ -32,17 +32,16 @@ class MenuItem extends Model {
 	/**
 	 * Stores the incoming post data
 	 *
-	 * @var mixed|WP_Post|object $data
+	 * @var mixed|object $data
 	 */
 	protected $data;
 
 	/**
 	 * MenuItem constructor.
 	 *
-	 * @param WP_Post $post The incoming WP_Post object that needs modeling
+	 * @param \WP_Post $post The incoming WP_Post object that needs modeling
 	 *
 	 * @return void
-	 * @throws Exception
 	 */
 	public function __construct( WP_Post $post ) {
 		$this->data = wp_setup_nav_menu_item( $post );
@@ -50,13 +49,12 @@ class MenuItem extends Model {
 	}
 
 	/**
-	 * Determines whether a MenuItem should be considered private.
+	 * {@inheritDoc}
 	 *
 	 * If a MenuItem is not connected to a menu that's assigned to a location
-	 * it's not considered a public node
+	 * it's not considered a public node.
 	 *
-	 * @return bool
-	 * @throws Exception
+	 * @throws \Exception
 	 */
 	public function is_private() {
 
@@ -83,8 +81,10 @@ class MenuItem extends Model {
 		}
 
 		if ( is_wp_error( $menus ) ) {
-			throw new Exception( sprintf( __( 'No menus could be found for menu item %s', 'wp-graphql' ), $this->data->ID ) );
+			// translators: %s is the menu item ID.
+			throw new Exception( esc_html( sprintf( __( 'No menus could be found for menu item %s', 'wp-graphql' ), $this->data->ID ) ) );
 		}
+
 		$menu_id = $menus[0];
 		if ( empty( $location_ids ) || ! in_array( $menu_id, $location_ids, true ) ) {
 			return true;
@@ -94,25 +94,21 @@ class MenuItem extends Model {
 	}
 
 	/**
-	 * Initialize the Post object
-	 *
-	 * @return void
+	 * {@inheritDoc}
 	 */
 	protected function init() {
-
-		if ( empty( $fields ) ) {
-
+		if ( empty( $this->fields ) ) {
 			$this->fields = [
-				'id'               => function() {
+				'id'               => function () {
 					return ! empty( $this->data->ID ) ? Relay::toGlobalId( 'post', $this->data->ID ) : null;
 				},
-				'parentId'         => function() {
+				'parentId'         => function () {
 					return ! empty( $this->data->menu_item_parent ) ? Relay::toGlobalId( 'post', $this->data->menu_item_parent ) : null;
 				},
-				'parentDatabaseId' => function() {
+				'parentDatabaseId' => function () {
 					return $this->data->menu_item_parent;
 				},
-				'cssClasses'       => function() {
+				'cssClasses'       => function () {
 					// If all we have is a non-array or an array with one empty
 					// string, return an empty array.
 					if ( ! isset( $this->data->classes ) || ! is_array( $this->data->classes ) || empty( $this->data->classes ) || empty( $this->data->classes[0] ) ) {
@@ -121,68 +117,66 @@ class MenuItem extends Model {
 
 					return $this->data->classes;
 				},
-				'description'      => function() {
+				'description'      => function () {
 					return ( ! empty( $this->data->description ) ) ? $this->data->description : null;
 				},
-				'label'            => function() {
+				'label'            => function () {
 					return ( ! empty( $this->data->title ) ) ? $this->html_entity_decode( $this->data->title, 'label', true ) : null;
 				},
-				'linkRelationship' => function() {
+				'linkRelationship' => function () {
 					return ! empty( $this->data->xfn ) ? $this->data->xfn : null;
 				},
-				'menuItemId'       => function() {
+				'menuItemId'       => function () {
 					return absint( $this->data->ID );
 				},
-				'databaseId'       => function() {
+				'databaseId'       => function () {
 					return absint( $this->data->ID );
 				},
-				'objectId'         => function() {
+				'objectId'         => function () {
 					return ( absint( $this->data->object_id ) );
 				},
-				'target'           => function() {
+				'target'           => function () {
 					return ! empty( $this->data->target ) ? $this->data->target : null;
 				},
-				'title'            => function() {
+				'title'            => function () {
 					return ( ! empty( $this->data->attr_title ) ) ? $this->data->attr_title : null;
 				},
-				'url'              => function() {
+				'uri'              => function () {
+					$url = $this->data->url;
+
+					return ! empty( $url ) ? str_ireplace( home_url(), '', $url ) : null;
+				},
+				'url'              => function () {
 					return ! empty( $this->data->url ) ? $this->data->url : null;
 				},
-				'path'             => function() {
-
+				'path'             => function () {
 					$url = $this->url;
 
 					if ( ! empty( $url ) ) {
+						/** @var array<string,mixed> $parsed */
 						$parsed = wp_parse_url( $url );
-						if ( isset( $parsed['host'] ) ) {
-							if ( strpos( home_url(), $parsed['host'] ) ) {
-								return $parsed['path'];
-							} elseif ( strpos( home_url(), $parsed['host'] ) ) {
-								return $parsed['path'];
-							}
+						if ( isset( $parsed['host'] ) && strpos( home_url(), $parsed['host'] ) ) {
+							return $parsed['path'];
 						}
 					}
 
 					return $url;
-
 				},
-				'order'            => function() {
+				'order'            => function () {
 					return $this->data->menu_order;
 				},
-				'menuId'           => function() {
+				'menuId'           => function () {
 					return ! empty( $this->menuDatabaseId ) ? Relay::toGlobalId( 'term', (string) $this->menuDatabaseId ) : null;
 				},
-				'menuDatabaseId'   => function() {
-
+				'menuDatabaseId'   => function () {
 					$menus = wp_get_object_terms( $this->data->ID, 'nav_menu' );
 					if ( is_wp_error( $menus ) ) {
-						throw new UserError( $menus->get_error_message() );
+						throw new UserError( esc_html( $menus->get_error_message() ) );
 					}
 
-					return isset( $menus[0] ) && isset( $menus[0]->term_id ) ? $menus[0]->term_id : null;
+					return ! empty( $menus[0]->term_id ) ? $menus[0]->term_id : null;
 				},
-				'locations'        => function() {
-
+				'locations'        => function () {
 					if ( empty( $this->menuDatabaseId ) ) {
 						return null;
 					}
@@ -201,12 +195,8 @@ class MenuItem extends Model {
 					}
 
 					return $locations;
-
 				},
 			];
-
 		}
-
 	}
-
 }

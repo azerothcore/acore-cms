@@ -10,7 +10,7 @@ class CursorBuilder {
 	/**
 	 * The field by which the cursor should order the results
 	 *
-	 * @var array
+	 * @var array<string,mixed>[]
 	 */
 	public $fields;
 
@@ -38,22 +38,22 @@ class CursorBuilder {
 	 * will be the primary field and latter ones will be used if the primary
 	 * field has duplicate values
 	 *
-	 * @param string                $key           database column
-	 * @param mixed|string|int      $value         value from the current cursor
-	 * @param string|null           $type          type cast
-	 * @param string|null           $order         custom order
-	 * @param PostObjectCursor|null $object_cursor The PostObjectCursor class
+	 * @param string           $key           database column
+	 * @param mixed|string|int $value         value from the current cursor
+	 * @param string|null      $type          type cast
+	 * @param string|null      $order         custom order
+	 * @param object|null      $object_cursor The Cursor class
 	 *
 	 * @return void
 	 */
-	public function add_field( string $key, $value, string $type = null, string $order = null, PostObjectCursor $object_cursor = null ) {
+	public function add_field( string $key, $value, ?string $type = null, ?string $order = null, $object_cursor = null ) {
 
 		/**
 		 * Filters the field used for ordering when cursors are used for pagination
 		 *
-		 * @param array                   $field          The field key, value, type and order
-		 * @param CursorBuilder           $cursor_builder The CursorBuilder class
-		 * @param null | PostObjectCursor $object_cursor  The PostObjectCursor class
+		 * @param array<string,mixed>                  $field          The field key, value, type and order
+		 * @param \WPGraphQL\Data\Cursor\CursorBuilder $cursor_builder The CursorBuilder class
+		 * @param ?object                              $object_cursor  The Cursor class
 		 */
 		$field = apply_filters(
 			'graphql_cursor_ordering_field',
@@ -80,18 +80,17 @@ class CursorBuilder {
 		$escaped_field = [];
 
 		// Escape the filtered array
-		foreach ( $field as $key => $value ) {
-			$escaped_field[ $key ] = esc_sql( $value );
+		foreach ( $field as $field_key => $value ) {
+			$escaped_field[ $field_key ] = esc_sql( $value );
 		}
 
 		$this->fields[] = $escaped_field;
-
 	}
 
 	/**
 	 * Returns true at least one ordering field has been added
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	public function has_fields() {
 		return count( $this->fields ) > 0;
@@ -100,12 +99,11 @@ class CursorBuilder {
 	/**
 	 * Generate the final SQL string to be appended to WHERE clause
 	 *
-	 * @param mixed|array|null $fields
+	 * @param mixed|array<string,mixed>[]|null $fields
 	 *
 	 * @return string
 	 */
 	public function to_sql( $fields = null ) {
-
 		if ( null === $fields ) {
 			$fields = $this->fields;
 		}
@@ -138,7 +136,7 @@ class CursorBuilder {
 		}
 
 		if ( count( $fields ) === 1 ) {
-			return " {$key} {$compare} {$value}";
+			return " {$key} {$compare} {$value} ";
 		}
 
 		$nest = $this->to_sql( \array_slice( $fields, 1 ) );
@@ -147,7 +145,6 @@ class CursorBuilder {
 
 		return sprintf( $sql, $key, $compare, $value, $nest );
 	}
-
 
 	/**
 	 * Copied from

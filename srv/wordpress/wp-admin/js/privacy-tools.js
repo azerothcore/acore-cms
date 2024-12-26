@@ -5,7 +5,7 @@
  */
 
 // Privacy request action handling.
-jQuery( document ).ready( function( $ ) {
+jQuery( function( $ ) {
 	var __ = wp.i18n.__,
 		copiedNoticeTimeout;
 
@@ -47,7 +47,7 @@ jQuery( document ).ready( function( $ ) {
 
 		$requestRow.after( function() {
 			return '<tr class="' + resultRowClasses + '"><th colspan="5">' +
-				'<div class="notice inline notice-alt ' + classes + '">' +
+				'<div class="notice inline notice-alt ' + classes + '" role="alert">' +
 				'<p>' + summaryMessage + '</p>' +
 				itemList +
 				'</div>' +
