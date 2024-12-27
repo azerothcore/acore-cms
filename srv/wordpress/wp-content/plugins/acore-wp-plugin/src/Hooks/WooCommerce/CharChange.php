@@ -96,10 +96,8 @@ class CharChange extends \ACore\Lib\WpClass {
         }
 
         if (isset($values['acore_char_sel']) && isset($values["acore_item_sku"])) {
-            $WoWSrv = ACoreServices::I();
-            \wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
-            \wc_add_order_item_meta($item_id, "acore_char_sel_name", $WoWSrv->getCharName($values["acore_char_sel"]));
-            \wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
+            wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
+            wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
         }
     }
 
@@ -112,7 +110,7 @@ class CharChange extends \ACore\Lib\WpClass {
 
         $soap = ACoreServices::I()->getServerSoap();
 
-        foreach ($items as $item) {
+        foreach ($items as $item) {    
             if ($item["acore_item_sku"]) {
                 if (in_array($item["acore_item_sku"], self::$skuList)) {
                     $res = $soap->serverInfo();
