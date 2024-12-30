@@ -21,7 +21,7 @@ install_and_activate_plugin() {
 
 # Special handling for plugin activations that should only be done once
 handle_plugin_activation_once() {
-    local plugin_slug=$1
+    local plugin_slug="$1"
     local activation_flag="/usr/src/wordpress/.${plugin_slug}.activated"
 
     if [ -f "$activation_flag" ]; then
