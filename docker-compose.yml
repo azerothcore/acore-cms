@@ -37,12 +37,15 @@ services:
     depends_on:
       wp-db:
         condition: service_healthy
-    working_dir: "/var/www/html"
+      redis:
+        condition: service_started
     volumes:
       - type: bind
         source: ${DOCKER_CONF_PHP_PATH:-./conf/dist/php-conf/upload.ini}
         target: /usr/local/etc/php/conf.d/upload.ini
-      - ./srv/wordpress:/var/www/html
+      - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
+      - wordpress-src:/var/www/html
+      - ./apps/init/:/usr/local/bin/acore-init/
     env_file:
       # environment variables are retrieved by this file
       # NOTE: you can add more variables to the .env file but
@@ -75,8 +78,8 @@ services:
     volumes:
       - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
       - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
-      - ./srv/wordpress:/var/www/html
       - ./var/logs:/var/log/nginx
+      - wordpress-src:/var/www/html:ro
     extra_hosts:
       - "web.local:127.0.0.1"
     ports:
@@ -89,6 +92,14 @@ services:
       - local-private-net
       - local-shared-net
       - ac-network
+
+  redis:
+    image: redis:alpine
+    networks:
+      - local-private-net
+    expose:
+      - "6379"
+
 networks:
   local-shared-net:
     name: local-shared-net
@@ -100,4 +111,5 @@ networks:
     external: ${DOCKER_AC_NETWORK_EXTERNAL:-false}
 volumes:
   mysql-data:
+  wordpress-src:
 

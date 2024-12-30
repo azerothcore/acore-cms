@@ -1,28 +1,12 @@
 # exclude everything ...
-*
 # ...except
 !/.gitignore
 !*/
-
-!/**
-/srv/*
-!/srv/wordpress
-/srv/wordpress/wp-config.php
-/srv/wordpress/wp-content/*
-!/srv/wordpress/wp-content/plugins
-/srv/wordpress/wp-content/plugins/*
-!/srv/wordpress/wp-content/plugins/askimet
-!/srv/wordpress/wp-content/plugins/acore-wp-plugin
-!/srv/wordpress/wp-content/plugins/wp-graph*
-!/srv/wordpress/wp-content/themes/
-/srv/wordpress/wp-content/themes/*
-!/srv/wordpress/wp-content/themes/twenty*
 
 /var
 
 /conf/*
 !/conf/dist
-
 
 /docker-compose.*.yml
 !docker-compose.default.yml
@@ -67,7 +51,8 @@ patches-*
 # exclude in all levels
 nbproject/private/
 .sync.ffs_db
-/.vscode/
+/.vscode/*
+!/.vscode/extensions.json
 
 #
 # Eclipse
