@@ -5,6 +5,11 @@ use ACore\Manager\Opts;
 add_filter('cron_schedules', 'example_add_cron_interval');
 function example_add_cron_interval($schedules)
 {
+  $membership_system_enabled = function_exists('pmpro_getMembershipLevelForUser');
+  if (!$membership_system_enabled) {
+    return $schedules;
+  }
+
   $schedules['every_5_minutes'] = array(
     'interval' => 300,
     'display'  => esc_html__('Sync pmpro subscriptions with azerothcore'),
