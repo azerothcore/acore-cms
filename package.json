@@ -17,6 +17,8 @@
     ],
     "license": "AGPL3",
     "scripts": {
+        "docker:install": "docker compose up --build",
+        "docker:update": "docker compose pull && docker compose build",
         "docker:start": "docker compose up",
         "docker:start:d": "docker compose up -d",
         "docker:shell": "docker compose exec php bash",
@@ -24,7 +26,9 @@
         "docker:stop": "docker compose stop",
         "docker:logs": "docker compose logs --tail=200 --follow",
         "docker:db:export": "docker compose up -d wp-db && docker compose exec wp-db /apps/db_exporter/db_export.sh",
-        "docker:db:import": "docker compose up -d wp-db && docker compose exec wp-db /apps/db_exporter/db_import.sh"
+        "docker:db:import": "docker compose up -d wp-db && docker compose exec wp-db /apps/db_exporter/db_import.sh",
+        "docker:src:export": "docker compose cp php:/var/www/html srv",
+        "docker:src:import": "bash apps/export-src.sh"
     },
     "devDependencies": {
         "@types/node": "^14.0.13"

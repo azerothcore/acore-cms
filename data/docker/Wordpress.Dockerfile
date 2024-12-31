@@ -1,4 +1,4 @@
-FROM wordpress:6-php8.3-fpm
+FROM wordpress:6.7.1-php8.3-fpm
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
@@ -19,6 +19,11 @@ RUN apt-get update -y \
      libgmp-dev \
      redis-tools \
      procps \
+     wget \
+     netcat-openbsd \
+     sendmail \
+     socat \
+     acl \
      && apt-get clean -y
 
 # Install PHP extensions
@@ -40,11 +45,18 @@ RUN pecl install redis \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+RUN wget --no-check-certificate -O /usr/local/bin/wp \
+       https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x /usr/local/bin/wp
+
+# Add init script for runtime configuration
+COPY apps/init /usr/local/bin/acore-init
+RUN chmod +x /usr/local/bin/acore-init/init.sh
+
 # Remove and re-add www-data user with specified UID and GID
 RUN deluser www-data \
     && addgroup --gid $GROUP_ID www-data \
     && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID www-data \
     && passwd -d www-data
 
-# Correct permissions for non-root operations
-RUN chown -R www-data:www-data /run /var/www/html
+ENTRYPOINT ["bash", "/usr/local/bin/acore-init/init.sh"]
