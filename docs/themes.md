@@ -11,14 +11,14 @@ Below you can find a list of RPG-based themes as well as Warcraft ones
 
 ## Free themes
 
-* https://www.warcraftwordpress.com/product/vanilla-warcraft-wordpress-theme/
+* [https://www.warcraftwordpress.com/product/vanilla-warcraft-wordpress-theme/](https://web.archive.org/web/20230130150044/https://www.warcraftwordpress.com/)
 
 * You can find a lot of free thems on [wordpress website](https://wordpress.org/themes) that can be customized by adding your logo and assets.
  
 
 ## Premium themes
 
-* https://www.warcraftwordpress.com/
+* https://www.ejeet.net/product-category/wordpress-templates/world-of-warcraft/
 
 * [Themeforest](https://themeforest.net/category/wordpress?tags=gaming) is a great place where to find premium wordpress themes with a game-style design
 
