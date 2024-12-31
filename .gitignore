@@ -4,6 +4,7 @@
 !*/
 
 /var
+/srv
 
 /conf/*
 !/conf/dist

@@ -23,6 +23,7 @@ RUN apt-get update -y \
      netcat-openbsd \
      sendmail \
      socat \
+     acl \
      && apt-get clean -y
 
 # Install PHP extensions

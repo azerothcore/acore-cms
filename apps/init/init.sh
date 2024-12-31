@@ -40,6 +40,8 @@ if ! wp core is-installed --allow-root; then
     wp core install --url="$WORDPRESS_URL" --title="$WORDPRESS_TITLE" --admin_user="$WORDPRESS_ADMIN_USER" --admin_password="$WORDPRESS_ADMIN_PASSWORD" --admin_email="$WORDPRESS_ADMIN_EMAIL"  --allow-root
 fi
 
+wp maintenance-mode activate --allow-root
+
 # Install and activate plugins
 echo "Installing and activating plugins..."
 
@@ -65,7 +67,12 @@ done
 # Correct permissions for non-root operations
 chown -R www-data:www-data /run /var/www/html/
 
+setfacl -R -m u:$DOCKER_USER_ID:rwx /var/www/html/
+setfacl -R -d -m u:$DOCKER_USER_ID:rwx /var/www/html/
+
 # Start a proxy from 127.0.0.1:6379 to the Redis container
 socat TCP-LISTEN:6379,fork TCP:redis:6379 &
+
+wp maintenance-mode deactivate --allow-root
 
 exec "php-fpm"

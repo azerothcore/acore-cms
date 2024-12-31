@@ -44,7 +44,7 @@ services:
         source: ${DOCKER_CONF_PHP_PATH:-./conf/dist/php-conf/upload.ini}
         target: /usr/local/etc/php/conf.d/upload.ini
       - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
-      - wordpress-src:/var/www/html
+      - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html
       - ./apps/init/:/usr/local/bin/acore-init/
     env_file:
       # environment variables are retrieved by this file
@@ -65,6 +65,8 @@ services:
       _OPCACHE_MAX_ACCELERATED_FILES: 100000
       PHP_OPCACHE_MEMORY_CONSUMPTION: 64
       PHP_OPCACHE_MAX_WASTED_PERCENTAGE: 5
+      DOCKER_USER_ID: ${DOCKER_USER_ID:-1000}
+      DOCKER_GROUP_ID: ${DOCKER_GROUP_ID:-1000}
     networks:
       - local-private-net
       - ac-network
@@ -84,7 +86,7 @@ services:
       - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
       - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
       - ./var/logs:/var/log/nginx
-      - wordpress-src:/var/www/html:ro
+      - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html:ro
     extra_hosts:
       - "web.local:127.0.0.1"
     ports:
