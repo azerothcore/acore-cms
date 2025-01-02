@@ -210,3 +210,10 @@ NOTE: by default sql files will be exported inside the /data/sql folder
 ### database import
 
 `npm run docker:db:import`
+
+
+### Install acore-wp-plugin as standalone
+
+If you want to install the acore-wp-plugin as a standalone plugin, you can follow the instructions in the [acore-wp-plugin repository](https://github.com/azerothcore/acore-cms-wp-plugin).
+
+
