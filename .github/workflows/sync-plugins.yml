@@ -1,4 +1,4 @@
-name: "Sync subtree"
+name: "Sync subtrees"
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-lib:
+  sync-subtrees:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
