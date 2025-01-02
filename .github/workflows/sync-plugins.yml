@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: drassil/action-git-subtree@v1
+      - uses: drassil/action-git-subtree@main
         with:
           pat: ${{ secrets.PUSH_TOKEN }}
           repo: https://github.com/azerothcore/acore-cms-wp-plugin.git
