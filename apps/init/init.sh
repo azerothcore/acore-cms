@@ -36,9 +36,9 @@ fi
 
 # Perform the initial WordPress installation if it hasn't been installed yet
 if ! wp core is-installed --allow-root; then
-    echo "Installing WordPress..."
 
     if [ $WORDPRESS_MULTISITE = "false" ]; then
+        echo "Installing WordPress without multisite support..."
         wp core install --url="$WORDPRESS_URL" \
             --title="$WORDPRESS_TITLE" \
             --admin_user="$WORDPRESS_ADMIN_USER" \
@@ -46,13 +46,12 @@ if ! wp core is-installed --allow-root; then
             --admin_email="$WORDPRESS_ADMIN_EMAIL" \
             --allow-root
     else
-        wp core multisite-install --url="$WORDPRESS_URL" \
+        echo "Installing WordPress with multisite support..."
+        wp core multisite-install --url="$WORDPRESS_URL" ${WORDPRESS_MULTISITE_USE_SUBDOMAIN:+--subdomains}  \
         --title="$WORDPRESS_TITLE" \
         --admin_user="$WORDPRESS_ADMIN_USER" \
         --admin_password="$WORDPRESS_ADMIN_PASSWORD" \
         --admin_email="$WORDPRESS_ADMIN_EMAIL" \
-        # Add --subdomains flag if WORDPRESS_MULTISITE_USE_SUBDOMAIN is set
-        ${WORDPRESS_MULTISITE_USE_SUBDOMAIN:+--subdomains} \
         --allow-root
     fi
 fi
