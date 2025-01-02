@@ -1,6 +1,4 @@
-# .github/workflows/update.yml
-
-name: "update subtree"
+name: "Sync subtree"
 on:
   push:
     branches:
