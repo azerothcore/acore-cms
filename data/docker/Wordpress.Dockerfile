@@ -24,6 +24,7 @@ RUN apt-get update -y \
      sendmail \
      socat \
      acl \
+     libfcgi0ldbl \
      && apt-get clean -y
 
 # Install PHP extensions
@@ -52,6 +53,7 @@ RUN wget --no-check-certificate -O /usr/local/bin/wp \
 # Add init script for runtime configuration
 COPY apps/init /usr/local/bin/acore-init
 RUN chmod +x /usr/local/bin/acore-init/init.sh
+RUN chmod +x /usr/local/bin/acore-init/healthcheck.sh
 
 # Remove and re-add www-data user with specified UID and GID
 RUN deluser www-data \

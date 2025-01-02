@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to handle errors
+error_handler() {
+    echo "An error occurred. Exiting..."
+    exit 1
+}
+
+# Trap errors and call the error_handler function
+trap 'error_handler' ERR
+
 # List of plugins to install
 # Array semplice con nome e slug separati da "|"
 plugins_install=(
@@ -47,7 +56,7 @@ if ! wp core is-installed --allow-root; then
             --allow-root
     else
         echo "Installing WordPress with multisite support..."
-        wp core multisite-install --url="$WORDPRESS_URL" ${WORDPRESS_MULTISITE_USE_SUBDOMAIN:+--subdomains}  \
+        wp core multisite-install --url="$WORDPRESS_URL" ${WORDPRESS_MULTISITE_USE_SUBDOMAIN:+--subdomains} \
         --title="$WORDPRESS_TITLE" \
         --admin_user="$WORDPRESS_ADMIN_USER" \
         --admin_password="$WORDPRESS_ADMIN_PASSWORD" \
