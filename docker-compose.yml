@@ -27,7 +27,7 @@ services:
     cap_add:
       - SYS_NICE  # CAP_SYS_NICE
   php:
-    restart: unless-stopped
+    restart: ${DOCKER_PHP_RESTART:-unless-stopped}
     build:
       context: .
       dockerfile: data/docker/Wordpress.Dockerfile
@@ -72,6 +72,11 @@ services:
     networks:
       - local-private-net
       - ac-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/acore-init/healthcheck.sh"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
   web.local:
     restart: unless-stopped
     image: nginx
@@ -83,7 +88,8 @@ services:
     environment:
       DOCKER_CONTAINER: 1
     depends_on:
-      - php
+      php:
+        condition: service_healthy
     volumes:
       - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
       - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
@@ -101,7 +107,6 @@ services:
       - local-private-net
       - local-shared-net
       - ac-network
-
   redis:
     image: redis:alpine
     networks:

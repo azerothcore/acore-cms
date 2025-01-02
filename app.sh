@@ -14,4 +14,4 @@ subrepoUpdate https://github.com/azerothcore/git-utils  master apps/git-utils
 
 subrepoUpdate https://github.com/azerothcore/git-utils  master srv/wordpress/wp-content/plugins/acore-wp-plugin/apps/git-utils
 
-subrepoUpdate https://github.com/azerothcore/acore-php-framework master srv/wordpress/wp-content/plugins/acore-wp-plugin/vendor/acore-php/acore-php
+subrepoUpdate https://github.com/azerothcore/acore-php-framework src/acore-wp-plugin/vendor/acore-php/acore-php
