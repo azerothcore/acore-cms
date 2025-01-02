@@ -135,6 +135,27 @@ If you are using azerothcore with the docker-compose file provided by us, you ca
 
 Please check this guide: [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
 
+### Multirealm support
+
+ACoreCMS is designed to support multiple AzerothCore realms by creating new WordPress sites. Multi-site support is enabled by default, but it can be switched off before the installation if desired. This allows you to create multiple websites within a single WordPress installation. You can manage multiple AzerothCore realms by creating a new WordPress site for each realm.
+
+NOTE: AzerothCore plugin supports a single connection with a single character database, which is why it's important to create multiple sites such that each site has different character connections.
+
+#### Subdomain vs. Subpath
+
+You can choose to create new websites either in a subdomain or a subpath. This is controlled by the `DOCKER_MULTISITE_USE_SUBDOMAIN` environment variable.
+
+- **Subdomain**: If you set `DOCKER_MULTISITE_USE_SUBDOMAIN` to `true`, new websites will be created in a subdomain (e.g., `site1.example.com`, `site2.example.com`).
+- **Subpath**: If you set `DOCKER_MULTISITE_USE_SUBDOMAIN` to `false`, new websites will be created in a subpath (e.g., `example.com/site1`, `example.com/site2`).
+
+## Nginx Configuration for Subdomain Support
+
+If you choose to use subdomains, you need to create an Nginx configuration to support the subdomains. This can be done by setting the `DOCKER_CONF_NGINX_PATH` environment variable and creating your own Nginx configuration file.
+
+Please follow this guide to configure Nginx for subdomain support: [Nginx Configuration for Multisite Support](nginx-for-multisite.md)
+
+By following these steps, you can configure your WordPress installation to support multiple AzerothCore realms using either subdomains or subpaths.
+
 ### CLI commands available
 
 ```bash
