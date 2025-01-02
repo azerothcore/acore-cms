@@ -20,5 +20,4 @@ jobs:
         with:
           node-version: lts/*
       - name: "Run CI: test setup"
-        run: |
-          bash apps/ci/test-setup.sh
+        run: bash apps/ci/test-setup.sh
