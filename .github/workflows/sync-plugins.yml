@@ -1,0 +1,23 @@
+# .github/workflows/update.yml
+
+name: "update subtree"
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  update-lib:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: drassil/action-git-subtree@v1
+        with:
+          pat: ${{ secrets.PUSH_TOKEN }}
+          repo: https://github.com/azerothcore/acore-cms-wp-plugin.git
+          action: push
+          prefix: src/acore-wp-plugin
+          squash: false
