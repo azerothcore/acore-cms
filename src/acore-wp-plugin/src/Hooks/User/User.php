@@ -277,20 +277,15 @@ function validateComplexPassword($errors)
  * This filter, will generate a random password
  * based on a list of valid characters
  */
+add_filter('random_password', function ($password) {
+    $characters = UserValidator::PASSWORD_CHARS_LIST;
+    $password = '';
 
-add_filter('random_password', function ($pass, $user) {
-    // Check if the request is related to a user, otherwise use the default password generation
-    if ($user instanceof \WP_User) {
-        $characters = UserValidator::PASSWORD_CHARS_LIST;
-        $password = '';
-        for ($i = 0; $i < UserValidator::PASSWORD_LENGTH; $i++) {
-            $password .= substr($characters, wp_rand(0, strlen($characters) - 1), 1);
-        }
-        return $password;
+    for ($i = 0; $i < UserValidator::PASSWORD_LENGTH; $i++) {
+        $password .= substr($characters, wp_rand(0, strlen($characters) - 1), 1);
     }
 
-    // If this is not related to user password generation, return the default generated password
-    return $pass;
+    return $password;
 }, 10, 2);
 
 
