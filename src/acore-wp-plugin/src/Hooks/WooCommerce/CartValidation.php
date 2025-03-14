@@ -113,6 +113,15 @@ class CartValidation extends \ACore\Lib\WpClass {
             }
         }
 
+        if (in_array('acore_restore_item_sel', self::$skuList[$activeSku])) {
+            $itemID = intval($_REQUEST['acore_restore_item_sel'] ?? 0);
+
+            if ($itemID === 0) {
+                \wc_add_notice(__('No item selected', 'acore-wp-plugin'), 'error');
+                return false;
+            }
+        }
+
         return true;
     }
 }
