@@ -15,6 +15,7 @@ use ACore\Manager\Soap\GuildService;
 use ACore\Manager\Soap\MailService;
 use ACore\Manager\Soap\TransmogService;
 use ACore\Manager\Soap\ServerService;
+use ACore\Manager\Soap\SmartstoneService;
 use ACore\Manager\World\WorldManager;
 
 class ACoreServices
@@ -268,6 +269,18 @@ class ACoreServices
     public function getTransmogSoap()
     {
         $mgr = new TransmogService();
+        $mgr->setSoap(new AcoreSoap());
+        $mgr->configure($this->soapParams);
+        return $mgr;
+    }
+
+    /**
+     *
+     * @return ACore\Manager\Soap\SmartstoneService
+     */
+    public function getSmartstoneSoap()
+    {
+        $mgr = new SmartstoneService();
         $mgr->setSoap(new AcoreSoap());
         $mgr->configure($this->soapParams);
         return $mgr;

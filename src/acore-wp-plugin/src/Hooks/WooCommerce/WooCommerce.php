@@ -16,6 +16,7 @@ require_once __DIR__ . "/TransmogItemSend.php";
 require_once __DIR__ . "/TransmogItemsetSend.php";
 require_once __DIR__ . "/NameUnlock.php";
 require_once __DIR__ . "/CartValidation.php";
+require_once __DIR__ . "/Smartstone.php";
 
 // Add WooCommerce customer username to edit/view order admin page
 add_action('woocommerce_admin_order_data_after_billing_address', __NAMESPACE__ . '\woo_display_order_username', 10, 1);
