@@ -21,6 +21,7 @@ class CartValidation extends \ACore\Lib\WpClass {
         "transmog-item" => ['acore_char_sel'],
         "transmog-itemset" => ['acore_char_sel'],
         "name-unlock" => ['acore_unlock_name'],
+        "smartstone" => ['acore_char_sel'],
     );
 
     public static function init() {
