@@ -68,6 +68,7 @@ Besides items you can also sell:
 - Carbon Copy tickets (using as SKU `carboncopy-tickets`), this works only if you have the [CarbonCopy lua script](https://github.com/55Honey/Acore_CarbonCopy/).
 - Transmog item and itemset (using as SKU `transmog-item_ITEMID` and `transmog-itemset_ITEMSETID`), this works only if you have the [Transmog module](https://github.com/azerothcore/mod-transmog)
 - Name Unlock (using as SKU `name-unlock`), this frees up a character name if unused for a while.
+- Smartstone vanity (using as SKU `smartstone_CATEGORY_VANITYID`), this add a vanity (pet, combat ecc.), it requires the module [Smartstone module](https://github.com/chromiecraft/mod-chromiecraft-smartstone/).
 
 **Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
 
