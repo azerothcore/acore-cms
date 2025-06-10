@@ -85,8 +85,15 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
 
             $charName = $char ? $char->getName() : "Character <$charId> doesn't exist!";
 
+            // Add to this dictionary / array to show other catergories for vanity items.
+            $categoryToText = array(
+                0 => "Pet",
+                1 => "Combat Pet",
+                2 => "Costume",
+            );
+
             $custom_items[] = array("name" => 'Character', "value" => $charName);
-            $custom_items[] = array("name" => 'Item', "value" => $smartstone_id);
+            $custom_items[] = array("name" => $categoryToText[$smartstone_category], "value" => $smartstone_id);
         }
         return $custom_items;
     }
