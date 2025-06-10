@@ -1,15 +1,18 @@
 # ACore CMS
 
-ACore CMS based on WordPress
+ACore CMS is a content management system based on WordPress, designed to provide a robust and flexible platform for managing your website content. 
+**ACore CMS has been built to be integrated with AzerothCore**, allowing features such as account registration, WooCommerce integration (to sell items and services), etc.
+It leverages the power of Docker for easy setup and deployment, and includes a variety of plugins to extend its functionality. 
 
+## Features
 
-- [Requirements](https://github.com/azerothcore/acore-cms#requirements)
-- [Usage](https://github.com/azerothcore/acore-cms#usage)
-- [Connect the CMS to AzerothCore server and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-cms.md)
-- [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
+- **Easy Setup**: Quickly get started with Docker and docker-compose.
+- **Extensible**: Includes a variety of plugins such as WooCommerce, and you can add or create more. Extend it with any WordPress plugins, themes, and consume the REST/GraphQL APIs available.
+- **AzerothCore Integration**: Integrated with AzerothCore to provide account registration, item selling, and more.
 
-Useful tutorials:
-- [How to restrict the access with credentials of a specific web page](https://ubiq.co/tech-blog/how-to-password-protect-directory-in-nginx/)
+Whether you're building a simple website or a complex e-commerce site, ACore CMS provides the tools you need to create and manage your content effectively.
+
+![Dashboard](dashboard.png)
 
 ## Requirements
 
@@ -18,34 +21,36 @@ Useful tutorials:
 
 If you do not have **docker**, [install it](https://docs.docker.com/compose/install/).
 
-On a Linux distro, you can install it via package manager, in a debian-based for example you can just run:
-```
-$ sudo apt install docker docker-compose
-```
-
 About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
 
-## Usage
-### Docker container
 
+## Installation & Usage
 
-If you installed the requirements you are able to run the application using:
-```
-$ docker-compose up
-```
+### 1. Configure your .env file
 
-It will download the related dependencies of the containers and start the acore-cms, next time you will need to just start the acore cms you can use:
-```
-$ npm run docker:start
-```
+Create an `.env` file and copy the `.env.docker` content file to `.env`, configuring the variables as you prefer.
 
-Open your command prompt terminal (on Windows is for example PowerShell), navigate to the repository folder and issue the command:
-
-```
-docker-compose up
+The most important variables are:
+```bash
+DOCKER_WORDPRESS_URL=http://localhost # the url of the website
+DOCKER_WORDPRESS_TITLE=ACoreCMS # the title of the website
+DOCKER_WORDPRESS_ADMIN_USER=admin # the wordpress admin username
+DOCKER_WORDPRESS_ADMIN_PASSWORD=admin # the wordpress admin password
+DOCKER_WORDPRESS_ADMIN_EMAIL=admin@example.com # the wordpress admin email
 ```
 
-It will set up the docker container and download the necessary dependencies within.
+### 2. Build and start the docker containers
+
+```
+npm run docker:install
+```
+
+This process will take some time, once everything is done you should get a message like this in your console:
+
+```
+php-1        | [31-Dec-2024 13:13:27] NOTICE: fpm is running, pid 1
+php-1        | [31-Dec-2024 13:13:27] NOTICE: ready to handle connections
+```
 
 Now you can see the website in [http://localhost:80/](http://localhost:80/).
 
@@ -63,68 +68,122 @@ The env variables above are used to configure the ports within the docker-compos
 
 **Note**: if you change this after the wordpress installation remember to change also the siteurl and related wordpress parameters in `wp_options` table.
 
-**WARNING: if you run this in production, comment the phpmyadmin section in docker-compose to not expose the phpmyadmin service to any user or change the mysql credentials**
+Finally, you can stop your containers with `Ctrl+C`
 
-More info about docker-configuration are available below
+### 3. Run WordPress in background
+
+You probably don't want to have your terminal busy with the docker-compose logs, so you can run the containers in background mode:
+
+```bash
+npm run docker:start:d
+```
+
+
+### 4. Update the containers
+
+If you want to update the containers, you can run the following command:
+
+```bash
+npm run docker:update
+```
+
+NOTE: wordpress files and database will be preserved. To update the wordpress version, you need install it manually through the admin panel.
+
+## Guides
+
+- [Connect the CMS to AzerothCore server and enable the shop](configure-cms.md)
+- [Connect the CMS to AcoreDocker and enable the shop](configure-acore-docker.md)
+- [How to install a theme](themes.md)
+
+Useful tutorials:
+- [How to restrict the access with credentials of a specific web page](https://ubiq.co/tech-blog/how-to-password-protect-directory-in-nginx/)
+
+### Work with local source files
+
+By default, the source files of the wordpress installation are stored in a named volume. This is useful for production environments, but if you want to work with the source files locally, you can use a host folder instead of the named volume.
+You can set the `DOCKER_WORDPRESS_SRC_PATH` variable in the `.env` file to the path of the host folder you want to use.
+
+```bash
+DOCKER_WORDPRESS_SRC_PATH=./srv
+```
+
+### Export and import source files from the named volume
+
+#### Export source files
+
+You can export the source files of the current wordpress installation inside the /srv folder (backup) with the following command:
+
+```bash
+npm run docker:src:export
+```
+
+#### Import source files
+
+You can import the source files under /srv folder inside the /var/www/html container folder(restore backup) with the following command:
+
+```bash
+npm run docker:src:import
+```
+
+IMPORTANT: this command needs to be executed with a bash-compatible shell and it will stop the php running container. After the import is done, you can start the container again.
+
+
+### AzerothCore integration
+
+ACore CMS is designed to work with AzerothCore. The ac-network included in our docker-compose file is a network that connects the AzerothCore server with the CMS. This network can be flagged as external which means that you need an azerothcore server spinned up using its own docker-compose file to make it work. 
+If you are using azerothcore with the docker-compose file provided by us, you can running acore-cms with docker by setting DOCKER_AC_NETWORK_EXTERNAL to true in the .env file.
+
+Please check this guide: [Connect the CMS to AcoreDocker and enable the shop](https://github.com/azerothcore/acore-cms/blob/master/docs/configure-acore-docker.md)
+
+### Multirealm support
+
+ACoreCMS is designed to support multiple AzerothCore realms by creating new WordPress sites. Multi-site support is enabled by default, but it can be switched off before the installation if desired. This allows you to create multiple websites within a single WordPress installation. You can manage multiple AzerothCore realms by creating a new WordPress site for each realm.
+
+NOTE: AzerothCore plugin supports a single connection with a single character database, which is why it's important to create multiple sites such that each site has different character connections.
+
+#### Subdomain vs. Subpath
+
+You can choose to create new websites either in a subdomain or a subpath. This is controlled by the `DOCKER_MULTISITE_USE_SUBDOMAIN` environment variable.
+
+- **Subdomain**: If you set `DOCKER_MULTISITE_USE_SUBDOMAIN` to `true`, new websites will be created in a subdomain (e.g., `site1.example.com`, `site2.example.com`).
+- **Subpath**: If you set `DOCKER_MULTISITE_USE_SUBDOMAIN` to `false`, new websites will be created in a subpath (e.g., `example.com/site1`, `example.com/site2`).
+
+## Nginx Configuration for Subdomain Support
+
+If you choose to use subdomains, you need to create an Nginx configuration to support the subdomains. This can be done by setting the `DOCKER_CONF_NGINX_PATH` environment variable and creating your own Nginx configuration file.
+
+Please follow this guide to configure Nginx for subdomain support: [Nginx Configuration for Multisite Support](nginx-for-multisite.md)
+
+By following these steps, you can configure your WordPress installation to support multiple AzerothCore realms using either subdomains or subpaths.
 
 ### CLI commands available
 
-```
-$ npm run docker:start
-```
+```bash
+npm run docker:install # install the docker containers
 
-Run the docekr webservice in foreground mode
+npm run docker:update # update the docker containers
 
+npm run docker:start # start the docker containers in foreground
 
-```
-$ npm run docker:start:d
-```
+npm run docker:start:d # start the docker containers in background (deamon)
 
-Run the docker webservice in background (deamon)
+npm run docker:shell # open a bash shell inside the php container
 
-```
-$ npm run docker:shell
-```
+npm run docker:remove # Remove all created containers
 
-Run the docker webservice in background and open a bash shell inside the container
+npm run docker:stop # Stop all running containers
 
-```
-$ npm run docker:remove
-```
+npm run docker:logs # Show the logs of the running containers
 
-Remove all created containers and their volumes
+npm run docker:db:export # Export the mysql database of the current wordpress installation inside the /data/sql folder (backup)
 
-```
-$ npm run docker:stop
-```
+npm run docker:db:import # Import the sql files under /data/sql folder inside the mysql database of the current wordpress installation (restore backup)
 
-Stop all running containers
+npm run docker:src:export # Export the source files of the current wordpress installation inside the /srv folder (backup)
+
+npm run docker:src:import # Import the source files under /srv folder inside the /var/www/html container folder(restore backup)
 
 ```
-$ npm run docker:logs
-```
-
-Show the logs of the running containers
-
-```
-$ npm run docker:db:export
-```
-
-Export the mysql database of the current wordpress installation inside the /data/sql folder (backup)
-
-```
-$ npm run docker:db:import
-```
-
-Import the sql files under /data/sql folder inside the mysql database of the current wordpress installation (restore backup)
-
-## Configure docker
-
-If you need to change some docker configuration (such as the exposed port or the configuration paths) you can create an `.env`
-within the root of this project. This file is git-ignored and will be used by docker-compose to set some internal variables to
-configure the containers.
-The available configurations are available at the end of the `.env.docker` file where you can find some commented variables that you can copy/paste 
-within the just created `.env` file and uncomment them to set them up.
 
 
 ### Using docker-compose.override.yml to extend the default one
@@ -151,3 +210,10 @@ NOTE: by default sql files will be exported inside the /data/sql folder
 ### database import
 
 `npm run docker:db:import`
+
+
+### Install acore-wp-plugin as standalone
+
+If you want to install the acore-wp-plugin as a standalone plugin, you can follow the instructions in the [acore-wp-plugin repository](https://github.com/azerothcore/acore-cms-wp-plugin).
+
+

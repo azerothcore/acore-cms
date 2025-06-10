@@ -22,11 +22,20 @@ After running your game server you could copy the worldserver.conf file from you
 docker compose cp ac-worldserver:/azerothcore/env/dist/etc/worldserver.conf conf
 ```
 
-Achieving this you can override your worldserver.conf using a docker volume adding the following line under `volumes:` (line 55) in your acore-docker docker-compose.yml file:
+Achieving this you can override your worldserver.conf using a docker override, create a file called `docker-compose.override.yml` in the same folder of the docker-compose.yml of your acore-docker folder, then add the following lines:
 
-```bash
-- ./conf/worldserver.conf:/azerothcore/env/dist/etc/worldserver.conf
+```yml
+version: '3.9'
+
+services:
+  ac-worldserver:
+    volumes:
+      - ./conf/worldserver.conf:/azerothcore/env/dist/etc/worldserver.conf
+      - ./conf/authserver.conf:/azerothcore/env/dist/etc/authserver.conf
+      - ./conf/dbimport.conf:/azerothcore/env/dist/etc/dbimport.conf
 ```
+
+NOTE: for a more detailed guide please refer to the official [AzerothCore Docker guide](https://www.azerothcore.org/acore-docker/#changing-your-server-configurations)
 
 To let acore-cms connecting via SOAP into your worldserver is important to enable SOAP via worldserver.conf, changing the following configurations (line ~430):
 
@@ -35,26 +44,15 @@ SOAP.Enabled = 1
 SOAP.IP = "0.0.0.0"
 ```
 
-Moreover, you have to use a shared network for the acore-cms and acore-docker containers, acore-cms already have a `local-shared-net`, you could re-use it on acore-docker by adding in your acore-docker docker-compose.yml file the following lines.
+Moreover, you have to use a shared network for the acore-cms and acore-docker containers, acore-cms already have a `ac-network`, you could re-use it on acore-docker by setting this 
+env variable in the acore-cms `.env` file:
 
-- under `x-networks` (line 4) you have to add the `local-shared-net`
-
-```yml
-x-networks: &networks
-  networks:
-    - ac-network
-    - local-shared-net
+```bash
+DOCKER_AC_NETWORK_EXTERNAL=true
 ```
 
-then, define the network details under `networks` (line 147-148)
+In this way, acore-cms will use the same network as acore-docker, so you can connect the website to the game server.
 
-```yml
-networks:
-  ac-network:
-  local-shared-net:
-    name: local-shared-net
-    driver: bridge
-```
 
 Once you updated them, recreate your docker containers using:
 
@@ -86,14 +84,6 @@ First, clone this repository:
 
 ```bash
 git clone https://github.com/azerothcore/acore-cms
-```
-
-then, re-use the `local-shared-net` also in the php acore-cms docker container so your website will be able to connect to the acore-docker containers, adding `local-shared-net` under the service php (line 60):
-
-```yml
-networks:
-  - local-private-net
-  - local-shared-net
 ```
 
 Afterward, you can visit the local website in [http://localhost](http://localhost), do the setup of the website and configure the acore-wp-plugin to connect properly the website with the game server, so:
