@@ -6,6 +6,7 @@ use ACore\Manager\Common;
 use ACore\Manager\ACoreServices;
 use ACore\Manager\UserValidator;
 use ACore\Manager\Auth\Entity\AccountAccessEntity;
+use ACore\Utils\AcoreUtils;
 use Doctrine\DBAL\Exception\ConnectionException;
 use PDOException;
 
@@ -151,17 +152,17 @@ add_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 
 function create_account_if_not_exists($user, $password): void
-{
+{    
     try {
         $accRepo = ACoreServices::I()->getAccountRepo();
     } catch (PDOException $e) {
-        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
-        echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
-        exit;
+        AcoreUtils::handle_acore_error(
+            'It was not possible to establish a connection with the database. Please check your server settings.'
+        );
     } catch (ConnectionException $e) {
-        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
-        echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
-        exit;
+        AcoreUtils::handle_acore_error(
+            'It was not possible to establish a connection with the database. Please check your server settings.'
+        );
     }
 
     if (!$accRepo->findOneByUsername($user->user_login)) {
@@ -170,22 +171,26 @@ function create_account_if_not_exists($user, $password): void
         $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
 
         if ($res !== true) {
-            die($res->getMessage());
+            AcoreUtils::handle_acore_error($res->getMessage());
         }
 
         $res = $soap->setAccountPassword($user->user_login, $password);
 
         if (!!$res !== true && $res->getMessage()) {
-            die($res->getMessage());
+            AcoreUtils::handle_acore_error($res->getMessage());
         }
 
         // workaround since soap doesn't work
-        $conn = ACoreServices::I()->getAccountEm()->getConnection();
-
-        $conn->executeQuery(
-            "UPDATE account SET email = :email, reg_mail = :email WHERE username = :username",
-            array('email' => $user->user_email, 'username' => $user->user_login)
-        );
+        try {
+            $conn = ACoreServices::I()->getAccountEm()->getConnection();
+    
+            $conn->executeQuery(
+                "UPDATE account SET email = :email, reg_mail = :email WHERE username = :username",
+                array('email' => $user->user_email, 'username' => $user->user_login)
+            );
+        }  catch (\Exception $e) {
+            AcoreUtils::handle_acore_error('Unable to update account email address.');
+        }
     }
 }
 
