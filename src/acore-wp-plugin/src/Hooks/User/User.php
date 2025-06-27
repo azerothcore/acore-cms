@@ -155,42 +155,63 @@ function create_account_if_not_exists($user, $password): void
 {    
     try {
         $accRepo = ACoreServices::I()->getAccountRepo();
+
+        if (!$accRepo->findOneByUsername($user->user_login)) {
+            create_game_account($user, $password);
+        }
     } catch (PDOException $e) {
         AcoreUtils::handle_acore_error(
-            'It was not possible to establish a connection with the database. Please check your server settings.'
+            'It was not possible to establish a connection with the database. Please check your server settings.',
+            function ($message) {
+                wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
+            }
         );
+        exit;
     } catch (ConnectionException $e) {
         AcoreUtils::handle_acore_error(
-            'It was not possible to establish a connection with the database. Please check your server settings.'
+            'It was not possible to establish a connection with the database. Please check your server settings.',
+            function ($message) {
+                wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
+            }
         );
+        exit;
+    } catch (\Exception $e) {
+        AcoreUtils::handle_acore_error($e->getMessage());
     }
+}
 
-    if (!$accRepo->findOneByUsername($user->user_login)) {
+function create_game_account($user, $password): void
+{
+    try {
         $soap = ACoreServices::I()->getAccountSoap();
-
+        
         $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
-
         if ($res !== true) {
-            AcoreUtils::handle_acore_error($res->getMessage());
+            throw new \Exception($res->getMessage());
         }
 
         $res = $soap->setAccountPassword($user->user_login, $password);
-
         if (!!$res !== true && $res->getMessage()) {
-            AcoreUtils::handle_acore_error($res->getMessage());
+            throw new \Exception($res->getMessage());
         }
 
         // workaround since soap doesn't work
-        try {
-            $conn = ACoreServices::I()->getAccountEm()->getConnection();
-    
-            $conn->executeQuery(
-                "UPDATE account SET email = :email, reg_mail = :email WHERE username = :username",
-                array('email' => $user->user_email, 'username' => $user->user_login)
-            );
-        }  catch (\Exception $e) {
-            AcoreUtils::handle_acore_error('Unable to update account email address.');
-        }
+        update_account_email($user);
+    } catch (\Exception $e) {
+        AcoreUtils::handle_acore_error($e->getMessage());
+    }
+}
+
+function update_account_email($user): void
+{
+    try {
+        $conn = ACoreServices::I()->getAccountEm()->getConnection();
+        $conn->executeQuery(
+            "UPDATE account SET email = :email, reg_mail = :email WHERE username = :username",
+            ['email' => $user->user_email, 'username' => $user->user_login]
+        );
+    } catch (\Exception $e) {
+        AcoreUtils::handle_acore_error('Unable to update account email address.');
     }
 }
 
@@ -203,7 +224,6 @@ add_action('user_register',  function ($user_id) {
         create_account_if_not_exists($user, $user_password);
     }
 });
-
 
 // If login but game account doesn't exist
 // then create it

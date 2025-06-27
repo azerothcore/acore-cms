@@ -61,7 +61,7 @@ class AcoreUtils
             return;
         }
 
-        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
-        exit;
+        // Fallback: Throw generic exception
+        throw new \Exception($message);
     }
 }
