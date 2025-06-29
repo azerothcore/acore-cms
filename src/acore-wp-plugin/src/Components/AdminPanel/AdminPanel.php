@@ -125,6 +125,7 @@ function admin_panel_init()
     if (is_admin()) {
         add_action( 'admin_menu', array( $adminPanel, 'acore_admin_menu' ), 8);
         add_action( 'admin_menu', array( $adminPanel, 'acore_add_pages' ), 8);
+        add_action( 'admin_notices', ['\\ACore\\Utils\\AcoreUtils', 'show_flash_message'] );
     }
 
     // get administrator role and add new acore capabilities

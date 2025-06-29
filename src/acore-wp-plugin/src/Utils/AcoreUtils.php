@@ -64,4 +64,44 @@ class AcoreUtils
         // Fallback: Throw generic exception
         throw new \Exception($message);
     }
+
+    /**
+     * Set a flash message to be shown in the admin area (next request).
+     *
+     * @param string $message The message to show.
+     * @param string $type    The type of notice: 'success', 'error', 'warning', 'info'.
+     * @param int|null $user_id  The user ID to associate the message with. Defaults to the currently logged-in user.
+     * 
+     * @return void
+     */
+    public static function set_flash_message(string $message, string $type = 'error', ?int $user_id = null): void
+    {
+        $user_id ??= get_current_user_id();
+
+        set_transient('acore_flash_notice_' . $user_id, [
+            'message' => $message,
+            'type'    => $type,
+        ], MINUTE_IN_SECONDS);
+    }
+
+    /**
+     * Show and clear the flash message in the admin area.
+     *
+     * @return void
+     */
+    public static function show_flash_message(): void
+    {
+        if (!is_admin()) {
+            return;
+        }
+
+        $notice = get_transient('acore_flash_notice_' . get_current_user_id());
+
+        if ($notice && !empty($notice['message'])) {
+            $type = in_array($notice['type'], ['success', 'error', 'warning', 'info']) ? $notice['type'] : 'info';
+            $class = 'notice notice-' . esc_attr($type) . ' is-dismissible';
+            echo '<div class="' . $class . '"><p>' . esc_html($notice['message']) . '</p></div>';
+            delete_transient('acore_flash_notice_' . get_current_user_id());
+        }
+    }
 }
