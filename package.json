@@ -27,8 +27,8 @@
         "docker:logs": "docker compose logs --tail=200 --follow",
         "docker:db:export": "docker compose up -d wp-db && docker compose exec wp-db /apps/db_exporter/db_export.sh",
         "docker:db:import": "docker compose up -d wp-db && docker compose exec wp-db /apps/db_exporter/db_import.sh",
-        "docker:src:export": "docker compose cp php:/var/www/html srv",
-        "docker:src:import": "bash apps/export-src.sh"
+        "docker:srv:export": "docker compose cp php:/var/www/html/* srv",
+        "docker:srv:import": "bash apps/import-srv.sh"
     },
     "devDependencies": {
         "@types/node": "^14.0.13"

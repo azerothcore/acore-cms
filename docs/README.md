@@ -114,15 +114,15 @@ DOCKER_WORDPRESS_SRC_PATH=./srv
 You can export the source files of the current wordpress installation inside the /srv folder (backup) with the following command:
 
 ```bash
-npm run docker:src:export
+npm run docker:srv:export
 ```
 
 #### Import source files
 
-You can import the source files under /srv folder inside the /var/www/html container folder(restore backup) with the following command:
+You can import the source files under /srv/ folder inside the /var/www/html container folder(restore backup) with the following command:
 
 ```bash
-npm run docker:src:import
+npm run docker:srv:import
 ```
 
 IMPORTANT: this command needs to be executed with a bash-compatible shell and it will stop the php running container. After the import is done, you can start the container again.
