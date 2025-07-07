@@ -216,15 +216,15 @@ NOTE: by default sql files will be exported inside the /data/sql folder
 
 If you want to install the acore-wp-plugin as a standalone plugin, you can follow the instructions in the [acore-wp-plugin repository](https://github.com/azerothcore/acore-cms-wp-plugin).
 
-## Plugin Configuration System (Docker only)
+## Plugin and Theme Configuration System (Docker only)
 
-ACore CMS includes a flexible plugin configuration system that allows you to install WordPress plugins with a docker initialization scripts (you can find it in the `/apps/init` directory).
+ACore CMS includes a flexible configuration system that allows you to install WordPress plugins and themes with docker initialization scripts (you can find them in the `/apps/init` directory).
 
 ### Configuration Directory
 
-External plugin configurations are loaded from the `/conf/init/` directory, which can be mounted from your host system. This directory should contain `.conf` files that define which plugins to install and activate.
+External configurations are loaded from the `/conf/init/` directory, which can be mounted from your host system. This directory should contain `.conf` files that define which plugins and themes to install and activate.
 
-### Plugin Configuration Format
+### Configuration Format
 
 Create `.conf` files in your `conf/init/` directory with the following format:
 
@@ -240,34 +240,46 @@ plugins_install+=(
     "Local Plugin|/tmp/plugins/local-plugin.zip"
 )
 
+# Add themes to install and activate
+# Format: "Theme Name|theme-source"
+# Source can be: slug (from WP repo), URL, or file path
+themes_install+=(
+    "Twenty Twenty-One|twentytwentyone"
+    "Custom Theme|https://example.com/theme.zip"
+    "Local Theme|/tmp/themes/local-theme.zip"
+)
+
 # Add plugins to activate only (already present in container)
 plugins_activate_only+=(
     "Existing Plugin|existing-plugin-slug"
 )
 ```
 
-### Plugin Sources
+### Sources
 
-The system supports multiple plugin sources:
+The system supports multiple sources for plugins and themes:
 
-1. **WordPress Repository**: Use the plugin slug
+1. **WordPress Repository**: Use the slug
    ```bash
    plugins_install+=("WooCommerce|woocommerce")
+   themes_install+=("Twenty Twenty-One|twentytwentyone")
    ```
 
 2. **URLs**: Direct download links to zip files
    ```bash
    plugins_install+=("Plugin Name|https://releases.example.com/plugin.zip")
+   themes_install+=("Theme Name|https://releases.example.com/theme.zip")
    ```
 
 3. **Local Files**: Zip files mounted into the container
    ```bash
    plugins_install+=("Local Plugin|/tmp/plugins/local-plugin.zip")
+   themes_install+=("Local Theme|/tmp/themes/local-theme.zip")
    ```
 
 ### Local zip files
 
-You can place your plugin zip file in the `/data/plugins/` folder (which is mounted as `/tmp/plugins` in the container) and reference it in your configuration:
+You can place your plugin or theme zip files in the `/data/plugins/` or `/data/themes/` folders (which are mounted as `/tmp/plugins` and `/tmp/themes` in the container) and reference them in your configuration:
 
 ```bash
 #!/bin/bash
@@ -277,17 +289,17 @@ plugins_install+=(
     "Local Plugin|/tmp/plugins/local-plugin.zip"
 )
 
+themes_install+=(
+    "Custom Theme|https://example.com/theme.zip"
+    "Local Theme|/tmp/themes/local-theme.zip"
+)
 ```
 
-### Default Plugins
+### Default Plugins and Themes
 
-ACore CMS comes with a default set of plugins that are always installed:
-- WooCommerce
-- WPGraphQL
-- WPGraphQL ACF
-- myCred
-- Advanced Custom Fields
-- ACore WP Plugins (activation only)
+ACore CMS comes with a default set of plugins and themes that are always installed:
+- Plugins: WooCommerce, WPGraphQL, WPGraphQL ACF, myCred, Advanced Custom Fields, ACore WP Plugins (activation only)
+- Themes: None by default
 
-External configurations add to or can override these defaults by modifying the `plugins_install` and `plugins_activate_only` arrays.
+External configurations add to or can override these defaults by modifying the `plugins_install`, `themes_install`, and `plugins_activate_only` arrays.
 
