@@ -20,6 +20,11 @@ plugins_install=(
     "Advanced Custom Fields|advanced-custom-fields"
 )
 
+# List of themes to install
+# Format: "Theme Name|theme-source"
+# Source can be: slug (from WP repo), URL, or file path
+themes_install=()
+
 # List of plugins to activate only once (already present in container)
 plugins_activate_only=(
     "ACore WP Plugins|acore-wp-plugins"
@@ -85,7 +90,7 @@ fi
 wp maintenance-mode activate --allow-root || echo "Maintenance mode already activated or failed to activate."
 
 # Install and activate plugins
-echo "Installing and activating plugins..."
+echo "Installing and activating plugins & themes..."
 
 source "$CURPATH/init.lib.sh"
 
@@ -96,6 +101,13 @@ for plugin in "${plugins_install[@]}"; do
     
     echo "Installing $plugin_name ($plugin_source)..."
     install_and_activate_plugin "$plugin_name" "$plugin_source"
+done
+
+# Install themes if any
+for theme in "${themes_install[@]}"; do
+    IFS='|' read -r theme_name theme_source <<< "$theme"
+    echo "Installing theme $theme_name ($theme_source)..."
+    install_and_activate_theme "$theme_name" "$theme_source"
 done
 
 # Handle Acore WP Plugins activation
