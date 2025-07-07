@@ -82,7 +82,7 @@ if ! wp core is-installed --allow-root; then
     fi
 fi
 
-wp maintenance-mode activate --allow-root
+wp maintenance-mode activate --allow-root || echo "Maintenance mode already activated or failed to activate."
 
 # Install and activate plugins
 echo "Installing and activating plugins..."
