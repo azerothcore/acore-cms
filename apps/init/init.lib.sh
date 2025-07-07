@@ -9,13 +9,24 @@ is_plugin_installed() {
 # Function to install and activate a plugin if not already installed
 install_and_activate_plugin() {
     local plugin_name="$1"
-    local plugin_slug="$2"
+    local plugin_source="$2"
 
-    if ! is_plugin_installed "$plugin_slug"; then
-        echo "Installing and activating plugin: $plugin_name..."
-        wp plugin install "$plugin_slug" --activate --allow-root
+    # Extract plugin slug from source for checking installation
+    # For URLs and file paths, we need to get the actual plugin slug after installation
+    local plugin_slug="$plugin_source"
+    
+    # If it's a URL or file path, we'll check after installation
+    if [[ "$plugin_source" == http* ]] || [[ "$plugin_source" == /* ]]; then
+        echo "Installing and activating plugin: $plugin_name from $plugin_source..."
+        wp plugin install "$plugin_source" --activate --allow-root
     else
-        echo "Plugin $plugin_name is already installed."
+        # It's a WordPress repository slug
+        if ! is_plugin_installed "$plugin_slug"; then
+            echo "Installing and activating plugin: $plugin_name..."
+            wp plugin install "$plugin_slug" --activate --allow-root
+        else
+            echo "Plugin $plugin_name is already installed."
+        fi
     fi
 }
 

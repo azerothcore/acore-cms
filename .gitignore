@@ -8,6 +8,10 @@
 
 /conf/*
 !/conf/dist
+!/conf/init
+/conf/init/*
+!/data/plugins
+/data/plugins/*
 
 /docker-compose.*.yml
 !docker-compose.default.yml
@@ -94,4 +98,6 @@ package-lock.json
 #
 
 data/sql
+
+!.gitkeep
 

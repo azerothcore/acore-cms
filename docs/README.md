@@ -216,4 +216,78 @@ NOTE: by default sql files will be exported inside the /data/sql folder
 
 If you want to install the acore-wp-plugin as a standalone plugin, you can follow the instructions in the [acore-wp-plugin repository](https://github.com/azerothcore/acore-cms-wp-plugin).
 
+## Plugin Configuration System (Docker only)
+
+ACore CMS includes a flexible plugin configuration system that allows you to install WordPress plugins with a docker initialization scripts (you can find it in the `/apps/init` directory).
+
+### Configuration Directory
+
+External plugin configurations are loaded from the `/conf/init/` directory, which can be mounted from your host system. This directory should contain `.conf` files that define which plugins to install and activate.
+
+### Plugin Configuration Format
+
+Create `.conf` files in your `conf/init/` directory with the following format:
+
+```bash
+#!/bin/bash
+
+# Add plugins to install and activate
+# Format: "Plugin Name|plugin-source"
+# Source can be: slug (from WP repo), URL, or file path
+plugins_install+=(
+    "WooCommerce|woocommerce"
+    "Custom Plugin|https://example.com/plugin.zip"
+    "Local Plugin|/tmp/plugins/local-plugin.zip"
+)
+
+# Add plugins to activate only (already present in container)
+plugins_activate_only+=(
+    "Existing Plugin|existing-plugin-slug"
+)
+```
+
+### Plugin Sources
+
+The system supports multiple plugin sources:
+
+1. **WordPress Repository**: Use the plugin slug
+   ```bash
+   plugins_install+=("WooCommerce|woocommerce")
+   ```
+
+2. **URLs**: Direct download links to zip files
+   ```bash
+   plugins_install+=("Plugin Name|https://releases.example.com/plugin.zip")
+   ```
+
+3. **Local Files**: Zip files mounted into the container
+   ```bash
+   plugins_install+=("Local Plugin|/tmp/plugins/local-plugin.zip")
+   ```
+
+### Local zip files
+
+You can place your plugin zip file in the `/data/plugins/` folder (which is mounted as `/tmp/plugins` in the container) and reference it in your configuration:
+
+```bash
+#!/bin/bash
+
+plugins_install+=(
+    "Custom Plugin|https://example.com/plugin.zip"
+    "Local Plugin|/tmp/plugins/local-plugin.zip"
+)
+
+```
+
+### Default Plugins
+
+ACore CMS comes with a default set of plugins that are always installed:
+- WooCommerce
+- WPGraphQL
+- WPGraphQL ACF
+- myCred
+- Advanced Custom Fields
+- ACore WP Plugins (activation only)
+
+External configurations add to or can override these defaults by modifying the `plugins_install` and `plugins_activate_only` arrays.
 

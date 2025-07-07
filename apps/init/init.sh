@@ -9,8 +9,9 @@ error_handler() {
 # Trap errors and call the error_handler function
 trap 'error_handler' ERR
 
-# List of plugins to install
-# Array semplice con nome e slug separati da "|"
+# List of plugins to install and activate
+# Format: "Plugin Name|plugin-source"
+# Source can be: slug (from WP repo), URL, or file path
 plugins_install=(
     "WooCommerce|woocommerce"
     "WPGraphQL|wp-graphql"
@@ -19,10 +20,26 @@ plugins_install=(
     "Advanced Custom Fields|advanced-custom-fields"
 )
 
-# List of plugins to activate only once
+# List of plugins to activate only once (already present in container)
 plugins_activate_only=(
     "ACore WP Plugins|acore-wp-plugins"
 )
+
+# Load external plugin configurations from mounted directory
+EXTERNAL_CONFIG_DIR="/conf/init"
+if [ -d "$EXTERNAL_CONFIG_DIR" ]; then
+    echo "Loading external plugin configurations from $EXTERNAL_CONFIG_DIR..."
+    
+    # Load all .conf files
+    for config_file in "$EXTERNAL_CONFIG_DIR"/*.conf; do
+        if [ -f "$config_file" ]; then
+            echo "Loading configuration from: $config_file"
+            source "$config_file"
+        fi
+    done
+else
+    echo "No external plugin configurations found at $EXTERNAL_CONFIG_DIR. Using defaults only."
+fi
 
 CURPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -74,11 +91,11 @@ source "$CURPATH/init.lib.sh"
 
 # Install and activate each plugin in the list
 for plugin in "${plugins_install[@]}"; do
-    # Dividi il nome e lo slug
-    IFS='|' read -r plugin_name plugin_slug <<< "$plugin"
+    # Split plugin name and source
+    IFS='|' read -r plugin_name plugin_source <<< "$plugin"
     
-    echo "Installing $plugin_name ($plugin_slug)..."
-    install_and_activate_plugin "$plugin_name" "$plugin_slug"
+    echo "Installing $plugin_name ($plugin_source)..."
+    install_and_activate_plugin "$plugin_name" "$plugin_source"
 done
 
 # Handle Acore WP Plugins activation
