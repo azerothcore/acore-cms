@@ -236,8 +236,8 @@ Create `.conf` files in your `conf/init/` directory with the following format:
 # Source can be: slug (from WP repo), URL, or file path
 plugins_install+=(
     "WooCommerce|woocommerce"
-    "Custom Plugin|https://example.com/plugin.zip"
-    "Local Plugin|/tmp/plugins/local-plugin.zip"
+    "Custom Plugin|custom-plugin|https://example.com/plugin.zip"
+    "Local Plugin|local-plugin|/tmp/plugins/local-plugin.zip"
 )
 
 # Add themes to install and activate
@@ -245,8 +245,8 @@ plugins_install+=(
 # Source can be: slug (from WP repo), URL, or file path
 themes_install+=(
     "Twenty Twenty-One|twentytwentyone"
-    "Custom Theme|https://example.com/theme.zip"
-    "Local Theme|/tmp/themes/local-theme.zip"
+    "Custom Theme|custom-theme|https://example.com/theme.zip"
+    "Local Theme|local-theme|/tmp/themes/local-theme.zip"
 )
 
 # Add plugins to activate only (already present in container)
@@ -267,14 +267,14 @@ The system supports multiple sources for plugins and themes:
 
 2. **URLs**: Direct download links to zip files
    ```bash
-   plugins_install+=("Plugin Name|https://releases.example.com/plugin.zip")
-   themes_install+=("Theme Name|https://releases.example.com/theme.zip")
+   plugins_install+=("Plugin Name|plugin-slug|https://releases.example.com/plugin.zip")
+   themes_install+=("Theme Name|theme-slug|https://releases.example.com/theme.zip")
    ```
 
 3. **Local Files**: Zip files mounted into the container
    ```bash
-   plugins_install+=("Local Plugin|/tmp/plugins/local-plugin.zip")
-   themes_install+=("Local Theme|/tmp/themes/local-theme.zip")
+   plugins_install+=("Local Plugin|local-plugin|/tmp/plugins/local-plugin.zip")
+   themes_install+=("Local Theme|local-theme|/tmp/themes/local-theme.zip")
    ```
 
 ### Local zip files
@@ -285,13 +285,13 @@ You can place your plugin or theme zip files in the `/data/plugins/` or `/data/t
 #!/bin/bash
 
 plugins_install+=(
-    "Custom Plugin|https://example.com/plugin.zip"
-    "Local Plugin|/tmp/plugins/local-plugin.zip"
+    "Custom Plugin|custom-plugin|https://example.com/plugin.zip"
+    "Local Plugin|local-plugin|/tmp/plugins/local-plugin.zip"
 )
 
 themes_install+=(
-    "Custom Theme|https://example.com/theme.zip"
-    "Local Theme|/tmp/themes/local-theme.zip"
+    "Custom Theme|custom-theme|https://example.com/theme.zip"
+    "Local Theme|local-theme|/tmp/themes/local-theme.zip"
 )
 ```
 

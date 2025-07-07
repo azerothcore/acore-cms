@@ -97,23 +97,23 @@ source "$CURPATH/init.lib.sh"
 # Install and activate each plugin in the list
 for plugin in "${plugins_install[@]}"; do
     # Split plugin name and source
-    IFS='|' read -r plugin_name plugin_source <<< "$plugin"
+    IFS='|' read -r plugin_name plugin_slug plugin_source <<< "$plugin"
     
     echo "Installing $plugin_name ($plugin_source)..."
-    install_and_activate_plugin "$plugin_name" "$plugin_source"
+    install_and_activate_plugin "$plugin_name" "$plugin_slug" "$plugin_source"
 done
 
 # Install themes if any
 for theme in "${themes_install[@]}"; do
-    IFS='|' read -r theme_name theme_source <<< "$theme"
+    IFS='|' read -r theme_name theme_slug theme_source <<< "$theme"
     echo "Installing theme $theme_name ($theme_source)..."
-    install_and_activate_theme "$theme_name" "$theme_source"
+    install_and_activate_theme "$theme_name" "$theme_slug" "$theme_source"
 done
 
 # Handle Acore WP Plugins activation
 for plugin in "${plugins_activate_only[@]}"; do
     IFS='|' read -r plugin_name plugin_slug <<< "$plugin"
-    
+
     echo "Activating $plugin_name ($plugin_slug) only once..."
     handle_plugin_activation_once "$plugin_slug"
 done
