@@ -6,16 +6,43 @@ is_plugin_installed() {
     return $?
 }
 
+is_theme_installed() {
+    wp theme is-installed "$1" --allow-root
+    return $?
+}
+
 # Function to install and activate a plugin if not already installed
 install_and_activate_plugin() {
     local plugin_name="$1"
     local plugin_slug="$2"
+    local plugin_source="$3"
 
+    if [ -z "$plugin_source" ]; then
+        plugin_source=$plugin_slug
+    fi
+    
     if ! is_plugin_installed "$plugin_slug"; then
         echo "Installing and activating plugin: $plugin_name..."
-        wp plugin install "$plugin_slug" --activate --allow-root
+        wp plugin install "$plugin_source" --activate --allow-root
     else
         echo "Plugin $plugin_name is already installed."
+    fi
+}
+
+install_and_activate_theme() {
+    local theme_name="$1"
+    local theme_slug="$2"
+    local theme_source="$3"
+
+    if [ -z "$theme_source" ]; then
+        theme_source=$theme_slug
+    fi
+
+    echo "Installing and activating theme: $theme_name from $theme_source..."
+    if ! is_theme_installed "$theme_slug"; then
+        wp theme install "$theme_source" --activate --allow-root
+    else
+        echo "Theme $theme_name is already installed."
     fi
 }
 

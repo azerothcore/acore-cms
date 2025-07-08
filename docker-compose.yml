@@ -49,6 +49,7 @@ services:
       - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
       - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html
       - ./apps/init/:/usr/local/bin/acore-init/
+      - ${DOCKER_CONF_INIT_PATH:-./conf/init}:/conf/init:ro
     env_file:
       # environment variables are retrieved by this file
       # NOTE: you can add more variables to the .env file but
@@ -96,6 +97,7 @@ services:
     volumes:
       - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
       - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
+      - ${DOCKER_CONF_CERTS_PATH:-./data/plugins/}:/tmp/plugins
       - ./var/logs:/var/log/nginx
       - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html:ro
     extra_hosts:
