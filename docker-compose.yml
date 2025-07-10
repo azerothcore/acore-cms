@@ -48,7 +48,7 @@ services:
         target: /usr/local/etc/php/conf.d/upload.ini
       - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
       - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html
-      - ./apps/init/:/usr/local/bin/acore-init/
+      - ./apps:/usr/local/bin/apps
       - ${DOCKER_CONF_INIT_PATH:-./conf/init}:/conf/init:ro
     env_file:
       # environment variables are retrieved by this file
@@ -76,8 +76,12 @@ services:
     networks:
       - local-private-net
       - ac-network
+    # allow the container to access the host machine
+    # this is useful for development purposes, e.g. to access the database/AC server running on the host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD", "/usr/local/bin/acore-init/healthcheck.sh"]
+      test: ["CMD", "/usr/local/bin/apps/init/healthcheck.sh"]
       interval: 5s
       timeout: 10s
       retries: 30
@@ -126,7 +130,7 @@ networks:
   local-private-net:
     driver: bridge
   ac-network:
-    name: azerothcore-wotlk_ac-network # default network name if you use the docker setup of ac
+    name: ${DOCKER_AC_NETWORK_NAME:-azerothcore-wotlk_ac-network} # default network name if you use the docker setup of ac
     external: ${DOCKER_AC_NETWORK_EXTERNAL:-false}
 volumes:
   mysql-data:

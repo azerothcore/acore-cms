@@ -18,6 +18,7 @@ plugins_install=(
     "WPGraphQL ACF|wpgraphql-acf"
     "myCred|mycred"
     "Advanced Custom Fields|advanced-custom-fields"
+    "Wordpress Importer|wordpress-importer"
 )
 
 # List of themes to install
@@ -29,6 +30,13 @@ themes_install=()
 plugins_activate_only=(
     "ACore WP Plugins|acore-wp-plugins"
 )
+
+# List of themes to activate only once (already present in container)
+themes_activate_only=()
+
+APPS_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+source "$APPS_FOLDER/bash-lib/src/event/hooks.sh"
 
 # Load external plugin configurations from mounted directory
 EXTERNAL_CONFIG_DIR="/conf/init"
@@ -65,8 +73,11 @@ if [ ! -f /var/www/html/wp-config.php ]; then
     wp config create --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=wp-db --allow-root
 fi
 
+IS_FIRST_INSTALL=0
+
 # Perform the initial WordPress installation if it hasn't been installed yet
 if ! wp core is-installed --allow-root; then
+    IS_FIRST_INSTALL=1
 
     if [ $WORDPRESS_MULTISITE = "false" ]; then
         echo "Installing WordPress without multisite support..."
@@ -89,26 +100,11 @@ fi
 
 wp maintenance-mode activate --allow-root || echo "Maintenance mode already activated or failed to activate."
 
-# Install and activate plugins
-echo "Installing and activating plugins & themes..."
-
+# Install and activate plugins and themes
 source "$CURPATH/init.lib.sh"
 
-# Install and activate each plugin in the list
-for plugin in "${plugins_install[@]}"; do
-    # Split plugin name and source
-    IFS='|' read -r plugin_name plugin_slug plugin_source <<< "$plugin"
-    
-    echo "Installing $plugin_name ($plugin_source)..."
-    install_and_activate_plugin "$plugin_name" "$plugin_slug" "$plugin_source"
-done
-
-# Install themes if any
-for theme in "${themes_install[@]}"; do
-    IFS='|' read -r theme_name theme_slug theme_source <<< "$theme"
-    echo "Installing theme $theme_name ($theme_source)..."
-    install_and_activate_theme "$theme_name" "$theme_slug" "$theme_source"
-done
+batch_install_and_activate_plugins "${plugins_install[@]}"
+batch_install_and_activate_themes "${themes_install[@]}"
 
 # Handle Acore WP Plugins activation
 for plugin in "${plugins_activate_only[@]}"; do
@@ -116,6 +112,14 @@ for plugin in "${plugins_activate_only[@]}"; do
 
     echo "Activating $plugin_name ($plugin_slug) only once..."
     handle_plugin_activation_once "$plugin_slug"
+done
+
+# Handle themes activation only once
+for theme in "${themes_activate_only[@]}"; do
+    IFS='|' read -r theme_name theme_slug <<< "$theme"
+
+    echo "Activating theme $theme_name ($theme_slug) only once..."
+    handle_theme_activation_once "$theme_slug"
 done
 
 # Correct permissions for non-root operations
@@ -126,6 +130,9 @@ setfacl -R -d -m u:$DOCKER_USER_ID:rwx /var/www/html/
 
 # Start a proxy from 127.0.0.1:6379 to the Redis container
 socat TCP-LISTEN:6379,fork TCP:redis:6379 &
+
+echo "Starting on_init_complete hooks..."
+acore_event_runHooks "on_init_complete" "$IS_FIRST_INSTALL"
 
 wp maintenance-mode deactivate --allow-root
 
