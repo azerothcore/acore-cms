@@ -57,6 +57,7 @@ services:
       - .env.docker
     environment:
       DOCKER_CONTAINER: 1
+      ENVIRONMENT: ${DOCKER_ENVIRONMENT:-production}
       WORDPRESS_URL: ${DOCKER_WORDPRESS_URL:-http://localhost}
       WORDPRESS_TITLE: ${DOCKER_WORDPRESS_TITLE:-ACoreCMS}
       WORDPRESS_MULTISITE: ${DOCKER_WORDPRESS_MULTISITE:-true}
