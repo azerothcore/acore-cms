@@ -124,18 +124,15 @@ services:
     expose:
       - "6379"
   maintenance:
-    image: wickerlabs/maintenance
+    image: nginx
     volumes:
       - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
       - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
-    environment:
-      PORT: 443
-      RESPONSE_CODE: 503
-      THEME: dark
+      - ${DOCKER_CONF_NGINX_MAINTENANCE_PAGE:-./conf/dist/maintenance}:/var/www/html
     ports:
-      - 443:443
-    profiles: [maint]
-    network_mode: "host"
+      - ${DOCKER_HTTP_PORTS:-80:80}
+      - ${DOCKER_HTTPS_PORTS:-443:443}
+    profiles: [maintenance]
 
 networks:
   local-shared-net:
