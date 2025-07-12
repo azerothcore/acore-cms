@@ -123,6 +123,19 @@ services:
       - local-private-net
     expose:
       - "6379"
+  maintenance:
+    image: wickerlabs/maintenance
+    volumes:
+      - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
+      - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
+    environment:
+      PORT: 443
+      RESPONSE_CODE: 503
+      THEME: dark
+    ports:
+      - 443:443
+    profiles: [maint]
+    network_mode: "host"
 
 networks:
   local-shared-net:
