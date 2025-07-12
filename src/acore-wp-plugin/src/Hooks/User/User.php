@@ -203,9 +203,10 @@ add_action('user_register',  function ($user_id) {
 // If login but game account doesn't exist
 // then create it
 add_action('wp_login', function ($user_login, $user) {
-    create_account_if_not_exists($user, $_POST['pwd']);
+    if (key_exists('pwd', $_POST)) {
+        create_account_if_not_exists($user,  $_POST['pwd']);
+    }
 }, 10, 2);
-
 
 // if login, but exist only game account, then create wordpress account
 add_action('wp_authenticate', function ($username, $password) {
