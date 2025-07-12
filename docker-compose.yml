@@ -123,7 +123,7 @@ services:
       - local-private-net
     expose:
       - "6379"
-  maintenance:
+  acore-cms-maintenance:
     image: nginx
     volumes:
       - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
