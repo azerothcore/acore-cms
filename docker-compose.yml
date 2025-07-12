@@ -129,9 +129,9 @@ services:
       DOCKER_CONTAINER: 1
       MAINTENANCE_MODE: "true"
     volumes:
-      - ${DOCKER_CONF_NGINX_PATH:-./conf/dist/nginx-conf}:/etc/nginx/conf.d/
       - ${DOCKER_CONF_CERTS_PATH:-./conf/dist/certs/}:/etc/nginx/certs/
-      - ${DOCKER_CONF_NGINX_MAINTENANCE_PAGE:-./conf/dist/maintenance}:/var/www/html
+      - ${DOCKER_CONF_NGINX_MAINTENANCE_CONF:-./conf/dist/maintenance/conf}:/etc/nginx/conf.d/
+      - ${DOCKER_CONF_NGINX_MAINTENANCE_HTML:-./conf/dist/maintenance/html}:/var/www/html
     ports:
       - ${DOCKER_HTTP_PORTS:-80:80}
       - ${DOCKER_HTTPS_PORTS:-443:443}
