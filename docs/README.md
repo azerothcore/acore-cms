@@ -26,6 +26,14 @@ About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
 
 ## Installation & Usage
 
+### 0. Run the init scripts
+
+Run the `init.sh` script to initialize the project and set up the required configuration files. This script will also clone the necessary submodules.
+
+```bash
+./init.sh
+```
+
 ### 1. Configure your .env file
 
 Create an `.env` file and copy the `.env.docker` content file to `.env`, configuring the variables as you prefer.
