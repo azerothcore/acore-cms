@@ -34,7 +34,11 @@ plugins_activate_only=(
 # List of themes to activate only once (already present in container)
 themes_activate_only=()
 
-APPS_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+ROOT_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
+
+bash "$ROOT_FOLDER/init.sh"
+
+APPS_FOLDER="$ROOT_FOLDER/apps"
 
 source "$APPS_FOLDER/bash-lib/src/event/hooks.sh"
 
