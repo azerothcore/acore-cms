@@ -7,6 +7,10 @@ use ACore\Manager\ACoreServices;
 
 function check_user_membership($user_id)
 {
+    if (!function_exists('pmpro_getMembershipLevelForUser')) {
+        return false; // PMPro is not installed or active
+    }
+
     $membership_status = pmpro_getMembershipLevelForUser($user_id);
 
     return !($membership_status === false || ($membership_status->enddate != null && $membership_status->enddate < time()));

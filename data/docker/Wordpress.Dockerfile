@@ -51,9 +51,11 @@ RUN wget --no-check-certificate -O /usr/local/bin/wp \
     && chmod +x /usr/local/bin/wp
 
 # Add init script for runtime configuration
-COPY apps/init /usr/local/bin/acore-init
-RUN chmod +x /usr/local/bin/acore-init/init.sh
-RUN chmod +x /usr/local/bin/acore-init/healthcheck.sh
+RUN mkdir -p /usr/local/bin/apps/
+COPY apps/init /usr/local/bin/apps/init
+COPY apps/bash-lib /usr/local/bin/apps/bash-lib
+RUN chmod +x /usr/local/bin/apps/init/init.sh
+RUN chmod +x /usr/local/bin/apps/init/healthcheck.sh
 
 # Remove and re-add www-data user with specified UID and GID
 RUN deluser www-data \
@@ -61,4 +63,4 @@ RUN deluser www-data \
     && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID www-data \
     && passwd -d www-data
 
-ENTRYPOINT ["bash", "/usr/local/bin/acore-init/init.sh"]
+ENTRYPOINT ["bash", "/usr/local/bin/apps/init/init.sh"]

@@ -234,7 +234,7 @@ add_action('wp_login', function ($user_login, $user) {
         return; // JSON-based login
     }
 
-    if (!isset($_POST['pwd'])) {
+    if (!key_exists('pwd', $_POST) || !isset($_POST['pwd'])) {
         return; // No password - security fallback
     }
 
@@ -256,7 +256,6 @@ add_action('graphql_login_after_authenticate', function($user_data, $slug, $inpu
 
     create_account_if_not_exists($user_data, $input['credentials']['password']);
 }, 10, 3);
-
 
 // if login, but exist only game account, then create wordpress account
 add_action('wp_authenticate', function ($username, $password) {

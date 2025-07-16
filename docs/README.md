@@ -26,6 +26,14 @@ About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
 
 ## Installation & Usage
 
+### 0. Run the init scripts
+
+Run the `init.sh` script to initialize the project and set up the required configuration files. This script will also clone the necessary submodules.
+
+```bash
+./init.sh
+```
+
 ### 1. Configure your .env file
 
 Create an `.env` file and copy the `.env.docker` content file to `.env`, configuring the variables as you prefer.
@@ -114,15 +122,15 @@ DOCKER_WORDPRESS_SRC_PATH=./srv
 You can export the source files of the current wordpress installation inside the /srv folder (backup) with the following command:
 
 ```bash
-npm run docker:src:export
+npm run docker:srv:export
 ```
 
 #### Import source files
 
-You can import the source files under /srv folder inside the /var/www/html container folder(restore backup) with the following command:
+You can import the source files under /srv/ folder inside the /var/www/html container folder(restore backup) with the following command:
 
 ```bash
-npm run docker:src:import
+npm run docker:srv:import
 ```
 
 IMPORTANT: this command needs to be executed with a bash-compatible shell and it will stop the php running container. After the import is done, you can start the container again.
@@ -216,4 +224,90 @@ NOTE: by default sql files will be exported inside the /data/sql folder
 
 If you want to install the acore-wp-plugin as a standalone plugin, you can follow the instructions in the [acore-wp-plugin repository](https://github.com/azerothcore/acore-cms-wp-plugin).
 
+## Plugin and Theme Configuration System (Docker only)
+
+ACore CMS includes a flexible configuration system that allows you to install WordPress plugins and themes with docker initialization scripts (you can find them in the `/apps/init` directory).
+
+### Configuration Directory
+
+External configurations are loaded from the `/conf/init/` directory, which can be mounted from your host system. This directory should contain `.conf` files that define which plugins and themes to install and activate.
+
+### Configuration Format
+
+Create `.conf` files in your `conf/init/` directory with the following format:
+
+```bash
+#!/bin/bash
+
+# Add plugins to install and activate
+# Format: "Plugin Name|plugin-source"
+# Source can be: slug (from WP repo), URL, or file path
+plugins_install+=(
+    "WooCommerce|woocommerce"
+    "Custom Plugin|custom-plugin|https://example.com/plugin.zip"
+    "Local Plugin|local-plugin|/tmp/plugins/local-plugin.zip"
+)
+
+# Add themes to install and activate
+# Format: "Theme Name|theme-source"
+# Source can be: slug (from WP repo), URL, or file path
+themes_install+=(
+    "Twenty Twenty-One|twentytwentyone"
+    "Custom Theme|custom-theme|https://example.com/theme.zip"
+    "Local Theme|local-theme|/tmp/themes/local-theme.zip"
+)
+
+# Add plugins to activate only (already present in container)
+plugins_activate_only+=(
+    "Existing Plugin|existing-plugin-slug"
+)
+```
+
+### Sources
+
+The system supports multiple sources for plugins and themes:
+
+1. **WordPress Repository**: Use the slug
+   ```bash
+   plugins_install+=("WooCommerce|woocommerce")
+   themes_install+=("Twenty Twenty-One|twentytwentyone")
+   ```
+
+2. **URLs**: Direct download links to zip files
+   ```bash
+   plugins_install+=("Plugin Name|plugin-slug|https://releases.example.com/plugin.zip")
+   themes_install+=("Theme Name|theme-slug|https://releases.example.com/theme.zip")
+   ```
+
+3. **Local Files**: Zip files mounted into the container
+   ```bash
+   plugins_install+=("Local Plugin|local-plugin|/tmp/plugins/local-plugin.zip")
+   themes_install+=("Local Theme|local-theme|/tmp/themes/local-theme.zip")
+   ```
+
+### Local zip files
+
+You can place your plugin or theme zip files in the `/data/plugins/` or `/data/themes/` folders (which are mounted as `/tmp/plugins` and `/tmp/themes` in the container) and reference them in your configuration:
+
+```bash
+#!/bin/bash
+
+plugins_install+=(
+    "Custom Plugin|custom-plugin|https://example.com/plugin.zip"
+    "Local Plugin|local-plugin|/tmp/plugins/local-plugin.zip"
+)
+
+themes_install+=(
+    "Custom Theme|custom-theme|https://example.com/theme.zip"
+    "Local Theme|local-theme|/tmp/themes/local-theme.zip"
+)
+```
+
+### Default Plugins and Themes
+
+ACore CMS comes with a default set of plugins and themes that are always installed:
+- Plugins: WooCommerce, WPGraphQL, WPGraphQL ACF, myCred, Advanced Custom Fields, ACore WP Plugins (activation only)
+- Themes: None by default
+
+External configurations add to or can override these defaults by modifying the `plugins_install`, `themes_install`, and `plugins_activate_only` arrays.
 
