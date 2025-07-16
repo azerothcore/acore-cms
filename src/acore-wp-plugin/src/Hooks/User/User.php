@@ -6,6 +6,7 @@ use ACore\Manager\Common;
 use ACore\Manager\ACoreServices;
 use ACore\Manager\UserValidator;
 use ACore\Manager\Auth\Entity\AccountAccessEntity;
+use ACore\Utils\AcoreUtils;
 use Doctrine\DBAL\Exception\ConnectionException;
 use PDOException;
 
@@ -151,41 +152,68 @@ add_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 add_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10, 1);
 
 function create_account_if_not_exists($user, $password): void
-{
+{    
     try {
         $accRepo = ACoreServices::I()->getAccountRepo();
+
+        if (!$accRepo->findOneByUsername($user->user_login, $password)) {
+            create_game_account($user, $password);
+        }
     } catch (PDOException $e) {
-        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
-        echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
+        AcoreUtils::handle_acore_error(
+            'It was not possible to establish a connection with the database. Please check your server settings.',
+            function ($message) use($user) {
+                AcoreUtils::set_flash_message($message, 'error', $user->ID);
+                \wp_redirect(\admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
+            }
+        );
         exit;
     } catch (ConnectionException $e) {
-        wp_redirect(admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
-        echo "<div class='notice notice-error'><p>It was not possible to entablish a connection with the database. Please check your server settings.</p></div><";
+        AcoreUtils::handle_acore_error(
+            'It was not possible to establish a connection with the database. Please check your server settings.',
+            function ($message) use($user) {
+                AcoreUtils::set_flash_message($message, 'error', $user->ID);
+                \wp_redirect(\admin_url('admin.php?page=' . ACORE_SLUG . '-settings'));
+            }
+        );
         exit;
+    } catch (\Exception $e) {
+        AcoreUtils::handle_acore_error($e->getMessage());
     }
+}
 
-    if (!$accRepo->findOneByUsername($user->user_login)) {
+function create_game_account($user, $password): void
+{
+    try {
         $soap = ACoreServices::I()->getAccountSoap();
-
+        
         $res = $soap->createAccountFull($user->user_login, $password, $user->user_email, Common::EXPANSION_WOTLK);
-
         if ($res !== true) {
-            die($res->getMessage());
+            throw new \Exception($res->getMessage());
         }
 
         $res = $soap->setAccountPassword($user->user_login, $password);
-
         if (!!$res !== true && $res->getMessage()) {
-            die($res->getMessage());
+            throw new \Exception($res->getMessage());
         }
 
         // workaround since soap doesn't work
-        $conn = ACoreServices::I()->getAccountEm()->getConnection();
+        update_account_email($user);
+    } catch (\Exception $e) {
+        AcoreUtils::handle_acore_error($e->getMessage());
+    }
+}
 
+function update_account_email($user): void
+{
+    try {
+        $conn = ACoreServices::I()->getAccountEm()->getConnection();
         $conn->executeQuery(
             "UPDATE account SET email = :email, reg_mail = :email WHERE username = :username",
-            array('email' => $user->user_email, 'username' => $user->user_login)
+            ['email' => $user->user_email, 'username' => $user->user_login]
         );
+    } catch (\Exception $e) {
+        AcoreUtils::handle_acore_error('Unable to update account email address.');
     }
 }
 
@@ -199,14 +227,35 @@ add_action('user_register',  function ($user_id) {
     }
 });
 
-
 // If login but game account doesn't exist
 // then create it
 add_action('wp_login', function ($user_login, $user) {
-    if (key_exists('pwd', $_POST)) {
-        create_account_if_not_exists($user,  $_POST['pwd']);
+    if (wp_is_json_request()) {
+        return; // JSON-based login
     }
+
+    if (!key_exists('pwd', $_POST) || !isset($_POST['pwd'])) {
+        return; // No password - security fallback
+    }
+
+    create_account_if_not_exists($user, $_POST['pwd']);
 }, 10, 2);
+
+add_action('graphql_login_after_authenticate', function($user_data, $slug, $input) {
+    if (!($user_data instanceof \WP_User)) {
+        return;
+    }
+
+    if ($slug !== 'password') {
+        return;
+    }
+
+    if (!isset($input['credentials']['password'])) {
+        return;
+    }
+
+    create_account_if_not_exists($user_data, $input['credentials']['password']);
+}, 10, 3);
 
 // if login, but exist only game account, then create wordpress account
 add_action('wp_authenticate', function ($username, $password) {
