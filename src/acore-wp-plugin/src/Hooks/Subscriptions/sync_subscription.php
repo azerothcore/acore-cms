@@ -10,7 +10,7 @@ function example_add_cron_interval($schedules)
     return $schedules;
   }
 
-  $schedules['every_5_minutes'] = array(
+  $schedules['sync_subscriptions_table'] = array(
     'interval' => 300,
     'display'  => esc_html__('Sync pmpro subscriptions with azerothcore'),
   );
@@ -101,5 +101,5 @@ function bl_cron_exec_sync_subs()
 add_action('bl_cron_hook', 'bl_cron_exec_sync_subs');
 
 if (!wp_next_scheduled('bl_cron_hook')) {
-  wp_schedule_event(time(), 'every_5_minutes', 'bl_cron_hook');
+  wp_schedule_event(time(), 'sync_subscriptions_table', 'bl_cron_hook');
 }
