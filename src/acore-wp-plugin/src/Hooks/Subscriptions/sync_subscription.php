@@ -17,7 +17,7 @@ function example_add_cron_interval($schedules)
   return $schedules;
 }
 
-function bl_cron_exec_sync_subs()
+function bl_cron_exec_sync_subs(...$args)
 {
   global $wpdb;
 
