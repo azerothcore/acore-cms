@@ -1,7 +1,13 @@
-# acore-wp-plugin
+# acore-wp-plugin (⚠️ READ-ONLY ⚠️)
 
 AzerothCore plugin for wordpress
 
+
+## ⚠️Repository Notice ⚠️
+
+This repository is **readonly** and is a mirror of the main `acore-cms` repository. It exists to allow installation of this plugin as a standalone WordPress plugin. However, this is a derivative work of `acore-cms` and is **not fully supported** as a standalone plugin. For full support and updates, refer to the main repository:
+
+[acore-cms repository](https://github.com/azerothcore/acore-cms)
 
 ## Getting started
 
