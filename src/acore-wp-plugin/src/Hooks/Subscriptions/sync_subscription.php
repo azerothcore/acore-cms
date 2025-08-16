@@ -2,8 +2,7 @@
 
 use ACore\Manager\Opts;
 
-add_filter('cron_schedules', 'example_add_cron_interval');
-function example_add_cron_interval($schedules)
+function add_cron_interval($schedules)
 {
   $membership_system_enabled = function_exists('pmpro_getMembershipLevelForUser');
   if (!$membership_system_enabled) {
@@ -12,10 +11,12 @@ function example_add_cron_interval($schedules)
 
   $schedules['every_5_minutes'] = array(
     'interval' => 300,
-    'display'  => esc_html__('Sync pmpro subscriptions with azerothcore'),
+    'display'  => esc_html__('Every 5 minutes'),
   );
+
   return $schedules;
 }
+add_filter('cron_schedules', 'add_cron_interval');
 
 function bl_cron_exec_sync_subs(...$args)
 {
@@ -97,7 +98,6 @@ function bl_cron_exec_sync_subs(...$args)
     $acore_auth_db->get_results($query);
   }
 }
-
 add_action('bl_cron_hook', 'bl_cron_exec_sync_subs');
 
 if (!wp_next_scheduled('bl_cron_hook')) {
