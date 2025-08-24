@@ -105,6 +105,7 @@ services:
       - ${DOCKER_CONF_CERTS_PATH:-./data/plugins/}:/tmp/plugins
       - ./var/logs:/var/log/nginx
       - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html:ro
+      - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
     extra_hosts:
       - "web.local:127.0.0.1"
     ports:
