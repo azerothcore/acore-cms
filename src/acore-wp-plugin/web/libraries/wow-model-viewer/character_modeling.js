@@ -66,7 +66,7 @@ const characterPart = () => {
     Horns: window.WOTLK_TO_RETAIL_DISPLAY_ID_API ? undefined : `horns`,
     "Body Size": window.WOTLK_TO_RETAIL_DISPLAY_ID_API ? undefined : `bodySize`,
   };
-  console.log(ret);
+  // console.log(ret);
   return ret;
 };
 
