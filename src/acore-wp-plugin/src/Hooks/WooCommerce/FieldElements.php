@@ -115,6 +115,14 @@ class FieldElements {
     }
 
     public static function get3dViewer(int $itemId): void {
+
+        global $post;
+        $custom_3d_checkbox = get_post_meta($post->ID, '_custom_3d_checkbox', true);
+
+        if ($custom_3d_checkbox !== 'yes') {
+            return;
+        }
+
         ?>
         <script>$ = jQuery;</script>
         <script src="https://wowgaming.altervista.org/modelviewer/scripts/viewer.min.js"></script>
