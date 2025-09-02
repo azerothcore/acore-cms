@@ -54,7 +54,7 @@ async function generateModels(aspect, containerSelector, model, env = `live`) {
     aspect: aspect,
     ...modelOptions,
   };
-  console.log(`Creating viewer with options`, models);
+  // console.log(`Creating viewer with options`, models);
 
   // eslint-disable-next-line no-undef
   const wowModelViewer = await new WowModelViewer(models);
