@@ -54,7 +54,7 @@ To add the shop in your website selling items and services you have to:
   <br>
   4. **(optional)** install the plugin `myCred` to add **"virtual points"** in your website, this will allow you to define a relation between money and your virtual point, so any user can buy items in the shopt through virtual points and buy virtual points with €/$
 
-![Shop](shop.png)
+![Shop](images/shop.png)
 
 Besides items you can also sell:
 
@@ -71,6 +71,24 @@ Besides items you can also sell:
 - Smartstone vanity (using as SKU `smartstone_CATEGORY_VANITYID`), this add a vanity (pet, combat ecc.), it requires the module [Smartstone module](https://github.com/chromiecraft/mod-chromiecraft-smartstone/).
 
 **Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
+
+### 3D Model Viewer
+
+In any product it is possible to enable/disable the 3D viewer via settings on Inventory -> 3D Viewer.
+
+![3d viewer](images/3d-viewer-option.png)
+
+It currently suports:
+- mounts/pets/companion under itemsend SKU
+- transmog items under transmog-item SKU
+
+Examples:
+
+<img src="images/3d-viewer-example-mount.png" alt="3d viewer mount" width="500"/>
+
+<img src="images/3d-viewer-example-pet.png" alt="3d viewer pet" width="500"/>
+
+<img src="images/3d-viewer-example-transmog.png" alt="3d viewer pet" width="500"/>
 
 ## Troubleshooting
 
