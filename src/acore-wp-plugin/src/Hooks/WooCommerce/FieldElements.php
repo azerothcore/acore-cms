@@ -114,4 +114,62 @@ class FieldElements {
         <?php
     }
 
+    public static function get3dViewer(int $itemId): void {
+
+        global $post;
+        $custom_3d_checkbox = get_post_meta($post->ID, '_custom_3d_checkbox', true);
+
+        if ($custom_3d_checkbox !== 'yes') {
+            return;
+        }
+
+        ?>
+        <script>$ = jQuery;</script>
+        <script src="https://wowgaming.altervista.org/modelviewer/scripts/viewer.min.js"></script>
+        <script type="module">
+            import { generateModels } from "<?= ACORE_URL_PLG . "web/libraries/wow-model-viewer/index.js" ?>";
+
+            function show3dModel(displayId, entity, inventoryType, race=1, gender=0) {
+                let model;
+                if (entity === 'item') {
+                    const character = {
+                        race,
+                        gender,
+                        skin: 0,
+                        face: 0,
+                        hairStyle: 0,
+                        hairColor: 0,
+                        facialStyle: 0,
+                        items: [
+                            [inventoryType,  displayId],
+                        ],
+                    };
+                    model = character;
+                }
+                else if (entity === 'npc') {
+                    model = {
+                        type: 8,
+                        id: displayId,
+                    };
+                }
+
+                const wow3dviewerId = 'acore-3d-viewer-<?= $itemId ?>';
+                const productElementCSSclass = '.woocommerce-product-gallery';
+                document.querySelector(productElementCSSclass).innerHTML = '';
+                document.querySelector(productElementCSSclass).style.backgroundColor='black';
+                document.querySelector(productElementCSSclass).id = wow3dviewerId;
+                generateModels(1, `#${wow3dviewerId}`, model);
+            }
+
+            fetch('https://wowgaming.altervista.org/modelviewer/data/get-displayid.php?type=item&id=<?= $itemId ?>')
+                .then(response => response.text())
+                .then(data => {
+                    const [displayId, entity, inventoryType] = data.split(',');
+                    show3dModel(displayId, entity, inventoryType);
+                });
+        </script>
+
+        <?php
+    }
+
 }
