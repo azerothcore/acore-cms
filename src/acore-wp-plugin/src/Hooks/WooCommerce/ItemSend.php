@@ -74,6 +74,8 @@ class ItemSend extends \ACore\Lib\WpClass {
             return;
         }
 
+        FieldElements::get3dViewer($sku->itemId);
+
         $current_user = wp_get_current_user();
 
         if ($current_user) {
