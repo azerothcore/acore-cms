@@ -111,12 +111,12 @@ function getCharacterOptions(character, fullOptions) {
     }
     ret.push(newOption);
   }
-  console.warn(
-    `In character: `,
-    character,
-    `the following options are missing`,
-    missingChoice
-  );
+  // console.warn(
+  //   `In character: `,
+  //   character,
+  //   `the following options are missing`,
+  //   missingChoice
+  // );
 
   return ret;
 }

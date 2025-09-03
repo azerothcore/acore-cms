@@ -36,6 +36,8 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             return;
         }
 
+        FieldElements::get3dViewer();
+
         $current_user = wp_get_current_user();
 
         if ($current_user) {

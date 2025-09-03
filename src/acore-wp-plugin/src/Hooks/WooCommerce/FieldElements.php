@@ -114,10 +114,18 @@ class FieldElements {
         <?php
     }
 
-    public static function get3dViewer(int $itemId): void {
+    public static function get3dViewer(int $itemId = 0): void {
 
         global $post;
         $custom_3d_checkbox = get_post_meta($post->ID, '_custom_3d_checkbox', true);
+        $race = get_post_meta($post->ID, '_3d_race', true);
+        $gender = get_post_meta($post->ID, '_3d_gender', true);
+        $gender = $gender === '2' ? rand(0, 1) : $gender;
+        $creatureDisplayId = get_post_meta($post->ID, '_3d_displayid', true);
+
+        if ($itemId === 0 && $creatureDisplayId === '') {
+            return;
+        }
 
         if ($custom_3d_checkbox !== 'yes') {
             return;
@@ -129,7 +137,7 @@ class FieldElements {
         <script type="module">
             import { generateModels } from "<?= ACORE_URL_PLG . "web/libraries/wow-model-viewer/index.js" ?>";
 
-            function show3dModel(displayId, entity, inventoryType, race=1, gender=0) {
+            function show3dModel(displayId, entity, inventoryType=0, race=1, gender=0) {
                 let model;
                 if (entity === 'item') {
                     const character = {
@@ -161,12 +169,20 @@ class FieldElements {
                 generateModels(1, `#${wow3dviewerId}`, model);
             }
 
+            <?php if ($creatureDisplayId !== '') { ?>
+            show3dModel(<?= $creatureDisplayId ?>, 'npc');
+            <?php } else { ?>
             fetch('https://wowgaming.altervista.org/modelviewer/data/get-displayid.php?type=item&id=<?= $itemId ?>')
                 .then(response => response.text())
                 .then(data => {
                     const [displayId, entity, inventoryType] = data.split(',');
-                    show3dModel(displayId, entity, inventoryType);
+                    <?php if ($race !== '' && $gender !== '') { ?>
+                        show3dModel(displayId, entity, inventoryType, <?= $race ?>, <?= $gender ?>);
+                    <?php } else { ?>
+                        show3dModel(displayId, entity, inventoryType);
+                    <?php } ?>
                 });
+            <?php } ?>
         </script>
 
         <?php
