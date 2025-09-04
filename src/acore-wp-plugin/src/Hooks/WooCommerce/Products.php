@@ -61,13 +61,22 @@ function add_custom_3d_checkbox_fields() {
         ),
     ));
 
+    woocommerce_wp_checkbox( array(
+        'id' => '_3d_single_item',
+        'label' => __('Show single item', 'woocommerce'),
+        'description' => __('Show 3D model of the single item (valid only for Head, Shoulder and Weapons).', 'woocommerce'),
+    ));
+
     echo '</div>';
 }
 
 add_action('woocommerce_process_product_meta', 'save_3d_checkbox_field');
 function save_3d_checkbox_field($post_id) {
-    $custom_checkbox = isset($_POST['_custom_3d_checkbox']) ? 'yes' : 'no';
-    update_post_meta($post_id, '_custom_3d_checkbox', $custom_checkbox);
+    $enable_3d = isset($_POST['_custom_3d_checkbox']) ? 'yes' : 'no';
+    update_post_meta($post_id, '_custom_3d_checkbox', $enable_3d);
+
+    $isSingleItem = isset($_POST['_3d_single_item']) ? 'yes' : 'no';
+    update_post_meta($post_id, '_3d_single_item', $isSingleItem);
 
     $custom_text_input = isset($_POST['_3d_displayid']) ? sanitize_text_field($_POST['_3d_displayid']) : '';
     update_post_meta($post_id, '_3d_displayid', $custom_text_input);

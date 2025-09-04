@@ -117,17 +117,18 @@ class FieldElements {
     public static function get3dViewer(int $itemId = 0): void {
 
         global $post;
-        $custom_3d_checkbox = get_post_meta($post->ID, '_custom_3d_checkbox', true);
+        $is_3d_enabled = get_post_meta($post->ID, '_custom_3d_checkbox', true) === 'yes';
         $race = get_post_meta($post->ID, '_3d_race', true);
         $gender = get_post_meta($post->ID, '_3d_gender', true);
         $gender = $gender === '2' ? rand(0, 1) : $gender;
         $creatureDisplayId = get_post_meta($post->ID, '_3d_displayid', true);
+        $isSingleItem = get_post_meta($post->ID, '_3d_single_item', true)  === 'yes';
 
         if ($itemId === 0 && $creatureDisplayId === '') {
             return;
         }
 
-        if ($custom_3d_checkbox !== 'yes') {
+        if (!$is_3d_enabled) {
             return;
         }
 
@@ -140,19 +141,41 @@ class FieldElements {
             function show3dModel(displayId, entity, inventoryType=0, race=1, gender=0) {
                 let model;
                 if (entity === 'item') {
-                    const character = {
-                        race,
-                        gender,
-                        skin: 0,
-                        face: 0,
-                        hairStyle: 0,
-                        hairColor: 0,
-                        facialStyle: 0,
-                        items: [
-                            [inventoryType,  displayId],
-                        ],
+                    <?php if ($isSingleItem) { ?>
+
+                    const HEAD_INVENTORY_TYPE = 1;
+                    const SHOULDER_INVENTORY_TYPE = 3;
+                    const WEAPONS_INVENTORY_TYPE =[13,14,15,17,21,22,23,25,26];
+                    let type;
+
+                    if (WEAPONS_INVENTORY_TYPE.includes(inventoryType)) {
+                        type = 1; // WEAPON
+                    } else if (inventoryType === HEAD_INVENTORY_TYPE) {
+                        type = 2; // HEAD
+                    } else if (inventoryType === SHOULDER_INVENTORY_TYPE) {
+                        type = 4; // SHOULDER
+                    }
+                
+                    model = {
+                        type,
+                        id: displayId,
                     };
-                    model = character;
+                    <?php } else { ?>
+                        const character = {
+                            race,
+                            gender,
+                            skin: 0,
+                            face: 0,
+                            hairStyle: 0,
+                            hairColor: 0,
+                            facialStyle: 0,
+                            items: [
+                                [inventoryType,  displayId],
+                            ],
+                        };
+                        model = character;
+                    <?php } ?>
+
                 }
                 else if (entity === 'npc') {
                     model = {
@@ -175,7 +198,8 @@ class FieldElements {
             fetch('https://wowgaming.altervista.org/modelviewer/data/get-displayid.php?type=item&id=<?= $itemId ?>')
                 .then(response => response.text())
                 .then(data => {
-                    const [displayId, entity, inventoryType] = data.split(',');
+                    let [displayId, entity, inventoryType] = data.split(',');
+                    inventoryType = Number(inventoryType);
                     <?php if ($race !== '' && $gender !== '') { ?>
                         show3dModel(displayId, entity, inventoryType, <?= $race ?>, <?= $gender ?>);
                     <?php } else { ?>
