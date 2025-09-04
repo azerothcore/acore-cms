@@ -11,7 +11,7 @@ class WebP {
 if (!window.WH) {
   window.WH = {};
   window.WH.debug = function (...args) {
-    console.log(args);
+    // console.log(args);
   };
   window.WH.defaultAnimation = `Stand`;
   window.WH.WebP = new WebP();
