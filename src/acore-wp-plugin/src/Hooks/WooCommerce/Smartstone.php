@@ -39,7 +39,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
 
         $current_user = wp_get_current_user();
         if (!$current_user) {
-            \wc_add_notice(__('You must be logged to buy it!', 'acore-wp-plugin'), 'error');
+            \wc_add_notice(__('You must be logged in to buy it!', 'acore-wp-plugin'), 'error');
             return false;
         }
 
