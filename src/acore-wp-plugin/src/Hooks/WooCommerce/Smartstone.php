@@ -26,6 +26,30 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
         add_action('woocommerce_add_order_item_meta', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
+        add_action('woocommerce_add_to_cart_validation', [__CLASS__, 'add_to_cart_validation'], 10, 5);
+    }
+
+     // Validator for add to cart from external sources (no character selected) or logged in required from "CartValidation")    
+    public static function add_to_cart_validation($passed, $product_id, $quantity, $variation_id = null, $variations = null) {
+        $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
+        $sku = $product->get_sku();
+        if (strpos($sku, 'smartstone') !== 0) {
+            return $passed;
+        }
+
+        $current_user = wp_get_current_user();
+        if (!is_user_logged_in()) {
+            \wc_add_notice(__('You must be logged in to buy it!', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+
+        $guid = intval($_REQUEST['acore_char_sel'] ?? 0);
+        if ($guid === 0) {
+            \wc_add_notice(__('No character selected. Please select a character and try again.', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+
+        return $passed;
     }
 
     // LIST
