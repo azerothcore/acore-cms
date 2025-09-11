@@ -29,7 +29,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         add_action('woocommerce_add_to_cart_validation', [__CLASS__, 'add_to_cart_validation'], 10, 5);
     }
 
-     // Validator for add to cart from external sources (no character selected) or logged int required from "CartValidation")    
+     // Validator for add to cart from external sources (no character selected) or logged in required from "CartValidation")    
     public static function add_to_cart_validation($passed, $product_id, $quantity, $variation_id = null, $variations = null) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
         $sku = $product->get_sku();
