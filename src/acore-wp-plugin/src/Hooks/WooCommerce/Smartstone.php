@@ -66,6 +66,16 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
 
         if ($current_user) {
             FieldElements::charList($current_user->user_login);
+            ?>
+            <br>
+            <label for="acore_char_dest">Or send it as a present for:</label>
+            <input type="text" id="acore_char_dest" class="acore_char_dest" name="acore_char_dest" placeholder="Character name..." maxlength="24" />
+            <br>
+            <label for="acore_msg_dest">Send a message (optional):</label>
+            <textarea maxlength="200" id="acore_msg_dest" class="acore_msg_dest" name="acore_msg_dest"></textarea>
+            <br>
+            <br>
+            <?php
         }
     }
 
@@ -79,12 +89,22 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             return $cart_item_data;
         }
 
+
+        // Always require sender character
         if (isset($_REQUEST['acore_char_sel'])) {
             $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
-            $cart_item_data['acore_item_sku'] = $product->get_sku();
-            /* below statement make sure every add to cart action as unique line item */
-            $cart_item_data['unique_key'] = md5(microtime() . rand());
         }
+        // Save recipient if present
+        if (!empty($_REQUEST['acore_char_dest'])) {
+            $cart_item_data['acore_char_dest'] = sanitize_text_field($_REQUEST['acore_char_dest']);
+        }
+        // Save message if present
+        if (!empty($_REQUEST['acore_msg_dest'])) {
+            $cart_item_data['acore_msg_dest'] = substr(sanitize_text_field($_REQUEST['acore_msg_dest']), 0, 200);
+        }
+        $cart_item_data['acore_item_sku'] = $product->get_sku();
+        /* below statement make sure every add to cart action as unique line item */
+        $cart_item_data['unique_key'] = md5(microtime() . rand());
 
         return $cart_item_data;
     }
@@ -101,25 +121,31 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             return $custom_items;
         }
 
+        $ACoreSrv = ACoreServices::I();
+        $charRepo = $ACoreSrv->getCharactersRepo();
+        $categoryToText = array(
+            0 => "Pet",
+            1 => "Combat Pet",
+            2 => "Costume",
+        );
+
+        $senderName = null;
         if (isset($cart_item['acore_char_sel'])) {
-            $ACoreSrv = ACoreServices::I();
-            $charRepo = $ACoreSrv->getCharactersRepo();
-
             $charId = $cart_item['acore_char_sel'];
-
             $char = $charRepo->findOneByGuid($charId);
+            $senderName = $char ? $char->getName() : "Character <$charId> doesn't exist!";
+        }
 
-            $charName = $char ? $char->getName() : "Character <$charId> doesn't exist!";
-
-            // Add to this dictionary / array to show other catergories for vanity items.
-            $categoryToText = array(
-                0 => "Pet",
-                1 => "Combat Pet",
-                2 => "Costume",
-            );
-
-            $custom_items[] = array("name" => 'Character', "value" => $charName);
-            $custom_items[] = array("name" => $categoryToText[$smartstone_category], "value" => $smartstone_id);
+        if (!empty($cart_item['acore_char_dest'])) {
+            // Gifted
+            $custom_items[] = array("name" => 'Gifted by', "value" => $senderName);
+            $custom_items[] = array("name" => 'Gifted to', "value" => esc_html($cart_item['acore_char_dest']));
+        } elseif ($senderName) {
+            $custom_items[] = array("name" => 'Character', "value" => $senderName);
+        }
+        $custom_items[] = array("name" => $categoryToText[$smartstone_category], "value" => $smartstone_id);
+        if (!empty($cart_item['acore_msg_dest'])) {
+            $custom_items[] = array("name" => 'Message', "value" => esc_html($cart_item['acore_msg_dest']));
         }
         return $custom_items;
     }
@@ -132,8 +158,16 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             return;
         }
 
-        if (isset($values['acore_char_sel']) && isset($values["acore_item_sku"])) {
+        if (isset($values['acore_char_sel'])) {
             \wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
+        }
+        if (!empty($values['acore_char_dest'])) {
+            \wc_add_order_item_meta($item_id, "acore_char_dest", $values['acore_char_dest']);
+        }
+        if (!empty($values['acore_msg_dest'])) {
+            \wc_add_order_item_meta($item_id, "acore_msg_dest", $values['acore_msg_dest']);
+        }
+        if (isset($values["acore_item_sku"])) {
             \wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
         }
     }
@@ -171,10 +205,24 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
                     [$smartstone_category, $smartstone_id] = self::getItemId($item["acore_item_sku"]);
 
                     if ($smartstone_id) {
-                        $charName = $WoWSrv->getCharName($item["acore_char_sel"]);
-
-                        $res = $soap->addVanity($charName, $smartstone_category, $smartstone_id);
-
+                        // If gifting, use recipient, else use sender
+                        $recipient = !empty($item["acore_char_dest"]) ? $item["acore_char_dest"] : $WoWSrv->getCharName($item["acore_char_sel"]);
+                        $sender = $WoWSrv->getCharName($item["acore_char_sel"]);
+                        $itemName = isset($item["name"]) ? $item["name"] : 'a Smartstone item';
+                        // Try to get product name if possible
+                        if (isset($item["acore_item_sku"])) {
+                            $product = wc_get_product($item["acore_item_sku"]);
+                            if ($product) {
+                                $itemName = $product->get_name();
+                            }
+                        }
+                        $titleMsg = sprintf(__('%s has sent you %s', 'acore-wp-plugin'), $sender, $itemName);
+                        $userMsg = !empty($item["acore_msg_dest"]) ? $item["acore_msg_dest"] : '';
+                        $finalMsg = $titleMsg;
+                        if ($userMsg !== '') {
+                            $finalMsg .= "\n\n" . $userMsg;
+                        }
+                        $res = $soap->addVanity($recipient, $smartstone_category, $smartstone_id, $finalMsg);
                         if ($res instanceof \Exception) {
                             throw $res;
                         }
