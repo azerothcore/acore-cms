@@ -45,11 +45,22 @@ function bl_cron_exec_sync_subs(...$args)
 
   // get all active accounts and membership level
   $query = $wpdb->prepare(
-    "SELECT user_id, wu.user_login AS AccountName, membership_level_id, status
-    FROM " . $wpdb->prefix . "pmpro_subscriptions wpmu
-    LEFT JOIN " . $wpdb->prefix . "users wu ON wpmu.user_id = wu.ID
-    WHERE wpmu.status=\"active\";"
+    "
+    SELECT user_id, wu.user_login AS AccountName, membership_level_id, \"active\" AS `status`
+      FROM " . $wpdb->prefix . "pmpro_subscriptions wps
+      LEFT JOIN " . $wpdb->prefix . "users wu ON wps.user_id = wu.ID
+      WHERE wps.status=\"active\"
+    UNION
+    SELECT user_id, wu.user_login AS AccountName, membership_id AS membership_level_id, \"active\" AS `status`
+      FROM " . $wpdb->prefix . "pmpro_memberships_users wpmu
+      LEFT JOIN " . $wpdb->prefix . "users wu ON wpmu.user_id = wu.ID
+      WHERE wpmu.enddate > NOW() AND wpmu.status=\"active\";
+    "
   );
+  // note: the second sql query after UNION is to catch memberships that are not recurring (one-time payments) but still active
+  // for example, the users that cancelled their recurring subscription but still have access until the end of the paid period
+  // \"active\" AS `status` -> this is for fixing "ERROR 1271 (HY000): Illegal mix of collations for operation 'UNION'"
+
   $subscriptions_accounts_rows = $wpdb->get_results($query);
 
   $all_active_accounts = '';
