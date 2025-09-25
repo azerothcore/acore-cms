@@ -132,11 +132,35 @@ class FieldElements {
             return;
         }
 
+        $current_user = wp_get_current_user();
+        if ($current_user) {
+            $accId = ACoreServices::I()->getAcoreAccountId();
+
+
+            $query = "SELECT race, gender, skin, hairStyle, face, hairColor, facialStyle FROM characters WHERE `account` = $accId;";
+            $conn = ACoreServices::I()->getCharacterEm()->getConnection();
+            $queryResult = $conn->executeQuery($query);
+            $data = $queryResult->fetchAllAssociative()[0];
+
+            $race = $data['race'];
+            $gender = $data['gender'];
+            $skin = $data['skin'];
+            $hairStyle = $data['hairStyle'];
+            $face = $data['face'];
+            $hairColor = $data['hairColor'];
+            $facialStyle = $data['facialStyle'];
+
+            $query = "SELECT character_inventory.slot, item_instance.itemEntry FROM character_inventory JOIN item_instance ON item_instance.guid = character_inventory.item AND character_inventory.guid = 5 AND character_inventory.bag = 0 AND character_inventory.slot IN (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);";
+            $items = $queryResult->fetchAllAssociative();
+        }
+
         ?>
         <script>$ = jQuery;</script>
         <script src="https://wowgaming.altervista.org/modelviewer/scripts/viewer.min.js"></script>
         <script type="module">
             import { generateModels } from "<?= ACORE_URL_PLG . "web/libraries/wow-model-viewer/index.js" ?>";
+
+            console.log('username: <?= $username ?? 'guest' ?>');
 
             function show3dModel(displayId, entity, inventoryType=0, race=1, gender=0) {
                 let model;
@@ -155,7 +179,7 @@ class FieldElements {
                     } else if (inventoryType === SHOULDER_INVENTORY_TYPE) {
                         type = 4; // SHOULDER
                     }
-                
+
                     model = {
                         type,
                         id: displayId,
@@ -164,12 +188,17 @@ class FieldElements {
                         const character = {
                             race,
                             gender,
-                            skin: 0,
-                            face: 0,
-                            hairStyle: 0,
-                            hairColor: 0,
-                            facialStyle: 0,
+                            skin:  <?= $skin ?? 0 ?>,
+                            face:  <?= $face ?? 0 ?>,
+                            hairStyle:  <?= $hairStyle ?? 0 ?>,
+                            hairColor:  <?= $hairColor ?? 0 ?>,
+                            facialStyle:  <?= $facialStyle ?? 0 ?>,
                             items: [
+                                <?php
+                                    foreach ($items as $item) {
+                                        echo "[{$item['slot']}, {$item['itemEntry']}],"; // TODO: conver this into item displayid
+                                    }
+                                ?>
                                 [inventoryType,  displayId],
                             ],
                         };
