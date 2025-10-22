@@ -21,7 +21,7 @@ class ServerInfoWidget extends \WP_Widget {
     private function parseInfo($string) {
         $result = $string;
         $result = \str_replace("Characters in world", "<br>Characters in world", $result);
-        $result = \str_replace("Server uptime", "<br>Uptime ( from daily restart )", $result);
+        $result = \str_replace("Server uptime", "<br>Uptime: ", $result);
         $result = \str_replace("Update time diff", "<br>Update time diff", $result);
         return $result;
     }
