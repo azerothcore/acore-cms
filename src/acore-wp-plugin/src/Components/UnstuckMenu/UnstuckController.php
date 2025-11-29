@@ -29,11 +29,16 @@ class UnstuckController
         foreach ($characters as $character) {
             if ($character['name'] === $charName) {
 
-                $soap->unstuckByName($charName);
+                $currentTime = time();
+                if ($character["time"] < $currentTime) {
+                    $soap->unstuckByName($charName);
 
-                self::updateUnstuckCD($charName);
+                    self::updateUnstuckCD($charName);
 
-                return $charName . " unstucked!";
+                    return $charName . " unstucked!";
+                }
+
+                return $charName . " unstuck still on cooldown!";
             }
         }
 
