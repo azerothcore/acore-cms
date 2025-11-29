@@ -109,8 +109,15 @@ function bl_cron_exec_sync_subs(...$args)
     $acore_auth_db->get_results($query);
   }
 }
+
 add_action('bl_cron_hook', 'bl_cron_exec_sync_subs');
 
 if (!wp_next_scheduled('bl_cron_hook')) {
   wp_schedule_event(time(), 'every_5_minutes', 'bl_cron_hook');
 }
+
+add_action('init', function() {
+  if (!wp_next_scheduled('bl_cron_hook')) {
+    wp_schedule_event(time(), 'every_5_minutes', 'bl_cron_hook');
+  }
+});
