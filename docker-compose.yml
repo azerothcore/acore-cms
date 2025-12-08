@@ -2,7 +2,7 @@ services:
   wp-db:
     restart: unless-stopped
     image: mysql:8
-    command: 'mysqld --mysql-native-password=ON'
+    command: "mysqld --mysql-native-password=ON --binlog_expire_logs_seconds=259200"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./data:/data/
@@ -23,12 +23,12 @@ services:
       - local-private-net
       - ac-network
     healthcheck:
-        test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
-        interval: 5s
-        timeout: 10s
-        retries: 30
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 5s
+      timeout: 10s
+      retries: 30
     cap_add:
-      - SYS_NICE  # CAP_SYS_NICE
+      - SYS_NICE # CAP_SYS_NICE
   php:
     restart: ${DOCKER_PHP_RESTART:-unless-stopped}
     build:
@@ -150,4 +150,3 @@ networks:
 volumes:
   mysql-data:
   wordpress-src:
-
