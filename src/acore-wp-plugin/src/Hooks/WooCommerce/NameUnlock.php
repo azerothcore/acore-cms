@@ -57,6 +57,7 @@ class NameUnlock extends \ACore\Lib\WpClass
         }
 
         return $passed;
+    }
 
     // LIST
     public static function before_add_to_cart_button()
