@@ -71,6 +71,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             <br>
             <?php
             FieldElements::destCharacter(__("Or send it as a present for:", 'acore-wp-plugin'));
+            echo '<div style="color: green; font-weight: bold;">[DEBUG] Smartstone gift field rendered</div>';
             ?>
             <br>
             <label for="acore_msg_dest">Send a message (optional):</label>
