@@ -20,7 +20,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
     }
 
     public static function init() {
-        add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
+        add_action('woocommerce_before_add_to_cart_button', self::sprefix() . 'before_add_to_cart_button');
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
         add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
