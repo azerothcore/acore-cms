@@ -58,8 +58,6 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         $sku = $product->get_sku();
         [$smartstone_category, $smartstone_id] = self::getItemId($sku);
         if (!$smartstone_id) {
-            // Debug output for troubleshooting
-            echo '<!-- Smartstone gift option not shown. SKU: ' . esc_html($sku) . ' | getItemId result: ' . print_r([$smartstone_category, $smartstone_id], true) . ' -->';
             return;
         }
 
@@ -71,8 +69,9 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             FieldElements::charList($current_user->user_login);
             ?>
             <br>
-            <label for="acore_char_dest">Or send it as a present for:</label>
-            <input type="text" id="acore_char_dest" class="acore_char_dest" name="acore_char_dest" placeholder="Character name..." maxlength="24" />
+            <?php
+            FieldElements::destCharacter(__("Or send it as a present for:", 'acore-wp-plugin'));
+            ?>
             <br>
             <label for="acore_msg_dest">Send a message (optional):</label>
             <textarea maxlength="200" id="acore_msg_dest" class="acore_msg_dest" name="acore_msg_dest"></textarea>
