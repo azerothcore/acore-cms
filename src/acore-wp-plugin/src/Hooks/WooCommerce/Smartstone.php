@@ -55,8 +55,11 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
     // LIST
     public static function before_add_to_cart_button() {
         global $product;
-        [$smartstone_category, $smartstone_id] = self::getItemId($product->get_sku());
+        $sku = $product->get_sku();
+        [$smartstone_category, $smartstone_id] = self::getItemId($sku);
         if (!$smartstone_id) {
+            // Debug output for troubleshooting
+            echo '<!-- Smartstone gift option not shown. SKU: ' . esc_html($sku) . ' | getItemId result: ' . print_r([$smartstone_category, $smartstone_id], true) . ' -->';
             return;
         }
 
