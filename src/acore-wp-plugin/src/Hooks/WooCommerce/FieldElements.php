@@ -121,7 +121,8 @@ class FieldElements {
         $race = get_post_meta($post->ID, '_3d_race', true);
         $gender = get_post_meta($post->ID, '_3d_gender', true);
         $gender = $gender === '2' ? rand(0, 1) : $gender;
-        $creatureDisplayId = get_post_meta($post->ID, '_3d_displayid', true);
+        $creatureDisplayId = get_post_meta($post->ID, '_3d_npc_displayid', true);
+        $itemDisplayId = get_post_meta($post->ID, '_3d_item_displayid', true);
         $isSingleItem = get_post_meta($post->ID, '_3d_single_item', true)  === 'yes';
 
         if ($itemId === 0 && $creatureDisplayId === '') {
@@ -199,6 +200,11 @@ class FieldElements {
                 .then(response => response.text())
                 .then(data => {
                     let [displayId, entity, inventoryType] = data.split(',');
+
+                    <?php if ($itemDisplayId !== '') { ?>
+                        displayId = <?= $itemDisplayId ?>;
+                    <?php } ?>
+
                     inventoryType = Number(inventoryType);
                     <?php if ($race !== '' && $gender !== '') { ?>
                         show3dModel(displayId, entity, inventoryType, <?= $race ?>, <?= $gender ?>);
