@@ -26,12 +26,19 @@ function add_custom_3d_checkbox_fields() {
     ));
 
     woocommerce_wp_text_input(array(
-        'id'            => '_3d_displayid',
-        'label'         => __('Force displayid', 'woocommerce'),
+        'id'            => '_3d_npc_displayid',
+        'label'         => __('Force NPC displayid', 'woocommerce'),
         'description'   => __('Enter a specific Creature displayid.', 'woocommerce'),
         'desc_tip'      => 'true',
     ));
-    
+
+    woocommerce_wp_text_input(array(
+        'id'            => '_3d_item_displayid',
+        'label'         => __('Force item displayid', 'woocommerce'),
+        'description'   => __('Enter a specific Item displayid.', 'woocommerce'),
+        'desc_tip'      => 'true',
+    ));
+
     woocommerce_wp_select(array(
         'id'            => '_3d_race',
         'label'         => __('Race (optional)', 'woocommerce'),
@@ -78,8 +85,11 @@ function save_3d_checkbox_field($post_id) {
     $isSingleItem = isset($_POST['_3d_single_item']) ? 'yes' : 'no';
     update_post_meta($post_id, '_3d_single_item', $isSingleItem);
 
-    $custom_text_input = isset($_POST['_3d_displayid']) ? sanitize_text_field($_POST['_3d_displayid']) : '';
-    update_post_meta($post_id, '_3d_displayid', $custom_text_input);
+    $custom_npc_text_input = isset($_POST['_3d_npc_displayid']) ? sanitize_text_field($_POST['_3d_npc_displayid']) : '';
+    update_post_meta($post_id, '_3d_npc_displayid', $custom_npc_text_input);
+
+    $custom_item_text_input = isset($_POST['_3d_item_displayid']) ? sanitize_text_field($_POST['_3d_item_displayid']) : '';
+    update_post_meta($post_id, '_3d_item_displayid', $custom_item_text_input);
 
     $custom_select = isset($_POST['_3d_race']) ? sanitize_text_field($_POST['_3d_race']) : '';
     update_post_meta($post_id, '_3d_race', $custom_select);
