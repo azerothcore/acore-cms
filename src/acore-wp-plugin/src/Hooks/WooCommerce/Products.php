@@ -27,7 +27,7 @@ function add_custom_3d_checkbox_fields() {
 
     woocommerce_wp_text_input(array(
         'id'            => '_3d_npc_displayid',
-        'label'         => __('Force displayid', 'woocommerce'),
+        'label'         => __('Force NPC displayid', 'woocommerce'),
         'description'   => __('Enter a specific Creature displayid.', 'woocommerce'),
         'desc_tip'      => 'true',
     ));
