@@ -76,7 +76,7 @@ class ResurrectionScrollView
                                                         $eligibleDate->setTimestamp($eligibleTimestamp);
                                                         $daysRemaining = (int) ceil(($eligibleTimestamp - time()) / 86400);
                                                         if ($daysRemaining > 0) {
-                                                            echo '<span class="text-muted">- Eligible on <strong>' . esc_html($eligibleDate->format('M j, Y')) . '</strong> (' . $daysRemaining . ' days remaining)</span>';
+                                                            echo '<span class="text-muted">- Eligible on <strong>' . esc_html($eligibleDate->format('M j, Y - H:i')) . '</strong> (' . $daysRemaining . ' days remaining)</span>';
                                                         }
                                                     } ?>
                                                 <?php } ?>
