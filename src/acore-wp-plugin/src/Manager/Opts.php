@@ -37,6 +37,8 @@ class Opts {
     public $acore_db_eluna_name="";
     public $eluna_recruit_a_friend="";
     public $eluna_raf_config=["check_ip" => '0'];
+    public $acore_resurrection_scroll="";
+    public $acore_resurrection_scroll_days_inactive="180";
     public $acore_item_restoration="";
     public $acore_name_unlock_thresholds = [
         [5, 30], // level < 5 -> 30 days
