@@ -42,6 +42,25 @@
                                                 </select>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_resurrection_scroll">Scroll of Resurrection</label>
+                                            </th>
+                                            <td>
+                                                <select name="acore_resurrection_scroll" id="acore_resurrection_scroll">
+                                                    <option value="0">Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->acore_resurrection_scroll == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr class="acore_resurrection_scroll_config" <?php if (Opts::I()->acore_resurrection_scroll != '1') echo 'style="display:none;"'?>>
+                                            <th>
+                                                <label for="acore_resurrection_scroll_days_inactive">Days Inactive</label>
+                                            </th>
+                                            <td>
+                                                <input type="number" name="acore_resurrection_scroll_days_inactive" id="acore_resurrection_scroll_days_inactive" min="1" value="<?= esc_attr(Opts::I()->acore_resurrection_scroll_days_inactive) ?>">
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -125,6 +144,10 @@
     };
 
     jQuery("#acore-name-unlock-thresholds-add").on("click", () => addThreshold());
+
+    jQuery('#acore_resurrection_scroll').on('change', function() {
+        jQuery('.acore_resurrection_scroll_config').toggle();
+    });
 
     <?php foreach (Opts::I()->acore_name_unlock_thresholds as $i => $threshold) {
         if ($threshold[0] != "" && $threshold[1] != "") {
