@@ -70,15 +70,15 @@ class ResurrectionScrollView
                                                     <span class="text-muted">- Log in to the game server to activate</span>
                                                 <?php } else { ?>
                                                     <span class="badge bg-secondary">Not Eligible</span>
-                                                    <span class="text-muted">- Requires <?= $daysInactive ?> days of inactivity<?php
-                                                        if ($lastLogout) {
-                                                            $daysSinceLogout = (int) ((time() - $lastLogout) / 86400);
-                                                            $daysRemaining = $daysInactive - $daysSinceLogout;
-                                                            if ($daysRemaining > 0) {
-                                                                echo ' (' . $daysRemaining . ' days remaining)';
-                                                            }
+                                                    <?php if ($lastLogout) {
+                                                        $eligibleTimestamp = $lastLogout + ($daysInactive * 86400);
+                                                        $eligibleDate = new \DateTime();
+                                                        $eligibleDate->setTimestamp($eligibleTimestamp);
+                                                        $daysRemaining = (int) ceil(($eligibleTimestamp - time()) / 86400);
+                                                        if ($daysRemaining > 0) {
+                                                            echo '<span class="text-muted">- Eligible on <strong>' . esc_html($eligibleDate->format('M j, Y')) . '</strong> (' . $daysRemaining . ' days remaining)</span>';
                                                         }
-                                                    ?></span>
+                                                    } ?>
                                                 <?php } ?>
                                             </td>
                                         </tr>
