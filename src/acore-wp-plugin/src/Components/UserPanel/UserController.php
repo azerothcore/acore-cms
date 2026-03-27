@@ -97,32 +97,40 @@ class UserController {
         if (!isset($accId)) {
             wp_die("<div class=\"notice notice-error\"><p>An error ocurred while loading your account information, please try again later. If this errors continues, please ask for support.</p></div>");
         }
-        $query = "SELECT `account_id`, `recruiter_account`, `time_stamp`, `ip_abuse_counter`, `kick_counter`
-            FROM `recruit_a_friend_links`
-            WHERE `account_id` = $accId
-        ";
-        $conn = $acServices->getElunaMgr()->getConnection();
-        $queryResult = $conn->executeQuery($query);
-        $rafPersonalInfo = $queryResult->fetchAssociative();
 
-        $query = "SELECT COALESCE(`reward_level`, 0) as reward_level
-            FROM `recruit_a_friend_rewards`
-            WHERE `recruiter_account` = $accId
-        ";
-        $conn = $acServices->getElunaMgr()->getConnection();
-        $queryResult = $conn->executeQuery($query);
-        $rafPersonalProgress = $queryResult->fetchAssociative();
+        try {
+            $conn = $acServices->getElunaMgr()->getConnection();
 
-        if (!isset($rafPersonalProgress['reward_level'])) {
-            $rafPersonalProgress = ['reward_level' => 0];
+            $query = "SELECT `account_id`, `recruiter_account`, `time_stamp`, `ip_abuse_counter`, `kick_counter`
+                FROM `recruit_a_friend_links`
+                WHERE `account_id` = $accId
+            ";
+            $queryResult = $conn->executeQuery($query);
+            $rafPersonalInfo = $queryResult->fetchAssociative();
+
+            $query = "SELECT COALESCE(`reward_level`, 0) as reward_level
+                FROM `recruit_a_friend_rewards`
+                WHERE `recruiter_account` = $accId
+            ";
+            $queryResult = $conn->executeQuery($query);
+            $rafPersonalProgress = $queryResult->fetchAssociative();
+
+            if (!isset($rafPersonalProgress['reward_level'])) {
+                $rafPersonalProgress = ['reward_level' => 0];
+            }
+
+            $query = "SELECT `account_id`, `recruiter_account`, `time_stamp`, `ip_abuse_counter`, `kick_counter`
+                FROM `recruit_a_friend_links`
+                WHERE `recruiter_account` = $accId
+            ";
+            $queryResult = $conn->executeQuery($query);
+            $rafRecruitedInfo = $queryResult->fetchAllAssociative();
+        } catch (\Exception $e) {
+            echo '<div class="wrap"><h2>Recruit a Friend</h2>'
+                . '<div class="notice notice-error"><p>No Recruit-A-Friend installation was found. '
+                . 'Please ensure the Eluna database is properly configured and the RAF module is installed on your server.</p></div></div>';
+            return;
         }
-
-        $query = "SELECT `account_id`, `recruiter_account`, `time_stamp`, `ip_abuse_counter`, `kick_counter`
-            FROM `recruit_a_friend_links`
-            WHERE `recruiter_account` = $accId
-        ";
-        $queryResult = $conn->executeQuery($query);
-        $rafRecruitedInfo = $queryResult->fetchAllAssociative();
 
         echo $this->getView()->getRafProgressRender($rafPersonalInfo, $rafPersonalProgress, $rafRecruitedInfo);
     }

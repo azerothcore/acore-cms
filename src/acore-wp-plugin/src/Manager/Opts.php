@@ -36,7 +36,7 @@ class Opts {
     public $acore_db_eluna_pass="";
     public $acore_db_eluna_name="";
     public $eluna_recruit_a_friend="";
-    public $eluna_raf_config=["check_ip" => '0'];
+    public $eluna_raf_config=["check_ip" => '0', "end_raf_on_same_ip" => '1'];
     public $acore_resurrection_scroll="";
     public $acore_resurrection_scroll_days_inactive="180";
     public $acore_item_restoration="";

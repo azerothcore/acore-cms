@@ -12,7 +12,11 @@ $userId = $acServices->getAcoreAccountId();
     echo "<h2>" . __('Recruit a Friend', Opts::I()->page_alias) . "</h2>";
     ?>
     <p>Recruit your friends, help them to level up and get very awesome unique prizes.</p>
+    <?php if (Opts::I()->eluna_raf_config['end_raf_on_same_ip'] === '1') { ?>
     <p style="color: red; font-size: 20px;">Recruiting from the same IP address will cause the RAF to be automatically removed and no new RAF can be applied again.</p>
+    <?php } else { ?>
+    <p style="color: red; font-size: 20px;">Whilst you can recruit a friend who shares an IP address, you will only get the teleport &amp; XP bonuses, no rewards will be given (these are provided only to those who recruit people not on their own IP address).</p>
+    <?php } ?>
     <div class="row">
         <div class="col-sm-6">
             <div class="card">

@@ -96,6 +96,17 @@
                                         </select>
                                     </td>
                                 </tr>
+                                <tr class="eluna_raf_config" <?php if (Opts::I()->eluna_recruit_a_friend != '1') echo 'style="display:none;"'?>>
+                                    <th>
+                                        <label for="eluna_raf_config[end_raf_on_same_ip]">RAF: End RAF on same IP</label>
+                                    </th>
+                                    <td>
+                                        <select name="eluna_raf_config[end_raf_on_same_ip]" id="eluna_raf_config_end_raf_on_same_ip">
+                                            <option value="0">Disabled</option>
+                                            <option value="1" <?php if (Opts::I()->eluna_raf_config['end_raf_on_same_ip'] === '1') echo 'selected'; ?>>Enabled</option>
+                                        </select>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
