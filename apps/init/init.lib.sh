@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Function to check if a plugin is installed
 is_plugin_installed() {
