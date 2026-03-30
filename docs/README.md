@@ -51,7 +51,7 @@ cd "C:\Users\Ryan Turner\Documents\Github\acore-cms"
  Run the `init.sh` (example for Git Bash or Linux Terminal) Type `./init.sh` and it will run it
 
 ```bash
-./init.sh`
+./init.sh
 ```
 
 > [!IMPORTANT]
@@ -61,6 +61,17 @@ cd "C:\Users\Ryan Turner\Documents\Github\acore-cms"
 ### 1. Configure your .env file
 
 Create an `.env` file and copy the `.env.docker` content file to `.env`, configuring the variables as you prefer.
+
+```bash
+# Linux / Git Bash
+cp .env.docker .env
+```
+
+```bash
+# Windows (CMD)
+copy .env.docker .env
+```
+Now inside of your
 
 The most important variables are:
 ```bash
