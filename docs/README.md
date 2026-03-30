@@ -1,38 +1,62 @@
 # ACore CMS
 
-ACore CMS is a content management system based on WordPress, designed to provide a robust and flexible platform for managing your website content. 
-**ACore CMS has been built to be integrated with AzerothCore**, allowing features such as account registration, WooCommerce integration (to sell items and services), etc.
-It leverages the power of Docker for easy setup and deployment, and includes a variety of plugins to extend its functionality. 
+### **A**zeroth**Core** **C**ontent **M**anagement **S**ystem based on WordPress which provides a native integration with AzerothCore Emulator while having a robust and flexiable platform to manage your website content.
 
-## Features
+# Features
 
-- **Easy Setup**: Quickly get started with Docker and docker-compose.
-- **Extensible**: Includes a variety of plugins such as WooCommerce, and you can add or create more. Extend it with any WordPress plugins, themes, and consume the REST/GraphQL APIs available.
-- **AzerothCore Integration**: Integrated with AzerothCore to provide account registration, item selling, and more.
+### - **Quick and Easy Setup**: With `Docker` and `docker-compose`.
+
+### - **Multiple Operating Systems Support**: If it can run `Docker`, you can run it.
+
+### - **Customisable**: Various systems to work with other popular plugins like `WooCommerce`.
+
+You can add, modify, create within the `acore-cms` plugin, themes and others, while benefiting from `REST/GraphQL` APIs, if available.
+
+You can read more about what comes with `acore-cms` by checking [documentation](configure-cms.md) in the `docs` folder.
 
 Whether you're building a simple website or a complex e-commerce site, ACore CMS provides the tools you need to create and manage your content effectively.
 
+> [!IMPORTANT]
+> At this current point `acore-cms` does not provide any `WordPress` themes, only the functionality.
+
+### - **Natively Supported by and for the AzerothCore Emulator**
+
+<details>
+
+<summary> Click to see the dashboard </summary>
+
 ![Dashboard](dashboard.png)
 
-## Requirements
+</details>
 
-- Docker & docker-compose
-- Nodejs & npm
+# Requirements
 
-If you do not have **docker**, [install it](https://docs.docker.com/compose/install/).
+### - [Docker & docker-compose](https://docs.docker.com/compose/install/)
 
-About **Nodejs & npm**, you can install it from [here](https://nodejs.org/en/).
+### - [Nodejs & npm](https://nodejs.org/en/)
 
 
 ## Installation & Usage
 
 ### 0. Run the init scripts
 
-Run the `init.sh` script to initialize the project and set up the required configuration files. This script will also clone the necessary submodules.
+Either using a terminal of choice Linux Terminal, Powershell, Git Bash others.
+
+Go in the folder of your downloaded or cloned repository e.g `C:\Users\Ryan Turner\Documents\Github\acore-cms`
 
 ```bash
-./init.sh
+cd "C:\Users\Ryan Turner\Documents\Github\acore-cms"
 ```
+
+ Run the `init.sh` (example for Git Bash or Linux Terminal) Type `./init.sh` and it will run it
+
+```bash
+./init.sh`
+```
+
+> [!IMPORTANT]
+> This script will initialize the project and set up the required configuration files. This is also required to clone the necessary [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) that this project uses.
+
 
 ### 1. Configure your .env file
 
