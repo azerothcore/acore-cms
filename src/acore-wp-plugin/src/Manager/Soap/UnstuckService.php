@@ -11,6 +11,7 @@ class UnstuckService
 
     public function unstuckByName($charName)
     {
+        $this->executeCommand(".revive $charName");
         return $this->executeCommand(".unstuck $charName");
     }
 }
