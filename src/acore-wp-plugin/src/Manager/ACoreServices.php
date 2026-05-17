@@ -329,7 +329,6 @@ class ACoreServices
         $conn = $this->getAccountEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $user->get("user_login"));
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
@@ -343,7 +342,6 @@ class ACoreServices
         $conn = $this->getAccountEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $user->get("user_login"));
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         $row = $res->fetchAssociative();
         $total = isset($row["totaltime"]) ? (int) $row["totaltime"] : 0;
@@ -370,7 +368,6 @@ class ACoreServices
         $conn = $this->getAccountEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $id);
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
@@ -383,7 +380,6 @@ class ACoreServices
         $conn = $this->getAccountEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $username);
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
@@ -396,7 +392,6 @@ class ACoreServices
         $conn = $this->getAccountEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $usedId);
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
@@ -409,7 +404,6 @@ class ACoreServices
         $conn = $this->getCharacterEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $character);
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchAllAssociative();
     }
@@ -427,7 +421,6 @@ class ACoreServices
         $conn = $this->getCharacterEm()->getConnection();
         $stmt = $conn->prepare($query);
         $stmt->bindValue(1, $guildLeaderGuid);
-        $stmt->executeQuery();
         $res = $stmt->executeQuery();
         return $res->fetchOne();
     }
