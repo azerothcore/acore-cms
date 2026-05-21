@@ -125,8 +125,9 @@ done
 # Correct permissions for non-root operations
 chown -R www-data:www-data /run /var/www/html/
 
-setfacl -R -m u:$DOCKER_USER_ID:rwx /var/www/html/
-setfacl -R -d -m u:$DOCKER_USER_ID:rwx /var/www/html/
+# setfacl is not supported on Windows bind mounts (NTFS) - make it non-fatal
+setfacl -R -m u:$DOCKER_USER_ID:rwx /var/www/html/ || echo "Warning: setfacl not supported on this filesystem (Windows bind mount?), skipping ACL setup."
+setfacl -R -d -m u:$DOCKER_USER_ID:rwx /var/www/html/ || echo "Warning: setfacl default ACL not supported, skipping."
 
 # Start a proxy from 127.0.0.1:6379 to the Redis container
 socat TCP-LISTEN:6379,fork TCP:redis:6379 &
