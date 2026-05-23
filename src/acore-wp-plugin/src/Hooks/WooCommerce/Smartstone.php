@@ -19,7 +19,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         }
         $parts = explode("_", $sku);
 
-        if (count($parts) < 3 || $parts[0] != "smartstone" || !is_numeric($parts[1]) || !is_numeric($parts[2])) {
+        if (count($parts) < 3 || $parts[0] !== "smartstone" || !is_numeric($parts[1]) || !is_numeric($parts[2])) {
             return false;
         }
 
@@ -51,16 +51,19 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             return $passed;
         }
 
+        // Any product whose SKU claims to be a smartstone item requires the buyer to
+        // be logged in, regardless of whether the rest of the SKU parses cleanly.
+        // Fail closed on the login check before falling back to other validators.
+        if (!is_user_logged_in()) {
+            \wc_add_notice(__('You must be logged in to buy it!', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+
         $parsed = self::getItemId($sku);
         if (!$parsed) {
             return $passed; // malformed SKU; let WooCommerce/other validators handle it
         }
         [$smartstone_category, $smartstone_id] = $parsed;
-
-        if (!is_user_logged_in()) {
-            \wc_add_notice(__('You must be logged in to buy it!', 'acore-wp-plugin'), 'error');
-            return false;
-        }
 
         // Account-wide services (costumes, perks) unlock via `.smartstone unlock account`
         // and do not need a character selection.
