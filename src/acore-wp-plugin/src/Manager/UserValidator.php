@@ -21,8 +21,8 @@ class UserValidator {
     {
         if (strlen($password) > UserValidator::PASSWORD_LENGTH) {
             return sprintf(
-                __("Password is too long (%s), please use less then %s characters", 'acore_wp_plugin'),
-                strlen($password), PASSWORD_LENGTH
+                __("Password is too long (%s), please use %s characters or fewer", 'acore_wp_plugin'),
+                strlen($password), UserValidator::PASSWORD_LENGTH
             );
         }
 
