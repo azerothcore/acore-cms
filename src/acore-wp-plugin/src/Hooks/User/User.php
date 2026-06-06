@@ -488,11 +488,10 @@ function save_extra_user_profile_fields($user_id)
     }
 
 
-    $expansion = $_POST['acore-user-game-expansion'];
+    $expansion = isset($_POST['acore-user-game-expansion']) ? intval($_POST['acore-user-game-expansion']) : null;
 
-    if (!$expansion || !in_array($expansion, Common::EXPANSIONS)) {
+    if ($expansion === null || !in_array($expansion, Common::EXPANSIONS)) {
         $expansion = Common::EXPANSION_WOTLK;
-        // throw new \Exception(__("Invalid Expansion!", "acore-wp-plugin"));
     }
 
     if ($expansion != $gameUser->getExpansion()) {
