@@ -2,6 +2,96 @@
 Acore dark mode overrides
 */
 
+/* --- expansion selector (profile page) --- */
+.acore-expansion-wrapper {
+    position: relative;
+    padding-top: 14px;
+    margin-bottom: 8px;
+}
+
+.acore-expansion-arrow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #646970;
+    transform: translateX(-50%);
+    transition: left 0.15s ease;
+}
+
+.acore-expansion-selector {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.acore-expansion-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px 7px 10px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid var(--exp-color, #646970);
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.acore-expansion-option input[type="radio"] {
+    display: none;
+}
+
+.acore-expansion-option .acore-expansion-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--exp-color, #646970);
+}
+
+.acore-expansion-option.is-selected {
+    box-shadow: 0 0 0 2px var(--exp-color, #646970);
+}
+
+.acore-expansion-option:hover {
+    background: #f6f7f7;
+}
+
+.acore-expansion-warning {
+    color: #8a6d3b;
+    background: #fcf8e3;
+    border-left: 4px solid #f0ad4e;
+    border-radius: 2px;
+    padding: 8px 12px;
+    margin: 0;
+    font-size: 12px;
+    max-width: 520px;
+}
+
+/* dark mode */
+body.acore-dark-mode .acore-expansion-option {
+    background: #1c2128 !important;
+    border-top-color: #30363d !important;
+    border-right-color: #30363d !important;
+    border-bottom-color: #30363d !important;
+    border-left-color: var(--exp-color, #8b949e) !important;
+}
+
+body.acore-dark-mode .acore-expansion-option:hover {
+    background: #262d36 !important;
+}
+
+body.acore-dark-mode .acore-expansion-option.is-selected {
+    box-shadow: 0 0 0 2px var(--exp-color, #8b949e) !important;
+}
+
+body.acore-dark-mode .acore-expansion-warning {
+    background: #2d2208 !important;
+    border-left-color: #f0ad4e !important;
+    color: #d4a843 !important;
+}
+
 /* --- admin bar toggle icon --- */
 #wp-admin-bar-acore-dark-mode > .ab-item {
     padding: 0 8px !important;
@@ -124,7 +214,10 @@ body.acore-dark-mode .card-title {
 /* --- Character list rows --- */
 body.acore-dark-mode .acore-char-row {
     background: #1c2128 !important;
-    border-color: #30363d !important;
+    border-top-color: #30363d !important;
+    border-right-color: #30363d !important;
+    border-bottom-color: #30363d !important;
+    border-left-color: var(--cls-dark, #8b949e) !important;
 }
 
 body.acore-dark-mode .acore-char-name {
