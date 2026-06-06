@@ -2,6 +2,8 @@
 
 namespace ACore\Components\CharactersMenu;
 
+use ACore\Utils\AcoreCharColors;
+
 class CharactersView {
     private $controller;
 
@@ -16,7 +18,7 @@ class CharactersView {
     public function getHomeRender($characters) {
         ob_start();
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
-        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');
+        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.4');
         wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
         wp_enqueue_script('jquery-ui-sortable');
         ?>
@@ -33,19 +35,18 @@ class CharactersView {
                             <hr>
                             <form action="" method="POST" novalidate="novalidate">
 
-                                <ul id="acore-characters-order" class="list-unstyled">
-                                    <?php foreach ($characters as $char) { ?>
+                                <ul id="acore-characters-order" class="acore-char-list list-unstyled">
+                                    <?php foreach ($characters as $char) {
+                                        $clsStyle = AcoreCharColors::rowStyle(intval($char["class"]));
+                                    ?>
                                         <li>
-                                            <div class="menu-item-bar">
-                                                <div class="menu-item-handle ui-sortable-handle">
-                                                    <span class="item-title menu-item-title"><?= $char["name"] ?></span>
-                                                    <span class="item-controls">
-                                                    <span class="item-type">
-                                                        level <?= $char["level"] ?>&ensp;
-                                                        <img src="<?= ACORE_URL_PLG . "web/assets/race/" . $char["race"] . ($char["gender"] == 0 ? "m" : "f") . ".webp"; ?>">
-                                                        <img src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
-                                                    </span>
-                                                </div>
+                                            <div class="acore-char-row" style="<?= esc_attr($clsStyle) ?>">
+                                                <span class="acore-char-name"><?= esc_html($char["name"]) ?></span>
+                                                <span class="acore-char-meta">
+                                                    <span class="acore-level">Level <?= intval($char["level"]) ?></span>
+                                                    <img height="32" width="32" src="<?= ACORE_URL_PLG . "web/assets/race/" . $char["race"] . ($char["gender"] == 0 ? "m" : "f") . ".webp"; ?>">
+                                                    <img height="32" width="32" src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
+                                                </span>
                                             </div>
                                             <input name="characterorder[]" value="<?= $char["guid"] ?>">
                                         </li>
@@ -54,6 +55,7 @@ class CharactersView {
 
                                 <?php if (!empty($characters)) { ?>
                                     <input type="submit" name="submit" class="button button-primary" value="Save Order">
+                                    <button type="submit" name="acore_reset_order" value="1" class="button" style="margin-left:6px;">Reset Order</button>
                                 <?php } ?>
                             </form>
                         </div>
