@@ -1,0 +1,368 @@
+/*
+Acore dark mode overrides
+*/
+
+/* --- admin bar toggle icon --- */
+#wp-admin-bar-acore-dark-mode > .ab-item {
+    padding: 0 8px !important;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    height: 32px;
+}
+
+#wp-admin-bar-acore-dark-mode > .ab-item #acore-dm-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    line-height: 1;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 5px;
+    padding: 2px;
+}
+
+/* --- Bootstrap 5 CSS variable overrides (must come before class rules) --- */
+body.acore-dark-mode {
+    --bs-body-bg: #0d1117;
+    --bs-body-color: #c9d1d9;
+    --bs-card-bg: #161b22;
+    --bs-card-border-color: #30363d;
+    --bs-card-cap-bg: #0d1117;
+    --bs-border-color: #30363d;
+    --bs-secondary-color: #8b949e;
+    --bs-link-color: #58a6ff;
+    --bs-link-hover-color: #79c0ff;
+    --bs-list-group-bg: #161b22;
+    --bs-list-group-border-color: #30363d;
+    --bs-list-group-color: #c9d1d9;
+}
+
+/* --- base --- */
+body.acore-dark-mode,
+body.acore-dark-mode #wpwrap {
+    background: #0d1117;
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode #wpcontent,
+body.acore-dark-mode #wpfooter {
+    background: #0d1117;
+}
+
+body.acore-dark-mode #wpbody-content {
+    background: #0d1117;
+}
+
+/* --- headings & text --- */
+body.acore-dark-mode h1,
+body.acore-dark-mode h2,
+body.acore-dark-mode h3,
+body.acore-dark-mode h4,
+body.acore-dark-mode h5,
+body.acore-dark-mode p,
+body.acore-dark-mode label,
+body.acore-dark-mode span,
+body.acore-dark-mode li {
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode .description,
+body.acore-dark-mode .text-muted {
+    color: #8b949e !important;
+}
+
+body.acore-dark-mode hr {
+    border-color: #30363d;
+}
+
+/* --- postboxes (WP core) --- */
+body.acore-dark-mode .postbox,
+body.acore-dark-mode #poststuff .postbox {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+body.acore-dark-mode .postbox-header {
+    background: #161b22;
+    border-bottom-color: #30363d;
+}
+
+body.acore-dark-mode .postbox-header h2,
+body.acore-dark-mode .postbox-header .hndle {
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode .postbox .inside {
+    color: #c9d1d9;
+}
+
+/* --- Bootstrap card --- */
+body.acore-dark-mode .card {
+    background-color: #161b22 !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .card-body {
+    background-color: #161b22 !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .card-header {
+    background-color: #0d1117 !important;
+    border-bottom-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .card-title {
+    color: #c9d1d9 !important;
+}
+
+/* --- Character list rows --- */
+body.acore-dark-mode .acore-char-row {
+    background: #1c2128 !important;
+    border-color: #30363d !important;
+}
+
+body.acore-dark-mode .acore-char-name {
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .acore-char-meta {
+    color: #8b949e !important;
+}
+
+body.acore-dark-mode .acore-char-row:hover {
+    background: #262d36 !important;
+}
+
+body.acore-dark-mode #acore-characters-mail .acore-char-row.active {
+    background: #1f3a5c !important;
+    border-color: #58a6ff !important;
+}
+
+/* --- Bootstrap form-select --- */
+body.acore-dark-mode .form-select {
+    background-color: #0d1117 !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .form-select:focus {
+    border-color: #58a6ff !important;
+    box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.25) !important;
+}
+
+/* --- form elements --- */
+body.acore-dark-mode input[type="text"],
+body.acore-dark-mode input[type="password"],
+body.acore-dark-mode input[type="email"],
+body.acore-dark-mode input[type="number"],
+body.acore-dark-mode input[type="search"],
+body.acore-dark-mode input[type="url"],
+body.acore-dark-mode select,
+body.acore-dark-mode textarea {
+    background-color: #0d1117;
+    border-color: #30363d;
+    color: #c9d1d9;
+    box-shadow: none;
+}
+
+body.acore-dark-mode input[type="text"]:focus,
+body.acore-dark-mode input[type="password"]:focus,
+body.acore-dark-mode select:focus,
+body.acore-dark-mode textarea:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 1px #58a6ff;
+    outline: none;
+}
+
+body.acore-dark-mode .form-table th {
+    color: #8b949e;
+}
+
+body.acore-dark-mode .form-table td {
+    color: #c9d1d9;
+}
+
+/* --- mail entries --- */
+body.acore-dark-mode .mail-entry {
+    background: #161b22 !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .mail-recipient,
+body.acore-dark-mode .mail-items {
+    background: #0d1117 !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .mail-header,
+body.acore-dark-mode .mail-meta,
+body.acore-dark-mode .mail-subject,
+body.acore-dark-mode .mail-money,
+body.acore-dark-mode .recipient-name {
+    color: #c9d1d9 !important;
+}
+
+/* --- tables --- */
+body.acore-dark-mode .widefat,
+body.acore-dark-mode .wp-list-table {
+    background: #161b22;
+    border-color: #30363d;
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode .widefat thead th,
+body.acore-dark-mode .widefat tfoot th,
+body.acore-dark-mode .wp-list-table thead th {
+    background: #0d1117;
+    color: #8b949e;
+    border-bottom-color: #30363d;
+}
+
+body.acore-dark-mode .widefat td,
+body.acore-dark-mode .widefat th,
+body.acore-dark-mode .wp-list-table td {
+    color: #c9d1d9;
+    border-bottom-color: #21262d;
+}
+
+body.acore-dark-mode .striped > tbody > :nth-child(odd) > td,
+body.acore-dark-mode .striped > tbody > :nth-child(odd) > th,
+body.acore-dark-mode .alternate {
+    background: #1c2128;
+}
+
+/* --- buttons --- */
+body.acore-dark-mode .button,
+body.acore-dark-mode .button-secondary {
+    background: #21262d;
+    border-color: #30363d;
+    color: #c9d1d9;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+body.acore-dark-mode .button:hover,
+body.acore-dark-mode .button-secondary:hover {
+    background: #30363d;
+    border-color: #8b949e;
+    color: #f0f6fc;
+}
+
+body.acore-dark-mode .button-primary {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: #fff;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+body.acore-dark-mode .button-primary:hover {
+    background: #388bfd;
+    border-color: #388bfd;
+}
+
+body.acore-dark-mode .button-primary:disabled,
+body.acore-dark-mode .button-primary[disabled] {
+    background: #1f6feb;
+    opacity: 0.5;
+}
+
+/* --- Bootstrap buttons --- */
+body.acore-dark-mode .btn-primary {
+    background-color: #1f6feb !important;
+    border-color: #1f6feb !important;
+}
+
+body.acore-dark-mode .btn-primary:hover {
+    background-color: #388bfd !important;
+    border-color: #388bfd !important;
+}
+
+body.acore-dark-mode .btn-outline-secondary,
+body.acore-dark-mode .btn-secondary {
+    background-color: #21262d !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+/* --- notices --- */
+body.acore-dark-mode .notice,
+body.acore-dark-mode div.updated,
+body.acore-dark-mode div.error {
+    background: #161b22;
+    border-color: #30363d;
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode .notice-success,
+body.acore-dark-mode .updated {
+    border-left-color: #3fb950;
+}
+
+body.acore-dark-mode .notice-error,
+body.acore-dark-mode div.error {
+    border-left-color: #f85149;
+}
+
+body.acore-dark-mode .notice-warning {
+    border-left-color: #d29922;
+}
+
+body.acore-dark-mode .notice p,
+body.acore-dark-mode div.updated p,
+body.acore-dark-mode div.error p {
+    color: #c9d1d9;
+}
+
+/* --- links --- */
+body.acore-dark-mode a {
+    color: #58a6ff;
+}
+
+body.acore-dark-mode a:hover {
+    color: #79c0ff;
+}
+
+/* --- footer --- */
+body.acore-dark-mode #wpfooter {
+    border-top-color: #30363d;
+    color: #8b949e;
+}
+
+body.acore-dark-mode #wpfooter a {
+    color: #58a6ff;
+}
+
+/* --- myCred widgets --- */
+body.acore-dark-mode [id^="mycred"],
+body.acore-dark-mode [class^="mycred"],
+body.acore-dark-mode .mycred-wrap,
+body.acore-dark-mode .mycred-widget {
+    background: #161b22 !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .mycred-history,
+body.acore-dark-mode .mycred-history *,
+body.acore-dark-mode #mycred-log-wrap,
+body.acore-dark-mode #mycred-log-wrap * {
+    background: #161b22 !important;
+    color: #c9d1d9 !important;
+    border-color: #30363d !important;
+}
+
+/* WP profile page balance box */
+body.acore-dark-mode #mycred-user-balance,
+body.acore-dark-mode .user-profile-mycred,
+body.acore-dark-mode td.mycred-field,
+body.acore-dark-mode th.mycred-field {
+    color: #c9d1d9 !important;
+}
