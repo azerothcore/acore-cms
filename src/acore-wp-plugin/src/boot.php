@@ -3,6 +3,7 @@
 define('FS_METHOD', 'direct');
 
 require_once ACORE_PATH_PLG . 'src/Utils/AcoreUtils.php';
+require_once ACORE_PATH_PLG . 'src/Utils/AcoreCharColors.php';
 
 require_once ACORE_PATH_PLG . 'src/Deps/class-tgm-plugin-activation.php';
 
