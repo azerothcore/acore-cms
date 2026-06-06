@@ -371,17 +371,63 @@ function extra_user_profile_fields($user)
 
     <table class="form-table">
         <tr>
-            <th><label for="acore-user-game-expansion"><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
+            <th><label><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
             <td>
-                <select id="acore-user-game-expansion" name="acore-user-game-expansion">
-                    <?php
-                    foreach (Common::EXPANSIONS as $key => $value) {
-                    ?><option value=<?= $value ?> <?= $userExpansion == $value ? "selected" : "" ?>><?= $key ?></option>
-                    <?php
+                <?php
+                $expansions = [
+                    Common::EXPANSION_CLASSIC => ['label' => 'Vanilla',               'color' => '#C39361'],
+                    Common::EXPANSION_TBC     => ['label' => 'The Burning Crusade',    'color' => '#62C907'],
+                    Common::EXPANSION_WOTLK   => ['label' => 'Wrath of the Lich King', 'color' => '#5DACEB'],
+                ];
+                ?>
+
+                <div class="acore-expansion-wrapper">
+                    <div class="acore-expansion-arrow" id="acore-exp-arrow"></div>
+                    <div class="acore-expansion-selector">
+                        <?php foreach ($expansions as $val => $exp): ?>
+                        <label class="acore-expansion-option<?= $userExpansion == $val ? ' is-selected' : '' ?>" style="--exp-color:<?= esc_attr($exp['color']) ?>;">
+                            <input type="radio" name="acore-user-game-expansion" value="<?= $val ?>" <?= $userExpansion == $val ? 'checked' : '' ?>>
+                            <span class="acore-expansion-label"><?= esc_html($exp['label']) ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <p class="acore-expansion-warning">
+                    &#9888; <strong><?php _e('Warning:', 'acore-wp-plugin'); ?></strong>
+                    <?php _e('This will restrict your account to the selected content. For example, selecting Vanilla means you cannot access TBC zones, create Draenei or Blood Elves, make Death Knights, or travel to Northrend.', 'acore-wp-plugin'); ?>
+                </p>
+
+                <script>
+                (function() {
+                    var arrow = document.getElementById('acore-exp-arrow');
+
+                    function updateArrow() {
+                        var selected = document.querySelector('.acore-expansion-option.is-selected');
+                        var wrapper  = document.querySelector('.acore-expansion-wrapper');
+                        if (!selected || !wrapper || !arrow) return;
+
+                        var wRect = wrapper.getBoundingClientRect();
+                        var sRect = selected.getBoundingClientRect();
+                        var centerX = sRect.left + sRect.width / 2 - wRect.left;
+                        var color   = selected.style.getPropertyValue('--exp-color') || '#646970';
+
+                        arrow.style.left           = centerX + 'px';
+                        arrow.style.borderTopColor = color;
                     }
-                    ?>
-                </select>
-                <span class="description"><?php _e("Game expansion to enable", 'acore-wp-plugin'); ?></span>
+
+                    document.querySelectorAll('.acore-expansion-option input[type="radio"]').forEach(function(radio) {
+                        radio.addEventListener('change', function() {
+                            document.querySelectorAll('.acore-expansion-option').forEach(function(o) { o.classList.remove('is-selected'); });
+                            this.closest('.acore-expansion-option').classList.add('is-selected');
+                            updateArrow();
+                        });
+                    });
+
+                    // Position on load
+                    updateArrow();
+                })();
+                </script>
             </td>
         </tr>
         <?php
