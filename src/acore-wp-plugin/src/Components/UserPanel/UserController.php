@@ -4,7 +4,6 @@ namespace ACore\Components\UserPanel;
 
 use ACore\Manager\Opts;
 use ACore\Manager\ACoreServices;
-use ACore\Manager\UserValidator;
 use ACore\Components\UserPanel\UserView;
 
 class UserController {
@@ -159,44 +158,11 @@ class UserController {
 
     public function showSecurityPage() {
         $user = wp_get_current_user();
-        $passwordMessage = null;
 
-        if (isset($_POST['acore_change_password'])) {
-            $nonce = $_POST['acore_pw_nonce'] ?? '';
-            if (!wp_verify_nonce($nonce, 'acore_security_change_password')) {
-                $passwordMessage = ['type' => 'error', 'text' => __('Security check failed.', 'acore-wp-plugin')];
-            } else {
-                $oldPass     = $_POST['acore_old_pass']     ?? '';
-                $newPass     = $_POST['acore_new_pass']     ?? '';
-                $confirmPass = $_POST['acore_confirm_pass'] ?? '';
-
-                if (!wp_check_password($oldPass, $user->user_pass, $user->ID)) {
-                    $passwordMessage = ['type' => 'error', 'text' => __('Current password is incorrect.', 'acore-wp-plugin')];
-                } elseif ($newPass !== $confirmPass) {
-                    $passwordMessage = ['type' => 'error', 'text' => __('New passwords do not match.', 'acore-wp-plugin')];
-                } else {
-                    $validation = UserValidator::validatePassword($newPass);
-                    if ($validation !== true) {
-                        $passwordMessage = ['type' => 'error', 'text' => $validation];
-                    } else {
-                        wp_set_password($newPass, $user->ID);
-                        update_user_meta($user->ID, 'acore_password_changed_at', current_time('mysql'));
-
-                        try {
-                            $soap = ACoreServices::I()->getAccountSoap();
-                            $soap->setAccountPassword($user->user_login, $newPass);
-                        } catch (\Exception $e) {
-                        }
-
-                        $passwordMessage = ['type' => 'success', 'text' => __('Password updated successfully.', 'acore-wp-plugin')];
-                    }
-                }
-            }
-        }
-
+        $passwordMessage   = \ACore\Hooks\User\acore_pw_get_message($user->ID);
         $passwordChangedAt = get_user_meta($user->ID, 'acore_password_changed_at', true);
-        $twoFaData = $this->getTwoFaData($user);
-        $connections = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
+        $twoFaData         = $this->getTwoFaData($user);
+        $connections       = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
 
         echo $this->getView()->getSecurityRender($connections, $passwordChangedAt, $twoFaData, $passwordMessage);
     }
