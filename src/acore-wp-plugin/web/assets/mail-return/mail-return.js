@@ -1,15 +1,14 @@
 jQuery(document).ready(function () {
-    jQuery("#mail-return-char-select").on("change", function () {
-        var charGuid = jQuery(this).val();
+    jQuery("#acore-characters-mail").on("click", ".acore-char-card", function () {
+        var card = jQuery(this);
+        var charGuid = card.data("char-guid");
         var mailList = jQuery("#mail-return-list");
         var mailItems = jQuery("#mail-return-items");
         var emptyMsg = jQuery("#mail-return-empty");
         var loading = jQuery("#mail-return-loading");
 
-        if (!charGuid) {
-            mailList.hide();
-            return;
-        }
+        jQuery(".acore-char-card").removeClass("active");
+        card.addClass("active");
 
         loading.show();
         mailList.hide();
