@@ -39,7 +39,12 @@ add_action( 'tgmpa_register', function () {
 			'slug'      => 'mycred',
 			'required'  => true,
 		),
-		
+		array(
+			'name'      => 'WP 2FA',
+			'slug'      => 'wp-2fa',
+			'required'  => true,
+		),
+
 		// <snip />
 	);
 

@@ -108,6 +108,7 @@ function user_profile_update($user_id, $old_user_data)
         if ($result instanceof \Exception) {
             die(sprintf(__("#2 ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
         }
+        update_user_meta($user_id, 'acore_password_changed_at', current_time('mysql'));
     }
 }
 
@@ -132,6 +133,7 @@ function user_password_reset($user, $new_pass)
     if ($result instanceof \Exception) {
         die(sprintf(__("#1 ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
     }
+    update_user_meta($user->ID, 'acore_password_changed_at', current_time('mysql'));
 }
 
 add_action('password_reset', __NAMESPACE__ . '\user_password_reset', 10, 2);
@@ -564,3 +566,99 @@ function login_checks()
 }
 
 add_action('login_enqueue_scripts', __NAMESPACE__ . '\login_checks');
+
+add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connections');
+
+function acore_profile_recent_connections($user) {
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    $rows = \ACore\Hooks\User\acore_get_login_history($user->ID, 20);
+    ?>
+    <h2><?php _e('Recent Connections', 'acore-wp-plugin'); ?></h2>
+    <?php if (empty($rows)): ?>
+        <p><?php _e('No connections recorded yet.', 'acore-wp-plugin'); ?></p>
+    <?php else: ?>
+        <table class="wp-list-table widefat fixed striped" style="max-width:860px;">
+            <thead>
+                <tr>
+                    <th><?php _e('IPv4 Address', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Country', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Date', 'acore-wp-plugin'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $row): ?>
+                    <tr>
+                        <td><?= esc_html($row->ip_address) ?></td>
+                        <td><?= esc_html($row->country) ?></td>
+                        <td><?= esc_html(\ACore\Hooks\User\acore_format_connection_date($row->login_at)) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <p>
+            <a href="<?= esc_url($security_url . '#acore-security-connections') ?>" class="button button-secondary">
+                <?php _e('View full connection history &rarr;', 'acore-wp-plugin'); ?>
+            </a>
+        </p>
+    <?php endif;
+}
+
+add_action('admin_init', __NAMESPACE__ . '\acore_remove_2fa_profile_hooks');
+
+function acore_remove_2fa_profile_hooks() {
+    global $wp_filter;
+
+    $hooks = ['show_user_profile', 'edit_user_profile'];
+
+    foreach ($hooks as $hook) {
+        if (!isset($wp_filter[$hook])) {
+            continue;
+        }
+        foreach ($wp_filter[$hook]->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $key => $callback) {
+                $func = $callback['function'];
+                $identifier = '';
+
+                if (is_array($func) && is_object($func[0])) {
+                    $identifier = get_class($func[0]);
+                } elseif (is_array($func) && is_string($func[0])) {
+                    $identifier = $func[0];
+                } elseif (is_string($func)) {
+                    $identifier = $func;
+                }
+
+                if ($identifier && (
+                    stripos($identifier, 'WP2FA')      !== false ||
+                    stripos($identifier, 'wp_2fa')     !== false ||
+                    stripos($identifier, 'Two_Factor') !== false
+                )) {
+                    unset($wp_filter[$hook]->callbacks[$priority][$key]);
+                }
+            }
+        }
+    }
+}
+
+add_action('admin_head-profile.php', __NAMESPACE__ . '\acore_hide_wp_password_section');
+
+function acore_hide_wp_password_section() {
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    ?>
+    <style>
+        #password { display: none !important; }
+    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var securityUrl = <?= json_encode($security_url) ?>;
+
+        var pwSection = document.querySelector('#password');
+        if (pwSection) {
+            var notice = document.createElement('p');
+            notice.innerHTML = '<?php _e('Password management has moved to the', 'acore-wp-plugin'); ?> <a href="' + securityUrl + '"><?php _e('Security', 'acore-wp-plugin'); ?></a> <?php _e('page.', 'acore-wp-plugin'); ?>.';
+            notice.className = 'description';
+            pwSection.parentNode.insertBefore(notice, pwSection);
+        }
+    });
+    </script>
+    <?php
+}

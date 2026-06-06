@@ -53,6 +53,18 @@
                                                 </select>
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_security_logging">Security Logging</label>
+                                            </th>
+                                            <td>
+                                                <select name="acore_security_logging" id="acore_security_logging">
+                                                    <option value="0" <?php if (Opts::I()->acore_security_logging != '1') echo 'selected'; ?>>Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->acore_security_logging == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                                <p class="description">When enabled, login IPs and timestamps are recorded for the Security page.</p>
+                                            </td>
+                                        </tr>
                                         <tr class="acore_resurrection_scroll_config" <?php if (Opts::I()->acore_resurrection_scroll != '1') echo 'style="display:none;"'?>>
                                             <th>
                                                 <label for="acore_resurrection_scroll_days_inactive">Days Inactive</label>

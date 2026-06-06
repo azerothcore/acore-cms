@@ -1,0 +1,129 @@
+<?php
+
+namespace ACore\Hooks\User;
+
+add_action('init', __NAMESPACE__ . '\\acore_create_login_history_table');
+
+function acore_create_login_history_table() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'acore_login_history';
+
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table'") === $table) {
+        return;
+    }
+
+    $collate = $wpdb->get_charset_collate();
+    $sql = "CREATE TABLE $table (
+        id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) UNSIGNED NOT NULL,
+        ip_address varchar(45) NOT NULL,
+        country varchar(10) NOT NULL DEFAULT 'Unknown',
+        login_at datetime NOT NULL,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY login_at (login_at)
+    ) $collate;";
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    dbDelta($sql);
+}
+
+add_action('wp_login', __NAMESPACE__ . '\\acore_log_login', 10, 2);
+
+function acore_log_login($user_login, $user) {
+    if (get_option('acore_security_logging', '0') !== '1') {
+        return;
+    }
+
+    global $wpdb;
+
+    $ip = acore_resolve_client_ip();
+    $country = acore_lookup_country($ip);
+
+    $wpdb->insert(
+        $wpdb->prefix . 'acore_login_history',
+        [
+            'user_id'    => $user->ID,
+            'ip_address' => $ip,
+            'country'    => $country,
+            'login_at'   => current_time('mysql'),
+        ],
+        ['%d', '%s', '%s', '%s']
+    );
+}
+
+function acore_resolve_client_ip() {
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($parts[0]);
+    } else {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    }
+    return sanitize_text_field($ip);
+}
+
+function acore_lookup_country($ip) {
+    $private_ranges = ['127.', '10.', '192.168.', '172.16.', '172.17.', '172.18.',
+                       '172.19.', '172.20.', '172.21.', '172.22.', '172.23.', '172.24.',
+                       '172.25.', '172.26.', '172.27.', '172.28.', '172.29.', '172.30.',
+                       '172.31.', '::1'];
+
+    foreach ($private_ranges as $range) {
+        if (strpos($ip, $range) === 0) {
+            return 'Local';
+        }
+    }
+
+    $response = wp_remote_get("http://ip-api.com/json/{$ip}?fields=status,countryCode", [
+        'timeout'   => 3,
+        'sslverify' => false,
+    ]);
+
+    if (is_wp_error($response)) {
+        return 'Unknown';
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response), true);
+
+    if (isset($data['status'], $data['countryCode']) && $data['status'] === 'success') {
+        return $data['countryCode'];
+    }
+
+    return 'Unknown';
+}
+
+function acore_get_login_history($user_id, $limit = 50) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'acore_login_history';
+    return $wpdb->get_results($wpdb->prepare(
+        "SELECT ip_address, country, login_at FROM $table WHERE user_id = %d ORDER BY login_at DESC LIMIT %d",
+        $user_id,
+        $limit
+    ));
+}
+
+function acore_format_connection_date($datetime_str) {
+    $dt = new \DateTime($datetime_str);
+    $day = (int) $dt->format('j');
+
+    if (in_array($day % 100, [11, 12, 13])) {
+        $suffix = 'th';
+    } else {
+        switch ($day % 10) {
+            case 1:  $suffix = 'st'; break;
+            case 2:  $suffix = 'nd'; break;
+            case 3:  $suffix = 'rd'; break;
+            default: $suffix = 'th';
+        }
+    }
+
+    return sprintf('%d%s of %s, %s at %s',
+        $day,
+        $suffix,
+        $dt->format('F'),
+        $dt->format('Y'),
+        $dt->format('H:i')
+    );
+}

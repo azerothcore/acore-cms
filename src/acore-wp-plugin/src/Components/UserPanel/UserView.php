@@ -14,6 +14,13 @@ class UserView {
         return ob_get_clean();
     }
 
+    /* Page: Security */
+    function getSecurityRender($connections, $passwordChangedAt, $twoFaData, $passwordMessage = null) {
+        ob_start();
+        include(__DIR__ . '/Pages/SecurityPage.php');
+        return ob_get_clean();
+    }
+
     /* Page: Item Restoration */
     function getItemRestorationRender($characters) {
         extract([$characters]);
