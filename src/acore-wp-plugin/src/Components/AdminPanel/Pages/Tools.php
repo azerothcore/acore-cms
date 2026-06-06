@@ -62,7 +62,17 @@
                                                     <option value="0" <?php if (Opts::I()->acore_security_logging != '1') echo 'selected'; ?>>Disabled</option>
                                                     <option value="1" <?php if (Opts::I()->acore_security_logging == '1') echo 'selected'; ?>>Enabled</option>
                                                 </select>
-                                                <p class="description">When enabled, login IPs and timestamps are recorded for the Security page.</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_allow_old_passwords">Allow Old Passwords</label>
+                                            </th>
+                                            <td>
+                                                <select name="acore_allow_old_passwords" id="acore_allow_old_passwords">
+                                                    <option value="0" <?php if (Opts::I()->acore_allow_old_passwords != '1') echo 'selected'; ?>>Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->acore_allow_old_passwords == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
                                             </td>
                                         </tr>
                                         <tr class="acore_resurrection_scroll_config" <?php if (Opts::I()->acore_resurrection_scroll != '1') echo 'style="display:none;"'?>>
