@@ -3,10 +3,10 @@
 ?>
 
 <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
-<div class="wrap">
-    <h2><?= __('AzerothCore Settings', Opts::I()->page_alias) ?></h2>
-    <div class="row">
-        <div>
+<div class="wrap" id="acore-item-restoration-page">
+    <h1><?php _e('Item Restoration', Opts::I()->page_alias); ?></h1>
+    <div class="row acore-item-restoration-row">
+        <div class="col-lg-8 col-md-10 col-sm-12">
             <div class="card">
                 <div class="card-body">
                     <h4 class="text-uppercase">Item restoration service</h4>

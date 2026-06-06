@@ -7,18 +7,22 @@ $user = wp_get_current_user();
 $acServices = ACoreServices::I();
 $userId = $acServices->getAcoreAccountId();
 ?>
-<div class="wrap">
-    <?php
-    echo "<h2>" . __('Recruit a Friend', Opts::I()->page_alias) . "</h2>";
-    ?>
-    <p>Recruit your friends, help them to level up and get very awesome unique prizes.</p>
+<div class="wrap" id="acore-raf-page">
+    <h1><?php _e('Recruit a Friend', Opts::I()->page_alias); ?></h1>
+    <p class="acore-raf-intro"><?php _e('Recruit your friends, help them level up and earn unique rewards.', Opts::I()->page_alias); ?></p>
+
     <?php if (Opts::I()->eluna_raf_config['end_raf_on_same_ip'] === '1') { ?>
-    <p style="color: red; font-size: 20px;">Recruiting from the same IP address will cause the RAF to be automatically removed and no new RAF can be applied again.</p>
+    <div class="notice notice-warning inline acore-raf-notice">
+        <p><?php _e('Recruiting from the same IP address will cause the RAF to be automatically removed and no new RAF can be applied.', Opts::I()->page_alias); ?></p>
+    </div>
     <?php } else { ?>
-    <p style="color: red; font-size: 20px;">Whilst you can recruit a friend who shares an IP address, you will only get the teleport &amp; XP bonuses, no rewards will be given (these are provided only to those who recruit people not on their own IP address).</p>
+    <div class="notice notice-warning inline acore-raf-notice">
+        <p><?php _e('You can recruit a friend who shares your IP address, however only the teleport & XP bonuses apply — rewards are reserved for recruits on different IP addresses.', Opts::I()->page_alias); ?></p>
+    </div>
     <?php } ?>
-    <div class="row">
-        <div class="col-sm-6">
+
+    <div class="row acore-raf-row">
+        <div class="col-lg-8 col-md-10 col-sm-12">
             <div class="card">
                 <div class="card-body">
                     <?php

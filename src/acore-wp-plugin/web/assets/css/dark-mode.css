@@ -2,6 +2,142 @@
 Acore dark mode overrides
 */
 
+/* ============================================================
+   Profile page & sub-tabs layout
+   ============================================================ */
+
+/* Constrain the main profile page content width */
+body.profile-php #wpbody-content > .wrap {
+    max-width: 900px;
+}
+
+/* Give the AzerothCore h3 section headers a bit more weight */
+body.profile-php #wpbody-content h2,
+body.profile-php #wpbody-content h3 {
+    font-size: 15px;
+    font-weight: 600;
+    padding-top: 24px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #dcdcde;
+    margin-bottom: 16px;
+}
+
+/* form-table label column */
+body.profile-php .form-table th {
+    width: 180px;
+    padding: 12px 10px 12px 0;
+    vertical-align: top;
+    font-size: 13px;
+}
+
+body.profile-php .form-table td {
+    padding: 10px 0;
+}
+
+/* Recent connections table on profile.php */
+body.profile-php .wp-list-table {
+    max-width: 780px;
+}
+
+body.profile-php .wp-list-table + p {
+    margin-top: 10px;
+}
+
+/* --- Security sub-page --- */
+#acore-security-page {
+    max-width: 800px;
+}
+
+#acore-security-page > h1 {
+    margin-bottom: 8px;
+}
+
+#acore-security-page .postbox {
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    margin-top: 16px !important;
+}
+
+#acore-security-page .postbox .inside {
+    padding: 14px 16px;
+}
+
+#acore-security-page .postbox:first-of-type {
+    margin-top: 12px !important;
+}
+
+/* dark mode tweaks for security page */
+body.acore-dark-mode #acore-security-page .postbox {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Recruit a Friend sub-page --- */
+#acore-raf-page {
+    max-width: 860px;
+}
+
+#acore-raf-page > h1 {
+    margin-bottom: 6px;
+}
+
+.acore-raf-intro {
+    color: #646970;
+    margin-bottom: 12px;
+}
+
+.acore-raf-notice {
+    max-width: 700px;
+    margin-bottom: 16px !important;
+}
+
+.acore-raf-row {
+    margin-top: 4px;
+}
+
+#acore-raf-page .card {
+    margin-bottom: 16px;
+}
+
+#acore-raf-page .card + .card {
+    margin-top: 0;
+}
+
+/* --- Item Restoration sub-page --- */
+#acore-item-restoration-page {
+    max-width: 860px;
+}
+
+#acore-item-restoration-page > h1 {
+    margin-bottom: 16px;
+}
+
+.acore-item-restoration-row {
+    margin-top: 0;
+}
+
+/* Fix hardcoded dark thead in item restoration — let dark mode handle it */
+#acore-item-restoration-page .table thead {
+    background: #1d2327;
+    color: #fff;
+}
+
+body.acore-dark-mode #acore-item-restoration-page .table thead {
+    background: #0d1117 !important;
+}
+
+body.acore-dark-mode #acore-item-restoration-page .table tbody {
+    background: #161b22 !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode #acore-item-restoration-page .table td,
+body.acore-dark-mode #acore-item-restoration-page .table th {
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+/* ============================================================ */
+
 /* --- expansion selector (profile page) --- */
 .acore-expansion-wrapper {
     position: relative;

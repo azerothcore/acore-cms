@@ -32,7 +32,7 @@ function acore_dark_mode_body_class($classes) {
 add_action('admin_enqueue_scripts', __NAMESPACE__ . '\acore_dark_mode_enqueue');
 
 function acore_dark_mode_enqueue() {
-    wp_enqueue_style('acore-dark-mode', ACORE_URL_PLG . 'web/assets/css/dark-mode.css', [], '1.7');
+    wp_enqueue_style('acore-dark-mode', ACORE_URL_PLG . 'web/assets/css/dark-mode.css', [], '1.9');
 
     $nonce = wp_create_nonce('acore_dark_mode');
     wp_add_inline_script('jquery-core', acore_dark_mode_js($nonce));
