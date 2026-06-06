@@ -229,6 +229,34 @@ $expandOnLoad = !empty($passwordMessage);
     if (btn) btn.style.display = 'none';
     <?php endif; ?>
 
+    var newPass     = document.getElementById('acore_new_pass');
+    var confirmPass = document.getElementById('acore_confirm_pass');
+    var saveBtn     = document.querySelector('#acore-password-form .button-primary');
+    var matchHint   = document.createElement('p');
+    matchHint.className = 'description';
+    matchHint.style.marginTop = '4px';
+    if (confirmPass) confirmPass.closest('td').appendChild(matchHint);
+
+    function checkMatch() {
+        if (!confirmPass.value) {
+            matchHint.textContent = '';
+            saveBtn.disabled = false;
+            return;
+        }
+        if (newPass.value === confirmPass.value) {
+            matchHint.style.color = '#00a32a';
+            matchHint.textContent = '<?php _e('Passwords match.', 'acore-wp-plugin'); ?>';
+            saveBtn.disabled = false;
+        } else {
+            matchHint.style.color = '#d63638';
+            matchHint.textContent = '<?php _e('Passwords do not match.', 'acore-wp-plugin'); ?>';
+            saveBtn.disabled = true;
+        }
+    }
+
+    if (newPass)     newPass.addEventListener('input', checkMatch);
+    if (confirmPass) confirmPass.addEventListener('input', checkMatch);
+
     var expandBtn = document.getElementById('acore-expand-connections');
     if (expandBtn) {
         expandBtn.addEventListener('click', function() {
