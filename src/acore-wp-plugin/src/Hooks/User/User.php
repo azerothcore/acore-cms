@@ -680,6 +680,34 @@ function acore_profile_2fa_removal_warning($user) {
     <?php
 }
 
+// Remove WP2FA plugin blocks from the standard WordPress profile page only.
+// They belong in the dedicated Security sub-page — skip removal when there.
+add_action('admin_init', function () {
+    $page = isset($_GET['page']) ? $_GET['page'] : '';
+    if ($page === ACORE_SLUG . '-security') return; // Security sub-page: leave hooks intact
+
+    global $wp_filter;
+    foreach (['show_user_profile', 'edit_user_profile'] as $hook) {
+        if (empty($wp_filter[$hook])) continue;
+        foreach ($wp_filter[$hook]->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $key => $cb) {
+                $func = $cb['function'];
+                $id   = '';
+                if (is_array($func) && is_object($func[0]))     $id = get_class($func[0]);
+                elseif (is_array($func) && is_string($func[0])) $id = $func[0];
+                elseif (is_string($func))                        $id = $func;
+                if ($id && (
+                    stripos($id, 'WP2FA')      !== false ||
+                    stripos($id, 'wp_2fa')     !== false ||
+                    stripos($id, 'Two_Factor') !== false
+                )) {
+                    unset($wp_filter[$hook]->callbacks[$priority][$key]);
+                }
+            }
+        }
+    }
+}, 99);
+
 add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connections');
 
 function acore_profile_recent_connections($user) {
