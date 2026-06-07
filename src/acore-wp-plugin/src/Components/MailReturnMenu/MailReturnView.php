@@ -19,52 +19,70 @@ class MailReturnView
         ob_start();
 
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
-        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.4');
+        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.5');
         wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
         wp_enqueue_script('jquery');
-        wp_enqueue_script('acore-mail-return-js', ACORE_URL_PLG . 'web/assets/mail-return/mail-return.js', array('jquery'), null, true);
+        wp_enqueue_script('acore-mail-return-js', ACORE_URL_PLG . 'web/assets/mail-return/mail-return.js', array('jquery'), '2.3', true);
 
 ?>
 
-        <div class="wrap">
-            <div class="col-sm-5">
-                <div class="card">
-                    <div class="card-body">
-                        <h3>Mail Return</h3>
-                        <p>You can return sent mails that have not yet been read by the recipient in this page. Select the character, the sent mail and hit return.</p>
-                        <hr>
+        <div class="wrap" id="acore-mail-return-page">
+            <div id="mail-return-layout">
 
-                        <strong>Select Character:</strong>
-                        <ul id="acore-characters-mail" class="acore-char-list list-unstyled mt-2">
-                            <?php foreach ($chars as $char) {
-                                $clsStyle = AcoreCharColors::rowStyle(intval($char['class']));
-                            ?>
-                                <li>
-                                    <div class="acore-char-row acore-char-card" data-char-guid="<?= intval($char['guid']) ?>" style="<?= esc_attr($clsStyle) ?>">
-                                        <span class="acore-char-name"><?= esc_html($char['name']) ?></span>
-                                        <span class="acore-char-meta">
-                                            <span class="acore-level">Level <?= intval($char['level']) ?></span>
-                                            <img height="32" width="32" src="<?= ACORE_URL_PLG . 'web/assets/race/' . intval($char['race']) . (intval($char['gender']) == 0 ? 'm' : 'f') . '.webp' ?>">
-                                            <img height="32" width="32" src="<?= ACORE_URL_PLG . 'web/assets/class/' . intval($char['class']) . '.webp' ?>">
-                                        </span>
-                                    </div>
-                                </li>
-                            <?php } ?>
-                        </ul>
+                <!-- Col 1: character selector — always visible, same width -->
+                <div id="mail-return-sidebar">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>Mail Return</h3>
+                            <p>You can return sent mails that have not yet been read by the recipient in this page. Select the character, the sent mail and hit return.</p>
+                            <hr>
 
-                        <div id="mail-return-loading" style="display:none;" class="text-center my-3">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                            <strong>Select Character:</strong>
+                            <ul id="acore-characters-mail" class="acore-char-list list-unstyled mt-2">
+                                <?php foreach ($chars as $char) {
+                                    $clsStyle = AcoreCharColors::rowStyle(intval($char['class']), intval($char['race']));
+                                ?>
+                                    <li>
+                                        <div class="acore-char-row acore-char-card" data-char-guid="<?= intval($char['guid']) ?>" style="<?= esc_attr($clsStyle) ?>">
+                                            <span class="acore-char-name"><?= esc_html($char['name']) ?></span>
+                                            <span class="acore-char-meta">
+                                                <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char['level'])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char['level']))) ?>">Level <?= intval($char['level']) ?></span>
+                                                <img class="race-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char['race']))) ?>" src="<?= ACORE_URL_PLG . 'web/assets/race/' . intval($char['race']) . (intval($char['gender']) == 0 ? 'm' : 'f') . '.webp' ?>">
+                                                <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char['class']))) ?>" src="<?= ACORE_URL_PLG . 'web/assets/class/' . intval($char['class']) . '.webp' ?>">
+                                            </span>
+                                        </div>
+                                    </li>
+                                <?php } ?>
+                            </ul>
+
+                            <div id="mail-return-loading" style="display:none;" class="text-center my-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div id="mail-return-list" style="display:none;">
-                            <h5>Unread Sent Mails</h5>
-                            <ul id="mail-return-items" class="list-unstyled"></ul>
-                            <p id="mail-return-empty" style="display:none;" class="text-muted">No unread sent mails found for this character.</p>
+                            <!-- Empty state lives inside the card -->
+                            <div id="mail-return-empty-wrap" style="display:none;">
+                                <hr>
+                                <h5>Unread Sent Mails</h5>
+                                <p id="mail-return-empty" class="text-muted">No unread sent mails found for this character.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Cols 2–3: mail entries grid, hidden until mails exist -->
+                <div id="mail-return-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 id="mail-return-heading" class="mb-0">Unread Sent Mails</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul id="mail-return-items" class="list-unstyled mb-0"></ul>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

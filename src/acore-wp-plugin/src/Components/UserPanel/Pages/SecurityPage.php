@@ -11,7 +11,7 @@ $expandOnLoad = !empty($passwordMessage);
 <div class="wrap" id="acore-security-page">
     <h1><?php _e('Security', 'acore-wp-plugin'); ?></h1>
 
-    <div class="postbox" style="max-width:680px;margin-top:20px;">
+    <div class="postbox">
         <div class="postbox-header">
             <h2 class="hndle"><span><?php _e('Password', 'acore-wp-plugin'); ?></span></h2>
         </div>
@@ -94,7 +94,7 @@ $expandOnLoad = !empty($passwordMessage);
     </div>
 
     <?php if (!empty($twoFaData['plugin_active'])): ?>
-    <div class="postbox" style="max-width:680px;margin-top:20px;">
+    <div class="postbox">
         <div class="postbox-header">
             <h2 class="hndle"><span><?php _e('Two-Factor Authentication', 'acore-wp-plugin'); ?></span></h2>
         </div>
@@ -136,7 +136,7 @@ $expandOnLoad = !empty($passwordMessage);
     </div>
     <?php endif; ?>
 
-    <div class="postbox" style="margin-top:20px;">
+    <div class="postbox">
         <div class="postbox-header" style="display:flex;align-items:center;justify-content:space-between;">
             <h2 class="hndle"><span><?php _e('Recent Connections', 'acore-wp-plugin'); ?></span></h2>
             <?php if (count($connections) > 50): ?>

@@ -146,11 +146,10 @@ class UserController {
         $account = ACoreServices::I()->getAcoreAccountId();
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
         $queryResult = $conn->executeQuery(
-            "   SELECT `guid`, `name`, `order`
-                FROM `characters`
-                WHERE `characters`.`deleteDate` IS NULL AND `account` = $account
-                ORDER BY `order`, `guid`
-            "
+            "SELECT `guid`, `name`, `order`, `race`, `class`, `gender`, `level`
+             FROM `characters`
+             WHERE `deleteDate` IS NULL AND `account` = $account
+             ORDER BY `order`, `guid`"
         );
 
         echo $this->getView()->getItemRestorationRender($queryResult->fetchAllAssociative());

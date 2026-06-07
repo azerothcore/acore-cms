@@ -3,116 +3,18 @@ Acore dark mode overrides
 */
 
 /* ============================================================
-   Profile page & sub-tabs layout
+   Profile page & sub-tabs — dark mode appearance overrides only
+   (layout/spacing lives in main.css and loads for all modes)
    ============================================================ */
 
-/* Constrain the main profile page content width */
-body.profile-php #wpbody-content > .wrap {
-    max-width: 900px;
-}
-
-/* Give the AzerothCore h3 section headers a bit more weight */
-body.profile-php #wpbody-content h2,
-body.profile-php #wpbody-content h3 {
-    font-size: 15px;
-    font-weight: 600;
-    padding-top: 24px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #dcdcde;
-    margin-bottom: 16px;
-}
-
-/* form-table label column */
-body.profile-php .form-table th {
-    width: 180px;
-    padding: 12px 10px 12px 0;
-    vertical-align: top;
-    font-size: 13px;
-}
-
-body.profile-php .form-table td {
-    padding: 10px 0;
-}
-
-/* Recent connections table on profile.php */
-body.profile-php .wp-list-table {
-    max-width: 780px;
-}
-
-body.profile-php .wp-list-table + p {
-    margin-top: 10px;
-}
-
-/* --- Security sub-page --- */
-#acore-security-page {
-    max-width: 800px;
-}
-
-#acore-security-page > h1 {
-    margin-bottom: 8px;
-}
-
-#acore-security-page .postbox {
-    border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
-    margin-top: 16px !important;
-}
-
-#acore-security-page .postbox .inside {
-    padding: 14px 16px;
-}
-
-#acore-security-page .postbox:first-of-type {
-    margin-top: 12px !important;
+body.acore-dark-mode body.profile-php #wpbody-content h2,
+body.acore-dark-mode body.profile-php #wpbody-content h3 {
+    border-bottom-color: #30363d;
 }
 
 /* dark mode tweaks for security page */
 body.acore-dark-mode #acore-security-page .postbox {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* --- Recruit a Friend sub-page --- */
-#acore-raf-page {
-    max-width: 860px;
-}
-
-#acore-raf-page > h1 {
-    margin-bottom: 6px;
-}
-
-.acore-raf-intro {
-    color: #646970;
-    margin-bottom: 12px;
-}
-
-.acore-raf-notice {
-    max-width: 700px;
-    margin-bottom: 16px !important;
-}
-
-.acore-raf-row {
-    margin-top: 4px;
-}
-
-#acore-raf-page .card {
-    margin-bottom: 16px;
-}
-
-#acore-raf-page .card + .card {
-    margin-top: 0;
-}
-
-/* --- Item Restoration sub-page --- */
-#acore-item-restoration-page {
-    max-width: 860px;
-}
-
-#acore-item-restoration-page > h1 {
-    margin-bottom: 16px;
-}
-
-.acore-item-restoration-row {
-    margin-top: 0;
 }
 
 /* Fix hardcoded dark thead in item restoration — let dark mode handle it */
@@ -121,19 +23,52 @@ body.acore-dark-mode #acore-security-page .postbox {
     color: #fff;
 }
 
-body.acore-dark-mode #acore-item-restoration-page .table thead {
-    background: #0d1117 !important;
+/* --- Item Restoration dark mode --- */
+body.acore-dark-mode #acore-item-restoration-page .table {
+    color: #c9d1d9;
+    border-color: #30363d;
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: transparent;
+    --bs-table-border-color: #30363d;
 }
 
-body.acore-dark-mode #acore-item-restoration-page .table tbody {
+body.acore-dark-mode #acore-item-restoration-page .table > :not(caption) > * > * {
+    background-color: #161b22 !important;
+    border-bottom-color: #30363d !important;
+    color: #c9d1d9 !important;
+    --bs-table-bg: #161b22;
+    --bs-table-color: #c9d1d9;
+}
+
+body.acore-dark-mode #acore-item-restoration-page .table thead tr th {
+    background: #21262d !important;
+    color: #e6edf3 !important;
+    border-color: #30363d !important;
+}
+
+body.acore-dark-mode #acore-item-restoration-page .table tbody td,
+body.acore-dark-mode #acore-item-restoration-page .table tbody th {
     background: #161b22 !important;
     color: #c9d1d9 !important;
+    border-color: #30363d !important;
 }
 
-body.acore-dark-mode #acore-item-restoration-page .table td,
-body.acore-dark-mode #acore-item-restoration-page .table th {
-    border-color: #30363d !important;
-    color: #c9d1d9 !important;
+/* alert-info (no items / info messages) */
+body.acore-dark-mode #acore-item-restoration-page .alert-info {
+    background-color: #1a2f1a !important;
+    border-color: #2d6a2d !important;
+    color: #56d364 !important;
+}
+
+/* active character row */
+body.acore-dark-mode #acore-characters-item-restore .acore-char-row.active {
+    background: #21262d !important;
+    border-top-color: var(--faction-color, #58a6ff) !important;
+    border-right-color: var(--faction-color, #58a6ff) !important;
+    border-bottom-color: var(--faction-color, #58a6ff) !important;
+    border-top-width: 3px !important;
+    border-right-width: 3px !important;
+    border-bottom-width: 3px !important;
 }
 
 /* ============================================================ */
@@ -350,9 +285,10 @@ body.acore-dark-mode .card-title {
 /* --- Character list rows --- */
 body.acore-dark-mode .acore-char-row {
     background: #1c2128 !important;
-    border-top-color: #30363d !important;
-    border-right-color: #30363d !important;
-    border-bottom-color: #30363d !important;
+    /* faction color for top/right/bottom, dimmed for dark mode */
+    border-top-color: color-mix(in srgb, var(--faction-color, #30363d) 55%, #0d1117) !important;
+    border-right-color: color-mix(in srgb, var(--faction-color, #30363d) 55%, #0d1117) !important;
+    border-bottom-color: color-mix(in srgb, var(--faction-color, #30363d) 55%, #0d1117) !important;
     border-left-color: var(--cls-dark, #8b949e) !important;
 }
 
@@ -369,8 +305,13 @@ body.acore-dark-mode .acore-char-row:hover {
 }
 
 body.acore-dark-mode #acore-characters-mail .acore-char-row.active {
-    background: #1f3a5c !important;
-    border-color: #58a6ff !important;
+    background: #21262d !important;
+    border-top-color: var(--faction-color, #58a6ff) !important;
+    border-right-color: var(--faction-color, #58a6ff) !important;
+    border-bottom-color: var(--faction-color, #58a6ff) !important;
+    border-top-width: 3px !important;
+    border-right-width: 3px !important;
+    border-bottom-width: 3px !important;
 }
 
 /* --- Bootstrap form-select --- */
@@ -417,10 +358,9 @@ body.acore-dark-mode .form-table td {
     color: #c9d1d9;
 }
 
-/* --- mail entries --- */
+/* --- mail entries — border color comes from JS inline (faction/class), only override bg --- */
 body.acore-dark-mode .mail-entry {
     background: #161b22 !important;
-    border-color: #30363d !important;
     color: #c9d1d9 !important;
 }
 
@@ -594,4 +534,154 @@ body.acore-dark-mode .user-profile-mycred,
 body.acore-dark-mode td.mycred-field,
 body.acore-dark-mode th.mycred-field {
     color: #c9d1d9 !important;
+}
+
+/* --- Scroll of Resurrection page --- */
+body.acore-dark-mode .acore-rscroll .card {
+    background: #161b22;
+    border-color: #30363d;
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode .acore-rscroll .card-body {
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode .acore-rscroll h5 {
+    color: #e6edf3;
+}
+
+body.acore-dark-mode .acore-rscroll hr {
+    border-color: #30363d;
+    opacity: 1;
+}
+
+body.acore-dark-mode .acore-rscroll .table {
+    color: #c9d1d9;
+    border-color: #30363d;
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: transparent;
+    --bs-table-border-color: #30363d;
+}
+
+body.acore-dark-mode .acore-rscroll .table > :not(caption) > * > * {
+    background-color: transparent;
+    border-bottom-color: #30363d;
+    color: #ffffff;
+}
+
+/* Row label column (th inside tbody) */
+body.acore-dark-mode .acore-rscroll .table tbody th {
+    background: #21262d !important;
+    color: #e6edf3 !important;
+    font-weight: 600;
+    border-color: #30363d !important;
+}
+
+body.acore-dark-mode .acore-rscroll .table tbody td {
+    background: #161b22 !important;
+    color: #ffffff !important;
+    border-color: #30363d !important;
+}
+
+/* thead row (Player Commands table) */
+body.acore-dark-mode .acore-rscroll .table thead tr th,
+body.acore-dark-mode .acore-rscroll .table-light thead tr th {
+    background: #21262d !important;
+    color: #e6edf3 !important;
+    border-color: #30363d !important;
+}
+
+body.acore-dark-mode .acore-rscroll code {
+    background: #0d1117;
+    color: #f85149;
+    border: 1px solid #30363d;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+body.acore-dark-mode .acore-rscroll .text-muted {
+    color: #8b949e !important;
+}
+
+body.acore-dark-mode .acore-rscroll strong {
+    color: #818cf8;
+}
+
+body.acore-dark-mode .acore-rscroll ol,
+body.acore-dark-mode .acore-rscroll p,
+body.acore-dark-mode .acore-rscroll li {
+    color: #ffffff;
+}
+
+body.acore-dark-mode .acore-rscroll .text-muted {
+    color: #b0b8c4 !important;
+}
+
+/* Force white text on all badges */
+body.acore-dark-mode .acore-rscroll .badge {
+    color: #ffffff !important;
+}
+
+/* Warning badge: yellow is unreadable with white text — shift to solid orange */
+body.acore-dark-mode .acore-rscroll .badge.bg-warning {
+    background-color: #c27400 !important;
+}
+
+/* --- Expansion level badge — dark mode --- */
+body.acore-dark-mode .acore-level { color: #8b949e; }
+body.acore-dark-mode .acore-level[data-exp="vanilla"] { background: rgba(195, 147, 97, 0.18); border-color: #C39361; color: #c9d1d9; }
+body.acore-dark-mode .acore-level[data-exp="tbc"]     { background: rgba(98, 201, 7, 0.18);   border-color: #62C907; color: #c9d1d9; }
+body.acore-dark-mode .acore-level[data-exp="wrath"]   { background: rgba(93, 172, 235, 0.18); border-color: #5DACEB; color: #c9d1d9; }
+
+/* --- Mail Return dark mode --- */
+body.acore-dark-mode #mail-return-heading {
+    color: #e6edf3 !important;
+}
+
+body.acore-dark-mode #mail-return-items .mail-entry {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+body.acore-dark-mode #mail-return-items .mail-header {
+    background: transparent !important;
+    border-top-color: transparent !important;
+    border-right-color: transparent !important;
+    border-bottom-color: transparent !important;
+    /* border-left-color stays as JS inline class color */
+}
+
+/* recipient div inside header must also be transparent */
+body.acore-dark-mode #mail-return-items .mail-recipient {
+    background: transparent !important;
+}
+
+body.acore-dark-mode #mail-return-items .mail-to-label,
+body.acore-dark-mode #mail-return-items .recipient-level {
+    color: #8b949e !important;
+}
+
+body.acore-dark-mode #mail-return-items .recipient-name {
+    color: #e6edf3 !important;
+}
+
+body.acore-dark-mode #mail-return-items .mail-subject {
+    color: #8b949e;
+}
+
+body.acore-dark-mode .mail-item-slot {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: #0d1117;
+}
+
+/* Dark overlay strip so white quantity text is readable */
+body.acore-dark-mode .mail-item-qty {
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+}
+
+body.acore-dark-mode #mail-return-items .mail-return-button {
+    background: #1f6feb;
+    border-color: #1f6feb;
 }
