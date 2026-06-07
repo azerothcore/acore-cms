@@ -22,6 +22,7 @@ class MailReturnView
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.5');
         wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
         wp_enqueue_script('jquery');
+        wp_enqueue_script('power-js', 'https://wow.zamimg.com/widgets/power.js', array(), null, false);
         wp_enqueue_script('acore-mail-return-js', ACORE_URL_PLG . 'web/assets/mail-return/mail-return.js', array('jquery'), '2.3', true);
         wp_localize_script('acore-mail-return-js', 'mailReturnData', [
             'mailsUrl'  => rest_url(ACORE_SLUG . '/v1/mail-return/list'),
@@ -32,6 +33,7 @@ class MailReturnView
 
 ?>
 
+        <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
         <div class="wrap" id="acore-mail-return-page">
             <div id="mail-return-layout">
 

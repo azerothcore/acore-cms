@@ -146,13 +146,8 @@ jQuery(document).ready(function () {
                     mailItems.append(entry);
                 });
 
-                // Refresh Wowhead tooltips, then move icons to slot background for proper fill
-                if (typeof $WowheadPower !== "undefined" && $WowheadPower.refreshLinks) {
-                    $WowheadPower.refreshLinks();
-                }
-                // WowHead sets background-image on the <a> itself (class "icontinyl")
-                // Swap tiny GIF → large JPG for sharper icons
-                setTimeout(function () {
+                // Refresh Wowhead tooltips + upgrade icons to large JPG
+                function upgradeWowheadIcons() {
                     document.querySelectorAll('.mail-item-slot > a').forEach(function (a) {
                         var bg = a.style.backgroundImage;
                         if (bg) {
@@ -161,7 +156,24 @@ jQuery(document).ready(function () {
                             a.style.backgroundImage = bg;
                         }
                     });
-                }, 500);
+                }
+                if (typeof $WowheadPower !== "undefined" && $WowheadPower.refreshLinks) {
+                    $WowheadPower.refreshLinks();
+                    setTimeout(upgradeWowheadIcons, 1500);
+                } else {
+                    // power.js loads async — wait for it
+                    var attempts = 0;
+                    var wait = setInterval(function () {
+                        attempts++;
+                        if (typeof $WowheadPower !== "undefined" && $WowheadPower.refreshLinks) {
+                            $WowheadPower.refreshLinks();
+                            clearInterval(wait);
+                            setTimeout(upgradeWowheadIcons, 1500);
+                        } else if (attempts > 20) {
+                            clearInterval(wait);
+                        }
+                    }, 250);
+                }
             },
             error: function (xhr, status, error) {
                 loading.hide();
