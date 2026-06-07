@@ -65,60 +65,45 @@ class AcoreCharColors {
         11 => 'alliance', // Draenei
     ];
 
-    const FACTION_COLORS = [
-        'alliance' => '#3FACF4',
-        'horde'    => '#FF653D',
-        'neutral'  => '#8b949e',
-    ];
-
-    public static function getLight(int $classId): string {
-        return self::CLASS_COLORS[$classId]['light'] ?? self::FALLBACK_LIGHT;
-    }
-
-    public static function getDark(int $classId): string {
-        return self::CLASS_COLORS[$classId]['dark'] ?? self::FALLBACK_DARK;
+    public static function getClassName(int $classId): string {
+        return self::CLASS_NAMES[$classId] ?? 'Unknown';
     }
 
     public static function getRaceName(int $raceId): string {
         return self::RACE_NAMES[$raceId] ?? 'Unknown';
     }
 
-    public static function getClassName(int $classId): string {
-        return self::CLASS_NAMES[$classId] ?? 'Unknown';
-    }
-
-    public static function factionColor(int $raceId): string {
-        $faction = self::RACE_FACTION[$raceId] ?? 'neutral';
-        return self::FACTION_COLORS[$faction];
+    public static function getFaction(int $raceId): string {
+        return self::RACE_FACTION[$raceId] ?? 'unknown';
     }
 
     /**
-     * Returns the inline style string to set CSS variables on a char row.
-     * Includes class color (light+dark) and faction border color.
+     * Returns inline style string for a character row.
+     * Uses CSS custom properties so dark-mode.css can override via color-mix.
      */
-    public static function rowStyle(int $classId, int $raceId = 0): string {
-        $light   = self::getLight($classId);
-        $dark    = self::getDark($classId);
-        $faction = self::factionColor($raceId);
-        return "--cls-light:{$light};--cls-dark:{$dark};--faction-color:{$faction};";
+    public static function rowStyle(int $classId, int $raceId): string {
+        $cls     = self::CLASS_COLORS[$classId]  ?? ['light' => self::FALLBACK_LIGHT, 'dark' => self::FALLBACK_DARK];
+        $faction = self::RACE_FACTION[$raceId]   ?? 'unknown';
+        $fLight  = $faction === 'alliance' ? '#3FACF4' : '#FF653D';
+        $fDark   = $faction === 'alliance' ? '#3FACF4' : '#FF653D';
+        return sprintf(
+            '--cls-light:%s; --cls-dark:%s; --faction-color:%s; border-top:2px solid %s; border-right:2px solid %s; border-bottom:2px solid %s; border-left:4px solid %s;',
+            $cls['light'], $cls['dark'], $fLight,
+            $fLight, $fLight, $fLight, $cls['light']
+        );
     }
 
-    /**
-     * Returns the expansion slug for a given level.
-     * Used to color level badges: Vanilla (1-60), TBC (61-70), Wrath (71-80).
-     */
+    /** Returns the expansion slug for a level, used as data-exp attribute. */
     public static function expansionSlug(int $level): string {
         if ($level <= 60) return 'vanilla';
         if ($level <= 70) return 'tbc';
         return 'wrath';
     }
 
-    /**
-     * Returns a human-readable expansion bracket label for use as a tooltip.
-     */
+    /** Returns the expansion label for a level, used as title attribute. */
     public static function expansionLabel(int $level): string {
-        if ($level <= 60) return 'Vanilla Bracket (1–60)';
-        if ($level <= 70) return 'The Burning Crusade Bracket (61–70)';
-        return 'Wrath of the Lich King Bracket (71–80)';
+        if ($level <= 60) return 'Classic';
+        if ($level <= 70) return 'The Burning Crusade';
+        return 'Wrath of the Lich King';
     }
 }

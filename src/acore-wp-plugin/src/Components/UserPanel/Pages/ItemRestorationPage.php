@@ -170,27 +170,36 @@
                     errorBox.innerHTML = data;
                 }
             })
-            .catch(function (msg) { errorBox.innerHTML = msg; });
+            .catch(function (err) {
+                loader.parentElement.appendChild(btn);
+                loader.parentElement.removeChild(loader);
+                errorBox.innerHTML = err && err.message ? err.message : 'An error occurred.';
+            });
     }
 
     function checkHasRecoverableItems() {
-        if (itemList.childElementCount === 5) {
-            var noItemRow = itemList.insertRow();
-            noItemRow.id  = 'no-recoverable-items';
-            var cell      = noItemRow.insertCell();
-            cell.colSpan  = 2;
-            cell.innerHTML = '<span>No items to recover for the selected character.</span>';
-        } else {
-            var existing = document.getElementById('no-recoverable-items');
-            if (existing) existing.parentElement.removeChild(existing);
+        var rows = document.querySelectorAll('#item-restoration-table tbody tr:not(.hidden)');
+        if (rows.length === 0) {
+            var emptyRow = document.getElementById('item-restoration-empty');
+            if (emptyRow) emptyRow.classList.remove('hidden');
         }
     }
 
     function resetState() {
-        successBox.innerHTML = '';
         errorBox.innerHTML   = '';
+        successBox.innerHTML = '';
         successBox.classList.add('invisible');
         noResults.classList.add('hidden');
     }
-}());
+
+    // Load items on character select
+    document.querySelectorAll('.acore-char-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.acore-char-card').forEach(function(c) { c.classList.remove('active'); });
+            this.classList.add('active');
+            selectCharacter(this.dataset.charGuid, this.dataset.charName);
+        });
+    });
+})();
 </script>
+<?php endif; ?>

@@ -70,12 +70,6 @@ class UnstuckView
             </div>
         </div>
 
-        <script>
-            var unstuckData = {
-                nonce: "<?php echo wp_create_nonce('wp_rest'); ?>",
-                restUrl: "<?php echo get_rest_url(null, ACORE_SLUG . '/v1/unstuck'); ?>"
-            };
-        </script>
 <?php
         return ob_get_clean();
     }

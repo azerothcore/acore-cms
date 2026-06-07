@@ -43,9 +43,6 @@ class ResurrectionScrollMenu
 
     function acore_resurrection_scroll_menu_page()
     {
-        if (!$this->isAvailable()) {
-            wp_die(__('This feature is not available.'));
-        }
         $controller = new ResurrectionScrollController();
         $controller->render();
     }
@@ -54,6 +51,5 @@ class ResurrectionScrollMenu
 function resurrection_scroll_menu_init()
 {
     $menu = ResurrectionScrollMenu::I();
-
     add_action('admin_menu', array($menu, 'acore_resurrection_scroll_menu'));
 }

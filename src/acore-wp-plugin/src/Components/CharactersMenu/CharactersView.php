@@ -55,7 +55,6 @@ class CharactersView {
 
                                 <?php if (!empty($characters)) { ?>
                                     <input type="submit" name="submit" class="button button-primary" value="Save Order">
-                                    <button type="submit" name="acore_reset_order" value="1" class="button" style="margin-left:6px;">Reset Order</button>
                                 <?php } ?>
                             </form>
                         </div>
@@ -64,12 +63,21 @@ class CharactersView {
             </div>
         </div>
 
-        <script type="text/javascript">
-            jQuery(document).ready(function($) {
-                $("#acore-characters-order").sortable();
+        <script>
+        jQuery(document).ready(function($) {
+            $("#acore-characters-order").sortable({
+                update: function(event, ui) {
+                    var order = [];
+                    $("#acore-characters-order li").each(function(index) {
+                        var input = $(this).find("input[name='characterorder[]']");
+                        order.push(input.val());
+                        $(this).find(".acore-char-pos").text(index + 1);
+                    });
+                }
             });
+            $("#acore-characters-order").disableSelection();
+        });
         </script>
-
         <?php
         return ob_get_clean();
     }
