@@ -616,6 +616,10 @@ add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_2fa_removal_warn
 add_action('edit_user_profile', __NAMESPACE__ . '\acore_profile_2fa_removal_warning');
 
 function acore_profile_2fa_removal_warning($user) {
+    // admin_notices already shows this at the top of plain profile.php — avoid duplicate
+    global $pagenow;
+    if ($pagenow === 'profile.php' && !isset($_GET['page'])) return;
+
     $adminLog        = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
     $adminLog        = is_array($adminLog) ? $adminLog : [];
     $lastWebRemoval  = null;
@@ -707,6 +711,70 @@ add_action('admin_init', function () {
         }
     }
 }, 99);
+
+// Hide "New Password" fields on the standard profile page
+add_filter('show_password_fields', function ($show) {
+    global $pagenow;
+    if ($pagenow === 'profile.php') return false;
+    return $show;
+});
+
+// 2FA removal warning at the TOP of Profile > Profile (admin_notices)
+add_action('admin_notices', function () {
+    global $pagenow;
+    if ($pagenow !== 'profile.php') return;
+    if (isset($_GET['page'])) return; // sub-pages (Security, etc.) — skip
+
+    $user = wp_get_current_user();
+    $adminLog        = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
+    $adminLog        = is_array($adminLog) ? $adminLog : [];
+    $lastWebRemoval  = null;
+    $lastGameRemoval = null;
+    foreach ($adminLog as $entry) {
+        if ($entry['type'] === 'website') $lastWebRemoval  = $entry;
+        if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
+    }
+
+    $totpKey        = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
+    $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
+    $webActive      = !empty($totpKey) && (
+        (is_array($enabledMethods) && in_array('totp', $enabledMethods, true)) ||
+        $enabledMethods === 'totp'
+    );
+    $gameActive = false;
+    try {
+        $conn   = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
+        $result = $conn->executeQuery('SELECT totp_secret FROM account WHERE username = ?', [strtoupper($user->user_login)]);
+        $row    = $result->fetchAssociative();
+        $gameActive = $row && $row['totp_secret'] !== null;
+    } catch (\Exception $e) {}
+
+    $showWebWarning  = $lastWebRemoval  && !$webActive;
+    $showGameWarning = $lastGameRemoval && !$gameActive;
+    if (!$showWebWarning && !$showGameWarning) return;
+
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    ?>
+    <div class="notice notice-warning" style="padding:10px 14px;">
+        <p style="margin:0 0 4px; font-weight:600;"><?php _e('Your 2FA was manually removed by a staff member.', 'acore-wp-plugin'); ?></p>
+        <?php if ($showWebWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">- <?php printf(
+                __('Website 2FA removed on %1$s by %2$s. Please re-enable it for account security.', 'acore-wp-plugin'),
+                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>',
+                '<strong>' . esc_html($lastWebRemoval['staff']) . '</strong>'
+            ); ?></p>
+        <?php endif; ?>
+        <?php if ($showGameWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">- <?php printf(
+                __('In-game 2FA removed on %1$s by %2$s. Please re-enable it for account security.', 'acore-wp-plugin'),
+                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastGameRemoval['timestamp'])) . '</strong>',
+                '<strong>' . esc_html($lastGameRemoval['staff']) . '</strong>'
+            ); ?></p>
+        <?php endif; ?>
+        <p style="margin:6px 0 0; font-size:13px;"><a href="<?= esc_url($security_url) ?>"><?php _e('Go to Security page to re-enable &rarr;', 'acore-wp-plugin'); ?></a></p>
+    </div>
+    <?php
+});
 
 add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connections');
 
