@@ -160,7 +160,7 @@
 
                                 <hr style="margin:12px 0;">
 
-                                <!-- Remove 2FA - action tool, buttons are type="button" so form submit is unaffected -->
+                                <!-- Remove 2FA -->
                                 <p style="font-weight:600; margin:0 0 4px; font-size:13px;">Remove 2FA</p>
                                 <p style="font-size:12px; color:#646970; margin:0 0 12px;">
                                     Remove Website or In-game 2FA for any account. A warning is shown to the user until they re-enable it.
@@ -187,6 +187,40 @@
                             </div><!-- /card-body Web Integration -->
                         </div><!-- /card Web Integration -->
                     </div><!-- /col2 -->
+
+                    <!-- Col 3: Name Unlock Settings -->
+                    <div class="col-sm-4">
+                        <div class="card p-0">
+                            <div class="card-body">
+                                <h5>Name Unlock Settings</h5>
+                                <hr>
+
+                                <span>Allowed banned names table (characters database):</span>
+                                <input type="text" name="acore_name_unlock_allowed_banned_names_table"
+                                    value="<?= Opts::I()->acore_name_unlock_allowed_banned_names_table ?>">
+                                <br><br>
+
+                                <span>Inactivity Thresholds per Level:</span>
+                                <table id="acore-name-unlock-thresholds" class="form-table table table-borderless" role="presentation">
+                                    <thead>
+                                        <tr>
+                                            <th>Max Level (&lt;)</th>
+                                            <th>Minimum Days of Inactivity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                                <div style="display:flex; gap:6px; margin-top:4px;">
+                                    <div id="acore-name-unlock-thresholds-add" class="button">
+                                        <span class="dashicons dashicons-plus" style="margin-top:5px;"></span> Add
+                                    </div>
+                                    <div id="acore-name-unlock-reset" class="button acore-btn-danger" title="Reset Name Unlock to defaults">
+                                        <span class="dashicons dashicons-image-rotate" style="margin-top:5px;"></span> Reset
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /col3 -->
 
                 </div><!-- /row -->
 
@@ -278,6 +312,60 @@
 
     wire2fa('website', $('#acore-2fa-web-user'),  $('#acore-2fa-web-check'),  $('#acore-2fa-web-remove'),  $('#acore-2fa-web-msg'));
     wire2fa('ingame',  $('#acore-2fa-game-user'), $('#acore-2fa-game-check'), $('#acore-2fa-game-remove'), $('#acore-2fa-game-msg'));
+
+    /* ── Name Unlock Thresholds ───────────────────────────────────────── */
+    const deleteThreshold = (ev) => {
+        const $btn = $(ev.target).closest('.acore-btn-danger');
+        const $tr  = $btn.closest('tr');
+        $tr.remove();
+        let i = 0;
+        $('#acore-name-unlock-thresholds tbody tr').each(function () {
+            const previ = $(this).data('i');
+            $(this).data('i', i);
+            $(this).find(`input[name="acore_name_unlock_thresholds[${previ}][0]"]`).attr('name', `acore_name_unlock_thresholds[${i}][0]`);
+            $(this).find(`input[name="acore_name_unlock_thresholds[${previ}][1]"]`).attr('name', `acore_name_unlock_thresholds[${i}][1]`);
+            i++;
+        });
+    };
+
+    const addThreshold = (i = undefined, level = '', days = '') => {
+        if (i === undefined) {
+            const $trs = $('#acore-name-unlock-thresholds tbody tr');
+            i = $trs.length ? $($trs[$trs.length - 1]).data('i') + 1 : 0;
+        }
+        const $tr = $('<tr>').appendTo('#acore-name-unlock-thresholds tbody');
+        $tr.data('i', i);
+        let $td = $('<td>').appendTo($tr);
+        $(`<input type="number" name="acore_name_unlock_thresholds[${i}][0]" min="1" max="256" value="${level}">`).appendTo($td);
+        $td = $('<td>').appendTo($tr);
+        $(`<input type="number" name="acore_name_unlock_thresholds[${i}][1]" min="1" value="${days}">`).appendTo($td);
+        $td = $('<td>').appendTo($tr);
+        const $btnDel = $(`<div class="button acore-btn-danger">`).appendTo($td);
+        $btnDel.append(`<span class="dashicons dashicons-trash"></span>`);
+        $btnDel.on('click', deleteThreshold);
+    };
+
+    $('#acore-name-unlock-thresholds-add').on('click', () => addThreshold());
+
+    /* ── Reset Name Unlock to Defaults ──────────────────────────────── */
+    $('#acore-name-unlock-reset').on('click', function () {
+        if (!confirm(
+            'Reset Name Unlock settings to defaults?\n\n' +
+            'This will clear the banned names table and delete all inactivity thresholds.\n\n' +
+            'This cannot be undone. Continue?'
+        )) return;
+
+        $('input[name="acore_name_unlock_allowed_banned_names_table"]').val('');
+        $('#acore-name-unlock-thresholds tbody tr').remove();
+
+        $('input[name="Submit"]').closest('form').submit();
+    });
+
+    <?php foreach (Opts::I()->acore_name_unlock_thresholds as $i => $threshold) {
+        if ($threshold[0] != '' && $threshold[1] != '') {
+            echo "addThreshold($i, $threshold[0], $threshold[1]);";
+        }
+    } ?>
 
 })(jQuery);
 </script>
