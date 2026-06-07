@@ -54,7 +54,10 @@ class CharactersView {
                                 </ul>
 
                                 <?php if (!empty($characters)) { ?>
-                                    <input type="submit" name="submit" class="button button-primary" value="Save Order">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                                        <input type="submit" name="submit" class="button button-primary" value="Save Order">
+                                        <input type="submit" name="acore_reset_order" class="button acore-btn-danger" value="Reset Order">
+                                    </div>
                                 <?php } ?>
                             </form>
                         </div>
@@ -62,6 +65,15 @@ class CharactersView {
                 </div>
             </div>
         </div>
+
+        <style>
+        .acore-btn-danger {
+            border-color: #d63638 !important;
+            color: #d63638 !important;
+            background: #f7f6f6 !important;
+        }
+        body.acore-dark-mode .acore-btn-danger { background: #1c2128 !important; }
+        </style>
 
         <script>
         jQuery(document).ready(function($) {
