@@ -17,7 +17,7 @@ $userId = $acServices->getAcoreAccountId();
     </div>
     <?php } else { ?>
     <div class="notice notice-warning inline acore-raf-notice">
-        <p><?php _e('You can recruit a friend who shares your IP address, however only the teleport & XP bonuses apply — rewards are reserved for recruits on different IP addresses.', Opts::I()->page_alias); ?></p>
+        <p><?php _e('You can recruit a friend who shares your IP address, however only the teleport & XP bonuses apply - rewards are reserved for recruits on different IP addresses.', Opts::I()->page_alias); ?></p>
     </div>
     <?php } ?>
 

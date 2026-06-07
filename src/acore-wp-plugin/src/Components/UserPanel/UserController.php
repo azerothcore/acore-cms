@@ -9,7 +9,6 @@ use ACore\Components\UserPanel\UserView;
 class UserController {
 
     /**
-     *
      * @var UserView
      */
     private $view;
@@ -52,13 +51,10 @@ class UserController {
                         $userIp = $acServices->getAcoreAccountLastIp();
                         $activeUserIp = "";
                         if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-                            // check ip from share internet
                             $activeUserIp = $_SERVER['HTTP_CLIENT_IP'];
                         } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-                            // to check ip is pass from proxy
                             $activeUserIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
                         } else {
-                            // use default remote ip
                             $activeUserIp = $_SERVER['REMOTE_ADDR'];
                         }
 
@@ -161,9 +157,23 @@ class UserController {
         $passwordMessage   = \ACore\Hooks\User\acore_pw_get_message($user->ID);
         $passwordChangedAt = get_user_meta($user->ID, 'acore_password_changed_at', true);
         $twoFaData         = $this->getTwoFaData($user);
+        $ingame2faActive   = $this->getIngame2faStatus();
         $connections       = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
 
-        echo $this->getView()->getSecurityRender($connections, $passwordChangedAt, $twoFaData, $passwordMessage);
+        echo $this->getView()->getSecurityRender($connections, $passwordChangedAt, $twoFaData, $ingame2faActive, $passwordMessage);
+    }
+
+    private function getIngame2faStatus(): bool {
+        try {
+            $accId = ACoreServices::I()->getAcoreAccountId();
+            if (!$accId) return false;
+            $conn   = ACoreServices::I()->getAccountEm()->getConnection();
+            $result = $conn->executeQuery('SELECT totp_secret FROM account WHERE id = ?', [$accId]);
+            $row    = $result->fetchAssociative();
+            return $row && $row['totp_secret'] !== null;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     private function getTwoFaData(\WP_User $user) {
@@ -175,7 +185,13 @@ class UserController {
 
         $primaryMethods  = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
         $backupMethods   = get_user_meta($user->ID, 'wp_2fa_backup_methods_enabled', true);
-        $totpEnabled     = !empty(get_user_meta($user->ID, 'wp_2fa_totp_key', true));
+        $totpKey         = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
+        // TOTP is only considered enabled when the key exists AND it is actively
+        // listed as a primary method - WP2FA may leave the key in meta after removal.
+        $totpEnabled     = !empty($totpKey) && (
+                               (is_array($primaryMethods) && in_array('totp', $primaryMethods)) ||
+                               $primaryMethods === 'totp'
+                           );
         $emailEnabled    = (is_array($primaryMethods) && in_array('email', $primaryMethods))
                          || $primaryMethods === 'email';
 
@@ -190,7 +206,6 @@ class UserController {
     }
 
     /**
-     *
      * @return UserView
      */
     public function getView() {
@@ -198,7 +213,6 @@ class UserController {
     }
 
     /**
-     *
      * @return UserModel
      */
     public function getModel() {

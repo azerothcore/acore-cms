@@ -29,7 +29,7 @@ class MailReturnView
         <div class="wrap" id="acore-mail-return-page">
             <div id="mail-return-layout">
 
-                <!-- Col 1: character selector — always visible, same width -->
+                <!-- Col 1: character selector - always visible, same width -->
                 <div id="mail-return-sidebar">
                     <div class="card">
                         <div class="card-body">
@@ -69,34 +69,22 @@ class MailReturnView
                             </div>
                         </div>
                     </div>
-                </div>
+                </div><!-- /mail-return-sidebar -->
 
-                <!-- Cols 2–3: mail entries grid, hidden until mails exist -->
+                <!-- Cols 2-3: mail list - hidden until mails are loaded by JS -->
                 <div id="mail-return-content">
                     <div class="card">
-                        <div class="card-header">
-                            <h5 id="mail-return-heading" class="mb-0">Unread Sent Mails</h5>
-                        </div>
                         <div class="card-body">
+                            <h5 id="mail-return-heading">Unread Sent Mails</h5>
                             <ul id="mail-return-items" class="list-unstyled mb-0"></ul>
                         </div>
                     </div>
-                </div>
+                </div><!-- /mail-return-content -->
 
-            </div>
-        </div>
+            </div><!-- /mail-return-layout -->
+        </div><!-- /wrap -->
 
-        <script>
-            var mailReturnData = {
-                nonce: "<?php echo esc_js(wp_create_nonce('wp_rest')); ?>",
-                mailsUrl: "<?php echo esc_url(get_rest_url(null, ACORE_SLUG . '/v1/mail-return/list')); ?>",
-                returnUrl: "<?php echo esc_url(get_rest_url(null, ACORE_SLUG . '/v1/mail-return')); ?>",
-                assetsUrl: "<?php echo esc_url(ACORE_URL_PLG . 'web/assets/'); ?>"
-            };
-        </script>
-        <script>var whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
-        <script src="https://wow.zamimg.com/js/tooltips.js"></script>
-<?php
+        <?php
         return ob_get_clean();
     }
 }

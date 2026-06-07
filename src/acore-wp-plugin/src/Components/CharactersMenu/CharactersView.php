@@ -23,24 +23,24 @@ class CharactersView {
         wp_enqueue_script('jquery-ui-sortable');
         ?>
         <div class="wrap">
-            <h2>Characters Settings</h2>
-            <p>Check some details and configure of your characters.</p>
-
             <div class="row">
                 <div class="col-sm-4">
                     <div class="card">
                         <div class="card-body">
-                            <h3>Order</h3>
-                            <p>Change the order in which the characters appear in your in-game character selection screen.</p>
+                            <h3>Order Character Screen</h3>
+                            <p>Change the order in which the characters appear in your in-game character selection screen, by dragging them, matches in-game position.</p>
                             <hr>
                             <form action="" method="POST" novalidate="novalidate">
 
                                 <ul id="acore-characters-order" class="acore-char-list list-unstyled">
-                                    <?php foreach ($characters as $char) {
+                                    <?php $charPos = 0; foreach ($characters as $char) {
                                         $clsStyle = AcoreCharColors::rowStyle(intval($char["class"]), intval($char["race"]));
+                                        $charPos++;
+                                        $displayPos = $char['order'] !== null ? intval($char['order']) + 1 : $charPos;
                                     ?>
                                         <li>
                                             <div class="acore-char-row" style="<?= esc_attr($clsStyle) ?>">
+                                                <span class="acore-char-pos"><?= $displayPos ?></span>
                                                 <span class="acore-char-name"><?= esc_html($char["name"]) ?></span>
                                                 <span class="acore-char-meta">
                                                     <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char["level"])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char["level"]))) ?>">Level <?= intval($char["level"]) ?></span>

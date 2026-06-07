@@ -292,6 +292,11 @@ body.acore-dark-mode .acore-char-row {
     border-left-color: var(--cls-dark, #8b949e) !important;
 }
 
+body.acore-dark-mode .acore-char-pos {
+    color: #e6edf3 !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
 body.acore-dark-mode .acore-char-name {
     color: #c9d1d9 !important;
 }
@@ -645,43 +650,49 @@ body.acore-dark-mode #mail-return-items .mail-entry {
 }
 
 body.acore-dark-mode #mail-return-items .mail-header {
-    background: transparent !important;
-    border-top-color: transparent !important;
-    border-right-color: transparent !important;
-    border-bottom-color: transparent !important;
-    /* border-left-color stays as JS inline class color */
+    background: #0d1117;
+    border-bottom-color: #30363d;
 }
 
-/* recipient div inside header must also be transparent */
-body.acore-dark-mode #mail-return-items .mail-recipient {
-    background: transparent !important;
+body.acore-dark-mode #mail-return-items .mail-recipient,
+body.acore-dark-mode #mail-return-items .mail-subject,
+body.acore-dark-mode #mail-return-items .mail-meta {
+    color: #c9d1d9;
 }
 
 body.acore-dark-mode #mail-return-items .mail-to-label,
-body.acore-dark-mode #mail-return-items .recipient-level {
-    color: #8b949e !important;
-}
-
-body.acore-dark-mode #mail-return-items .recipient-name {
-    color: #e6edf3 !important;
-}
-
-body.acore-dark-mode #mail-return-items .mail-subject {
+body.acore-dark-mode #mail-return-items .mail-subject-label {
     color: #8b949e;
 }
 
-body.acore-dark-mode .mail-item-slot {
-    border-color: rgba(255, 255, 255, 0.12);
+body.acore-dark-mode #mail-return-items .mail-items-grid {
     background: #0d1117;
+    border-top-color: #30363d;
 }
 
-/* Dark overlay strip so white quantity text is readable */
-body.acore-dark-mode .mail-item-qty {
-    background: rgba(0, 0, 0, 0.65);
-    color: #fff;
+body.acore-dark-mode #mail-return-items .mail-item-slot {
+    background: #161b22;
 }
 
-body.acore-dark-mode #mail-return-items .mail-return-button {
-    background: #1f6feb;
-    border-color: #1f6feb;
+body.acore-dark-mode #mail-return-items .mail-item-slot a {
+    color: #c9d1d9;
+}
+
+body.acore-dark-mode #mail-return-items .mail-cod-label {
+    color: #8b949e;
+}
+
+body.acore-dark-mode .mail-return-button {
+    background: #21262d !important;
+    border-color: #30363d !important;
+    color: #c9d1d9 !important;
+}
+
+body.acore-dark-mode .mail-return-button:hover {
+    background: #30363d !important;
+    color: #e6edf3 !important;
+}
+
+body.acore-dark-mode #mail-return-empty {
+    color: #8b949e;
 }

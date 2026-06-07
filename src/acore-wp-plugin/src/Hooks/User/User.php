@@ -612,6 +612,74 @@ function login_checks()
 
 add_action('login_enqueue_scripts', __NAMESPACE__ . '\login_checks');
 
+add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_2fa_removal_warning');
+add_action('edit_user_profile', __NAMESPACE__ . '\acore_profile_2fa_removal_warning');
+
+function acore_profile_2fa_removal_warning($user) {
+    $adminLog        = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
+    $adminLog        = is_array($adminLog) ? $adminLog : [];
+    $lastWebRemoval  = null;
+    $lastGameRemoval = null;
+    foreach ($adminLog as $entry) {
+        if ($entry['type'] === 'website') $lastWebRemoval  = $entry;
+        if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
+    }
+
+    // Check current 2FA state - website
+    $totpKey        = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
+    $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
+    $webActive      = !empty($totpKey) && (
+        (is_array($enabledMethods) && in_array('totp', $enabledMethods, true)) ||
+        $enabledMethods === 'totp'
+    );
+
+    // Check current 2FA state - ingame
+    $gameActive = false;
+    try {
+        $conn   = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
+        $result = $conn->executeQuery('SELECT totp_secret FROM account WHERE username = ?', [strtoupper($user->user_login)]);
+        $row    = $result->fetchAssociative();
+        $gameActive = $row && $row['totp_secret'] !== null;
+    } catch (\Exception $e) {
+        // DB unavailable - skip
+    }
+
+    $showWebWarning  = $lastWebRemoval  && !$webActive;
+    $showGameWarning = $lastGameRemoval && !$gameActive;
+
+    if (!$showWebWarning && !$showGameWarning) return;
+
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    ?>
+    <div class="notice notice-warning" style="margin:16px 0; padding:10px 14px;">
+        <p style="margin:0 0 4px; font-weight:600;">
+            <?php _e('Your 2FA was manually removed by a staff member.', 'acore-wp-plugin'); ?>
+        </p>
+        <?php if ($showWebWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">
+                - <?php printf(
+                    __('Website 2FA removed on %1$s by %2$s.', 'acore-wp-plugin'),
+                    '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>',
+                    '<strong>' . esc_html($lastWebRemoval['staff']) . '</strong>'
+                ); ?>
+            </p>
+        <?php endif; ?>
+        <?php if ($showGameWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">
+                - <?php printf(
+                    __('In-game 2FA removed on %1$s by %2$s.', 'acore-wp-plugin'),
+                    '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastGameRemoval['timestamp'])) . '</strong>',
+                    '<strong>' . esc_html($lastGameRemoval['staff']) . '</strong>'
+                ); ?>
+            </p>
+        <?php endif; ?>
+        <p style="margin:6px 0 0; font-size:13px;">
+            <a href="<?= esc_url($security_url) ?>"><?php _e('Go to Security page to re-enable &rarr;', 'acore-wp-plugin'); ?></a>
+        </p>
+    </div>
+    <?php
+}
+
 add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connections');
 
 function acore_profile_recent_connections($user) {
@@ -626,84 +694,23 @@ function acore_profile_recent_connections($user) {
             <thead>
                 <tr>
                     <th><?php _e('IPv4 Address', 'acore-wp-plugin'); ?></th>
-                    <th><?php _e('Country', 'acore-wp-plugin'); ?></th>
-                    <th><?php _e('Date', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Date / Time', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Action', 'acore-wp-plugin'); ?></th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($rows as $row): ?>
+                <?php foreach (array_slice($rows, 0, 10) as $row): ?>
                     <tr>
-                        <td><?= esc_html($row->ip_address) ?></td>
-                        <td><?= esc_html($row->country) ?></td>
-                        <td><?= esc_html(\ACore\Hooks\User\acore_format_connection_date($row->login_at)) ?></td>
+                        <td><?= esc_html($row['ip']) ?></td>
+                        <td><?= esc_html(wp_date('jS \o F, Y 	 H:i', strtotime($row['timestamp']))) ?></td>
+                        <td><?= esc_html($row['type'] ?? 'login') ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <p>
-            <a href="<?= esc_url($security_url . '#acore-security-connections') ?>" class="button button-secondary">
-                <?php _e('View full connection history &rarr;', 'acore-wp-plugin'); ?>
-            </a>
-        </p>
-    <?php endif;
-}
-
-add_action('admin_init', __NAMESPACE__ . '\acore_remove_2fa_profile_hooks');
-
-function acore_remove_2fa_profile_hooks() {
-    global $wp_filter;
-
-    $hooks = ['show_user_profile', 'edit_user_profile'];
-
-    foreach ($hooks as $hook) {
-        if (!isset($wp_filter[$hook])) {
-            continue;
-        }
-        foreach ($wp_filter[$hook]->callbacks as $priority => $callbacks) {
-            foreach ($callbacks as $key => $callback) {
-                $func = $callback['function'];
-                $identifier = '';
-
-                if (is_array($func) && is_object($func[0])) {
-                    $identifier = get_class($func[0]);
-                } elseif (is_array($func) && is_string($func[0])) {
-                    $identifier = $func[0];
-                } elseif (is_string($func)) {
-                    $identifier = $func;
-                }
-
-                if ($identifier && (
-                    stripos($identifier, 'WP2FA')      !== false ||
-                    stripos($identifier, 'wp_2fa')     !== false ||
-                    stripos($identifier, 'Two_Factor') !== false
-                )) {
-                    unset($wp_filter[$hook]->callbacks[$priority][$key]);
-                }
-            }
-        }
-    }
-}
-
-add_action('admin_head-profile.php', __NAMESPACE__ . '\acore_hide_wp_password_section');
-
-function acore_hide_wp_password_section() {
-    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
-    ?>
-    <style>
-        #password { display: none !important; }
-    </style>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var securityUrl = <?= json_encode($security_url) ?>;
-
-        var pwSection = document.querySelector('#password');
-        if (pwSection) {
-            var notice = document.createElement('p');
-            notice.innerHTML = '<?php _e('Password management has moved to the', 'acore-wp-plugin'); ?> <a href="' + securityUrl + '"><?php _e('Security', 'acore-wp-plugin'); ?></a> <?php _e('page.', 'acore-wp-plugin'); ?>.';
-            notice.className = 'description';
-            pwSection.parentNode.insertBefore(notice, pwSection);
-        }
-    });
-    </script>
+        <?php if (count($rows) > 10): ?>
+            <p><a href="<?= esc_url($security_url) ?>"><?php _e('View all connections &rarr;', 'acore-wp-plugin'); ?></a></p>
+        <?php endif; ?>
+    <?php endif; ?>
     <?php
 }
