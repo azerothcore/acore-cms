@@ -402,16 +402,15 @@ class ACoreServices
     }
 
     public function getRestorableItemsByCharacter($character) {
-        $query = "SELECT `Id`, `ItemEntry`
-            FROM `recovery_item`
-            WHERE `Guid` = ?
-        ";
         $conn = $this->getCharacterEm()->getConnection();
-        $stmt = $conn->prepare($query);
+        $stmt = $conn->prepare(
+            "SELECT `Id`, `ItemEntry`, `Count`, `DeleteDate`
+             FROM `recovery_item`
+             WHERE `Guid` = ?
+             ORDER BY `DeleteDate` DESC"
+        );
         $stmt->bindValue(1, $character);
-        $stmt->executeQuery();
-        $res = $stmt->executeQuery();
-        return $res->fetchAllAssociative();
+        return $stmt->executeQuery()->fetchAllAssociative();
     }
 
     /** 
