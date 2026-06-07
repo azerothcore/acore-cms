@@ -606,23 +606,36 @@ body.profile-php .form-table td {
 
 /* --- Item Restoration sub-page --- */
 #acore-item-restoration-page {
-    max-width: 860px;
+    max-width: 100%;
 }
 
 #acore-item-restoration-page > h1 {
     margin-bottom: 16px;
 }
 
-.acore-item-restoration-row {
-    margin-top: 0;
+/* Layout: sidebar + content (mirrors mail-return) */
+#item-restore-layout {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 16px;
+    align-items: start;
 }
 
-/* Table always dark so WowHead white-quality item links (#ffffff) are readable */
-#acore-item-restoration-page .table tbody td,
-#acore-item-restoration-page .table tbody th {
-    background: #1d2327 !important;
-    color: #c9d1d9;
-    border-color: #30363d;
+#item-restore-sidebar {
+    grid-column: 1;
+}
+
+#item-restore-content {
+    grid-column: 2;
+}
+
+@media (max-width: 800px) {
+    #item-restore-layout {
+        grid-template-columns: 1fr;
+    }
+    #item-restore-content {
+        grid-column: 1;
+    }
 }
 
 /* click cursor + active state (mirrors mail return) */
@@ -635,4 +648,95 @@ body.profile-php .form-table td {
     border-top-width: 3px;
     border-right-width: 3px;
     border-bottom-width: 3px;
+}
+
+/* Item restore: 4-column card grid */
+.item-restore-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* Card: white bg, quality-coloured border (set by JS after wowhead loads) */
+.item-restore-card {
+    position: relative;
+    background: #fff;
+    border: 3px solid #9d9d9d;
+    border-radius: 4px;
+    padding: 20px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Number badge — top-left corner */
+.item-restore-num {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #646970;
+    line-height: 1;
+}
+
+/* Icon container */
+.item-restore-icon {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    background: #1c1c1c;
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* WowHead puts icon as background-image on the <a>.
+   font-size/color hide the item-name text wowhead injects. */
+.item-restore-icon > a {
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    color: transparent !important;
+    text-indent: -9999px !important;
+    overflow: hidden !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    padding: 0 !important;
+}
+
+/* Deleted date */
+.item-restore-date {
+    font-size: 11px;
+    color: #646970;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.item-restore-btn {
+    background: #2271b1;
+    color: #fff;
+    border: 1px solid #2271b1;
+    border-radius: 3px;
+    padding: 5px 0;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    text-align: center;
+}
+
+.item-restore-btn:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+.item-restore-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

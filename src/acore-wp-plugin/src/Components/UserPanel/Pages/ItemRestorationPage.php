@@ -6,17 +6,19 @@
 <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
 <div class="wrap" id="acore-item-restoration-page">
     <h1><?php _e('Item Restoration', Opts::I()->page_alias); ?></h1>
-    <div class="row acore-item-restoration-row">
-        <div class="col-lg-8 col-md-10 col-sm-12">
+    <div id="item-restore-layout">
+
+        <!-- Sidebar -->
+        <div id="item-restore-sidebar">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="text-uppercase">Item Restoration Service</h4>
-                    <p class="text-muted mb-3"><em>Restored items will be sent to the selected character's mailbox.</em></p>
+                    <h3><?php _e('Item Restoration', Opts::I()->page_alias); ?></h3>
+                    <p><?php _e('Select a character to view their deleted items. Restored items are sent to the mailbox.', Opts::I()->page_alias); ?></p>
                     <hr>
 
                     <?php if ($characters): ?>
                         <strong><?php _e('Select Character:', Opts::I()->page_alias); ?></strong>
-                        <ul id="acore-characters-item-restore" class="acore-char-list list-unstyled mt-2 mb-3">
+                        <ul id="acore-characters-item-restore" class="acore-char-list list-unstyled mt-2">
                             <?php foreach ($characters as $char):
                                 $clsStyle = AcoreCharColors::rowStyle(intval($char['class']), intval($char['race']));
                             ?>
@@ -40,50 +42,55 @@
                         <p><?php _e('No characters found.', Opts::I()->page_alias); ?></p>
                     <?php endif; ?>
 
-                    <div id="errorBox" class="text-uppercase text-danger"></div>
-                    <div id="successBox" class="alert alert-success invisible" role="alert"></div>
-
-                    <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
-                        <span><?php _e('There are no items to recover for the selected character.', Opts::I()->page_alias); ?></span>
+                    <div id="item-restore-loading" style="display:none;" class="text-center my-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </div>
 
-                    <div class="table-responsive hidden" id="itemContainer">
-                        <table class="table table-bordered table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="text-uppercase"><?php _e('Item Name', Opts::I()->page_alias); ?></th>
-                                    <th scope="col" class="text-uppercase"><?php _e('Action', Opts::I()->page_alias); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody id="itemList">
-                                <?php for ($i = 0; $i < 5; $i++): ?>
-                                    <tr class="loading-item-list hidden">
-                                        <td class="placeholder-glow"><p><span class="placeholder col-12 bg-secondary"></span></p></td>
-                                        <td><p class="placeholder-glow"><span class="placeholder col-12"></span></p></td>
-                                    </tr>
-                                <?php endfor; ?>
-                            </tbody>
-                        </table>
+                    <!-- Empty state stays in sidebar -->
+                    <div id="item-list-no-content" style="display:none;">
+                        <hr>
+                        <p class="text-muted mb-0"><?php _e('There are no items to recover for the selected character.', Opts::I()->page_alias); ?></p>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div><!-- /item-restore-sidebar -->
+
+        <!-- Content: item cards, hidden until loaded -->
+        <div id="item-restore-content" style="display:none;">
+            <div class="card">
+                <div class="card-body">
+                    <div id="item-restore-error" class="text-uppercase text-danger mb-2"></div>
+                    <div id="item-restore-success" class="alert alert-success invisible mb-2" role="alert"></div>
+                    <h5 class="mb-3"><?php _e('Deleted Items', Opts::I()->page_alias); ?></h5>
+                    <div id="item-restore-grid" class="item-restore-grid"></div>
+                </div>
+            </div>
+        </div><!-- /item-restore-content -->
+
+    </div><!-- /item-restore-layout -->
 </div>
 
 <script>
 (function () {
-    var itemContainer   = document.getElementById('itemContainer');
-    var itemList        = document.getElementById('itemList');
-    var itemListLoaders = document.querySelectorAll('.loading-item-list');
-    var errorBox        = document.getElementById('errorBox');
-    var successBox      = document.getElementById('successBox');
-    var noResults       = document.getElementById('item-list-no-content');
+    var content    = document.getElementById('item-restore-content');
+    var grid       = document.getElementById('item-restore-grid');
+    var errorBox   = document.getElementById('item-restore-error');
+    var successBox = document.getElementById('item-restore-success');
+    var noResults  = document.getElementById('item-list-no-content');
+    var loading    = document.getElementById('item-restore-loading');
 
     var listUrl    = '<?= get_rest_url(null, 'acore/v1/item-restore/list/') ?>';
     var restoreUrl = '<?= get_rest_url(null, 'acore/v1/item-restore') ?>';
 
-    // Character row selection
+    // wowhead quality class → card border colour
+    var wowQualityColors = {
+        q0: '#9d9d9d', q1: '#c0c0c0', q2: '#1eff00',
+        q3: '#0070dd', q4: '#a335ee', q5: '#ff8000',
+        q6: '#e6cc80', q7: '#e6cc80'
+    };
+
     document.querySelectorAll('#acore-characters-item-restore .acore-char-row').forEach(function (row) {
         row.addEventListener('click', function () {
             document.querySelectorAll('#acore-characters-item-restore .acore-char-row').forEach(function (r) {
@@ -96,109 +103,176 @@
 
     function selectCharacter(guid, characterName) {
         resetState();
-        itemListLoaders.forEach(function (el) { el.classList.remove('hidden'); });
-        itemContainer.classList.remove('hidden');
-
-        // Clear previous non-loader rows
-        Array.from(itemList.children).forEach(function (row) {
-            if (!row.classList.contains('loading-item-list')) itemList.removeChild(row);
-        });
+        loading.style.display = 'block';
+        content.style.display = 'none';
+        grid.innerHTML = '';
 
         fetch(listUrl + guid)
             .then(function (r) { return r.json(); })
             .then(function (items) {
+                loading.style.display = 'none';
+
                 if (!items || !items.length) {
-                    noResults.classList.remove('hidden');
+                    noResults.style.display = 'block';
                     return;
                 }
-                items.forEach(function (item) {
-                    var row      = itemList.insertRow();
-                    row.id       = 'row' + item['Id'];
 
-                    var itemCell = row.insertCell();
-                    var link     = document.createElement('a');
-                    link.href    = '#';
+                content.style.display = 'block';
+
+                items.forEach(function (item, index) {
+                    var card = document.createElement('div');
+                    card.className = 'item-restore-card';
+                    card.id = 'card' + item['Id'];
+
+                    // Number badge
+                    var num = document.createElement('span');
+                    num.className = 'item-restore-num';
+                    num.textContent = index + 1;
+
+                    // Icon container — wowhead puts the icon as background-image on the <a>
+                    var iconWrap = document.createElement('div');
+                    iconWrap.className = 'item-restore-icon';
+
+                    var link = document.createElement('a');
+                    link.href = 'https://www.wowhead.com/wotlk/item=' + item['ItemEntry'];
                     link.setAttribute('data-wowhead', 'item=' + item['ItemEntry']);
-                    itemCell.appendChild(link);
 
-                    var btnCell  = row.insertCell();
-                    var btn      = document.createElement('button');
-                    btn.className   = 'button-primary text-uppercase';
-                    btn.type        = 'button';
-                    btn.setAttribute('item', item['Id']);
-                    btn.setAttribute('cname', characterName);
+                    iconWrap.appendChild(link);
+
+                    // Restore button
+                    var btn = document.createElement('button');
+                    btn.className = 'item-restore-btn';
+                    btn.type = 'button';
                     btn.textContent = 'Restore';
-                    btn.addEventListener('click', restoreItem);
-                    btnCell.appendChild(btn);
+                    (function (itemId, charName, cardEl, btnEl) {
+                        btnEl.addEventListener('click', function () {
+                            restoreItem(itemId, charName, cardEl, btnEl);
+                        });
+                    })(item['Id'], characterName, card, btn);
+
+                    // Delete date
+                    var dateEl = document.createElement('span');
+                    dateEl.className = 'item-restore-date';
+                    var d = item['DeleteDate'];
+                    if (d) {
+                        var dt = new Date(typeof d === 'number' ? d * 1000 : d);
+                        if (!isNaN(dt)) {
+                            var day = dt.getDate();
+                            var ord = day % 100 >= 11 && day % 100 <= 13 ? 'th'
+                                : day % 10 === 1 ? 'st'
+                                : day % 10 === 2 ? 'nd'
+                                : day % 10 === 3 ? 'rd' : 'th';
+                            var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                            var hh = String(dt.getHours()).padStart(2, '0');
+                            var mm = String(dt.getMinutes()).padStart(2, '0');
+                            dateEl.textContent = day + ord + ' of ' + months[dt.getMonth()] + ', ' + dt.getFullYear() + ' at ' + hh + ':' + mm;
+                        } else {
+                            dateEl.textContent = String(d);
+                        }
+                    } else {
+                        dateEl.textContent = '';
+                    }
+
+                    card.appendChild(num);
+                    card.appendChild(iconWrap);
+                    card.appendChild(dateEl);
+                    card.appendChild(btn);
+                    grid.appendChild(card);
                 });
-                checkHasRecoverableItems();
+
+                applyWowheadIcons();
             })
-            .catch(function (msg) { errorBox.innerHTML = msg; })
-            .finally(function () {
-                if (typeof $WowheadPower !== 'undefined') $WowheadPower.refreshLinks();
-                itemListLoaders.forEach(function (el) { el.classList.add('hidden'); });
+            .catch(function (msg) {
+                loading.style.display = 'none';
+                errorBox.innerHTML = msg;
             });
     }
 
-    function restoreItem() {
+    function restoreItem(id, characterName, cardEl, btnEl) {
         resetState();
-        var item  = this.getAttribute('item');
-        var cname = this.getAttribute('cname');
-
-        var loader = document.createElement('div');
-        loader.className = 'placeholder-glow';
-        var span = document.createElement('span');
-        span.className = 'placeholder col-12 bg-warning';
-        loader.appendChild(span);
-        this.parentElement.appendChild(loader);
-        this.parentElement.removeChild(this);
+        btnEl.disabled = true;
+        btnEl.textContent = '...';
 
         fetch(restoreUrl, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ item: item, cname: cname }),
+            body: JSON.stringify({ item: id, cname: characterName }),
         })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (data.toLowerCase().includes('mail')) {
+                if (typeof data === 'string' && data.toLowerCase().includes('mail')) {
+                    cardEl.parentElement.removeChild(cardEl);
                     successBox.innerHTML = data;
-                    var rowEl = document.getElementById('row' + item);
-                    if (rowEl) rowEl.parentElement.removeChild(rowEl);
                     successBox.classList.remove('invisible');
-                    checkHasRecoverableItems();
+                    // renumber remaining cards
+                    var remaining = grid.querySelectorAll('.item-restore-card');
+                    remaining.forEach(function (c, i) {
+                        var n = c.querySelector('.item-restore-num');
+                        if (n) n.textContent = i + 1;
+                    });
+                    if (remaining.length === 0) {
+                        content.style.display = 'none';
+                        noResults.style.display = 'block';
+                    }
                 } else {
                     errorBox.innerHTML = data;
+                    btnEl.disabled = false;
+                    btnEl.textContent = 'Restore';
                 }
             })
             .catch(function (err) {
-                loader.parentElement.appendChild(btn);
-                loader.parentElement.removeChild(loader);
                 errorBox.innerHTML = err && err.message ? err.message : 'An error occurred.';
+                btnEl.disabled = false;
+                btnEl.textContent = 'Restore';
             });
     }
 
-    function checkHasRecoverableItems() {
-        var rows = document.querySelectorAll('#item-restoration-table tbody tr:not(.hidden)');
-        if (rows.length === 0) {
-            var emptyRow = document.getElementById('item-restoration-empty');
-            if (emptyRow) emptyRow.classList.remove('hidden');
+    function applyWowheadIcons() {
+        function doApply() {
+            document.querySelectorAll('.item-restore-icon > a').forEach(function (a) {
+                // upgrade icon to large JPG
+                var bg = a.style.backgroundImage;
+                if (bg) {
+                    bg = bg.replace(/\/icons\/(tiny|small)\//, '/icons/large/')
+                           .replace(/\.gif(["']?\))/, '.jpg$1');
+                    a.style.backgroundImage = bg;
+                }
+                // read quality class (q0-q7) and apply to card border
+                var card = a.closest('.item-restore-card');
+                if (card) {
+                    for (var cls in wowQualityColors) {
+                        if (a.classList.contains(cls)) {
+                            card.style.borderColor = wowQualityColors[cls];
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+
+        if (typeof $WowheadPower !== 'undefined' && $WowheadPower.refreshLinks) {
+            $WowheadPower.refreshLinks();
+            setTimeout(doApply, 1500);
+        } else {
+            var attempts = 0;
+            var wait = setInterval(function () {
+                attempts++;
+                if (typeof $WowheadPower !== 'undefined' && $WowheadPower.refreshLinks) {
+                    $WowheadPower.refreshLinks();
+                    clearInterval(wait);
+                    setTimeout(doApply, 1500);
+                } else if (attempts > 20) {
+                    clearInterval(wait);
+                }
+            }, 250);
         }
     }
 
     function resetState() {
-        errorBox.innerHTML   = '';
+        errorBox.innerHTML = '';
         successBox.innerHTML = '';
         successBox.classList.add('invisible');
-        noResults.classList.add('hidden');
+        noResults.style.display = 'none';
     }
-
-    // Load items on character select
-    document.querySelectorAll('.acore-char-card').forEach(function(card) {
-        card.addEventListener('click', function() {
-            document.querySelectorAll('.acore-char-card').forEach(function(c) { c.classList.remove('active'); });
-            this.classList.add('active');
-            selectCharacter(this.dataset.charGuid, this.dataset.charName);
-        });
-    });
 })();
 </script>
