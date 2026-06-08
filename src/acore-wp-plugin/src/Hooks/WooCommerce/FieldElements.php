@@ -72,7 +72,7 @@ class FieldElements {
                 endforeach;
             } else {
                 foreach ($deletedCharacters as $key => $value):
-                    $deletedLabel = $value->getDeletedName() . ' (Level ' . $value->getLevel() . ')';
+                    $deletedLabel = $value->getDeletedName() . ' (' . $value->getLevel() . ')';
                     $deletedDate = $value->getDeleteDateFormatted();
                     if ($deletedDate !== '') {
                         $deletedLabel .= ' (' . $deletedDate . ')';
