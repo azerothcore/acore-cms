@@ -41,6 +41,37 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         add_action('woocommerce_add_order_item_meta', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
         add_action('woocommerce_add_to_cart_validation', [__CLASS__, 'add_to_cart_validation'], 10, 5);
+        // Smartstone SKUs are one-shot unlocks (per-character for cat 0/1, per-account
+        // for cat 2/9), so the quantity selector is meaningless. Cap it at 1 on both
+        // the product page and the cart row. Multiple gift lines for the same SKU are
+        // still possible via unique_key in add_cart_item_data.
+        add_filter('woocommerce_quantity_input_args', [__CLASS__, 'quantity_input_args'], 10, 2);
+        add_filter('woocommerce_cart_item_quantity', [__CLASS__, 'cart_item_quantity'], 10, 3);
+    }
+
+    /**
+     * Lock the product-page quantity input at 1 for smartstone SKUs.
+     * When min == max, WC renders the input as plain text (no +/- buttons).
+     */
+    public static function quantity_input_args($args, $product) {
+        if ($product && strpos((string) $product->get_sku(), 'smartstone') === 0) {
+            $args['min_value']   = 1;
+            $args['max_value']   = 1;
+            $args['input_value'] = 1;
+        }
+        return $args;
+    }
+
+    /**
+     * Lock the cart-row quantity at 1 for smartstone line items. Returning a
+     * plain string here replaces WC's quantity input with non-editable text.
+     */
+    public static function cart_item_quantity($product_quantity, $cart_item_key, $cart_item) {
+        if (!empty($cart_item['acore_item_sku'])
+            && strpos((string) $cart_item['acore_item_sku'], 'smartstone') === 0) {
+            return '1';
+        }
+        return $product_quantity;
     }
 
      // Validator for add to cart from external sources (no character selected) or logged in required from "CartValidation")
@@ -66,8 +97,32 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         [$smartstone_category, $smartstone_id] = $parsed;
 
         // Account-wide services (costumes, perks) unlock via `.smartstone unlock account`
-        // and do not need a character selection.
+        // and do not need a character selection. They optionally accept a recipient
+        // character name (gifting) — validate it here if provided.
         if (self::isAccountWide($smartstone_category)) {
+            $destName = isset($_REQUEST['acore_char_dest']) ? trim((string) $_REQUEST['acore_char_dest']) : '';
+            if ($destName !== '') {
+                $ACoreSrv      = ACoreServices::I();
+                $charRepo      = $ACoreSrv->getCharactersRepo();
+                $charBanRepo   = $ACoreSrv->getCharactersBannedRepo();
+                $accBanRepo    = $ACoreSrv->getAccountBannedRepo();
+
+                $char = $charRepo->findOneByName($destName);
+                if (!$char) {
+                    \wc_add_notice(__('Recipient character not found.', 'acore-wp-plugin'), 'error');
+                    return false;
+                }
+                if ($charBanRepo->isActiveByGuid($char->getGuid())) {
+                    \wc_add_notice(__('Recipient character is banned.', 'acore-wp-plugin'), 'error');
+                    return false;
+                }
+                if ($accBanRepo->isActiveById($char->getAccount())) {
+                    \wc_add_notice(__('Recipient account is banned.', 'acore-wp-plugin'), 'error');
+                    return false;
+                }
+                // Self-gift (recipient char belongs to the buyer's own account) is
+                // silently treated as a regular self-unlock; nothing to error on here.
+            }
             return $passed;
         }
 
@@ -91,8 +146,10 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
 
         FieldElements::get3dViewer();
 
-        // Account-wide unlocks (costumes, perks) don't need a character selector.
+        // Account-wide unlocks (costumes, perks) don't need a self character
+        // selector, but they support gifting to a character on another account.
         if (self::isAccountWide($smartstone_category)) {
+            FieldElements::destCharacter(__('Gift to a character (optional — leave blank to unlock for your own account):', 'acore-wp-plugin'));
             return;
         }
 
@@ -119,6 +176,26 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             // and force a unique line so the cart treats it as its own row.
             $cart_item_data['acore_item_sku'] = $product->get_sku();
             $cart_item_data['unique_key'] = md5(microtime() . rand());
+
+            // If a recipient character was supplied, resolve it to an account
+            // name now so payment_complete can route the SOAP call there.
+            // add_to_cart_validation has already vetted existence/ban state.
+            $destName = isset($_REQUEST['acore_char_dest']) ? trim((string) $_REQUEST['acore_char_dest']) : '';
+            if ($destName !== '') {
+                $ACoreSrv = ACoreServices::I();
+                $char = $ACoreSrv->getCharactersRepo()->findOneByName($destName);
+                if ($char) {
+                    $account = $ACoreSrv->getAccountRepo()->findOneById($char->getAccount());
+                    $current_user = wp_get_current_user();
+                    if ($account && $current_user
+                        && strcasecmp($account->getUsername(), $current_user->user_login) !== 0) {
+                        // Real gift: recipient belongs to a different account.
+                        $cart_item_data['acore_gift_account']  = $account->getUsername();
+                        $cart_item_data['acore_gift_charname'] = $char->getName();
+                    }
+                    // Self-gift falls through with no gift_* fields => self-unlock.
+                }
+            }
         } else if (isset($_REQUEST['acore_char_sel'])) {
             $cart_item_data['acore_char_sel'] = $_REQUEST['acore_char_sel'];
             $cart_item_data['acore_item_sku'] = $product->get_sku();
@@ -158,7 +235,14 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             : "Smartstone item";
 
         if (self::isAccountWide($smartstone_category)) {
-            $custom_items[] = array("name" => 'Unlock for', "value" => 'Entire account');
+            if (isset($cart_item['acore_gift_account'])) {
+                $giftCharname = isset($cart_item['acore_gift_charname'])
+                    ? $cart_item['acore_gift_charname']
+                    : '(recipient)';
+                $custom_items[] = array("name" => 'Gift for', "value" => $giftCharname);
+            } else {
+                $custom_items[] = array("name" => 'Unlock for', "value" => 'Entire account');
+            }
             $custom_items[] = array("name" => $label, "value" => $smartstone_id);
         } else if (isset($cart_item['acore_char_sel'])) {
             $ACoreSrv = ACoreServices::I();
@@ -192,6 +276,16 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         // categories, the buyer's account is derived from the order customer in payment_complete.
         if (!self::isAccountWide($smartstone_category) && isset($values['acore_char_sel'])) {
             \wc_add_order_item_meta($item_id, "acore_char_sel", $values['acore_char_sel']);
+        }
+
+        // Gifting: persist the resolved recipient so payment_complete can route
+        // the SOAP unlock to their account. Charname is informational (for admin
+        // order view); only acore_gift_account is functional.
+        if (self::isAccountWide($smartstone_category) && isset($values['acore_gift_account'])) {
+            \wc_add_order_item_meta($item_id, "acore_gift_account", $values['acore_gift_account']);
+            if (isset($values['acore_gift_charname'])) {
+                \wc_add_order_item_meta($item_id, "acore_gift_charname", $values['acore_gift_charname']);
+            }
         }
     }
 
@@ -244,10 +338,15 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
                 [$smartstone_category, $smartstone_id] = $parsed;
 
                 if (self::isAccountWide($smartstone_category)) {
-                    if (!$accountName) {
+                    // Gifted items route to the recipient's account; otherwise unlock
+                    // for the buyer. Resolution + ban-check happened at add-to-cart time.
+                    $target = !empty($item['acore_gift_account'])
+                        ? $item['acore_gift_account']
+                        : $accountName;
+                    if (!$target) {
                         throw new \Exception("Smartstone account-wide unlock requires a buyer with a linked AC account; order $order_id has none.");
                     }
-                    $res = $soap->addAccountVanity($accountName, $smartstone_category, $smartstone_id);
+                    $res = $soap->addAccountVanity($target, $smartstone_category, $smartstone_id);
                 } else {
                     if (empty($item["acore_char_sel"])) {
                         throw new \Exception("Smartstone per-character unlock missing acore_char_sel on item in order $order_id.");
