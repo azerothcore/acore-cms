@@ -21,6 +21,28 @@ class SettingsController {
         $this->view = new SettingsView($this);
     }
 
+
+    private function getPvpStatsReplicaPdo(): \PDO {
+        return new \PDO(
+            'mysql:host=' . getenv('PVPSTATS_REPLICA_HOST') . ';port=' . getenv('PVPSTATS_REPLICA_PORT') . ';dbname=' . getenv('PVPSTATS_REPLICA_DB') . ';charset=utf8mb4',
+            getenv('PVPSTATS_REPLICA_USER'),
+            getenv('PVPSTATS_REPLICA_PASSWORD'),
+            [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            ]
+        );
+    }
+
+    private function runPvpStatsReplicaQuery(string $query, array $params): array {
+        $stmt = $this->getPvpStatsReplicaPdo()->prepare($query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     public function loadHome() {
         //must check that the user has the required capability
         if (!current_user_can('game_master')) {
@@ -212,12 +234,10 @@ class SettingsController {
                     $query .= " LIMIT $limitRewards";
                 }
 
-                $connection = ACoreServices::I()->getCharacterEm()->getConnection();
-                $queryResult = $connection->executeQuery(
+                $result = $this->runPvpStatsReplicaQuery(
                     $query,
                     array('winner' => $isWinner, 'month' => $month, 'year' => $year)
                 );
-                $result = $queryResult->fetchAllAssociative();
                 if ($result) {
                     $accountCounter = 0;
                     $pointsCounter = 0;
@@ -339,12 +359,10 @@ class SettingsController {
                 ORDER BY total_battle DESC
                 LIMIT 10";
 
-                $connection = ACoreServices::I()->getCharacterEm()->getConnection();
-                $queryResult = $connection->executeQuery(
+                $result = $this->runPvpStatsReplicaQuery(
                     $query,
                     array('isWinner' => $isWinner, 'month' => $month, 'year' => $year)
                 );
-                $result = $queryResult->fetchAllAssociative();
             }
 
             $data = [
