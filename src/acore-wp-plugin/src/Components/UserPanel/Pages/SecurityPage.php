@@ -95,21 +95,29 @@ $expandOnLoad = !empty($passwordMessage);
 
     <?php
     $websiteTotpEnabled = !empty($twoFaData['plugin_active']) && !empty($twoFaData['totp_enabled']);
-    $restBase  = rest_url(ACORE_SLUG . '/v1/remove-ingame-2fa');
-    $restNonce = wp_create_nonce('wp_rest');
+    $twofaUnlocked      = $websiteTotpEnabled && (bool) get_transient('acore_2fa_panel_unlock_' . $user->ID);
+    $restBase   = rest_url(ACORE_SLUG . '/v1/remove-ingame-2fa');
+    $verifyBase = rest_url(ACORE_SLUG . '/v1/verify-website-2fa');
+    $statusBase = rest_url(ACORE_SLUG . '/v1/2fa-status');
+    $restNonce  = wp_create_nonce('wp_rest');
 
     // Admin-removal log: find last entry per type
     $adminLog         = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
     $adminLog         = is_array($adminLog) ? $adminLog : [];
-    $lastWebRemoval   = null;
-    $lastGameRemoval  = null;
+    $lastWebRemoval    = null;
+    $lastGameRemoval   = null;
+    $lastBackupRemoval = null;
     foreach ($adminLog as $entry) {
-        if ($entry['type'] === 'website') $lastWebRemoval  = $entry;
-        if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
+        if ($entry['type'] === 'website') $lastWebRemoval    = $entry;
+        if ($entry['type'] === 'ingame')  $lastGameRemoval   = $entry;
+        if ($entry['type'] === 'backup')  $lastBackupRemoval = $entry;
     }
+    $backupCodesMeta = get_user_meta($user->ID, 'wp_2fa_backup_codes', true);
+    $backupCodesLeft = is_array($backupCodesMeta) ? count($backupCodesMeta) : 0;
     // Only warn if 2FA is not currently active (user hasn't re-enabled yet)
-    $showWebWarning  = $lastWebRemoval  && !$websiteTotpEnabled;
-    $showGameWarning = $lastGameRemoval && !$ingame2faActive;
+    $showWebWarning    = $lastWebRemoval    && !$websiteTotpEnabled;
+    $showGameWarning   = $lastGameRemoval   && !$ingame2faActive;
+    $showBackupWarning = $lastBackupRemoval && $backupCodesLeft === 0;
     ?>
 
     <div class="postbox">
@@ -118,29 +126,46 @@ $expandOnLoad = !empty($passwordMessage);
         </div>
         <div class="inside">
 
-            <?php if ($showWebWarning || $showGameWarning): ?>
+            <?php if ($showWebWarning || $showGameWarning || $showBackupWarning): ?>
                 <div class="notice notice-warning inline" style="margin:0 0 18px; padding:10px 14px;">
                     <p style="margin:0 0 4px; font-weight:600;">
                         <span class="dashicons dashicons-warning" style="color:#dba617; margin-right:4px; vertical-align:middle;"></span>
-                        <?php _e('Your 2FA was manually removed by a staff member.', 'acore-wp-plugin'); ?>
+                        <?php _e('Your two-factor authentication was removed.', 'acore-wp-plugin'); ?>
                     </p>
                     <?php if ($showWebWarning): ?>
                         <p style="margin:4px 0 0; font-size:13px;">
                             - <?php
-                            printf(
-                                __('Website 2FA removed on %1$s by %2$s. Please re-enable it for account security.', 'acore-wp-plugin'),
-                                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>',
-                                '<strong>' . esc_html($lastWebRemoval['staff']) . '</strong>'
-                            ); ?>
+                            $webDate = '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>';
+                            if (($lastWebRemoval['by'] ?? 'admin') === 'self') {
+                                printf(
+                                    __('Website 2FA was manually removed by you on %1$s (last IP: %2$s). Please re-enable it for account security.', 'acore-wp-plugin'),
+                                    $webDate,
+                                    '<strong>' . esc_html($lastWebRemoval['ip'] ?? __('unknown', 'acore-wp-plugin')) . '</strong>'
+                                );
+                            } else {
+                                printf(
+                                    __('Website 2FA was manually removed by an administrator on %1$s. Please re-enable it for account security.', 'acore-wp-plugin'),
+                                    $webDate
+                                );
+                            }
+                            ?>
                         </p>
                     <?php endif; ?>
                     <?php if ($showGameWarning): ?>
                         <p style="margin:4px 0 0; font-size:13px;">
                             - <?php
                             printf(
-                                __('In-game 2FA removed on %1$s by %2$s. Please re-enable it for account security.', 'acore-wp-plugin'),
-                                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastGameRemoval['timestamp'])) . '</strong>',
-                                '<strong>' . esc_html($lastGameRemoval['staff']) . '</strong>'
+                                __('In-game 2FA was manually removed by an administrator on %1$s. Please re-enable it for account security.', 'acore-wp-plugin'),
+                                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastGameRemoval['timestamp'])) . '</strong>'
+                            ); ?>
+                        </p>
+                    <?php endif; ?>
+                    <?php if ($showBackupWarning): ?>
+                        <p style="margin:4px 0 0; font-size:13px;">
+                            - <?php
+                            printf(
+                                __('Your two-factor backup codes were removed by an administrator on %1$s. Please generate new backup codes.', 'acore-wp-plugin'),
+                                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastBackupRemoval['timestamp'])) . '</strong>'
                             ); ?>
                         </p>
                     <?php endif; ?>
@@ -186,8 +211,37 @@ $expandOnLoad = !empty($passwordMessage);
                     '',
                     $wp2faHtml
                 );
-                echo $wp2faHtml;
                 ?>
+
+                <?php if ($websiteTotpEnabled && $twofaUnlocked): ?>
+                    <!-- Already unlocked recently: show the management UI directly (no re-prompt on refresh) -->
+                    <div id="acore-2fa-panel" style="margin-top:16px;">
+                        <?= $wp2faHtml ?>
+                    </div>
+                <?php elseif ($websiteTotpEnabled): ?>
+                    <!-- 2FA is enabled: require a current TOTP code before revealing the management UI (incl. backup codes) -->
+                    <div id="acore-2fa-gate">
+                        <p style="margin:0 0 8px; color:#646970; font-size:13px;">
+                            <?php _e('For your security, enter your current website 2FA code to view or regenerate your backup codes and 2FA settings.', 'acore-wp-plugin'); ?>
+                        </p>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <input type="text" id="acore-2fa-gate-code" inputmode="numeric" pattern="\d{6}"
+                                   maxlength="6" placeholder="000000" autocomplete="one-time-code"
+                                   style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
+                            <button type="button" id="acore-2fa-gate-btn" class="button button-primary">
+                                <?php _e('Unlock', 'acore-wp-plugin'); ?>
+                            </button>
+                        </div>
+                        <div id="acore-2fa-gate-msg" style="font-size:13px; margin-top:8px;"></div>
+                    </div>
+                    <div id="acore-2fa-panel" style="display:none; margin-top:16px;">
+                        <?= $wp2faHtml ?>
+                    </div>
+                <?php else: ?>
+                    <!-- 2FA not set up yet: show the plugin UI directly so the user can configure it -->
+                    <?= $wp2faHtml ?>
+                <?php endif; ?>
+
             <?php else: ?>
                 <p style="color:#646970;"><?php _e('Two-Factor Authentication plugin is not active.', 'acore-wp-plugin'); ?></p>
             <?php endif; ?>
@@ -361,5 +415,83 @@ $expandOnLoad = !empty($passwordMessage);
             });
         });
     }
+
+    /* Website 2FA gate: require a valid current TOTP code to reveal the panel */
+    var gateBtn = document.getElementById('acore-2fa-gate-btn');
+    if (gateBtn) {
+        var revealPanel = function(){
+            var gate  = document.getElementById('acore-2fa-gate');
+            var panel = document.getElementById('acore-2fa-panel');
+            if (gate)  gate.style.display  = 'none';
+            if (panel) panel.style.display = '';
+        };
+        var submitGate = function(){
+            var input = document.getElementById('acore-2fa-gate-code');
+            var msg   = document.getElementById('acore-2fa-gate-msg');
+            var code  = (input.value || '').trim();
+            if (!/^\d{6}$/.test(code)) {
+                msg.style.color = '#d63638';
+                msg.textContent = '<?php echo esc_js(__('Please enter a valid 6-digit code.', 'acore-wp-plugin')); ?>';
+                return;
+            }
+            gateBtn.disabled = true;
+            gateBtn.textContent = '<?php echo esc_js(__('Verifying…', 'acore-wp-plugin')); ?>';
+            msg.textContent = '';
+            fetch('<?= esc_js($verifyBase) ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce':   '<?= esc_js($restNonce) ?>'
+                },
+                body: JSON.stringify({ token: code })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if (data && data.success) {
+                    revealPanel();
+                } else {
+                    throw data;
+                }
+            })
+            .catch(function(err){
+                msg.style.color = '#d63638';
+                msg.textContent = (err && (err.message || (err.data && err.data.message))) || '<?php echo esc_js(__('Incorrect code. Please try again.', 'acore-wp-plugin')); ?>';
+                gateBtn.disabled = false;
+                gateBtn.textContent = '<?php echo esc_js(__('Unlock', 'acore-wp-plugin')); ?>';
+            });
+        };
+        gateBtn.addEventListener('click', submitGate);
+        var gateInput = document.getElementById('acore-2fa-gate-code');
+        if (gateInput) {
+            gateInput.addEventListener('keydown', function(e){
+                if (e.key === 'Enter') { e.preventDefault(); submitGate(); }
+            });
+        }
+    }
+})();
+
+/* Real-time 2FA removal detection: reload when state changes */
+(function(){
+    var statusUrl = '<?= esc_js($statusBase) ?>';
+    var nonce     = '<?= esc_js($restNonce) ?>';
+    var initial   = {
+        website: <?= $websiteTotpEnabled ? 'true' : 'false' ?>,
+        ingame:  <?= $ingame2faActive ? 'true' : 'false' ?>,
+        count:   <?= (int) count($adminLog) ?>
+    };
+    function check(){
+        fetch(statusUrl, { headers: { 'X-WP-Nonce': nonce }, credentials: 'same-origin' })
+            .then(function(r){ return r.ok ? r.json() : null; })
+            .then(function(d){
+                if (!d) return;
+                if (d.website_enabled !== initial.website ||
+                    d.ingame_enabled  !== initial.ingame  ||
+                    d.removal_count   !== initial.count) {
+                    window.location.reload();
+                }
+            })
+            .catch(function(){});
+    }
+    setInterval(check, 20000);
 })();
 </script>

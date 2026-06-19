@@ -154,6 +154,11 @@ class UserController {
     public function showSecurityPage() {
         $user = wp_get_current_user();
 
+        // Detect & log a user-initiated Website 2FA removal (records the user's IP).
+        if (function_exists('ACore\\Components\\ServerInfo\\acore_2fa_sync_self_removals')) {
+            \ACore\Components\ServerInfo\acore_2fa_sync_self_removals($user->ID);
+        }
+
         $passwordMessage   = \ACore\Hooks\User\acore_pw_get_message($user->ID);
         $passwordChangedAt = get_user_meta($user->ID, 'acore_password_changed_at', true);
         $twoFaData         = $this->getTwoFaData($user);

@@ -53,6 +53,41 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
     .acore-missing-module-wrap:hover .acore-missing-module-tooltip { display: block; }
+
+    /* Confirm modal (defaults to "No") */
+    .acore-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100000;
+    }
+    .acore-modal-box {
+        background: #fff;
+        color: #1d2327;
+        max-width: 420px;
+        width: calc(100% - 40px);
+        padding: 20px;
+        border-radius: 6px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+    body.acore-dark-mode .acore-modal-box {
+        background: #1c2128;
+        color: #c9d1d9;
+    }
+    .acore-modal-text {
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-line;
+        margin: 0 0 16px;
+    }
+    .acore-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
 </style>
 
 <div class="wrap">
@@ -175,6 +210,13 @@
                                 </div>
                                 <p id="acore-2fa-web-msg" style="font-size:12px; margin:0 0 12px; min-height:18px;"></p>
 
+                                <!-- Backup codes (always visible; greyed until a Website check finds codes) -->
+                                <div id="acore-backup-wrap" style="margin:0 0 12px; opacity:0.45;">
+                                    <p style="font-size:12px; font-weight:600; margin:0 0 4px;">Backup Codes</p>
+                                    <span id="acore-backup-info" style="font-size:12px;">Check a Website account above to view backup codes.</span>
+                                    <button type="button" id="acore-backup-remove" class="button acore-btn-danger" style="white-space:nowrap; margin-left:6px;" disabled>Remove backup codes</button>
+                                </div>
+
                                 <!-- In-game 2FA -->
                                 <p style="font-size:12px; font-weight:600; margin:0 0 4px;">In-Game</p>
                                 <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px; flex-wrap:wrap;">
@@ -224,10 +266,43 @@
 
                 </div><!-- /row -->
 
+                <!-- User Login History (admin lookup) -->
+                <div class="card p-0" style="margin-top:16px;">
+                    <div class="card-body">
+                        <h5>User Login History</h5>
+                        <hr>
+                        <p style="font-size:12px; color:#646970; margin:0 0 8px;">
+                            Look up the recorded login IP history for any account (the same list the user sees on their Security page).
+                        </p>
+                        <div style="display:flex; gap:6px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+                            <input type="text" id="acore-history-user" placeholder="Account name" style="flex:0 1 220px;">
+                            <button type="button" id="acore-history-lookup" class="button button-secondary">Look up</button>
+                        </div>
+                        <p id="acore-history-msg" style="font-size:12px; margin:0 0 8px; min-height:18px;"></p>
+                        <table id="acore-history-table" class="wp-list-table widefat fixed striped" style="display:none; max-width:760px;">
+                            <thead>
+                                <tr><th>IPv4 Address</th><th>Country</th><th>Date / Time</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <p class="submit">
                     <input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes', Opts::I()->page_alias) ?>">
                 </p>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reusable confirm modal (default button is "No") -->
+<div id="acore-confirm-modal" class="acore-modal-overlay" style="display:none;">
+    <div class="acore-modal-box">
+        <p id="acore-confirm-modal-text" class="acore-modal-text"></p>
+        <div class="acore-modal-actions">
+            <button type="button" id="acore-confirm-yes" class="button acore-btn-danger">Yes</button>
+            <button type="button" id="acore-confirm-no" class="button button-secondary">No</button>
         </div>
     </div>
 </div>
@@ -257,7 +332,7 @@
         });
     }
 
-    function wire2fa(type, $userInput, $check, $remove, $msg) {
+    function wire2fa(type, $userInput, $check, $remove, $msg, onCheck) {
         $check.on('click', function(){
             var username = $userInput.val().trim();
             if (!username) { $msg.css('color','#d63638').text('Enter an account name first.'); return; }
@@ -276,6 +351,7 @@
                         $msg.css('color','#238636').text('2FA is active for ' + data.username + '.');
                         $remove.prop('disabled', false);
                     }
+                    if (typeof onCheck === 'function') onCheck(data, username);
                 })
                 .fail(function(xhr){
                     var err = xhr.responseJSON ? (xhr.responseJSON.message || JSON.stringify(xhr.responseJSON)) : 'Error.';
@@ -310,21 +386,89 @@
         });
     }
 
-    wire2fa('website', $('#acore-2fa-web-user'),  $('#acore-2fa-web-check'),  $('#acore-2fa-web-remove'),  $('#acore-2fa-web-msg'));
+    wire2fa('website', $('#acore-2fa-web-user'),  $('#acore-2fa-web-check'),  $('#acore-2fa-web-remove'),  $('#acore-2fa-web-msg'), function(data){
+        var count = parseInt(data.backup_codes, 10) || 0;
+        if (count > 0) {
+            $('#acore-backup-wrap').css('opacity', '1');
+            $('#acore-backup-info').css('color','#646970').text(count + ' unused backup code' + (count === 1 ? '' : 's') + ' remaining.');
+            $('#acore-backup-remove').prop('disabled', false);
+        } else {
+            $('#acore-backup-wrap').css('opacity', '0.45');
+            $('#acore-backup-info').css('color','#646970').text('No backup codes generated for this account.');
+            $('#acore-backup-remove').prop('disabled', true);
+        }
+    });
     wire2fa('ingame',  $('#acore-2fa-game-user'), $('#acore-2fa-game-check'), $('#acore-2fa-game-remove'), $('#acore-2fa-game-msg'));
+
+    /* Remove backup codes (uses the Website account-name input) */
+    $('#acore-backup-remove').on('click', function(){
+        var username = $('#acore-2fa-web-user').val().trim();
+        if (!username) { return; }
+        var $btn = $(this);
+        acoreConfirm('Remove all backup codes for ' + username + '? They will need to generate new ones.', function(){
+            $btn.prop('disabled', true).text('Removing…');
+            ajaxPost('admin/backup-codes-remove', { username: username })
+                .done(function(data){
+                    $('#acore-backup-info').css('color','#238636').text('Backup codes removed on ' + data.date + '. The user has been notified.');
+                })
+                .fail(function(xhr){
+                    var err = xhr.responseJSON ? (xhr.responseJSON.message || 'Error.') : 'Error.';
+                    $('#acore-backup-info').css('color','#d63638').text(err);
+                    $btn.prop('disabled', false);
+                })
+                .always(function(){ $btn.text('Remove backup codes'); });
+        });
+    });
+
+    /* User Login History lookup */
+    $('#acore-history-lookup').on('click', function(){
+        var username = $('#acore-history-user').val().trim();
+        var $msg = $('#acore-history-msg');
+        var $tbl = $('#acore-history-table');
+        if (!username) { $msg.css('color','#d63638').text('Enter an account name first.'); return; }
+        var $btn = $(this).prop('disabled', true).text('Looking up…');
+        $msg.css('color','#646970').text('');
+        ajaxPost('admin/login-history', { username: username })
+            .done(function(data){
+                var rows = data.history || [];
+                var $tb = $tbl.find('tbody').empty();
+                if (!rows.length) {
+                    $tbl.hide();
+                    $msg.css('color','#646970').text('No login history recorded for ' + data.username + '.');
+                } else {
+                    rows.forEach(function(r){
+                        $('<tr>').append(
+                            $('<td>').text(r.ip),
+                            $('<td>').text(r.country),
+                            $('<td>').text(r.date)
+                        ).appendTo($tb);
+                    });
+                    $tbl.show();
+                    $msg.css('color','#646970').text(rows.length + ' record(s) for ' + data.username + '.');
+                }
+            })
+            .fail(function(xhr){
+                $tbl.hide();
+                var err = xhr.responseJSON ? (xhr.responseJSON.message || 'Error.') : 'Error.';
+                $msg.css('color','#d63638').text(err);
+            })
+            .always(function(){ $btn.prop('disabled', false).text('Look up'); });
+    });
 
     /* ── Name Unlock Thresholds ───────────────────────────────────────── */
     const deleteThreshold = (ev) => {
         const $btn = $(ev.target).closest('.acore-btn-danger');
         const $tr  = $btn.closest('tr');
-        $tr.remove();
-        let i = 0;
-        $('#acore-name-unlock-thresholds tbody tr').each(function () {
-            const previ = $(this).data('i');
-            $(this).data('i', i);
-            $(this).find(`input[name="acore_name_unlock_thresholds[${previ}][0]"]`).attr('name', `acore_name_unlock_thresholds[${i}][0]`);
-            $(this).find(`input[name="acore_name_unlock_thresholds[${previ}][1]"]`).attr('name', `acore_name_unlock_thresholds[${i}][1]`);
-            i++;
+        acoreConfirm('Remove this inactivity threshold row?', function () {
+            $tr.remove();
+            let i = 0;
+            $('#acore-name-unlock-thresholds tbody tr').each(function () {
+                const previ = $(this).data('i');
+                $(this).data('i', i);
+                $(this).find(`input[name="acore_name_unlock_thresholds[${previ}][0]"]`).attr('name', `acore_name_unlock_thresholds[${i}][0]`);
+                $(this).find(`input[name="acore_name_unlock_thresholds[${previ}][1]"]`).attr('name', `acore_name_unlock_thresholds[${i}][1]`);
+                i++;
+            });
         });
     };
 
@@ -347,18 +491,49 @@
 
     $('#acore-name-unlock-thresholds-add').on('click', () => addThreshold());
 
+    /* ── Confirm modal (Yes / No; doing nothing = no action) ─────────── */
+    function acoreConfirm(message, onConfirm) {
+        const $overlay = $('#acore-confirm-modal');
+        $('#acore-confirm-modal-text').text(message);
+        $overlay.css('display', 'flex');
+        // Nothing is auto-focused: if the user does nothing (Escape / click
+        // outside), nothing happens - they must explicitly click Yes or No.
+
+        const close = () => {
+            $overlay.hide();
+            $('#acore-confirm-yes').off('click.acoreConfirm');
+            $('#acore-confirm-no').off('click.acoreConfirm');
+            $overlay.off('click.acoreConfirm');
+            $(document).off('keydown.acoreConfirm');
+        };
+
+        $('#acore-confirm-yes').on('click.acoreConfirm', function () {
+            close();
+            onConfirm();
+        });
+        $('#acore-confirm-no').on('click.acoreConfirm', close);
+        // Click outside the box = No.
+        $overlay.on('click.acoreConfirm', function (e) {
+            if (e.target === this) close();
+        });
+        // Escape = No.
+        $(document).on('keydown.acoreConfirm', function (e) {
+            if (e.key === 'Escape') close();
+        });
+    }
+
     /* ── Reset Name Unlock to Defaults ──────────────────────────────── */
     $('#acore-name-unlock-reset').on('click', function () {
-        if (!confirm(
+        acoreConfirm(
             'Reset Name Unlock settings to defaults?\n\n' +
             'This will clear the banned names table and delete all inactivity thresholds.\n\n' +
-            'This cannot be undone. Continue?'
-        )) return;
-
-        $('input[name="acore_name_unlock_allowed_banned_names_table"]').val('');
-        $('#acore-name-unlock-thresholds tbody tr').remove();
-
-        $('input[name="Submit"]').closest('form').submit();
+            'This cannot be undone. Continue?',
+            function () {
+                $('input[name="acore_name_unlock_allowed_banned_names_table"]').val('');
+                $('#acore-name-unlock-thresholds tbody tr').remove();
+                $('input[name="Submit"]').closest('form').submit();
+            }
+        );
     });
 
     <?php foreach (Opts::I()->acore_name_unlock_thresholds as $i => $threshold) {
