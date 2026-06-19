@@ -148,12 +148,8 @@ add_action( 'rest_api_init', function () {
            }
 
            if ($type === 'website') {
-               $totpKey        = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
-               $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
-               $active         = !empty($totpKey) && (
-                   (is_array($enabledMethods) && in_array('totp', $enabledMethods, true)) ||
-                   $enabledMethods === 'totp'
-               );
+               $totpKey = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
+               $active  = !empty($totpKey);
                $resp = ['found' => true, 'username' => $user->user_login, 'active' => $active];
                if ($lastRemoval) $resp['last_removal'] = ['date' => wp_date('jS \o\f F, Y \a\t H:i', $lastRemoval['timestamp']), 'staff' => $lastRemoval['staff']];
                return $resp;
