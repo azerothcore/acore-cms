@@ -35,7 +35,7 @@ function acore_dark_mode_enqueue() {
     wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', [], '3.0');
     wp_enqueue_style('acore-dark-mode', ACORE_URL_PLG . 'web/assets/css/dark-mode.css', ['acore-css'], '3.7');
     // Central light/dark theme layer (edit colours here). Loaded last so it wins.
-    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '1.2');
+    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '1.5');
 
     $nonce = wp_create_nonce('acore_dark_mode');
     wp_add_inline_script('jquery-core', acore_dark_mode_js($nonce));
@@ -130,4 +130,20 @@ function acore_dark_mode_js(string $nonce): string {
     });
 })(jQuery);
 JS;
+}
+
+/*
+ * The WP 2FA setup wizard (profile.php?page=wp-2fa-setup) renders a sealed
+ * full-page template that only prints its own stylesheets. It exposes
+ * `wp_2fa_setup_page_scripts` inside its <head>; we use it to inject theme.css
+ * (whose body.wp2fa-setup rules are dark) only when the user has dark mode on.
+ */
+add_action('wp_2fa_setup_page_scripts', __NAMESPACE__ . '\acore_dark_mode_wizard_css');
+
+function acore_dark_mode_wizard_css() {
+    if (get_user_meta(get_current_user_id(), 'acore_dark_mode', true) !== '1') {
+        return;
+    }
+    echo '<link rel="stylesheet" id="acore-theme-wizard-css" media="all" href="'
+        . esc_url(ACORE_URL_PLG . 'web/assets/css/theme.css') . '?ver=1.5" />' . "\n";
 }

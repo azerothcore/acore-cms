@@ -212,3 +212,119 @@ body.acore-dark-mode.mycred-log-page #myCRED-wrap h2,
 body.acore-dark-mode.mycred-log-page #myCRED-wrap p {
     color: var(--acore-text) !important;
 }
+
+/* ── WP 2FA standalone setup wizard (profile.php?page=wp-2fa-setup) ──────
+ * The wizard renders its own <body class="wp2fa-setup"> with no admin/dark
+ * class, and only prints its own stylesheets. We inject theme.css into its
+ * <head> via the `wp_2fa_setup_page_scripts` hook ONLY when dark mode is on
+ * (see DarkMode.php), so these body.wp2fa-setup rules are dark-only by load.
+ * The dark palette is redeclared here because .acore-dark-mode isn't present. */
+body.wp2fa-setup {
+    --acore-bg:            #0d1117;
+    --acore-surface:       #161b22;
+    --acore-surface-2:     #21262d;
+    --acore-text:          #c9d1d9;
+    --acore-muted:         #9aa4af;
+    --acore-border:        #30363d;
+    --acore-accent:        #58a6ff;
+    background: var(--acore-bg) !important;
+    color: var(--acore-text) !important;
+}
+body.wp2fa-setup .setup-wizard-wrapper,
+body.wp2fa-setup .wp2fa-setup-content,
+body.wp2fa-setup .modal__container {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.wp2fa-setup h1, body.wp2fa-setup h2, body.wp2fa-setup h3,
+body.wp2fa-setup h4, body.wp2fa-setup p, body.wp2fa-setup label,
+body.wp2fa-setup li, body.wp2fa-setup span, body.wp2fa-setup strong {
+    color: var(--acore-text) !important;
+}
+body.wp2fa-setup .description,
+body.wp2fa-setup .wp2fa-setup-footer a { color: var(--acore-muted) !important; }
+body.wp2fa-setup input[type="text"],
+body.wp2fa-setup input[type="email"],
+body.wp2fa-setup input[type="number"],
+body.wp2fa-setup input[type="password"],
+body.wp2fa-setup select,
+body.wp2fa-setup textarea,
+body.wp2fa-setup .select2-selection {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border) !important;
+}
+body.wp2fa-setup .steps li { color: var(--acore-muted) !important; }
+body.wp2fa-setup .steps li.is-active { color: var(--acore-accent) !important; font-weight: 600; }
+body.wp2fa-setup .button-secondary,
+body.wp2fa-setup .wp-2fa-button-secondary {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.wp2fa-setup code,
+body.wp2fa-setup pre {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border);
+}
+body.wp2fa-setup .modal__overlay { background: rgba(0,0,0,0.6) !important; }
+
+/* ── WP 2FA micromodal on normal admin pages (Security page "Configure 2FA") ──
+ * The modal is appended at <body> level (outside #acore-security-page), so it is
+ * scoped by the body dark class instead. */
+body.acore-dark-mode .wp2fa-modal .modal__container {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode .wp2fa-modal .modal__content,
+body.acore-dark-mode .wp2fa-modal .modal__content h1,
+body.acore-dark-mode .wp2fa-modal .modal__content h2,
+body.acore-dark-mode .wp2fa-modal .modal__content h3,
+body.acore-dark-mode .wp2fa-modal .modal__content h4,
+body.acore-dark-mode .wp2fa-modal .modal__content p,
+body.acore-dark-mode .wp2fa-modal .modal__content label,
+body.acore-dark-mode .wp2fa-modal .modal__content span,
+body.acore-dark-mode .wp2fa-modal .modal__content li,
+body.acore-dark-mode .wp2fa-modal .modal__content strong {
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode .wp2fa-modal .description { color: var(--acore-muted) !important; }
+body.acore-dark-mode .wp2fa-modal .option-pill,
+body.acore-dark-mode .wp2fa-modal .radio-cells .option-pill {
+    background: var(--acore-surface-2) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode .wp2fa-modal .option-pill.selected,
+body.acore-dark-mode .wp2fa-modal .option-pill:hover {
+    border-color: var(--acore-accent) !important;
+}
+body.acore-dark-mode .wp2fa-modal input,
+body.acore-dark-mode .wp2fa-modal select,
+body.acore-dark-mode .wp2fa-modal textarea {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border) !important;
+}
+body.acore-dark-mode .wp2fa-modal .modal__close { color: var(--acore-text) !important; }
+body.acore-dark-mode .wp2fa-modal code,
+body.acore-dark-mode .wp2fa-modal pre {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border);
+}
+
+/* WP 2FA TOTP secret-key box (shown in both the modal and the wizard) */
+body.acore-dark-mode .wp2fa-modal .app-key-wrapper,
+body.wp2fa-setup .app-key-wrapper {
+    background: var(--acore-surface-2) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .wp2fa-modal .app-key-wrapper .app-key,
+body.acore-dark-mode .wp2fa-modal .app-key-wrapper input,
+body.wp2fa-setup .app-key-wrapper .app-key,
+body.wp2fa-setup .app-key-wrapper input {
+    color: var(--acore-text) !important;
+}
