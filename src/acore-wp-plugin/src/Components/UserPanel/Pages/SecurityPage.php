@@ -264,7 +264,7 @@ $expandOnLoad = !empty($passwordMessage);
 
             <?php if (!$websiteTotpEnabled): ?>
                 <!-- Website 2FA not set up -  grey out entire in-game block with notice -->
-                <div style="position:relative; opacity:0.5; pointer-events:none; user-select:none;">
+                <div class="acore-2fa-disabled">
             <?php endif; ?>
 
             <?php if (!$ingame2faActive): ?>
@@ -274,16 +274,30 @@ $expandOnLoad = !empty($passwordMessage);
                 </p>
                 <ol style="margin:0 0 0 18px; font-size:13px; line-height:1.8;">
                     <li>
-                        <?php _e('Type the following command to begin the setup:', 'acore-wp-plugin'); ?>
-                        <?php _e('Type the following command to begin the setup:', 'acore-wp-plugin'); ?>
+                        <?php _e('Log into any character and type', 'acore-wp-plugin'); ?>
                         <code style="margin-left:4px;">.account 2fa setup 1</code>
                     </li>
                     <li>
-                        <?php _e('Your authenticator app will show a QR code or secret key — open your app and scan or enter it.', 'acore-wp-plugin'); ?>
+                        <?php _e('The game will display your <strong>2FA Key</strong>, for example:', 'acore-wp-plugin'); ?>
+                        <code style="margin-left:4px;">K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO</code>
                     </li>
                     <li>
-                        <?php _e('Once the key is saved in the app, type the 6-digit code shown to confirm:', 'acore-wp-plugin'); ?>
+                        <?php _e('Type it (or copy &amp; paste) into the authenticator app on your phone.', 'acore-wp-plugin'); ?>
+                        <br><em style="opacity:0.85;"><?php _e('Tip: to copy text from the in-game chat you can use an addon such as Prat (3.3.5).', 'acore-wp-plugin'); ?></em>
+                    </li>
+                    <li>
+                        <?php _e('When adding the key in your app, set the key type to <strong>Time based</strong> (TOTP).', 'acore-wp-plugin'); ?>
+                    </li>
+                    <li>
+                        <?php _e('Your app will show a 6-digit code that refreshes every few seconds. Use the code currently shown - if it is about to refresh, wait for a fresh one to avoid errors.', 'acore-wp-plugin'); ?>
+                    </li>
+                    <li>
+                        <?php _e('Back in game, type', 'acore-wp-plugin'); ?>
                         <code style="margin-left:4px;">.account 2fa setup &lt;6-digit-code&gt;</code>
+                        <?php _e('- replace &lt;6-digit-code&gt; with your actual 6-digit code, <strong>without</strong> the &lt; &gt; brackets.', 'acore-wp-plugin'); ?>
+                    </li>
+                    <li>
+                        <?php _e('You are all set. Close the game client and open it again - it will now ask for your 6-digit code at login.', 'acore-wp-plugin'); ?>
                     </li>
                 </ol>
             <?php else: ?>
@@ -307,8 +321,9 @@ $expandOnLoad = !empty($passwordMessage);
 
             <?php if (!$websiteTotpEnabled): ?>
                 </div><!-- /greyed-out wrapper -->
-                <p style="font-size:12px; color:#8b949e; margin:6px 0 0;">
-                    <?php _e('Set up Website 2FA first to manage In-game 2FA from here.', 'acore-wp-plugin'); ?>
+                <p class="acore-2fa-required-note">
+                    <span class="dashicons dashicons-lock"></span>
+                    <?php _e('Website 2FA must be set up before you can manage In-game 2FA here.', 'acore-wp-plugin'); ?>
                 </p>
             <?php endif; ?>
 

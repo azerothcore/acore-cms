@@ -328,3 +328,51 @@ body.wp2fa-setup .app-key-wrapper .app-key,
 body.wp2fa-setup .app-key-wrapper input {
     color: var(--acore-text) !important;
 }
+
+
+/* ── "Disabled" sections (e.g. In-game 2FA before Website 2FA is set up) ──
+ * A greyed background box signals "disabled" while text stays fully legible
+ * (no opacity wash-out). Works in both light and dark themes. */
+.acore-2fa-disabled {
+    position: relative;
+    pointer-events: none;
+    user-select: none;
+    background: var(--acore-surface-2);
+    border: 1px solid var(--acore-border);
+    border-radius: 6px;
+    padding: 10px 16px 12px;
+    margin-top: 8px;
+}
+/* Light theme: keep the intro + steps at readable contrast on the grey box */
+.acore-2fa-disabled p,
+.acore-2fa-disabled li { color: #3c434a !important; }
+.acore-2fa-disabled p:first-child { color: #50575e !important; }
+/* Dark theme */
+body.acore-dark-mode .acore-2fa-disabled,
+body.acore-dark-mode .acore-2fa-disabled p,
+body.acore-dark-mode .acore-2fa-disabled li,
+body.acore-dark-mode .acore-2fa-disabled span { color: var(--acore-text) !important; }
+body.acore-dark-mode .acore-2fa-disabled p:first-child { color: var(--acore-muted) !important; }
+
+/* ── "Website 2FA required" callout (bright & visible in both themes) ── */
+.acore-2fa-required-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    border-radius: 6px;
+    color: #9a5b00;
+    background: #fff4e0;
+    border: 1px solid #f0b429;
+}
+.acore-2fa-required-note .dashicons { color: #d98300; flex: 0 0 auto; }
+body.acore-dark-mode .acore-2fa-required-note {
+    color: #f5c451 !important;
+    background: rgba(240, 180, 41, 0.12) !important;
+    border-color: #8a6d1f !important;
+}
+body.acore-dark-mode .acore-2fa-required-note .dashicons { color: #f5c451 !important; }
