@@ -142,18 +142,73 @@ body.acore-dark-mode #acore-security-page [class*="wp2fa"] pre {
     color: var(--acore-text) !important;
 }
 
-/* ── myCRED points / history page ───────────────────────────────────── */
-body.acore-dark-mode .mycred-history,
-body.acore-dark-mode table.mycred-history,
-body.acore-dark-mode [id*="mycred"],
-body.acore-dark-mode [class*="mycred"] {
+/* ── myCRED points / history page (profile.php?page=mycred_default-history) ── */
+body.acore-dark-mode.mycred-log-page #wpbody-content { color: var(--acore-text); }
+
+/* Filter tabs (All / Today / This Week …) */
+body.acore-dark-mode.mycred-log-page .subsubsub,
+body.acore-dark-mode.mycred-log-page .subsubsub a { color: var(--acore-muted) !important; }
+body.acore-dark-mode.mycred-log-page .subsubsub a.current,
+body.acore-dark-mode.mycred-log-page .subsubsub a:hover { color: var(--acore-accent) !important; }
+
+/* Search box + pagination chrome */
+body.acore-dark-mode.mycred-log-page .search-box input,
+body.acore-dark-mode.mycred-log-page .tablenav input,
+body.acore-dark-mode.mycred-log-page .tablenav select {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border) !important;
+}
+body.acore-dark-mode.mycred-log-page .tablenav,
+body.acore-dark-mode.mycred-log-page .tablenav * { color: var(--acore-text) !important; }
+body.acore-dark-mode.mycred-log-page .tablenav .tablenav-pages a,
+body.acore-dark-mode.mycred-log-page .tablenav .tablenav-pages span.tablenav-pages-navspan {
+    background: var(--acore-surface-2) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+
+/* The points-history list table */
+body.acore-dark-mode.mycred-log-page .wp-list-table {
     background: var(--acore-surface) !important;
     border-color: var(--acore-border) !important;
     color: var(--acore-text) !important;
 }
-body.acore-dark-mode [class*="mycred"] th,
-body.acore-dark-mode [class*="mycred"] td {
+body.acore-dark-mode.mycred-log-page .wp-list-table thead th,
+body.acore-dark-mode.mycred-log-page .wp-list-table tfoot th,
+body.acore-dark-mode.mycred-log-page .wp-list-table thead th a,
+body.acore-dark-mode.mycred-log-page .wp-list-table thead th span {
+    background: var(--acore-surface-2) !important;
     color: var(--acore-text) !important;
     border-color: var(--acore-border) !important;
 }
+body.acore-dark-mode.mycred-log-page .wp-list-table td,
+body.acore-dark-mode.mycred-log-page .wp-list-table th {
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+    background: transparent !important;
+}
+body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr:nth-child(odd) {
+    background: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode.mycred-log-page .wp-list-table a { color: var(--acore-accent) !important; }
+
+/* Export button row */
+body.acore-dark-mode.mycred-log-page #export-log-history,
+body.acore-dark-mode.mycred-log-page #export-log-history * { color: var(--acore-text) !important; }
+
+/* Generic myCRED widgets elsewhere (points balance boxes, etc.) */
+body.acore-dark-mode [class*="mycred"] th,
+body.acore-dark-mode [class*="mycred"] td { color: var(--acore-text) !important; border-color: var(--acore-border) !important; }
 body.acore-dark-mode [class*="mycred"] a { color: var(--acore-accent) !important; }
+
+/* myCRED page outer wrapper (#myCRED-wrap is white) -> blend into dark admin bg */
+body.acore-dark-mode.mycred-log-page #myCRED-wrap {
+    background: transparent !important;
+}
+body.acore-dark-mode.mycred-log-page #myCRED-wrap,
+body.acore-dark-mode.mycred-log-page #myCRED-wrap h1,
+body.acore-dark-mode.mycred-log-page #myCRED-wrap h2,
+body.acore-dark-mode.mycred-log-page #myCRED-wrap p {
+    color: var(--acore-text) !important;
+}
