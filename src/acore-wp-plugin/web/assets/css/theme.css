@@ -1,0 +1,159 @@
+/* =====================================================================
+ * acore-theme.css
+ * Single place to edit light/dark theming for the AzerothCore plugin.
+ *
+ * Colours are driven by CSS custom properties. Edit the values in the
+ * two blocks below (":root" = light, "body.acore-dark-mode" = dark) and
+ * every rule further down updates automatically.
+ *
+ * Loaded after main.css and dark-mode.css, so rules here win.
+ * ===================================================================== */
+
+:root {
+    --acore-bg:            #ffffff;
+    --acore-surface:       #ffffff;
+    --acore-surface-2:     #f3f4f5;
+    --acore-text:          #1d2327;
+    --acore-muted:         #646970;
+    --acore-border:        #c3c4c7;
+    --acore-border-strong: #8c8f94;
+    --acore-accent:        #2271b1;
+    --acore-danger:        #d63638;
+    --acore-danger-bg:     #fbeaea;
+    --acore-danger-text:   #b32d2e;
+
+    /* WoW item-quality colours (shared by both themes) */
+    --q0: #9d9d9d; --q1: #ffffff; --q2: #1eff00; --q3: #0070dd;
+    --q4: #a335ee; --q5: #ff8000; --q6: #e6cc80; --q7: #e6cc80;
+}
+
+body.acore-dark-mode {
+    --acore-bg:            #0d1117;
+    --acore-surface:       #161b22;
+    --acore-surface-2:     #21262d;
+    --acore-text:          #c9d1d9;
+    --acore-muted:         #9aa4af;
+    --acore-border:        #30363d;
+    --acore-border-strong: #484f58;
+    --acore-accent:        #58a6ff;
+    --acore-danger:        #f85149;
+    --acore-danger-bg:     #2a1416;
+    --acore-danger-text:   #ff7b72;
+
+    --q1: #c0c0c0; /* pure white reads poorly on dark; soften common quality */
+}
+
+/* ── Danger buttons (Reset Order, Remove, Reset, …) ─────────────────── */
+.acore-btn-danger {
+    border: 1px solid var(--acore-danger) !important;
+    color: var(--acore-danger-text) !important;
+    background: var(--acore-danger-bg) !important;
+    transition: background .12s ease, color .12s ease;
+}
+.acore-btn-danger:hover,
+.acore-btn-danger:focus {
+    background: var(--acore-danger) !important;
+    color: #ffffff !important;
+}
+.acore-btn-danger .dashicons { margin-top: 3px; }
+
+/* ── Item Restoration: cards ────────────────────────────────────────── */
+/* Outer card: neutral border + theme surface (works light & dark).      */
+.item-restore-card {
+    background: var(--acore-surface) !important;
+    border: 1px solid var(--acore-border) !important;
+    color: var(--acore-text) !important;
+    border-radius: 6px;
+}
+.item-restore-card .item-restore-date { color: var(--acore-muted) !important; }
+.item-restore-card .item-restore-num  { color: var(--acore-muted) !important; }
+/* Inner icon shows the item quality as its border. wowhead adds q0..q7   */
+/* to the icon link; we colour the icon frame from that.                  */
+.item-restore-icon a {
+    display: block;
+    border: 2px solid var(--acore-border-strong);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.item-restore-icon a.q0 { border-color: var(--q0) !important; }
+.item-restore-icon a.q1 { border-color: var(--q1) !important; }
+.item-restore-icon a.q2 { border-color: var(--q2) !important; }
+.item-restore-icon a.q3 { border-color: var(--q3) !important; }
+.item-restore-icon a.q4 { border-color: var(--q4) !important; }
+.item-restore-icon a.q5 { border-color: var(--q5) !important; }
+.item-restore-icon a.q6 { border-color: var(--q6) !important; }
+.item-restore-icon a.q7 { border-color: var(--q7) !important; }
+
+/* ── Security page: readability in dark mode ────────────────────────── */
+/* Inline muted greys (#646970) are too dark on a dark surface.          */
+body.acore-dark-mode #acore-security-page [style*="646970"],
+body.acore-dark-mode #acore-security-page [style*="#646970"],
+body.acore-dark-mode #acore-security-page .description,
+body.acore-dark-mode #acore-security-page .text-muted {
+    color: var(--acore-muted) !important;
+}
+body.acore-dark-mode #acore-security-page,
+body.acore-dark-mode #acore-security-page p,
+body.acore-dark-mode #acore-security-page li,
+body.acore-dark-mode #acore-security-page h3 { color: var(--acore-text); }
+body.acore-dark-mode #acore-security-page code {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border);
+    border-radius: 3px;
+    padding: 1px 5px;
+}
+/* Recent Connections table */
+body.acore-dark-mode #acore-security-page .wp-list-table {
+    background: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode #acore-security-page .wp-list-table th,
+body.acore-dark-mode #acore-security-page .wp-list-table td {
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+    background: transparent !important;
+}
+body.acore-dark-mode #acore-security-page .wp-list-table tr:nth-child(even) td {
+    background: var(--acore-surface-2) !important;
+}
+
+/* ── Mail Return surfaces ───────────────────────────────────────────── */
+body.acore-dark-mode #acore-mail-return-page .mail-entry { background: var(--acore-surface) !important; }
+body.acore-dark-mode #acore-mail-return-page .mail-recipient,
+body.acore-dark-mode #acore-mail-return-page .mail-items { background: var(--acore-bg) !important; }
+body.acore-dark-mode #acore-mail-return-page .mail-entry *,
+body.acore-dark-mode #acore-mail-return-page .mail-meta { color: var(--acore-text) !important; }
+body.acore-dark-mode #acore-mail-return-page .text-muted { color: var(--acore-muted) !important; }
+
+/* ── WP 2FA plugin UI (embedded on the Security page) ───────────────── */
+body.acore-dark-mode #acore-security-page [class*="wp2fa"],
+body.acore-dark-mode #acore-security-page [class*="wp-2fa"] { color: var(--acore-text) !important; }
+body.acore-dark-mode #acore-security-page [class*="wp2fa"] input,
+body.acore-dark-mode #acore-security-page [class*="wp2fa"] select,
+body.acore-dark-mode #acore-security-page [class*="wp2fa"] textarea {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border) !important;
+}
+body.acore-dark-mode #acore-security-page [class*="wp2fa"] code,
+body.acore-dark-mode #acore-security-page [class*="wp2fa"] pre {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+}
+
+/* ── myCRED points / history page ───────────────────────────────────── */
+body.acore-dark-mode .mycred-history,
+body.acore-dark-mode table.mycred-history,
+body.acore-dark-mode [id*="mycred"],
+body.acore-dark-mode [class*="mycred"] {
+    background: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode [class*="mycred"] th,
+body.acore-dark-mode [class*="mycred"] td {
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode [class*="mycred"] a { color: var(--acore-accent) !important; }

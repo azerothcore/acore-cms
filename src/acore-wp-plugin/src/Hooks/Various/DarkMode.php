@@ -34,6 +34,8 @@ add_action('admin_enqueue_scripts', __NAMESPACE__ . '\acore_dark_mode_enqueue');
 function acore_dark_mode_enqueue() {
     wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', [], '3.0');
     wp_enqueue_style('acore-dark-mode', ACORE_URL_PLG . 'web/assets/css/dark-mode.css', ['acore-css'], '3.7');
+    // Central light/dark theme layer (edit colours here). Loaded last so it wins.
+    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '1.0');
 
     $nonce = wp_create_nonce('acore_dark_mode');
     wp_add_inline_script('jquery-core', acore_dark_mode_js($nonce));
