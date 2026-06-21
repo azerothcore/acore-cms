@@ -66,14 +66,7 @@ class CharactersView {
             </div>
         </div>
 
-        <style>
-        .acore-btn-danger {
-            border-color: #d63638 !important;
-            color: #d63638 !important;
-            background: #f7f6f6 !important;
-        }
-        body.acore-dark-mode .acore-btn-danger { background: #1c2128 !important; }
-        </style>
+        <!-- .acore-btn-danger styling lives in theme.css (shared light/dark) -->
 
         <script>
         jQuery(document).ready(function($) {

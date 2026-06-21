@@ -36,14 +36,17 @@ body.acore-dark-mode {
     --acore-border:        #30363d;
     --acore-border-strong: #484f58;
     --acore-accent:        #58a6ff;
-    --acore-danger:        #f85149;
-    --acore-danger-bg:     #2a1416;
-    --acore-danger-text:   #ff7b72;
+    --acore-danger:        #d63638;
+    --acore-danger-bg:     transparent;
+    --acore-danger-text:   #ea5a5c;
 
     --q1: #c0c0c0; /* pure white reads poorly on dark; soften common quality */
 }
 
 /* ── Danger buttons (Reset Order, Remove, Reset, …) ─────────────────── */
+body.acore-dark-mode .acore-btn-danger .dashicons {
+    color: var(--acore-danger-text) !important;
+}
 .acore-btn-danger {
     border: 1px solid var(--acore-danger) !important;
     color: var(--acore-danger-text) !important;
@@ -453,3 +456,160 @@ body.acore-dark-mode .acore-conn-table > tbody > tr.acore-conn-current > td:firs
 body.acore-dark-mode .acore-conn-myip { color: #c9d1d9; }
 .acore-conn-note { color: #50575e; font-size: 13px; }
 body.acore-dark-mode .acore-conn-note { color: #9aa4af !important; }
+
+/* ── Dark-mode toggle in the admin bar (visible in both themes) ────────── */
+#wp-admin-bar-acore-dark-mode > .ab-item {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+#wp-admin-bar-acore-dark-mode:hover > .ab-item {
+    background: rgba(255, 255, 255, 0.18) !important;
+}
+#acore-dm-icon {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    color: #ffc83d !important;
+    vertical-align: middle;
+}
+
+/* ── Native <select> dropdowns inside our cards (dark) ─────────────────── */
+body.acore-dark-mode .card select,
+body.acore-dark-mode .wrap select {
+    background-color: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border) !important;
+}
+body.acore-dark-mode .card select option,
+body.acore-dark-mode .wrap select option {
+    background-color: #161b22;
+    color: var(--acore-text);
+}
+
+/* ── Disabled buttons in dark mode (no more white blobs) ───────────────── */
+body.acore-dark-mode .acore-btn-danger:disabled,
+body.acore-dark-mode .acore-btn-danger[disabled],
+body.acore-dark-mode .card .button:disabled,
+body.acore-dark-mode .card .button[disabled] {
+    background: var(--acore-surface-2) !important;
+    color: #6e7681 !important;
+    border-color: var(--acore-border) !important;
+    opacity: 0.7 !important;
+    text-shadow: none !important;
+}
+
+/* ── Text / number inputs inside our cards (dark) ─────────────────────── */
+body.acore-dark-mode .card input[type="text"],
+body.acore-dark-mode .card input[type="number"],
+body.acore-dark-mode .card input[type="search"],
+body.acore-dark-mode .card input[type="password"],
+body.acore-dark-mode .card input[type="email"],
+body.acore-dark-mode .card textarea,
+body.acore-dark-mode .wrap > .card input[type="number"] {
+    background-color: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border: 1px solid var(--acore-border) !important;
+}
+body.acore-dark-mode .card input::placeholder { color: #6e7681 !important; }
+/* tone down the native number spinner so it isn't a white block on dark */
+body.acore-dark-mode .card input[type="number"]::-webkit-inner-spin-button,
+body.acore-dark-mode .card input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(0.85) hue-rotate(180deg);
+}
+
+/* ── Primary (blue) buttons in dark mode - a nicer blue than plain grey ── */
+body.acore-dark-mode .button-primary,
+body.acore-dark-mode .button-primary:focus {
+    background: #2f81f7 !important;
+    border-color: #1f6feb !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+body.acore-dark-mode .button-primary:hover {
+    background: #4493f8 !important;
+    border-color: #2f81f7 !important;
+    color: #ffffff !important;
+}
+
+/* ── Secondary / default buttons in dark mode (blue-tinted, not bland grey) ── */
+body.acore-dark-mode .button:not(.button-primary):not(.acore-btn-danger),
+body.acore-dark-mode .button-secondary:not(.acore-btn-danger) {
+    background: #1c2b45 !important;       /* distinct navy so the button stands out from the card */
+    border-color: #388bfd !important;
+    color: #79c0ff !important;            /* brighter blue - dark equivalent of the white theme's #2271b1 */
+}
+body.acore-dark-mode .button:not(.button-primary):not(.acore-btn-danger) .dashicons {
+    color: #79c0ff !important;
+}
+body.acore-dark-mode .button:not(.button-primary):not(.acore-btn-danger):hover,
+body.acore-dark-mode .button-secondary:not(.acore-btn-danger):hover {
+    background: #2f81f7 !important;
+    border-color: #2f81f7 !important;
+    color: #ffffff !important;
+}
+body.acore-dark-mode .button:not(.button-primary):not(.acore-btn-danger):hover .dashicons {
+    color: #ffffff !important;
+}
+
+/* WP 2FA modal response message (error/success) - dark box + light text so it's
+   readable instead of WP2FA's light-pink box with faint text. :not(:empty) so it
+   only styles when a message is actually shown; the coloured border (red/green)
+   from WP2FA is kept to convey error vs success. */
+body.acore-dark-mode .wp2fa-modal .verification-response:not(:empty) {
+    background: #21262d !important;
+    border-radius: 6px !important;
+    padding: 10px 14px !important;
+}
+body.acore-dark-mode .wp2fa-modal .verification-response:not(:empty),
+body.acore-dark-mode .wp2fa-modal .verification-response:not(:empty) * {
+    color: #e6edf3 !important;
+}
+
+/* ── myCRED history: filter-tab pills + search button (were white) ──────── */
+body.acore-dark-mode.mycred-log-page .subsubsub a {
+    background: #21262d !important;
+    border: 1px solid #30363d !important;
+    border-radius: 4px;
+    color: #c9d1d9 !important;
+}
+body.acore-dark-mode.mycred-log-page .subsubsub a.current,
+body.acore-dark-mode.mycred-log-page .subsubsub a:hover {
+    background: #2f81f7 !important;
+    border-color: #2f81f7 !important;
+    color: #ffffff !important;
+}
+body.acore-dark-mode.mycred-log-page #search-submit,
+body.acore-dark-mode.mycred-log-page .search-box input[type="submit"],
+body.acore-dark-mode.mycred-log-page .tablenav input[type="submit"] {
+    background: #1c2b45 !important;
+    border: 1px solid #388bfd !important;
+    color: #79c0ff !important;
+}
+
+/* myCRED's mycred-admin-ui.css forces the search submit white !important - override hard */
+body.acore-dark-mode #wpbody-content input#search-submit {
+    background: #1c2b45 !important;
+    background-color: #1c2b45 !important;
+    border: 1px solid #388bfd !important;
+    color: #79c0ff !important;
+}
+
+/* ── myCRED: purple tab text + white checkbox + white .btn (beat mycred's
+   high-specificity rules with a two-ID selector) ───────────────────────── */
+body.acore-dark-mode #wpcontent #wpbody-content .subsubsub a {
+    color: #c792ea !important;   /* brighter lavender - readable on dark */
+}
+body.acore-dark-mode #wpcontent #wpbody-content .subsubsub a.current,
+body.acore-dark-mode #wpcontent #wpbody-content .subsubsub a:hover {
+    color: #ffffff !important;
+}
+body.acore-dark-mode #wpcontent #wpbody-content input[type="checkbox"] {
+    background: #0d1117 !important;
+    border-color: #484f58 !important;
+}
+body.acore-dark-mode #wpcontent #wpbody-content a.btn,
+body.acore-dark-mode #wpcontent #wpbody-content a.btn.btn-primary {
+    background: #1c2b45 !important;
+    border-color: #388bfd !important;
+    color: #79c0ff !important;
+}

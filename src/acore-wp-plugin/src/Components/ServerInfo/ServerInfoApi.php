@@ -282,7 +282,7 @@ add_action( 'rest_api_init', function () {
                    'active'       => $active,
                    'backup_codes' => is_array($backupCodes) ? count($backupCodes) : 0,
                ];
-               if ($lastRemoval) $resp['last_removal'] = ['date' => wp_date('jS \o\f F, Y \a\t H:i', $lastRemoval['timestamp']), 'staff' => $lastRemoval['staff']];
+               if ($lastRemoval) $resp['last_removal'] = ['date' => wp_date('jS \o\f F, Y \a\t H:i', $lastRemoval['timestamp']), 'by' => $lastRemoval['by'] ?? 'admin', 'staff' => $lastRemoval['staff'] ?? null, 'ip' => $lastRemoval['ip'] ?? null];
                return $resp;
            }
 
@@ -292,7 +292,7 @@ add_action( 'rest_api_init', function () {
                $row    = $result->fetchAssociative();
                if (!$row) return new \WP_Error('no_game_account', 'No game account found for this user.', ['status' => 404]);
                $resp = ['found' => true, 'username' => $user->user_login, 'active' => $row['totp_secret'] !== null];
-               if ($lastRemoval) $resp['last_removal'] = ['date' => wp_date('jS \o\f F, Y \a\t H:i', $lastRemoval['timestamp']), 'staff' => $lastRemoval['staff']];
+               if ($lastRemoval) $resp['last_removal'] = ['date' => wp_date('jS \o\f F, Y \a\t H:i', $lastRemoval['timestamp']), 'by' => $lastRemoval['by'] ?? 'admin', 'staff' => $lastRemoval['staff'] ?? null, 'ip' => $lastRemoval['ip'] ?? null];
                return $resp;
            } catch (\Exception $e) {
                return new \WP_Error('db_error', 'Database error.', ['status' => 500]);

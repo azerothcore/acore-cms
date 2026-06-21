@@ -9,17 +9,7 @@
 ?>
 
 <style>
-    .acore-btn-danger {
-        border-color: #d63638 !important;
-        color: #d63638 !important;
-        background: #f7f6f6 !important;
-    }
-    .acore-btn-danger .dashicons {
-        margin-top: 3px;
-    }
-    body.acore-dark-mode .acore-btn-danger {
-        background: #1c2128 !important;
-    }
+    /* .acore-btn-danger styling lives in theme.css (shared light/dark) */
     .acore-days-inactive-disabled {
         opacity: 0.45;
         cursor: not-allowed;
@@ -346,7 +336,11 @@
                     if (!data.active) {
                         var txt = '2FA is not active for ' + data.username + '.';
                         if (data.last_removal) {
-                            txt += ' Last removed on ' + data.last_removal.date + ' by ' + data.last_removal.staff + '.';
+                            var lr  = data.last_removal;
+                            var who = (lr.by === 'self') ? 'the user themselves' : (lr.staff || 'an administrator');
+                            txt += ' Last removed on ' + lr.date + ' by ' + who;
+                            if (lr.by === 'self' && lr.ip) { txt += ' (IP ' + lr.ip + ')'; }
+                            txt += '.';
                         }
                         $msg.css('color','#d63638').text(txt);
                         $remove.prop('disabled', true);
