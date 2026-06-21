@@ -379,22 +379,46 @@ add_action( 'rest_api_init', function () {
        'callback'            => function( \WP_REST_Request $request ) {
            $data     = $request->get_json_params();
            $username = isset($data['username']) ? sanitize_text_field($data['username']) : '';
+           $mock     = isset($data['mock']) ? $data['mock'] : null;
+           $page     = max(1, (int) ($data['page'] ?? 1));
+           $perPage  = 50;
            if ($username === '')
                return new \WP_Error('missing_username', 'Username is required.', ['status' => 400]);
-           $user = get_user_by('login', $username);
-           if (!$user)
-               return new \WP_Error('user_not_found', 'No WordPress account found with that username.', ['status' => 404]);
 
-           $rows    = \ACore\Hooks\User\acore_get_login_history($user->ID, 200);
+           if ($mock !== null && $mock !== '') {
+               // Preview mode: return mock connections for the searched account.
+               $all = \ACore\Hooks\User\acore_mock_login_history((int) $mock);
+           } else {
+               $user = get_user_by('login', $username);
+               if (!$user)
+                   return new \WP_Error('user_not_found', 'No WordPress account found with that username.', ['status' => 404]);
+               $all = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
+           }
+
+           $all    = is_array($all) ? $all : [];
+           $total  = count($all);
+           $offset = ($page - 1) * $perPage;
+           $slice  = array_slice($all, $offset, $perPage);
+
            $history = [];
-           foreach ((array) $rows as $r) {
+           foreach ($slice as $r) {
                $history[] = [
-                   'ip'      => $r->ip_address,
-                   'country' => $r->country,
-                   'date'    => \ACore\Hooks\User\acore_format_connection_date($r->login_at),
+                   'ip'      => $r['ip_address'] ?? '',
+                   'country' => $r['country'] ?? 'Unknown',
+                   'date'    => isset($r['login_at']) ? \ACore\Hooks\User\acore_format_connection_date($r['login_at']) : '',
+                   'where'   => (($r['source'] ?? 'website') === 'ingame') ? 'In-game' : 'Website',
                ];
            }
-           return ['found' => true, 'username' => $user->user_login, 'history' => $history];
+           return [
+               'found'    => true,
+               'username' => $username,
+               'history'  => $history,
+               'total'    => $total,
+               'from'     => $total ? $offset + 1 : 0,
+               'to'       => $offset + count($slice),
+               'page'     => $page,
+               'has_more' => ($offset + count($slice)) < $total,
+           ];
        }
    ));
 

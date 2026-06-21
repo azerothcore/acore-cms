@@ -281,10 +281,13 @@
                         <p id="acore-history-msg" style="font-size:12px; margin:0 0 8px; min-height:18px;"></p>
                         <table id="acore-history-table" class="wp-list-table widefat fixed striped" style="display:none; max-width:760px;">
                             <thead>
-                                <tr><th>IPv4 Address</th><th>Country</th><th>Date / Time</th></tr>
+                                <tr><th>IPv4 Address</th><th>Country</th><th>Date / Time</th><th>Where</th></tr>
                             </thead>
                             <tbody></tbody>
                         </table>
+                        <p style="margin-top:8px;">
+                            <button type="button" id="acore-history-more" class="button" style="display:none;">See more</button>
+                        </p>
                     </div>
                 </div>
 
@@ -421,38 +424,59 @@
     });
 
     /* User Login History lookup */
-    $('#acore-history-lookup').on('click', function(){
-        var username = $('#acore-history-user').val().trim();
-        var $msg = $('#acore-history-msg');
-        var $tbl = $('#acore-history-table');
-        if (!username) { $msg.css('color','#d63638').text('Enter an account name first.'); return; }
-        var $btn = $(this).prop('disabled', true).text('Looking up…');
-        $msg.css('color','#646970').text('');
-        ajaxPost('admin/login-history', { username: username })
+    var acoreHistory = { username: '', mock: null, page: 0, total: 0, shown: 0 };
+
+    function acoreHistoryFetch(page) {
+        var $tbl = $('#acore-history-table'), $tb = $tbl.find('tbody'),
+            $msg = $('#acore-history-msg'), $more = $('#acore-history-more');
+        return ajaxPost('admin/login-history', {
+                username: acoreHistory.username,
+                mock:     acoreHistory.mock,
+                page:     page
+            })
             .done(function(data){
                 var rows = data.history || [];
-                var $tb = $tbl.find('tbody').empty();
-                if (!rows.length) {
-                    $tbl.hide();
+                if (page === 1) { $tb.empty(); acoreHistory.shown = 0; acoreHistory.total = data.total || 0; }
+                if (page === 1 && !rows.length) {
+                    $tbl.hide(); $more.hide();
                     $msg.css('color','#646970').text('No login history recorded for ' + data.username + '.');
-                } else {
-                    rows.forEach(function(r){
-                        $('<tr>').append(
-                            $('<td>').text(r.ip),
-                            $('<td>').text(r.country),
-                            $('<td>').text(r.date)
-                        ).appendTo($tb);
-                    });
-                    $tbl.show();
-                    $msg.css('color','#646970').text(rows.length + ' record(s) for ' + data.username + '.');
+                    return;
                 }
+                rows.forEach(function(r){
+                    $('<tr>').append(
+                        $('<td>').text(r.ip),
+                        $('<td>').text(r.country),
+                        $('<td>').text(r.date),
+                        $('<td>').text(r.where)
+                    ).appendTo($tb);
+                });
+                acoreHistory.shown += rows.length;
+                acoreHistory.page   = data.page || page;
+                acoreHistory.total  = data.total || acoreHistory.total;
+                $tbl.show();
+                $msg.css('color','#646970').text('Showing ' + acoreHistory.shown + ' of ' + acoreHistory.total + ' for ' + data.username + '.');
+                $more.toggle(!!data.has_more);
             })
             .fail(function(xhr){
-                $tbl.hide();
+                if (page === 1) { $tbl.hide(); $more.hide(); }
                 var err = xhr.responseJSON ? (xhr.responseJSON.message || 'Error.') : 'Error.';
                 $msg.css('color','#d63638').text(err);
-            })
-            .always(function(){ $btn.prop('disabled', false).text('Look up'); });
+            });
+    }
+
+    $('#acore-history-lookup').on('click', function(){
+        var username = $('#acore-history-user').val().trim();
+        if (!username) { $('#acore-history-msg').css('color','#d63638').text('Enter an account name first.'); return; }
+        acoreHistory.username = username;
+        acoreHistory.mock     = new URLSearchParams(location.search).get('mock_connections');
+        $('#acore-history-msg').css('color','#646970').text('');
+        var $btn = $(this).prop('disabled', true).text('Looking up…');
+        acoreHistoryFetch(1).always(function(){ $btn.prop('disabled', false).text('Look up'); });
+    });
+
+    $('#acore-history-more').on('click', function(){
+        var $b = $(this).prop('disabled', true).text('Loading…');
+        acoreHistoryFetch(acoreHistory.page + 1).always(function(){ $b.prop('disabled', false).text('See more'); });
     });
 
     /* ── Name Unlock Thresholds ───────────────────────────────────────── */
