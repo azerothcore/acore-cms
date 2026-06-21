@@ -470,4 +470,47 @@ add_action( 'rest_api_init', function () {
            ];
        }
    ) );
+
+   // User: paginated connection history (for "see more" without a page reload)
+   register_rest_route( ACORE_SLUG . '/v1', 'connections', array(
+       'methods'             => 'GET',
+       'permission_callback' => function() { return is_user_logged_in(); },
+       'callback'            => function( \WP_REST_Request $request ) {
+           $user    = wp_get_current_user();
+           $perPage = 50;
+           $page    = max(1, (int) $request->get_param('page'));
+           $mock    = $request->get_param('mock');
+
+           if ($mock !== null && $mock !== '') {
+               $all = \ACore\Hooks\User\acore_mock_login_history((int) $mock);
+           } else {
+               $all = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
+           }
+           $all    = is_array($all) ? $all : [];
+           $total  = count($all);
+           $offset = ($page - 1) * $perPage;
+           $slice  = array_slice($all, $offset, $perPage);
+           $myIp   = \ACore\Hooks\User\acore_resolve_client_ip();
+
+           $rows = array_map(function ($r) use ($myIp) {
+               $ip = $r['ip_address'] ?? ($r['ip'] ?? '');
+               return [
+                   'ip'      => $ip,
+                   'country' => ($r['country'] ?? '') !== '' ? $r['country'] : 'Unknown',
+                   'date'    => ($r['login_at'] ?? '') !== '' ? \ACore\Hooks\User\acore_format_connection_date($r['login_at']) : '',
+                   'where'   => (($r['source'] ?? 'website') === 'ingame') ? 'In-game' : 'Website',
+                   'current' => ($ip !== '' && $ip === $myIp),
+               ];
+           }, $slice);
+
+           return [
+               'rows'     => array_values($rows),
+               'page'     => $page,
+               'total'    => $total,
+               'from'     => $total ? $offset + 1 : 0,
+               'to'       => $offset + count($slice),
+               'has_more' => ($offset + count($slice)) < $total,
+           ];
+       }
+   ) );
 });

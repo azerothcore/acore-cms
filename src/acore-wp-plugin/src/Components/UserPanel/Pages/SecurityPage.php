@@ -333,31 +333,65 @@ $expandOnLoad = !empty($passwordMessage);
     <!-- ── Recent Connections ──────────────────────────────────────────── -->
     <div class="postbox">
         <div class="postbox-header">
-            <h2 class="hndle"><span><?php _e('Recent Connections', 'acore-wp-plugin'); ?></span></h2>
+            <h2 class="hndle acore-conn-heading"><span><?php _e('Recent Connections', 'acore-wp-plugin'); ?></span><span class="acore-conn-myip"><?php _e('Your IPv4:', 'acore-wp-plugin'); ?> <?= esc_html(\ACore\Hooks\User\acore_resolve_client_ip()) ?></span></h2>
         </div>
         <div class="inside">
 
+            <?php
+            $myIp     = \ACore\Hooks\User\acore_resolve_client_ip();
+            $perPage  = 50;
+            $total    = is_array($connections) ? count($connections) : 0;
+            $maxPage  = max(1, (int) ceil($total / $perPage));
+            $connPage = max(1, min($maxPage, (int) ($_GET['conn_page'] ?? 1)));
+            $offset   = ($connPage - 1) * $perPage;
+            $pageRows = array_slice((array) $connections, $offset, $perPage);
+            $from     = $total ? $offset + 1 : 0;
+            $to       = $offset + count($pageRows);
+            ?>
+
             <?php if (empty($connections)): ?>
-                <p style="color:#646970;"><?php _e('No connections recorded yet.', 'acore-wp-plugin'); ?></p>
+                <p class="acore-conn-note"><?php _e('No connections recorded yet.', 'acore-wp-plugin'); ?></p>
             <?php else: ?>
-                <table class="wp-list-table widefat fixed striped" style="max-width:860px;">
+                <p class="acore-conn-note" style="margin:0 0 8px;">
+                    <?php _e('Showing', 'acore-wp-plugin'); ?> <span id="acore-conn-from"><?= (int) $from ?></span>-<span id="acore-conn-to"><?= (int) $to ?></span> <?php _e('of', 'acore-wp-plugin'); ?> <span id="acore-conn-total"><?= (int) $total ?></span> <?php _e('entries.', 'acore-wp-plugin'); ?>
+                    <?php if ($total > $perPage): ?>
+                        <?php _e('This only shows 50 at once; you can see more by pressing the button below.', 'acore-wp-plugin'); ?>
+                    <?php endif; ?>
+                </p>
+                <table class="wp-list-table widefat fixed striped acore-conn-table" style="max-width:860px;">
                     <thead>
                         <tr>
-                            <th><?php _e('IPv4 Address', 'acore-wp-plugin'); ?></th>
+                            <th><?php _e('IP Address', 'acore-wp-plugin'); ?></th>
+                            <th><?php _e('Country', 'acore-wp-plugin'); ?></th>
                             <th><?php _e('Date / Time', 'acore-wp-plugin'); ?></th>
-                            <th><?php _e('Action', 'acore-wp-plugin'); ?></th>
+                            <th><?php _e('Where', 'acore-wp-plugin'); ?></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php foreach ($connections as $row): ?>
-                            <tr>
-                                <td><?= esc_html($row['ip']) ?></td>
-                                <td><?= esc_html(\ACore\Hooks\User\acore_format_connection_date($row['timestamp'])) ?></td>
-                                <td><?= esc_html($row['type'] ?? 'login') ?></td>
+                    <tbody id="acore-conn-tbody">
+                        <?php foreach ($pageRows as $row): ?>
+                            <?php
+                                $ip      = $row['ip_address'] ?? ($row['ip'] ?? '');
+                                $country = $row['country'] ?? '';
+                                $when    = $row['login_at'] ?? ($row['timestamp'] ?? '');
+                                $src     = (($row['source'] ?? 'website') === 'ingame')
+                                            ? __('In-game', 'acore-wp-plugin')
+                                            : __('Website', 'acore-wp-plugin');
+                                $isCurrent = ($ip !== '' && $ip === $myIp);
+                            ?>
+                            <tr<?= $isCurrent ? ' class="acore-conn-current" title="' . esc_attr__('This matches your current IP', 'acore-wp-plugin') . '"' : '' ?>>
+                                <td><?= esc_html($ip) ?></td>
+                                <td><?= esc_html($country !== '' ? $country : 'Unknown') ?></td>
+                                <td><?= esc_html($when !== '' ? \ACore\Hooks\User\acore_format_connection_date($when) : '') ?></td>
+                                <td><?= esc_html($src) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php if ($connPage < $maxPage): ?>
+                    <p style="margin-top:10px;">
+                        <button type="button" id="acore-conn-more" class="button" data-page="<?= (int) $connPage ?>" data-mock="<?= esc_attr($_GET['mock_connections'] ?? '') ?>"><?php _e('See more', 'acore-wp-plugin'); ?> &darr;</button>
+                    </p>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div>
@@ -508,5 +542,41 @@ $expandOnLoad = !empty($passwordMessage);
             .catch(function(){});
     }
     setInterval(check, 20000);
+})();
+
+/* Recent Connections: load the next 50 in place (no page reload) */
+(function(){
+    var btn = document.getElementById('acore-conn-more');
+    if (!btn) return;
+    var tbody = document.getElementById('acore-conn-tbody');
+    var toEl  = document.getElementById('acore-conn-to');
+    var base  = '<?= esc_js(rest_url(ACORE_SLUG . '/v1/connections')) ?>';
+    var nonce = '<?= esc_js(wp_create_nonce('wp_rest')) ?>';
+    btn.addEventListener('click', function(){
+        var next  = parseInt(btn.getAttribute('data-page'), 10) + 1;
+        var mock  = btn.getAttribute('data-mock') || '';
+        var url   = base + '?page=' + next + (mock ? '&mock=' + encodeURIComponent(mock) : '');
+        var label = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Loading...';
+        fetch(url, { headers: { 'X-WP-Nonce': nonce } })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                (d.rows || []).forEach(function(row){
+                    var tr = document.createElement('tr');
+                    if (row.current) { tr.className = 'acore-conn-current'; tr.title = 'This matches your current IP'; }
+                    ['ip','country','date','where'].forEach(function(k){
+                        var td = document.createElement('td');
+                        td.textContent = row[k] || '';
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                if (toEl && typeof d.to !== 'undefined') toEl.textContent = d.to;
+                btn.setAttribute('data-page', d.page);
+                if (d.has_more) { btn.disabled = false; btn.textContent = label; }
+                else if (btn.parentNode) { btn.parentNode.removeChild(btn); }
+            })
+            .catch(function(){ btn.disabled = false; btn.textContent = label; });
+    });
 })();
 </script>

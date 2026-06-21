@@ -103,19 +103,24 @@ body.acore-dark-mode #acore-security-page code {
     border-radius: 3px;
     padding: 1px 5px;
 }
-/* Recent Connections table */
+/* Recent Connections table - stripe rows at the <tr> level so WP's light
+   .striped odd-row background doesn't show through transparent cells. */
 body.acore-dark-mode #acore-security-page .wp-list-table {
     background: var(--acore-surface) !important;
     border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode #acore-security-page .wp-list-table > thead > tr,
+body.acore-dark-mode #acore-security-page .wp-list-table > tbody > tr:nth-child(odd) {
+    background: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode #acore-security-page .wp-list-table > tbody > tr:nth-child(even) {
+    background: var(--acore-surface) !important;
 }
 body.acore-dark-mode #acore-security-page .wp-list-table th,
 body.acore-dark-mode #acore-security-page .wp-list-table td {
     color: var(--acore-text) !important;
     border-color: var(--acore-border) !important;
     background: transparent !important;
-}
-body.acore-dark-mode #acore-security-page .wp-list-table tr:nth-child(even) td {
-    background: var(--acore-surface-2) !important;
 }
 
 /* ── Mail Return surfaces ───────────────────────────────────────────── */
@@ -376,3 +381,75 @@ body.acore-dark-mode .acore-2fa-required-note {
     border-color: #8a6d1f !important;
 }
 body.acore-dark-mode .acore-2fa-required-note .dashicons { color: #f5c451 !important; }
+
+/* ── Highlight the connection row matching the viewer's current IP ── */
+#acore-security-page .wp-list-table > tbody > tr.acore-conn-current > td {
+    background: #fff3cd !important;
+    border-color: #f0d488 !important;
+}
+#acore-security-page .wp-list-table > tbody > tr.acore-conn-current > td:first-child {
+    box-shadow: inset 3px 0 0 0 #e0a800;
+    font-weight: 600;
+}
+body.acore-dark-mode #acore-security-page .wp-list-table > tbody > tr.acore-conn-current > td {
+    background: rgba(240, 180, 41, 0.16) !important;
+    color: #f5d98a !important;
+    border-color: #6e5a1e !important;
+}
+body.acore-dark-mode #acore-security-page .wp-list-table > tbody > tr.acore-conn-current > td:first-child {
+    box-shadow: inset 3px 0 0 0 #f0b429;
+}
+
+/* ── Shared connection tables (Security page + Profile page) ── */
+body.acore-dark-mode .acore-conn-table {
+    background: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .acore-conn-table > thead > tr,
+body.acore-dark-mode .acore-conn-table > tbody > tr:nth-child(odd) {
+    background: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode .acore-conn-table > tbody > tr:nth-child(even) {
+    background: var(--acore-surface) !important;
+}
+body.acore-dark-mode .acore-conn-table th,
+body.acore-dark-mode .acore-conn-table td {
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+    background: transparent !important;
+}
+.acore-conn-table > tbody > tr.acore-conn-current > td {
+    background: #fff3cd !important;
+    border-color: #f0d488 !important;
+}
+.acore-conn-table > tbody > tr.acore-conn-current > td:first-child {
+    box-shadow: inset 3px 0 0 0 #e0a800;
+    font-weight: 600;
+}
+body.acore-dark-mode .acore-conn-table > tbody > tr.acore-conn-current > td {
+    background: rgba(240, 180, 41, 0.16) !important;
+    color: #f5d98a !important;
+    border-color: #6e5a1e !important;
+}
+body.acore-dark-mode .acore-conn-table > tbody > tr.acore-conn-current > td:first-child {
+    box-shadow: inset 3px 0 0 0 #f0b429;
+}
+
+/* "Your IPv4:" label (right-aligned) + connection notes - readable both themes */
+.acore-conn-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    max-width: 860px;
+    flex-wrap: wrap;
+}
+.acore-conn-myip {
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+    color: #50575e;
+}
+body.acore-dark-mode .acore-conn-myip { color: #c9d1d9; }
+.acore-conn-note { color: #50575e; font-size: 13px; }
+body.acore-dark-mode .acore-conn-note { color: #9aa4af !important; }

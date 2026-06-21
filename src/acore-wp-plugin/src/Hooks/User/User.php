@@ -780,33 +780,54 @@ add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connectio
 
 function acore_profile_recent_connections($user) {
     $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
-    $rows = \ACore\Hooks\User\acore_get_login_history($user->ID, 20);
+    $myIp = acore_resolve_client_ip();
+
+    if (isset($_GET['mock_connections'])) {
+        $rows = acore_mock_login_history($_GET['mock_connections']);
+    } else {
+        $rows = acore_get_login_history($user->ID, 10);
+    }
+    $rows = array_slice($rows, 0, 10);
     ?>
-    <h2><?php _e('Recent Connections', 'acore-wp-plugin'); ?></h2>
+    <h2 class="acore-conn-heading"><span><?php _e('Recent Connections', 'acore-wp-plugin'); ?></span><span class="acore-conn-myip"><?php _e('Your IPv4:', 'acore-wp-plugin'); ?> <?= esc_html($myIp) ?></span></h2>
     <?php if (empty($rows)): ?>
         <p><?php _e('No connections recorded yet.', 'acore-wp-plugin'); ?></p>
     <?php else: ?>
-        <table class="wp-list-table widefat fixed striped" style="max-width:860px;">
+        <p class="acore-conn-note" style="margin:0 0 8px;">
+            <?php _e('This only shows the latest 10 logins.', 'acore-wp-plugin'); ?>
+            <?php printf(esc_html__('Showing %d entries.', 'acore-wp-plugin'), count($rows)); ?>
+        </p>
+        <table class="wp-list-table widefat fixed striped acore-conn-table" style="max-width:860px;">
             <thead>
                 <tr>
-                    <th><?php _e('IPv4 Address', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('IP Address', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Country', 'acore-wp-plugin'); ?></th>
                     <th><?php _e('Date / Time', 'acore-wp-plugin'); ?></th>
-                    <th><?php _e('Action', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Where', 'acore-wp-plugin'); ?></th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach (array_slice($rows, 0, 10) as $row): ?>
-                    <tr>
-                        <td><?= esc_html($row['ip']) ?></td>
-                        <td><?= esc_html(wp_date('jS \o F, Y 	 H:i', strtotime($row['timestamp']))) ?></td>
-                        <td><?= esc_html($row['type'] ?? 'login') ?></td>
+                <?php foreach ($rows as $row):
+                    $ip      = $row['ip_address'] ?? ($row['ip'] ?? '');
+                    $country = $row['country'] ?? '';
+                    $when    = $row['login_at'] ?? ($row['timestamp'] ?? '');
+                    $src     = (($row['source'] ?? 'website') === 'ingame')
+                                ? __('In-game', 'acore-wp-plugin')
+                                : __('Website', 'acore-wp-plugin');
+                    $cur     = ($ip !== '' && $ip === $myIp);
+                ?>
+                    <tr<?= $cur ? ' class="acore-conn-current" title="' . esc_attr__('This matches your current IP', 'acore-wp-plugin') . '"' : '' ?>>
+                        <td><?= esc_html($ip) ?></td>
+                        <td><?= esc_html($country !== '' ? $country : 'Unknown') ?></td>
+                        <td><?= esc_html($when !== '' ? acore_format_connection_date($when) : '') ?></td>
+                        <td><?= esc_html($src) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <?php if (count($rows) > 10): ?>
-            <p><a href="<?= esc_url($security_url) ?>"><?php _e('View all connections &rarr;', 'acore-wp-plugin'); ?></a></p>
-        <?php endif; ?>
+        <p style="margin-top:10px;">
+            <a href="<?= esc_url($security_url) ?>" class="button"><?php _e('See more', 'acore-wp-plugin'); ?> &rarr;</a>
+        </p>
     <?php endif; ?>
     <?php
 }
