@@ -61,6 +61,29 @@ function acore_process_security_password() {
         }
     }
 
+    $soapError = null;
+    try {
+        $soap   = ACoreServices::I()->getAccountSoap();
+        $result = $soap->setAccountPassword($user->user_login, $newPass);
+        if ($result instanceof \Exception) {
+            $soapError = $result->getMessage();
+        } elseif (!is_string($result) || stripos($result, 'changed') === false) {
+            $raw = is_string($result) ? trim($result) : '';
+            $soapError = $raw !== '' ? $raw : __('the game server rejected the change', 'acore-wp-plugin');
+        }
+    } catch (\Exception $e) {
+        $soapError = $e->getMessage();
+    }
+
+    if ($soapError !== null) {
+        acore_pw_set_message($user->ID, 'error', sprintf(
+            __('In-game password not updated, website left unchanged: %s', 'acore-wp-plugin'),
+            $soapError
+        ));
+        wp_redirect($security_url);
+        exit;
+    }
+
     $history = get_user_meta($user->ID, 'acore_password_history', true) ?: [];
     array_unshift($history, $user->user_pass);
     update_user_meta($user->ID, 'acore_password_history', array_slice($history, 0, 10));
@@ -70,12 +93,6 @@ function acore_process_security_password() {
 
     wp_set_current_user($user->ID);
     wp_set_auth_cookie($user->ID, true);
-
-    try {
-        $soap = ACoreServices::I()->getAccountSoap();
-        $soap->setAccountPassword($user->user_login, $newPass);
-    } catch (\Exception $e) {
-    }
 
     acore_pw_set_message($user->ID, 'success', __('Password updated successfully.', 'acore-wp-plugin'));
     wp_redirect($security_url);
