@@ -23,18 +23,17 @@
                                 $clsStyle = AcoreCharColors::rowStyle(intval($char['class']), intval($char['race']));
                             ?>
                                 <li>
-                                    <div class="acore-char-row acore-char-card"
+                                    <button type="button" class="acore-char-row acore-char-card"
                                          data-char-guid="<?= intval($char['guid']) ?>"
                                          data-char-name="<?= esc_attr($char['name']) ?>"
-                                         style="<?= esc_attr($clsStyle) ?>"
-                                         role="button">
+                                         style="<?= esc_attr($clsStyle) ?>">
                                         <span class="acore-char-name"><?= esc_html($char['name']) ?></span>
                                         <span class="acore-char-meta">
                                             <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char['level'])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char['level']))) ?>">Level <?= intval($char['level']) ?></span>
                                             <img class="race-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char['race']))) ?>" src="<?= ACORE_URL_PLG . 'web/assets/race/' . intval($char['race']) . (intval($char['gender']) == 0 ? 'm' : 'f') . '.webp' ?>">
                                             <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char['class']))) ?>" src="<?= ACORE_URL_PLG . 'web/assets/class/' . intval($char['class']) . '.webp' ?>">
                                         </span>
-                                    </div>
+                                    </button>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
@@ -155,8 +154,9 @@
                     dateEl.className = 'item-restore-date';
                     var d = item['DeleteDate'];
                     if (d) {
-                        var dt = new Date(typeof d === 'number' ? d * 1000 : d);
-                        if (!isNaN(dt)) {
+                        var dStr = String(d);
+                        var dt   = /^\d+$/.test(dStr) ? new Date(Number(dStr) * 1000) : new Date(dStr.replace(' ', 'T'));
+                        if (!isNaN(dt.getTime())) {
                             var day = dt.getDate();
                             var ord = day % 100 >= 11 && day % 100 <= 13 ? 'th'
                                 : day % 10 === 1 ? 'st'

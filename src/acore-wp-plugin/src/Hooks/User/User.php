@@ -488,9 +488,14 @@ function save_extra_user_profile_fields($user_id)
     }
 
 
-    $expansion = isset($_POST['acore-user-game-expansion']) ? intval($_POST['acore-user-game-expansion']) : null;
+    if (!isset($_POST['acore-user-game-expansion'])) {
+        return;
+    }
 
-    if ($expansion === null || !in_array($expansion, Common::EXPANSIONS)) {
+    $rawExpansion = wp_unslash($_POST['acore-user-game-expansion']);
+    $expansion    = is_numeric($rawExpansion) ? (int) $rawExpansion : null;
+
+    if ($expansion === null || !in_array($expansion, Common::EXPANSIONS, true)) {
         $expansion = Common::EXPANSION_WOTLK;
     }
 
@@ -630,12 +635,7 @@ function acore_profile_2fa_removal_warning($user) {
     }
 
     // Check current 2FA state - website
-    $totpKey        = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
-    $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
-    $webActive      = !empty($totpKey) && (
-        (is_array($enabledMethods) && in_array('totp', $enabledMethods, true)) ||
-        $enabledMethods === 'totp'
-    );
+    $webActive = \ACore\Components\ServerInfo\acore_website_totp_enabled($user->ID);
 
     // Check current 2FA state - ingame
     $gameActive = false;
@@ -687,6 +687,8 @@ function acore_profile_2fa_removal_warning($user) {
 // Remove WP2FA plugin blocks from the standard WordPress profile page only.
 // They belong in the dedicated Security sub-page — skip removal when there.
 add_action('admin_init', function () {
+    global $pagenow;
+    if ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') return;
     $page = isset($_GET['page']) ? $_GET['page'] : '';
     if ($page === ACORE_SLUG . '-security') return; // Security sub-page: leave hooks intact
 
@@ -735,12 +737,7 @@ add_action('admin_notices', function () {
         if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
     }
 
-    $totpKey        = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
-    $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
-    $webActive      = !empty($totpKey) && (
-        (is_array($enabledMethods) && in_array('totp', $enabledMethods, true)) ||
-        $enabledMethods === 'totp'
-    );
+    $webActive = \ACore\Components\ServerInfo\acore_website_totp_enabled($user->ID);
     $gameActive = false;
     try {
         $conn   = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();

@@ -44,6 +44,8 @@ class SettingsController {
             // If they did, this hidden field will be set to 'Y'
 
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                check_admin_referer('acore_realm_settings_save', 'acore_realm_settings_nonce');
+
                 foreach (Opts::I()->getConfs() as $key => $value) {
                     if (isset($_POST[$key])) {
                         $this->storeConf($key, $_POST[$key]);

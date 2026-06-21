@@ -13,6 +13,7 @@ jQuery(document).ready(function () {
 
         loading.show();
         mailItems.empty();
+        emptyMsg.text("No unread sent mails found for this character.");
         emptyWrap.hide();
         content.hide();
 
@@ -72,6 +73,7 @@ jQuery(document).ready(function () {
 
                     // Subject line — with optional CoD label
                     var subjectText = mail.subject || "(No Subject)";
+                    var subjectHtml = jQuery('<div>').text(subjectText).html();
                     var codHtml = (mail.cod && parseInt(mail.cod) > 0)
                         ? ' <span class="mail-cod-label">· <strong>CoD</strong>: Cash on Delivery</span>'
                         : '';
@@ -137,7 +139,7 @@ jQuery(document).ready(function () {
                                         .text('Return')
                                 ),
                             // Row 2: subject + CoD label
-                            jQuery('<div>').addClass('mail-subject').html('<span class="mail-subject-label">Title:</span> <em><strong>' + subjectText + '</strong></em>' + codHtml),
+                            jQuery('<div>').addClass('mail-subject').html('<span class="mail-subject-label">Title:</span> <em><strong>' + subjectHtml + '</strong></em>' + codHtml),
                             // Row 3: item icon grid
                             jQuery(itemsHtml)
                         )

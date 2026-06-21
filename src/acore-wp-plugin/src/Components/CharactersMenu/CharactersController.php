@@ -14,6 +14,7 @@ class CharactersController {
 
     public function loadHome() {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            check_admin_referer('acore_character_order', 'acore_character_order_nonce');
             if (isset($_POST["acore_reset_order"])) {
                 $this->resetCharacterOrder();
                 ?>

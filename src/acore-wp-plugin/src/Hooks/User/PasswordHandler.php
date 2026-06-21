@@ -21,9 +21,16 @@ function acore_process_security_password() {
         exit;
     }
 
-    $oldPass     = $_POST['acore_old_pass']     ?? '';
-    $newPass     = $_POST['acore_new_pass']     ?? '';
-    $confirmPass = $_POST['acore_confirm_pass'] ?? '';
+    if (\ACore\Components\ServerInfo\acore_website_totp_enabled($user->ID)
+        && !get_transient(\ACore\Components\ServerInfo\acore_2fa_unlock_key($user->ID))) {
+        acore_pw_set_message($user->ID, 'error', __('Please verify your 2FA code before changing your password.', 'acore-wp-plugin'));
+        wp_redirect($security_url);
+        exit;
+    }
+
+    $oldPass     = isset($_POST['acore_old_pass'])     ? (string) wp_unslash($_POST['acore_old_pass'])     : '';
+    $newPass     = isset($_POST['acore_new_pass'])     ? (string) wp_unslash($_POST['acore_new_pass'])     : '';
+    $confirmPass = isset($_POST['acore_confirm_pass']) ? (string) wp_unslash($_POST['acore_confirm_pass']) : '';
 
     if (!wp_check_password($oldPass, $user->user_pass, $user->ID)) {
         acore_pw_set_message($user->ID, 'error', __('Current password is incorrect.', 'acore-wp-plugin'));
@@ -50,15 +57,10 @@ function acore_process_security_password() {
         exit;
     }
 
-    if (get_option('acore_allow_old_passwords', '0') !== '1') {
-        $history = get_user_meta($user->ID, 'acore_password_history', true) ?: [];
-        foreach ($history as $oldHash) {
-            if (wp_check_password($newPass, $oldHash, $user->ID)) {
-                acore_pw_set_message($user->ID, 'error', __('This password has been used before. Please choose a different one.', 'acore-wp-plugin'));
-                wp_redirect($security_url);
-                exit;
-            }
-        }
+    if (acore_password_is_reused($user->ID, $newPass)) {
+        acore_pw_set_message($user->ID, 'error', __('This password has been used before. Please choose a different one.', 'acore-wp-plugin'));
+        wp_redirect($security_url);
+        exit;
     }
 
     $soapError = null;
@@ -76,23 +78,19 @@ function acore_process_security_password() {
     }
 
     if ($soapError !== null) {
-        acore_pw_set_message($user->ID, 'error', sprintf(
-            __('In-game password not updated, website left unchanged: %s', 'acore-wp-plugin'),
-            $soapError
-        ));
+        error_log('[acore] in-game password sync failed for ' . $user->user_login . ': ' . $soapError);
+        acore_pw_set_message($user->ID, 'error', __('The in-game password could not be updated, so your website password was left unchanged. Please try again later.', 'acore-wp-plugin'));
         wp_redirect($security_url);
         exit;
     }
 
-    $history = get_user_meta($user->ID, 'acore_password_history', true) ?: [];
-    array_unshift($history, $user->user_pass);
-    update_user_meta($user->ID, 'acore_password_history', array_slice($history, 0, 10));
+    acore_password_record_history($user->ID, $user->user_pass);
 
     wp_set_password($newPass, $user->ID);
     update_user_meta($user->ID, 'acore_password_changed_at', current_time('mysql'));
 
     wp_set_current_user($user->ID);
-    wp_set_auth_cookie($user->ID, true);
+    wp_set_auth_cookie($user->ID, false);
 
     acore_pw_set_message($user->ID, 'success', __('Password updated successfully.', 'acore-wp-plugin'));
     wp_redirect($security_url);
@@ -109,4 +107,23 @@ function acore_pw_get_message($user_id) {
         delete_transient('acore_pw_msg_' . $user_id);
     }
     return $msg ?: null;
+}
+
+function acore_password_is_reused($user_id, string $newPass): bool {
+    if (get_option('acore_allow_old_passwords', '0') === '1') {
+        return false;
+    }
+    $history = get_user_meta($user_id, 'acore_password_history', true) ?: [];
+    foreach ($history as $oldHash) {
+        if (wp_check_password($newPass, $oldHash, $user_id)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function acore_password_record_history($user_id, string $currentHash): void {
+    $history = get_user_meta($user_id, 'acore_password_history', true) ?: [];
+    array_unshift($history, $currentHash);
+    update_user_meta($user_id, 'acore_password_history', array_slice($history, 0, 10));
 }

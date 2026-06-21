@@ -105,15 +105,22 @@ function acore_log_ingame_last_ip($user) {
 }
 
 function acore_resolve_client_ip() {
-    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $ip = trim($parts[0]);
-    } else {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+
+    if (get_option('acore_trust_proxy_headers', '0') === '1') {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $ip = trim($parts[0]);
+        } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        }
+    }
+
+    $ip = trim((string) $ip);
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
         $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
     }
-    return sanitize_text_field($ip);
+    return $ip;
 }
 
 function acore_lookup_country($ip) {
@@ -128,9 +135,12 @@ function acore_lookup_country($ip) {
         }
     }
 
-    $response = wp_remote_get("http://ip-api.com/json/{$ip}?fields=status,countryCode", [
-        'timeout'   => 3,
-        'sslverify' => false,
+    if (get_option('acore_geoip_lookup', '0') !== '1') {
+        return 'Unknown';
+    }
+
+    $response = wp_remote_get("https://ip-api.com/json/{$ip}?fields=status,countryCode", [
+        'timeout' => 3,
     ]);
 
     if (is_wp_error($response)) {

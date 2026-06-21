@@ -121,13 +121,24 @@ function acore_wp2fa_decrypt_secret(string $rawKey): string {
 /**
  * Whether the user currently has Website 2FA (TOTP) active.
  */
-function acore_website_2fa_enabled(int $userId): bool {
+function acore_website_totp_enabled(int $userId): bool {
     $primary = get_user_meta($userId, 'wp_2fa_enabled_methods', true);
     $totpKey = get_user_meta($userId, 'wp_2fa_totp_key', true);
     return !empty($totpKey) && (
         (is_array($primary) && in_array('totp', $primary, true)) ||
         $primary === 'totp'
     );
+}
+
+function acore_website_2fa_enabled(int $userId): bool {
+    $primary = get_user_meta($userId, 'wp_2fa_enabled_methods', true);
+    $methods = is_array($primary) ? $primary : ($primary !== '' ? [$primary] : []);
+    return acore_website_totp_enabled($userId) || in_array('email', $methods, true);
+}
+
+function acore_2fa_unlock_key(int $userId): string {
+    $token = function_exists('wp_get_session_token') ? (string) wp_get_session_token() : '';
+    return 'acore_2fa_panel_unlock_' . $userId . '_' . hash('sha256', $token);
 }
 
 /**
@@ -153,7 +164,7 @@ function acore_ingame_2fa_enabled(int $userId): bool {
  * the only IP ever recorded is the user's - never an administrator's.
  */
 function acore_2fa_sync_self_removals(int $userId): void {
-    $enabled = acore_website_2fa_enabled($userId);
+    $enabled = acore_website_totp_enabled($userId);
     $seen    = get_user_meta($userId, 'acore_2fa_ws_seen_enabled', true);
 
     if ($seen === '') {
@@ -226,7 +237,14 @@ add_action( 'rest_api_init', function () {
        'methods'             => 'POST',
        'permission_callback' => function() { return current_user_can('manage_options'); },
        'callback'            => function( $request ) {
-           $raw      = ACoreServices::I()->getServerSoap()->executeCommand('.server debug');
+           try {
+               $raw = ACoreServices::I()->getServerSoap()->executeCommand('.server debug');
+           } catch (\Throwable $e) {
+               return new \WP_Error('soap_error', $e->getMessage(), ['status' => 503]);
+           }
+           if (!is_string($raw)) {
+               return new \WP_Error('soap_error', __('Unexpected module response from the server.', 'acore-wp-plugin'), ['status' => 503]);
+           }
            $modules  = [];
            $capturing = false;
            foreach (explode("\n", $raw) as $line) {
@@ -455,8 +473,7 @@ add_action( 'rest_api_init', function () {
        'permission_callback' => function() { return is_user_logged_in(); },
        'callback'            => function( \WP_REST_Request $request ) {
            $user   = wp_get_current_user();
-           $rawKey = (string) get_user_meta($user->ID, 'wp_2fa_totp_key', true);
-           if (empty($rawKey))
+           if (!acore_website_totp_enabled($user->ID))
                return new \WP_Error('no_website_2fa', __('Website 2FA is not enabled on your account.'), ['status' => 400]);
 
            $data  = $request->get_json_params();
@@ -467,7 +484,7 @@ add_action( 'rest_api_init', function () {
                return new \WP_Error('wrong_token', __('Incorrect code. Please try again.'), ['status' => 401]);
 
            // Remember this unlock briefly so page refreshes don't re-prompt for the code.
-           set_transient('acore_2fa_panel_unlock_' . $user->ID, time(), 30 * MINUTE_IN_SECONDS);
+           set_transient(acore_2fa_unlock_key($user->ID), time(), 30 * MINUTE_IN_SECONDS);
 
            return ['success' => true];
        }

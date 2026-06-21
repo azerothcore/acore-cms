@@ -35,7 +35,10 @@ class UserController {
                 if (!isset($_POST["recruited"])) {
                     $errorMessages[] = "No recruiter value sent.";
                 } else {
-                    $recruiterCode = $_POST["recruited"];
+                    $recruiterCode = absint($_POST["recruited"]);
+                    if ($recruiterCode <= 0) {
+                        $errorMessages[] = "Invalid recruiter value sent.";
+                    }
                     $existingRecruiterId = $acServices->getUserNameByUserId($recruiterCode);
                     $newRecruitId = $acServices->getAcoreAccountId();
 
@@ -132,13 +135,6 @@ class UserController {
     }
 
     public function showItemRestorationPage() {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $this->saveCharacterOrder();
-            ?>
-            <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
-            <?php
-        }
-
         $account = ACoreServices::I()->getAcoreAccountId();
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
         $queryResult = $conn->executeQuery(

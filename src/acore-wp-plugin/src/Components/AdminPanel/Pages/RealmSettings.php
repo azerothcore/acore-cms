@@ -19,6 +19,7 @@
         <!-- Col 1: settings form (35%) -->
         <div style="flex:0 0 auto; width:35%;">
             <form name="form-acore-settings" method="post" action="">
+                <?php wp_nonce_field('acore_realm_settings_save', 'acore_realm_settings_nonce'); ?>
                 <div class="card p-0">
                     <div class="card-body">
                         <h5>General Settings</h5>
@@ -27,7 +28,7 @@
                             <tbody>
                                 <tr>
                                     <th scope="row"><label for="acore_realm_alias">Realm Name:</label></th>
-                                    <td><input type="text" name="acore_realm_alias" value="<?= Opts::I()->acore_realm_alias; ?>" size="20" placeholder="AzerothCore"></td>
+                                    <td><input type="text" name="acore_realm_alias" value="<?= esc_attr(Opts::I()->acore_realm_alias); ?>" size="20" placeholder="AzerothCore"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -43,19 +44,19 @@
                             <tbody>
                                 <tr>
                                     <th scope="row"><label for="acore_soap_host">IPv4:</label></th>
-                                    <td><input type="text" name="acore_soap_host" value="<?= Opts::I()->acore_soap_host; ?>" size="20" placeholder="127.0.0.1"></td>
+                                    <td><input type="text" name="acore_soap_host" value="<?= esc_attr(Opts::I()->acore_soap_host); ?>" size="20" placeholder="127.0.0.1"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_soap_port">Port:</label></th>
-                                    <td><input type="text" name="acore_soap_port" value="<?= Opts::I()->acore_soap_port; ?>" size="20" placeholder="7878"></td>
+                                    <td><input type="text" name="acore_soap_port" value="<?= esc_attr(Opts::I()->acore_soap_port); ?>" size="20" placeholder="7878"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_soap_user">Username:</label></th>
-                                    <td><input type="text" name="acore_soap_user" value="<?= Opts::I()->acore_soap_user; ?>" size="20"></td>
+                                    <td><input type="text" name="acore_soap_user" value="<?= esc_attr(Opts::I()->acore_soap_user); ?>" size="20"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_soap_pass">Password:</label></th>
-                                    <td><input type="password" name="acore_soap_pass" value="<?= Opts::I()->acore_soap_pass; ?>" size="20"></td>
+                                    <td><input type="password" name="acore_soap_pass" value="<?= esc_attr(Opts::I()->acore_soap_pass); ?>" size="20"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -65,23 +66,23 @@
                             <tbody>
                                 <tr>
                                     <th scope="row"><label for="acore_db_auth_host">IPv4:</label></th>
-                                    <td><input type="text" name="acore_db_auth_host" value="<?= Opts::I()->acore_db_auth_host; ?>" size="20" placeholder="127.0.0.1"></td>
+                                    <td><input type="text" name="acore_db_auth_host" value="<?= esc_attr(Opts::I()->acore_db_auth_host); ?>" size="20" placeholder="127.0.0.1"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_auth_port">Port:</label></th>
-                                    <td><input type="text" name="acore_db_auth_port" value="<?= Opts::I()->acore_db_auth_port; ?>" size="20" placeholder="3306"></td>
+                                    <td><input type="text" name="acore_db_auth_port" value="<?= esc_attr(Opts::I()->acore_db_auth_port); ?>" size="20" placeholder="3306"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_auth_user">Username:</label></th>
-                                    <td><input type="text" name="acore_db_auth_user" value="<?= Opts::I()->acore_db_auth_user; ?>" size="20" placeholder="acore"></td>
+                                    <td><input type="text" name="acore_db_auth_user" value="<?= esc_attr(Opts::I()->acore_db_auth_user); ?>" size="20" placeholder="acore"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_auth_pass">Password:</label></th>
-                                    <td><input type="password" name="acore_db_auth_pass" value="<?= Opts::I()->acore_db_auth_pass; ?>" size="20" placeholder="acore"></td>
+                                    <td><input type="password" name="acore_db_auth_pass" value="<?= esc_attr(Opts::I()->acore_db_auth_pass); ?>" size="20" placeholder="acore"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_auth_name">Database Name:</label></th>
-                                    <td><input type="text" name="acore_db_auth_name" value="<?= Opts::I()->acore_db_auth_name; ?>" size="20" placeholder="acore_auth"></td>
+                                    <td><input type="text" name="acore_db_auth_name" value="<?= esc_attr(Opts::I()->acore_db_auth_name); ?>" size="20" placeholder="acore_auth"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -91,23 +92,23 @@
                             <tbody>
                                 <tr>
                                     <th scope="row"><label for="acore_db_char_host">IPv4:</label></th>
-                                    <td><input type="text" name="acore_db_char_host" value="<?= Opts::I()->acore_db_char_host; ?>" size="20" placeholder="127.0.0.1"></td>
+                                    <td><input type="text" name="acore_db_char_host" value="<?= esc_attr(Opts::I()->acore_db_char_host); ?>" size="20" placeholder="127.0.0.1"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_char_port">Port:</label></th>
-                                    <td><input type="text" name="acore_db_char_port" value="<?= Opts::I()->acore_db_char_port; ?>" size="20" placeholder="3306"></td>
+                                    <td><input type="text" name="acore_db_char_port" value="<?= esc_attr(Opts::I()->acore_db_char_port); ?>" size="20" placeholder="3306"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_char_user">Username:</label></th>
-                                    <td><input type="text" name="acore_db_char_user" value="<?= Opts::I()->acore_db_char_user; ?>" size="20" placeholder="acore"></td>
+                                    <td><input type="text" name="acore_db_char_user" value="<?= esc_attr(Opts::I()->acore_db_char_user); ?>" size="20" placeholder="acore"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_char_pass">Password:</label></th>
-                                    <td><input type="password" name="acore_db_char_pass" value="<?= Opts::I()->acore_db_char_pass; ?>" size="20" placeholder="acore"></td>
+                                    <td><input type="password" name="acore_db_char_pass" value="<?= esc_attr(Opts::I()->acore_db_char_pass); ?>" size="20" placeholder="acore"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_char_name">Database Name:</label></th>
-                                    <td><input type="text" name="acore_db_char_name" value="<?= Opts::I()->acore_db_char_name; ?>" size="20" placeholder="acore_characters"></td>
+                                    <td><input type="text" name="acore_db_char_name" value="<?= esc_attr(Opts::I()->acore_db_char_name); ?>" size="20" placeholder="acore_characters"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -117,23 +118,23 @@
                             <tbody>
                                 <tr>
                                     <th scope="row"><label for="acore_db_world_host">IPv4:</label></th>
-                                    <td><input type="text" name="acore_db_world_host" value="<?= Opts::I()->acore_db_world_host; ?>" size="20" placeholder="127.0.0.1"></td>
+                                    <td><input type="text" name="acore_db_world_host" value="<?= esc_attr(Opts::I()->acore_db_world_host); ?>" size="20" placeholder="127.0.0.1"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_world_port">Port:</label></th>
-                                    <td><input type="text" name="acore_db_world_port" value="<?= Opts::I()->acore_db_world_port; ?>" size="20" placeholder="3306"></td>
+                                    <td><input type="text" name="acore_db_world_port" value="<?= esc_attr(Opts::I()->acore_db_world_port); ?>" size="20" placeholder="3306"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_world_user">Username:</label></th>
-                                    <td><input type="text" name="acore_db_world_user" value="<?= Opts::I()->acore_db_world_user; ?>" size="20" placeholder="acore"></td>
+                                    <td><input type="text" name="acore_db_world_user" value="<?= esc_attr(Opts::I()->acore_db_world_user); ?>" size="20" placeholder="acore"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_world_pass">Password:</label></th>
-                                    <td><input type="password" name="acore_db_world_pass" value="<?= Opts::I()->acore_db_world_pass; ?>" size="20" placeholder="acore"></td>
+                                    <td><input type="password" name="acore_db_world_pass" value="<?= esc_attr(Opts::I()->acore_db_world_pass); ?>" size="20" placeholder="acore"></td>
                                 </tr>
                                 <tr>
                                     <th><label for="acore_db_world_name">Database Name:</label></th>
-                                    <td><input type="text" name="acore_db_world_name" value="<?= Opts::I()->acore_db_world_name; ?>" size="20" placeholder="acore_world"></td>
+                                    <td><input type="text" name="acore_db_world_name" value="<?= esc_attr(Opts::I()->acore_db_world_name); ?>" size="20" placeholder="acore_world"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -230,15 +231,12 @@
     var $modPanel = $('#acore-modules-panel');
     var $valPanel = $('#acore-validate-panel');
 
-    // Module state for the automated, referenced-slug-only diff.
     var knownModules   = <?= wp_json_encode($storedModules) ?>;
     var referencedSlugs = <?= wp_json_encode($referencedSlugs) ?>;
     var autoCheckDone  = false;
 
     function lc(arr) { return (arr || []).map(function(s){ return String(s).toLowerCase(); }); }
 
-    // Compare new module list against the last known one, but only for slugs
-    // referenced in Module Requirements. Returns {added:[], removed:[]}.
     function diffReferenced(oldList, newList) {
         var oldL = lc(oldList), newL = lc(newList), added = [], removed = [];
         referencedSlugs.forEach(function(slug){
@@ -294,6 +292,9 @@
                 autoCheckDone = true;
                 refreshModules({ auto: true });
             }
+        } else {
+            $modPanel.hide();
+            $valPanel.hide();
         }
     }
 
@@ -310,8 +311,6 @@
         }).done(function(res){
             var newModules = (res.modules || []);
 
-            // Manual refresh repaints the whole module list; the automatic
-            // check only touches the referenced slugs, leaving the list as-is.
             if (!opts.auto) {
                 var $list = $('#acore-modules-list').empty();
                 if (newModules.length) {
@@ -325,7 +324,6 @@
                 $('#acore-modules-refreshed').html('Last refreshed:<br>' + d.toLocaleString());
             }
 
-            // Diff (referenced slugs only) against the previously known list.
             renderAutoCheck(diffReferenced(knownModules, newModules));
             knownModules = newModules;
         }).fail(function(){

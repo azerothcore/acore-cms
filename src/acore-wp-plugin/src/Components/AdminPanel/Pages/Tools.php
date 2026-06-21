@@ -326,6 +326,13 @@
     }
 
     function wire2fa(type, $userInput, $check, $remove, $msg, onCheck) {
+        var checkedUsername = '';
+
+        $userInput.on('input', function(){
+            checkedUsername = '';
+            $remove.prop('disabled', true);
+        });
+
         $check.on('click', function(){
             var username = $userInput.val().trim();
             if (!username) { $msg.css('color','#d63638').text('Enter an account name first.'); return; }
@@ -342,13 +349,15 @@
                             if (lr.by === 'self' && lr.ip) { txt += ' (IP ' + lr.ip + ')'; }
                             txt += '.';
                         }
+                        checkedUsername = '';
                         $msg.css('color','#d63638').text(txt);
                         $remove.prop('disabled', true);
                     } else {
+                        checkedUsername = data.username || username;
                         $msg.css('color','#238636').text('2FA is active for ' + data.username + '.');
                         $remove.prop('disabled', false);
                     }
-                    if (typeof onCheck === 'function') onCheck(data, username);
+                    if (typeof onCheck === 'function') onCheck(data, checkedUsername);
                 })
                 .fail(function(xhr){
                     var err = xhr.responseJSON ? (xhr.responseJSON.message || JSON.stringify(xhr.responseJSON)) : 'Error.';
@@ -361,7 +370,8 @@
         });
 
         $remove.on('click', function(){
-            var username = $userInput.val().trim();
+            var username = checkedUsername;
+            if (!username) return;
             if (!confirm('Remove ' + type + ' 2FA for ' + username + '? This cannot be undone.')) return;
             $remove.prop('disabled', true).text('Removing…');
             $check.prop('disabled', true);
@@ -383,23 +393,26 @@
         });
     }
 
-    wire2fa('website', $('#acore-2fa-web-user'),  $('#acore-2fa-web-check'),  $('#acore-2fa-web-remove'),  $('#acore-2fa-web-msg'), function(data){
+    var webCheckedUsername = '';
+    wire2fa('website', $('#acore-2fa-web-user'),  $('#acore-2fa-web-check'),  $('#acore-2fa-web-remove'),  $('#acore-2fa-web-msg'), function(data, username){
+        webCheckedUsername = username || '';
         var count = parseInt(data.backup_codes, 10) || 0;
-        if (count > 0) {
+        if (count > 0 && webCheckedUsername) {
             $('#acore-backup-wrap').css('opacity', '1');
             $('#acore-backup-info').css('color','#646970').text(count + ' unused backup code' + (count === 1 ? '' : 's') + ' remaining.');
             $('#acore-backup-remove').prop('disabled', false);
         } else {
             $('#acore-backup-wrap').css('opacity', '0.45');
-            $('#acore-backup-info').css('color','#646970').text('No backup codes generated for this account.');
+            $('#acore-backup-info').css('color','#646970').text(count > 0 ? 'Verify the account again to manage backup codes.' : 'No backup codes generated for this account.');
             $('#acore-backup-remove').prop('disabled', true);
         }
     });
+    $('#acore-2fa-web-user').on('input', function(){ webCheckedUsername = ''; $('#acore-backup-remove').prop('disabled', true); });
     wire2fa('ingame',  $('#acore-2fa-game-user'), $('#acore-2fa-game-check'), $('#acore-2fa-game-remove'), $('#acore-2fa-game-msg'));
 
     /* Remove backup codes (uses the Website account-name input) */
     $('#acore-backup-remove').on('click', function(){
-        var username = $('#acore-2fa-web-user').val().trim();
+        var username = webCheckedUsername;
         if (!username) { return; }
         var $btn = $(this);
         acoreConfirm('Remove all backup codes for ' + username + '? They will need to generate new ones.', function(){

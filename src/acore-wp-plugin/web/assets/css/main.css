@@ -33,6 +33,15 @@ body {
     display: none;
 }
 
+button.acore-char-row {
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
 .acore-char-row {
     display: flex;
     align-items: center;
@@ -154,11 +163,13 @@ body {
 
 /* start unstuck button */
 .unstuck-button {
-    background-size: cover;
     border: none;
     color: transparent;
     cursor: pointer;
-    background: none;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
     padding: 0;
 }
 

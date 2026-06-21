@@ -51,14 +51,14 @@ class MailReturnView
                                     $clsStyle = AcoreCharColors::rowStyle(intval($char['class']), intval($char['race']));
                                 ?>
                                     <li>
-                                        <div class="acore-char-row acore-char-card" data-char-guid="<?= intval($char['guid']) ?>" style="<?= esc_attr($clsStyle) ?>">
+                                        <button type="button" class="acore-char-row acore-char-card" data-char-guid="<?= intval($char['guid']) ?>" style="<?= esc_attr($clsStyle) ?>">
                                             <span class="acore-char-name"><?= esc_html($char['name']) ?></span>
                                             <span class="acore-char-meta">
                                                 <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char['level'])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char['level']))) ?>">Level <?= intval($char['level']) ?></span>
                                                 <img class="race-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char['race']))) ?>" src="<?= ACORE_URL_PLG . 'web/assets/race/' . intval($char['race']) . (intval($char['gender']) == 0 ? 'm' : 'f') . '.webp' ?>">
                                                 <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char['class']))) ?>" src="<?= ACORE_URL_PLG . 'web/assets/class/' . intval($char['class']) . '.webp' ?>">
                                             </span>
-                                        </div>
+                                        </button>
                                     </li>
                                 <?php } ?>
                             </ul>

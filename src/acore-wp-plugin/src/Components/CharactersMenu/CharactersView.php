@@ -31,6 +31,7 @@ class CharactersView {
                             <p>Change the order in which the characters appear in your in-game character selection screen, by dragging them, matches in-game position.</p>
                             <hr>
                             <form action="" method="POST" novalidate="novalidate">
+                                <?php wp_nonce_field('acore_character_order', 'acore_character_order_nonce'); ?>
 
                                 <ul id="acore-characters-order" class="acore-char-list list-unstyled">
                                     <?php $charPos = 0; foreach ($characters as $char) {
@@ -48,7 +49,7 @@ class CharactersView {
                                                     <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= ACORE_URL_PLG . "web/assets/class/" . $char["class"] . ".webp"; ?>">
                                                 </span>
                                             </div>
-                                            <input name="characterorder[]" value="<?= $char["guid"] ?>">
+                                            <input type="hidden" name="characterorder[]" value="<?= esc_attr($char["guid"]) ?>">
                                         </li>
                                     <?php } ?>
                                 </ul>

@@ -7,8 +7,8 @@ Acore dark mode overrides
    (layout/spacing lives in main.css and loads for all modes)
    ============================================================ */
 
-body.acore-dark-mode body.profile-php #wpbody-content h2,
-body.acore-dark-mode body.profile-php #wpbody-content h3 {
+body.acore-dark-mode.profile-php #wpbody-content h2,
+body.acore-dark-mode.profile-php #wpbody-content h3 {
     border-bottom-color: #30363d;
 }
 
@@ -112,7 +112,16 @@ body.acore-dark-mode #acore-characters-item-restore .acore-char-row.active {
 }
 
 .acore-expansion-option input[type="radio"] {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 .acore-expansion-option .acore-expansion-label {

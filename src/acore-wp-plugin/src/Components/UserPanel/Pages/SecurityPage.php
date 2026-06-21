@@ -95,7 +95,8 @@ $expandOnLoad = !empty($passwordMessage);
 
     <?php
     $websiteTotpEnabled = !empty($twoFaData['plugin_active']) && !empty($twoFaData['totp_enabled']);
-    $twofaUnlocked      = $websiteTotpEnabled && (bool) get_transient('acore_2fa_panel_unlock_' . $user->ID);
+    $websiteAnyEnabled  = !empty($twoFaData['plugin_active']) && (!empty($twoFaData['totp_enabled']) || !empty($twoFaData['email_enabled']));
+    $twofaUnlocked      = $websiteTotpEnabled && (bool) get_transient(\ACore\Components\ServerInfo\acore_2fa_unlock_key($user->ID));
     $restBase   = rest_url(ACORE_SLUG . '/v1/remove-ingame-2fa');
     $verifyBase = rest_url(ACORE_SLUG . '/v1/verify-website-2fa');
     $statusBase = rest_url(ACORE_SLUG . '/v1/2fa-status');
@@ -115,7 +116,7 @@ $expandOnLoad = !empty($passwordMessage);
     $backupCodesMeta = get_user_meta($user->ID, 'wp_2fa_backup_codes', true);
     $backupCodesLeft = is_array($backupCodesMeta) ? count($backupCodesMeta) : 0;
     // Only warn if 2FA is not currently active (user hasn't re-enabled yet)
-    $showWebWarning    = $lastWebRemoval    && !$websiteTotpEnabled;
+    $showWebWarning    = $lastWebRemoval    && !$websiteAnyEnabled;
     $showGameWarning   = $lastGameRemoval   && !$ingame2faActive;
     $showBackupWarning = $lastBackupRemoval && $backupCodesLeft === 0;
     ?>
@@ -431,11 +432,11 @@ $expandOnLoad = !empty($passwordMessage);
             var msg  = document.getElementById('acore-ingame-2fa-msg');
             if (!/^\d{6}$/.test(code)) {
                 msg.style.color = '#d63638';
-                msg.textContent = '<?php _e('Please enter a valid 6-digit code.', 'acore-wp-plugin'); ?>';
+                msg.textContent = '<?php echo esc_js(__('Please enter a valid 6-digit code.', 'acore-wp-plugin')); ?>';
                 return;
             }
             removeBtn.disabled = true;
-            removeBtn.textContent = '<?php _e('Removing…', 'acore-wp-plugin'); ?>';
+            removeBtn.textContent = '<?php echo esc_js(__('Removing…', 'acore-wp-plugin')); ?>';
             msg.textContent = '';
             fetch('<?= esc_js($restBase) ?>', {
                 method: 'POST',
@@ -449,7 +450,7 @@ $expandOnLoad = !empty($passwordMessage);
             .then(function(data){
                 if (data.success) {
                     msg.style.color   = '#00a32a';
-                    msg.textContent   = '<?php _e('In-game 2FA removed successfully. You can set it up again inside the game.', 'acore-wp-plugin'); ?>';
+                    msg.textContent   = '<?php echo esc_js(__('In-game 2FA removed successfully. You can set it up again inside the game.', 'acore-wp-plugin')); ?>';
                     // Refresh the page after short delay so the status badge updates
                     setTimeout(function(){ window.location.reload(); }, 2200);
                 } else {
@@ -458,9 +459,9 @@ $expandOnLoad = !empty($passwordMessage);
             })
             .catch(function(err){
                 msg.style.color   = '#d63638';
-                msg.textContent   = (err && (err.message || (err.data && err.data.message))) || '<?php _e('An error occurred. Please try again.', 'acore-wp-plugin'); ?>';
+                msg.textContent   = (err && (err.message || (err.data && err.data.message))) || '<?php echo esc_js(__('An error occurred. Please try again.', 'acore-wp-plugin')); ?>';
                 removeBtn.disabled = false;
-                removeBtn.textContent = '<?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>';
+                removeBtn.textContent = '<?php echo esc_js(__('Remove In-game 2FA', 'acore-wp-plugin')); ?>';
             });
         });
     }
