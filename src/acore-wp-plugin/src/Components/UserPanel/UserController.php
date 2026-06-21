@@ -165,12 +165,6 @@ class UserController {
         $ingame2faActive   = $this->getIngame2faStatus();
         $connections       = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
 
-        // TEMP preview: ?mock_connections=50 fills the Recent Connections table
-        // with fake rows so the styling can be reviewed. Remove when no longer needed.
-        if (isset($_GET['mock_connections'])) {
-            $connections = \ACore\Hooks\User\acore_mock_login_history($_GET['mock_connections']);
-        }
-
         echo $this->getView()->getSecurityRender($connections, $passwordChangedAt, $twoFaData, $ingame2faActive, $passwordMessage);
     }
 

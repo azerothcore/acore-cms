@@ -379,21 +379,15 @@ add_action( 'rest_api_init', function () {
        'callback'            => function( \WP_REST_Request $request ) {
            $data     = $request->get_json_params();
            $username = isset($data['username']) ? sanitize_text_field($data['username']) : '';
-           $mock     = isset($data['mock']) ? $data['mock'] : null;
            $page     = max(1, (int) ($data['page'] ?? 1));
            $perPage  = 50;
            if ($username === '')
                return new \WP_Error('missing_username', 'Username is required.', ['status' => 400]);
 
-           if ($mock !== null && $mock !== '') {
-               // Preview mode: return mock connections for the searched account.
-               $all = \ACore\Hooks\User\acore_mock_login_history((int) $mock);
-           } else {
-               $user = get_user_by('login', $username);
-               if (!$user)
-                   return new \WP_Error('user_not_found', 'No WordPress account found with that username.', ['status' => 404]);
-               $all = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
-           }
+           $user = get_user_by('login', $username);
+           if (!$user)
+               return new \WP_Error('user_not_found', 'No WordPress account found with that username.', ['status' => 404]);
+           $all = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
 
            $all    = is_array($all) ? $all : [];
            $total  = count($all);
@@ -503,13 +497,8 @@ add_action( 'rest_api_init', function () {
            $user    = wp_get_current_user();
            $perPage = 50;
            $page    = max(1, (int) $request->get_param('page'));
-           $mock    = $request->get_param('mock');
 
-           if ($mock !== null && $mock !== '') {
-               $all = \ACore\Hooks\User\acore_mock_login_history((int) $mock);
-           } else {
-               $all = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
-           }
+           $all    = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
            $all    = is_array($all) ? $all : [];
            $total  = count($all);
            $offset = ($page - 1) * $perPage;

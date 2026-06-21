@@ -782,11 +782,7 @@ function acore_profile_recent_connections($user) {
     $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
     $myIp = acore_resolve_client_ip();
 
-    if (isset($_GET['mock_connections'])) {
-        $rows = acore_mock_login_history($_GET['mock_connections']);
-    } else {
-        $rows = acore_get_login_history($user->ID, 10);
-    }
+    $rows = acore_get_login_history($user->ID, 10);
     $rows = array_slice($rows, 0, 10);
     ?>
     <h2 class="acore-conn-heading"><span><?php _e('Recent Connections', 'acore-wp-plugin'); ?></span><span class="acore-conn-myip"><?php _e('Your IPv4:', 'acore-wp-plugin'); ?> <?= esc_html($myIp) ?></span></h2>

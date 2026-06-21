@@ -156,42 +156,6 @@ function acore_get_login_history($user_id, $limit = 50) {
     ), ARRAY_A);
 }
 
-/**
- * Build realistic mock connection rows for UI preview (?mock_connections=N).
- * IPs repeat across website/in-game like real usage, and the viewer's own IP
- * appears in both so the "current IP" highlight is visible.
- */
-function acore_mock_login_history($count) {
-    // Default size when ?mock_connections is present without a number, and a
-    // hard cap so it can never render more than this many rows.
-    $count = (int) $count;
-    if ($count <= 0) {
-        $count = 120;
-    }
-    $count = max(1, min(200, $count)); // 200 = hard cap
-    $myIp  = acore_resolve_client_ip();
-    $pool  = [
-        [$myIp, 'Local'],
-        ['203.0.113.45', 'US'],
-        ['198.51.100.22', 'GB'],
-        ['192.0.2.181', 'DE'],
-        ['203.0.113.45', 'US'],
-        [$myIp, 'Local'],
-        ['198.51.100.22', 'GB'],
-    ];
-    $out = [];
-    for ($i = 0; $i < $count; $i++) {
-        $entry = $pool[$i % count($pool)];
-        $out[] = [
-            'ip_address' => $entry[0],
-            'country'    => $entry[1],
-            'login_at'   => date('Y-m-d H:i:s', time() - $i * 3600),
-            'source'     => ($i % 2 === 0) ? 'website' : 'ingame',
-        ];
-    }
-    return $out;
-}
-
 function acore_format_connection_date($datetime_str) {
     $dt = new \DateTime($datetime_str);
     $day = (int) $dt->format('j');

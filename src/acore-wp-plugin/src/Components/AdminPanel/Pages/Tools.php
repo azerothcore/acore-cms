@@ -418,14 +418,13 @@
     });
 
     /* User Login History lookup */
-    var acoreHistory = { username: '', mock: null, page: 0, total: 0, shown: 0 };
+    var acoreHistory = { username: '', page: 0, total: 0, shown: 0 };
 
     function acoreHistoryFetch(page) {
         var $tbl = $('#acore-history-table'), $tb = $tbl.find('tbody'),
             $msg = $('#acore-history-msg'), $more = $('#acore-history-more');
         return ajaxPost('admin/login-history', {
                 username: acoreHistory.username,
-                mock:     acoreHistory.mock,
                 page:     page
             })
             .done(function(data){
@@ -462,7 +461,6 @@
         var username = $('#acore-history-user').val().trim();
         if (!username) { $('#acore-history-msg').css('color','#d63638').text('Enter an account name first.'); return; }
         acoreHistory.username = username;
-        acoreHistory.mock     = new URLSearchParams(location.search).get('mock_connections');
         $('#acore-history-msg').css('color','#646970').text('');
         var $btn = $(this).prop('disabled', true).text('Looking up…');
         acoreHistoryFetch(1).always(function(){ $btn.prop('disabled', false).text('Look up'); });

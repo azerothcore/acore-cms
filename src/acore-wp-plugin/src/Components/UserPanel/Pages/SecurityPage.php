@@ -389,7 +389,7 @@ $expandOnLoad = !empty($passwordMessage);
                 </table>
                 <?php if ($connPage < $maxPage): ?>
                     <p style="margin-top:10px;">
-                        <button type="button" id="acore-conn-more" class="button" data-page="<?= (int) $connPage ?>" data-mock="<?= esc_attr($_GET['mock_connections'] ?? '') ?>"><?php _e('See more', 'acore-wp-plugin'); ?> &darr;</button>
+                        <button type="button" id="acore-conn-more" class="button" data-page="<?= (int) $connPage ?>"><?php _e('See more', 'acore-wp-plugin'); ?> &darr;</button>
                     </p>
                 <?php endif; ?>
             <?php endif; ?>
@@ -554,8 +554,7 @@ $expandOnLoad = !empty($passwordMessage);
     var nonce = '<?= esc_js(wp_create_nonce('wp_rest')) ?>';
     btn.addEventListener('click', function(){
         var next  = parseInt(btn.getAttribute('data-page'), 10) + 1;
-        var mock  = btn.getAttribute('data-mock') || '';
-        var url   = base + '?page=' + next + (mock ? '&mock=' + encodeURIComponent(mock) : '');
+        var url   = base + '?page=' + next;
         var label = btn.textContent;
         btn.disabled = true; btn.textContent = 'Loading...';
         fetch(url, { headers: { 'X-WP-Nonce': nonce } })
