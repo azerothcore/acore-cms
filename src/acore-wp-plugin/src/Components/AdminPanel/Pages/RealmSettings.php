@@ -5,6 +5,9 @@
     $modulesRefreshed  = intval(get_option('acore_modules_refreshed', 0));
     $storedModules     = $modulesCsv ? array_values(array_filter(explode(',', $modulesCsv))) : [];
     $storedRequirements = get_option('acore_module_requirements', [['Scroll of Resurrection', 'mod-resurrection-scroll']]);
+    $referencedSlugs    = array_values(array_unique(array_filter(array_map(function ($r) {
+        return isset($r[1]) ? trim($r[1]) : '';
+    }, $storedRequirements))));
 ?>
 
 <div class="wrap">
@@ -171,6 +174,7 @@
                                 Last refreshed:<br><?= wp_date('jS \o\f F, Y \a\t H:i', $modulesRefreshed) ?>
                             <?php endif; ?>
                         </span>
+                        <div id="acore-modules-autocheck" style="font-size:11px; margin-top:4px;"></div>
                     </div>
                 </div>
             </div>
@@ -226,6 +230,46 @@
     var $modPanel = $('#acore-modules-panel');
     var $valPanel = $('#acore-validate-panel');
 
+    // Module state for the automated, referenced-slug-only diff.
+    var knownModules   = <?= wp_json_encode($storedModules) ?>;
+    var referencedSlugs = <?= wp_json_encode($referencedSlugs) ?>;
+    var autoCheckDone  = false;
+
+    function lc(arr) { return (arr || []).map(function(s){ return String(s).toLowerCase(); }); }
+
+    // Compare new module list against the last known one, but only for slugs
+    // referenced in Module Requirements. Returns {added:[], removed:[]}.
+    function diffReferenced(oldList, newList) {
+        var oldL = lc(oldList), newL = lc(newList), added = [], removed = [];
+        referencedSlugs.forEach(function(slug){
+            var s = String(slug).toLowerCase();
+            var wasIn = oldL.indexOf(s) !== -1;
+            var nowIn = newL.indexOf(s) !== -1;
+            if (nowIn && !wasIn) added.push(slug);
+            if (!nowIn && wasIn) removed.push(slug);
+        });
+        return { added: added, removed: removed };
+    }
+
+    function renderAutoCheck(diff) {
+        var $box = $('#acore-modules-autocheck').empty();
+        if (!referencedSlugs.length) return;
+        var now = new Date();
+        $box.append($('<div>').css({color:'#8b949e'})
+            .text('Automated module check at ' + now.toLocaleString()));
+        if (!diff.added.length && !diff.removed.length) {
+            $box.append($('<div>').css({color:'#8b949e'})
+                .text('• No changes to required modules.'));
+            return;
+        }
+        diff.removed.forEach(function(m){
+            $box.append($('<div>').css({color:'#da3633'}).text('• ' + m + ' removed'));
+        });
+        diff.added.forEach(function(m){
+            $box.append($('<div>').css({color:'#238636'}).text('• ' + m + ' added'));
+        });
+    }
+
     /* ── SOAP check on page load ──────────────────────────────────────── */
     function checkSoap(manual) {
         if (manual) $soapBtn.prop('disabled', true).val('Checking…');
@@ -246,6 +290,10 @@
         if (ok) {
             $modPanel.show();
             $valPanel.show();
+            if (!autoCheckDone) {
+                autoCheckDone = true;
+                refreshModules({ auto: true });
+            }
         }
     }
 
@@ -253,28 +301,43 @@
     $soapBtn.on('click', function(){ checkSoap(true); });
 
     /* ── Modules refresh ─────────────────────────────────────────────── */
-    $('#acore-modules-refresh').on('click', function(){
-        var $btn = $(this).prop('disabled', true).text('Refreshing…');
-        $.ajax({
+    function refreshModules(opts) {
+        opts = opts || {};
+        var $btn = opts.auto ? null : $('#acore-modules-refresh').prop('disabled', true).text('Refreshing…');
+        return $.ajax({
             url: restBase + 'server-modules', method: 'POST',
             beforeSend: function(xhr){ xhr.setRequestHeader('X-WP-Nonce', nonce); }
         }).done(function(res){
-            var $list = $('#acore-modules-list').empty();
-            if (res.modules && res.modules.length) {
-                res.modules.forEach(function(m){
-                    $list.append($('<span>').addClass('acore-module-tag').text(m));
-                });
-            } else {
-                $list.append($('<span>').addClass('acore-modules-empty').text('No modules found.'));
+            var newModules = (res.modules || []);
+
+            // Manual refresh repaints the whole module list; the automatic
+            // check only touches the referenced slugs, leaving the list as-is.
+            if (!opts.auto) {
+                var $list = $('#acore-modules-list').empty();
+                if (newModules.length) {
+                    newModules.forEach(function(m){
+                        $list.append($('<span>').addClass('acore-module-tag').text(m));
+                    });
+                } else {
+                    $list.append($('<span>').addClass('acore-modules-empty').text('No modules found.'));
+                }
+                var d = new Date(res.refreshed * 1000);
+                $('#acore-modules-refreshed').html('Last refreshed:<br>' + d.toLocaleString());
             }
-            var d = new Date(res.refreshed * 1000);
-            $('#acore-modules-refreshed').html('Last refreshed:<br>' + d.toLocaleString());
+
+            // Diff (referenced slugs only) against the previously known list.
+            renderAutoCheck(diffReferenced(knownModules, newModules));
+            knownModules = newModules;
         }).fail(function(){
-            alert('Failed to refresh modules. Is SOAP configured and the server running?');
+            if (!opts.auto) {
+                alert('Failed to refresh modules. Is SOAP configured and the server running?');
+            }
         }).always(function(){
-            $btn.prop('disabled', false).text('Refresh');
+            if ($btn) $btn.prop('disabled', false).text('Refresh');
         });
-    });
+    }
+
+    $('#acore-modules-refresh').on('click', function(){ refreshModules({ auto: false }); });
 
     /* ── Module Requirements ─────────────────────────────────────────── */
     function addReqRow(product, module) {
