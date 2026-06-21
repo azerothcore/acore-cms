@@ -71,10 +71,17 @@ class CharacterEntity {
 
     /**
      * @var int
-     * 
+     *
      *  @ORM\Column(name="level", type="integer")
      */
     protected $level;
+
+    /**
+     * @var int Unix timestamp of when the character was deleted (0 if not deleted)
+     *
+     *  @ORM\Column(name="deleteDate", type="integer")
+     */
+    protected $deleteDate;
 
     public function getGuid() {
         return $this->guid;
@@ -121,6 +128,15 @@ class CharacterEntity {
 
     public function getLevel(): int {
         return $this->level;
+    }
+
+    public function getDeleteDate(): int {
+        return (int) $this->deleteDate;
+    }
+
+    public function getDeleteDateFormatted(): string {
+        $deleteDate = $this->getDeleteDate();
+        return $deleteDate > 0 ? date("Y-m-d H:i", $deleteDate) : "";
     }
 
     public function getCharIconUrl(): string {

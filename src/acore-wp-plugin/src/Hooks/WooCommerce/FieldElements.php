@@ -72,7 +72,12 @@ class FieldElements {
                 endforeach;
             } else {
                 foreach ($deletedCharacters as $key => $value):
-                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharIconUrl() . '" data-classicon="' . $value->getClassIconUrl() . '">' . $value->getDeletedName() . '</option>';
+                    $deletedLabel = $value->getDeletedName() . ' (' . $value->getLevel() . ')';
+                    $deletedDate = $value->getDeleteDateFormatted();
+                    if ($deletedDate !== '') {
+                        $deletedLabel .= ' (' . $deletedDate . ')';
+                    }
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharIconUrl() . '" data-classicon="' . $value->getClassIconUrl() . '">' . $deletedLabel . '</option>';
                 endforeach;
             }
 
