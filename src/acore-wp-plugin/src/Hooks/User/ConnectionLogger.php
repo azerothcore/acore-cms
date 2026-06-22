@@ -105,22 +105,65 @@ function acore_log_ingame_last_ip($user) {
 }
 
 function acore_resolve_client_ip() {
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $remote = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $ip     = $remote;
 
-    if (get_option('acore_trust_proxy_headers', '0') === '1') {
+    // Honour forwarded headers only when REMOTE_ADDR is a configured trusted proxy.
+    if (get_option('acore_trust_proxy_headers', '0') === '1' && acore_ip_is_trusted_proxy($remote)) {
         if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            $ip = trim($parts[0]);
-        } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $parts     = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $candidate = trim($parts[0]);
+            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                $ip = $candidate;
+            }
+        } elseif (!empty($_SERVER['HTTP_CLIENT_IP']) && filter_var($_SERVER['HTTP_CLIENT_IP'], FILTER_VALIDATE_IP)) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
         }
     }
 
     $ip = trim((string) $ip);
     if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $ip = $remote;
     }
     return $ip;
+}
+
+function acore_ip_is_trusted_proxy($ip): bool {
+    $list = get_option('acore_trusted_proxies', '');
+    if (!is_string($list) || trim($list) === '') {
+        return false;
+    }
+    foreach (preg_split('/[\s,]+/', trim($list)) as $entry) {
+        if ($entry !== '' && acore_ip_in_cidr($ip, $entry)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function acore_ip_in_cidr($ip, $cidr): bool {
+    if (strpos($cidr, '/') === false) {
+        return $ip === $cidr;
+    }
+    list($subnet, $bits) = explode('/', $cidr, 2);
+    $bits  = (int) $bits;
+    $ipBin = @inet_pton($ip);
+    $suBin = @inet_pton($subnet);
+    if ($ipBin === false || $suBin === false || strlen($ipBin) !== strlen($suBin)) {
+        return false;
+    }
+    $bytes = intdiv($bits, 8);
+    $rem   = $bits % 8;
+    if ($bytes > 0 && substr($ipBin, 0, $bytes) !== substr($suBin, 0, $bytes)) {
+        return false;
+    }
+    if ($rem > 0) {
+        $mask = chr((0xff << (8 - $rem)) & 0xff);
+        if ((ord($ipBin[$bytes]) & ord($mask)) !== (ord($suBin[$bytes]) & ord($mask))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function acore_lookup_country($ip) {

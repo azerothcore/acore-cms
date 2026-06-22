@@ -21,7 +21,7 @@ function acore_process_security_password() {
         exit;
     }
 
-    if (\ACore\Components\ServerInfo\acore_website_totp_enabled($user->ID)
+    if (\ACore\Components\ServerInfo\acore_website_2fa_enabled($user->ID)
         && !get_transient(\ACore\Components\ServerInfo\acore_2fa_unlock_key($user->ID))) {
         acore_pw_set_message($user->ID, 'error', __('Please verify your 2FA code before changing your password.', 'acore-wp-plugin'));
         wp_redirect($security_url);

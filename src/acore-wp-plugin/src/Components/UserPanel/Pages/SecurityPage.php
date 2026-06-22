@@ -94,11 +94,14 @@ $expandOnLoad = !empty($passwordMessage);
     </div>
 
     <?php
-    $websiteTotpEnabled = !empty($twoFaData['plugin_active']) && !empty($twoFaData['totp_enabled']);
-    $websiteAnyEnabled  = !empty($twoFaData['plugin_active']) && (!empty($twoFaData['totp_enabled']) || !empty($twoFaData['email_enabled']));
-    $twofaUnlocked      = $websiteTotpEnabled && (bool) get_transient(\ACore\Components\ServerInfo\acore_2fa_unlock_key($user->ID));
-    $restBase   = rest_url(ACORE_SLUG . '/v1/remove-ingame-2fa');
-    $verifyBase = rest_url(ACORE_SLUG . '/v1/verify-website-2fa');
+    $websiteTotpEnabled  = !empty($twoFaData['plugin_active']) && !empty($twoFaData['totp_enabled']);
+    $websiteEmailEnabled = !empty($twoFaData['plugin_active']) && !empty($twoFaData['email_enabled']);
+    $websiteAnyEnabled   = $websiteTotpEnabled || $websiteEmailEnabled;
+    $twofaUnlocked       = $websiteAnyEnabled && (bool) get_transient(\ACore\Components\ServerInfo\acore_2fa_unlock_key($user->ID));
+    $restBase         = rest_url(ACORE_SLUG . '/v1/remove-ingame-2fa');
+    $verifyBase       = rest_url(ACORE_SLUG . '/v1/verify-website-2fa');
+    $emailRequestBase = rest_url(ACORE_SLUG . '/v1/request-email-2fa');
+    $emailVerifyBase  = rest_url(ACORE_SLUG . '/v1/verify-email-2fa');
     $statusBase = rest_url(ACORE_SLUG . '/v1/2fa-status');
     $restNonce  = wp_create_nonce('wp_rest');
 
@@ -214,7 +217,7 @@ $expandOnLoad = !empty($passwordMessage);
                 );
                 ?>
 
-                <?php if ($websiteTotpEnabled && $twofaUnlocked): ?>
+                <?php if ($twofaUnlocked): ?>
                     <!-- Already unlocked recently: show the management UI directly (no re-prompt on refresh) -->
                     <div id="acore-2fa-panel" style="margin-top:16px;">
                         <?= $wp2faHtml ?>
@@ -234,6 +237,30 @@ $expandOnLoad = !empty($passwordMessage);
                             </button>
                         </div>
                         <div id="acore-2fa-gate-msg" style="font-size:13px; margin-top:8px;"></div>
+                    </div>
+                    <div id="acore-2fa-panel" style="display:none; margin-top:16px;">
+                        <?= $wp2faHtml ?>
+                    </div>
+                <?php elseif ($websiteEmailEnabled): ?>
+                    <!-- Email-based 2FA: email a one-time code, then reveal the management UI -->
+                    <div id="acore-2fa-gate-email">
+                        <p style="margin:0 0 8px; color:#646970; font-size:13px;">
+                            <?php _e('For your security, request a code by email and enter it to view or regenerate your backup codes and 2FA settings.', 'acore-wp-plugin'); ?>
+                        </p>
+                        <p style="margin:0 0 8px;">
+                            <button type="button" id="acore-2fa-email-send" class="button">
+                                <?php _e('Email me a code', 'acore-wp-plugin'); ?>
+                            </button>
+                        </p>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <input type="text" id="acore-2fa-email-code" inputmode="numeric" pattern="\d{6}"
+                                   maxlength="6" placeholder="000000" autocomplete="one-time-code"
+                                   style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
+                            <button type="button" id="acore-2fa-email-verify" class="button button-primary">
+                                <?php _e('Unlock', 'acore-wp-plugin'); ?>
+                            </button>
+                        </div>
+                        <div id="acore-2fa-email-msg" style="font-size:13px; margin-top:8px;"></div>
                     </div>
                     <div id="acore-2fa-panel" style="display:none; margin-top:16px;">
                         <?= $wp2faHtml ?>
@@ -518,6 +545,73 @@ $expandOnLoad = !empty($passwordMessage);
             });
         }
     }
+
+    /* Website 2FA gate (email method): email a code, then unlock the panel */
+    var emailSend   = document.getElementById('acore-2fa-email-send');
+    var emailVerify = document.getElementById('acore-2fa-email-verify');
+    if (emailSend && emailVerify) {
+        var emsg = document.getElementById('acore-2fa-email-msg');
+        var revealEmailPanel = function(){
+            var g = document.getElementById('acore-2fa-gate-email');
+            var p = document.getElementById('acore-2fa-panel');
+            if (g) g.style.display = 'none';
+            if (p) p.style.display = '';
+        };
+        emailSend.addEventListener('click', function(){
+            emailSend.disabled = true;
+            emailSend.textContent = '<?php echo esc_js(__('Sending…', 'acore-wp-plugin')); ?>';
+            emsg.textContent = '';
+            fetch('<?= esc_js($emailRequestBase) ?>', {
+                method: 'POST',
+                headers: { 'X-WP-Nonce': '<?= esc_js($restNonce) ?>' }
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d && d.success) {
+                    emsg.style.color = '#00a32a';
+                    emsg.textContent = '<?php echo esc_js(__('A code has been sent to your email.', 'acore-wp-plugin')); ?>';
+                } else { throw d; }
+            })
+            .catch(function(err){
+                emsg.style.color = '#d63638';
+                emsg.textContent = (err && (err.message || (err.data && err.data.message))) || '<?php echo esc_js(__('Could not send the code. Please try again.', 'acore-wp-plugin')); ?>';
+            })
+            .finally(function(){
+                emailSend.disabled = false;
+                emailSend.textContent = '<?php echo esc_js(__('Email me a code', 'acore-wp-plugin')); ?>';
+            });
+        });
+        var submitEmail = function(){
+            var code = (document.getElementById('acore-2fa-email-code').value || '').trim();
+            if (!/^\d{6}$/.test(code)) {
+                emsg.style.color = '#d63638';
+                emsg.textContent = '<?php echo esc_js(__('Please enter a valid 6-digit code.', 'acore-wp-plugin')); ?>';
+                return;
+            }
+            emailVerify.disabled = true;
+            emailVerify.textContent = '<?php echo esc_js(__('Verifying…', 'acore-wp-plugin')); ?>';
+            fetch('<?= esc_js($emailVerifyBase) ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': '<?= esc_js($restNonce) ?>' },
+                body: JSON.stringify({ code: code })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){ if (d && d.success) { revealEmailPanel(); } else { throw d; } })
+            .catch(function(err){
+                emsg.style.color = '#d63638';
+                emsg.textContent = (err && (err.message || (err.data && err.data.message))) || '<?php echo esc_js(__('Incorrect code. Please try again.', 'acore-wp-plugin')); ?>';
+                emailVerify.disabled = false;
+                emailVerify.textContent = '<?php echo esc_js(__('Unlock', 'acore-wp-plugin')); ?>';
+            });
+        };
+        emailVerify.addEventListener('click', submitEmail);
+        var emailInput = document.getElementById('acore-2fa-email-code');
+        if (emailInput) {
+            emailInput.addEventListener('keydown', function(e){
+                if (e.key === 'Enter') { e.preventDefault(); submitEmail(); }
+            });
+        }
+    }
 })();
 
 /* Real-time 2FA removal detection: reload when state changes */
@@ -525,7 +619,7 @@ $expandOnLoad = !empty($passwordMessage);
     var statusUrl = '<?= esc_js($statusBase) ?>';
     var nonce     = '<?= esc_js($restNonce) ?>';
     var initial   = {
-        website: <?= $websiteTotpEnabled ? 'true' : 'false' ?>,
+        website: <?= $websiteAnyEnabled ? 'true' : 'false' ?>,
         ingame:  <?= $ingame2faActive ? 'true' : 'false' ?>,
         count:   <?= (int) count($adminLog) ?>
     };

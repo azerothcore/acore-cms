@@ -490,6 +490,55 @@ add_action( 'rest_api_init', function () {
        }
    ) );
 
+   // User: email an unlock code (for accounts using email-based website 2FA)
+   register_rest_route( ACORE_SLUG . '/v1', 'request-email-2fa', array(
+       'methods'             => 'POST',
+       'permission_callback' => function() { return is_user_logged_in(); },
+       'callback'            => function() {
+           $user    = wp_get_current_user();
+           $primary = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
+           $methods = is_array($primary) ? $primary : ($primary !== '' ? [$primary] : []);
+           if (!in_array('email', $methods, true))
+               return new \WP_Error('no_email_2fa', __('Email 2FA is not enabled on your account.'), ['status' => 400]);
+
+           $code = (string) wp_rand(100000, 999999);
+           set_transient('acore_2fa_email_code_' . acore_2fa_unlock_key($user->ID), wp_hash($code), 10 * MINUTE_IN_SECONDS);
+
+           $sent = wp_mail(
+               $user->user_email,
+               __('Your security verification code', 'acore-wp-plugin'),
+               sprintf(__('Your verification code is: %s (valid for 10 minutes).', 'acore-wp-plugin'), $code)
+           );
+           if (!$sent)
+               return new \WP_Error('email_failed', __('Could not send the email. Please try again later.'), ['status' => 500]);
+
+           return ['success' => true];
+       }
+   ) );
+
+   // User: verify an emailed code to unlock sensitive panels (same unlock as TOTP)
+   register_rest_route( ACORE_SLUG . '/v1', 'verify-email-2fa', array(
+       'methods'             => 'POST',
+       'permission_callback' => function() { return is_user_logged_in(); },
+       'callback'            => function( \WP_REST_Request $request ) {
+           $user = wp_get_current_user();
+           $key  = 'acore_2fa_email_code_' . acore_2fa_unlock_key($user->ID);
+           $data = $request->get_json_params();
+           $code = isset($data['code']) ? trim((string) $data['code']) : '';
+           if (!preg_match('/^\d{6}$/', $code))
+               return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
+
+           $stored = get_transient($key);
+           if (!$stored || !hash_equals((string) $stored, wp_hash($code)))
+               return new \WP_Error('wrong_token', __('Incorrect or expired code. Please try again.'), ['status' => 401]);
+
+           delete_transient($key);
+           set_transient(acore_2fa_unlock_key($user->ID), time(), 30 * MINUTE_IN_SECONDS);
+
+           return ['success' => true];
+       }
+   ) );
+
    // User: lightweight 2FA status for real-time removal detection on the Security page
    register_rest_route( ACORE_SLUG . '/v1', '2fa-status', array(
        'methods'             => 'GET',
