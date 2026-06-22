@@ -13,6 +13,10 @@ class ToolsApi {
     public static function ItemRestore($data) {
         $item = $data['item'];
         $cname = $data['cname'];
+        if (!is_numeric($item) || intval($item) <= 0) {
+            return new \WP_Error('invalid_item', 'Invalid item id.', ['status' => 400]);
+        }
+        $item = intval($item);
         if (!ACoreServices::I()->currentAccountOwnsCharacterName($cname)) {
             return new \WP_Error('forbidden', 'You do not own that character.', ['status' => 403]);
         }

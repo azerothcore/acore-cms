@@ -27,6 +27,7 @@ class UserController {
         $user = wp_get_current_user();
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            check_admin_referer('acore_raf_recruit', 'acore_raf_nonce');
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
 
             if ($maxRecruitDatetime < (new \DateTime())) {

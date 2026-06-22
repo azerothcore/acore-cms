@@ -124,15 +124,13 @@ function acore_resolve_client_ip() {
 }
 
 function acore_lookup_country($ip) {
-    $private_ranges = ['127.', '10.', '192.168.', '172.16.', '172.17.', '172.18.',
-                       '172.19.', '172.20.', '172.21.', '172.22.', '172.23.', '172.24.',
-                       '172.25.', '172.26.', '172.27.', '172.28.', '172.29.', '172.30.',
-                       '172.31.', '::1'];
-
-    foreach ($private_ranges as $range) {
-        if (strpos($ip, $range) === 0) {
-            return 'Local';
-        }
+    // Only send public IPs to the GeoIP provider (filter_var + RFC 6598 100.64/10).
+    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        return 'Local';
+    }
+    $long = ip2long($ip);
+    if ($long !== false && ($long & 0xFFC00000) === (ip2long('100.64.0.0') & 0xFFC00000)) {
+        return 'Local';
     }
 
     if (get_option('acore_geoip_lookup', '0') !== '1') {

@@ -164,7 +164,7 @@ function acore_ingame_2fa_enabled(int $userId): bool {
  * the only IP ever recorded is the user's - never an administrator's.
  */
 function acore_2fa_sync_self_removals(int $userId): void {
-    $enabled = acore_website_totp_enabled($userId);
+    $enabled = acore_website_2fa_enabled($userId);
     $seen    = get_user_meta($userId, 'acore_2fa_ws_seen_enabled', true);
 
     if ($seen === '') {

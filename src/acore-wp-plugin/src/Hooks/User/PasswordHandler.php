@@ -78,7 +78,7 @@ function acore_process_security_password() {
     }
 
     if ($soapError !== null) {
-        error_log('[acore] in-game password sync failed for ' . $user->user_login . ': ' . $soapError);
+        error_log('[acore] in-game password sync failed (user ID ' . $user->ID . '): ' . $soapError);
         acore_pw_set_message($user->ID, 'error', __('The in-game password could not be updated, so your website password was left unchanged. Please try again later.', 'acore-wp-plugin'));
         wp_redirect($security_url);
         exit;

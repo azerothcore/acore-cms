@@ -32,6 +32,7 @@ $userId = $acServices->getAcoreAccountId();
                         <?php if ($maxRecruitDatetime >= (new \DateTime())) { ?>
                         <p>You still have until <b><?php echo $maxRecruitDatetime->format('D, d M Y H:i'); ?> [server time]</b> to be recruited by a friend, enter his username here: </p>
                         <form method="post">
+                            <?php wp_nonce_field('acore_raf_recruit', 'acore_raf_nonce'); ?>
                             <p>
                                 <input type="text" name="recruited" value="" placeholder="Recruiter code" size="20" required />
                                 <input type="submit" name="Submit" class="button-primary" value="Recruit me!" />

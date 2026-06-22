@@ -82,6 +82,7 @@
 
     var listUrl    = '<?= get_rest_url(null, 'acore/v1/item-restore/list/') ?>';
     var restoreUrl = '<?= get_rest_url(null, 'acore/v1/item-restore') ?>';
+    var restNonce  = '<?= esc_js(wp_create_nonce('wp_rest')) ?>';
 
     // wowhead quality class → card border colour
     var wowQualityColors = {
@@ -106,7 +107,7 @@
         content.style.display = 'none';
         grid.innerHTML = '';
 
-        fetch(listUrl + guid)
+        fetch(listUrl + guid, { headers: { 'Accept': 'application/json', 'X-WP-Nonce': restNonce } })
             .then(function (r) { return r.json(); })
             .then(function (items) {
                 loading.style.display = 'none';
@@ -184,7 +185,7 @@
             })
             .catch(function (msg) {
                 loading.style.display = 'none';
-                errorBox.innerHTML = msg;
+                errorBox.textContent = msg && msg.message ? msg.message : String(msg);
             });
     }
 
@@ -195,14 +196,14 @@
 
         fetch(restoreUrl, {
             method: 'POST',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-WP-Nonce': restNonce },
             body: JSON.stringify({ item: id, cname: characterName }),
         })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (typeof data === 'string' && data.toLowerCase().includes('mail')) {
                     cardEl.parentElement.removeChild(cardEl);
-                    successBox.innerHTML = data;
+                    successBox.textContent = data;
                     successBox.classList.remove('invisible');
                     // renumber remaining cards
                     var remaining = grid.querySelectorAll('.item-restore-card');
@@ -215,13 +216,13 @@
                         noResults.style.display = 'block';
                     }
                 } else {
-                    errorBox.innerHTML = data;
+                    errorBox.textContent = typeof data === 'string' ? data : JSON.stringify(data);
                     btnEl.disabled = false;
                     btnEl.textContent = 'Restore';
                 }
             })
             .catch(function (err) {
-                errorBox.innerHTML = err && err.message ? err.message : 'An error occurred.';
+                errorBox.textContent = err && err.message ? err.message : 'An error occurred.';
                 btnEl.disabled = false;
                 btnEl.textContent = 'Restore';
             });
@@ -269,8 +270,8 @@
     }
 
     function resetState() {
-        errorBox.innerHTML = '';
-        successBox.innerHTML = '';
+        errorBox.textContent = '';
+        successBox.textContent = '';
         successBox.classList.add('invisible');
         noResults.style.display = 'none';
     }
