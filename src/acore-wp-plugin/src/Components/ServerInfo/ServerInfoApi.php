@@ -495,7 +495,11 @@ add_action( 'rest_api_init', function () {
        'methods'             => 'POST',
        'permission_callback' => function() { return is_user_logged_in(); },
        'callback'            => function() {
-           $user    = wp_get_current_user();
+           $user     = wp_get_current_user();
+           $rateKey  = 'acore_2fa_email_rate_' . $user->ID;
+           if (get_transient($rateKey))
+               return new \WP_Error('rate_limited', __('Please wait before requesting another code.'), ['status' => 429]);
+
            $primary = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
            $methods = is_array($primary) ? $primary : ($primary !== '' ? [$primary] : []);
            if (!in_array('email', $methods, true))
@@ -503,6 +507,7 @@ add_action( 'rest_api_init', function () {
 
            $code = (string) wp_rand(100000, 999999);
            set_transient('acore_2fa_email_code_' . acore_2fa_unlock_key($user->ID), wp_hash($code), 10 * MINUTE_IN_SECONDS);
+           set_transient($rateKey, true, 60);
 
            $sent = wp_mail(
                $user->user_email,
