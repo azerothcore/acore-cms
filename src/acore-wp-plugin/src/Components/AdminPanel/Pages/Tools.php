@@ -14,7 +14,8 @@
         opacity: 0.45;
         cursor: not-allowed;
     }
-    .acore-days-inactive-disabled input {
+    .acore-days-inactive-disabled input,
+    .acore-days-inactive-disabled select {
         pointer-events: none;
     }
 
@@ -98,7 +99,7 @@
                                 <table class="form-table table table-borderless" role="presentation">
                                     <tbody>
                                         <tr>
-                                            <th><label for="acore_item_restoration">Item Restoration Service</label></th>
+                                            <th><label class="acore-help-label" title="Lets players restore recently deleted items to their characters via in-game mail.">Item Restoration Service</label></th>
                                             <td>
                                                 <select name="acore_item_restoration" id="acore_item_restoration">
                                                     <option value="0">Disabled</option>
@@ -110,11 +111,11 @@
                                             <th>
                                                 <?php if (!$hasResurrectionMod): ?>
                                                     <span class="acore-missing-module-wrap">
-                                                        <label for="acore_resurrection_scroll" style="color:#d63638;">Scroll of Resurrection</label>
+                                                        <label class="acore-help-label" style="color:#d63638;" title="Allows inactive characters to be restored via the Scroll of Resurrection module.">Scroll of Resurrection</label>
                                                         <span class="acore-missing-module-tooltip">Requires module mod-resurrection-scroll</span>
                                                     </span>
                                                 <?php else: ?>
-                                                    <label for="acore_resurrection_scroll">Scroll of Resurrection</label>
+                                                    <label class="acore-help-label" title="Allows inactive characters to be restored via the Scroll of Resurrection module.">Scroll of Resurrection</label>
                                                 <?php endif; ?>
                                             </th>
                                             <td>
@@ -134,7 +135,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th><label for="acore_resurrection_scroll_days_inactive">Days Inactive</label></th>
+                                            <th><label class="acore-help-label" title="How many days a character must be inactive before a Scroll of Resurrection can target it.">Days Inactive</label></th>
                                             <td>
                                                 <span id="acore-days-inactive-wrap"
                                                       class="<?= !$scrollEnabled ? 'acore-days-inactive-disabled' : '' ?>"
@@ -163,7 +164,7 @@
                                 <table class="form-table table table-borderless" role="presentation">
                                     <tbody>
                                         <tr>
-                                            <th><label for="acore_security_logging">Security Logging</label></th>
+                                            <th><label class="acore-help-label" title="Records each website login (IP, country, date) and the account's last in-game IP for the Recent Connections view.">Security Logging</label></th>
                                             <td>
                                                 <select name="acore_security_logging" id="acore_security_logging">
                                                     <option value="0" <?php if (Opts::I()->acore_security_logging != '1') echo 'selected'; ?>>Disabled</option>
@@ -172,7 +173,20 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th><label for="acore_allow_old_passwords">Allow Old Passwords</label></th>
+                                            <th><label class="acore-help-label" title="When enabled, login IPs are sent to ip-api.com to resolve their country. Disabled keeps IPs in-house (country shows as Unknown). Backfills older Unknown entries in the background within ip-api's free rate limit.">GeoIP Country Lookup</label></th>
+                                            <td>
+                                                <span id="acore-geoip-wrap"
+                                                      class="<?= Opts::I()->acore_security_logging != '1' ? 'acore-days-inactive-disabled' : '' ?>"
+                                                      title="<?= Opts::I()->acore_security_logging != '1' ? 'Security Logging must be enabled' : '' ?>">
+                                                    <select name="acore_geoip_lookup" id="acore_geoip_lookup" <?= Opts::I()->acore_security_logging != '1' ? 'disabled' : '' ?>>
+                                                        <option value="0" <?php if (Opts::I()->acore_geoip_lookup != '1') echo 'selected'; ?>>Disabled</option>
+                                                        <option value="1" <?php if (Opts::I()->acore_geoip_lookup == '1') echo 'selected'; ?>>Enabled</option>
+                                                    </select>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th><label class="acore-help-label" title="If disabled, users cannot reuse any of their last 10 passwords when changing it.">Allow Old Passwords</label></th>
                                             <td>
                                                 <select name="acore_allow_old_passwords" id="acore_allow_old_passwords">
                                                     <option value="0" <?php if (Opts::I()->acore_allow_old_passwords != '1') echo 'selected'; ?>>Disabled</option>
@@ -312,6 +326,14 @@
         $wrap.toggleClass('acore-days-inactive-disabled', !on)
              .attr('title', on ? '' : 'Scroll of Resurrection must be enabled');
         $('#acore_resurrection_scroll_days_inactive').prop('disabled', !on);
+    });
+
+    /* GeoIP depends on Security Logging being enabled */
+    $('#acore_security_logging').on('change', function(){
+        var on = $(this).val() === '1';
+        $('#acore-geoip-wrap').toggleClass('acore-days-inactive-disabled', !on)
+             .attr('title', on ? '' : 'Security Logging must be enabled');
+        $('#acore_geoip_lookup').prop('disabled', !on);
     });
 
     /* ── 2FA helpers ──────────────────────────────────────────────────── */

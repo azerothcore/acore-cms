@@ -166,35 +166,159 @@ function acore_ip_in_cidr($ip, $cidr): bool {
     return true;
 }
 
-function acore_lookup_country($ip) {
-    // Only send public IPs to the GeoIP provider (filter_var + RFC 6598 100.64/10).
+function acore_geoip_is_public_ip($ip): bool {
     if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-        return 'Local';
+        return false;
     }
     $long = ip2long($ip);
+    // RFC 6598 shared address space (100.64.0.0/10) is not covered by the flags.
     if ($long !== false && ($long & 0xFFC00000) === (ip2long('100.64.0.0') & 0xFFC00000)) {
+        return false;
+    }
+    return true;
+}
+
+// Reuse a country already resolved for this IP in the history table (oldest wins).
+function acore_geoip_known_country($ip) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'acore_login_history';
+    $c = $wpdb->get_var($wpdb->prepare(
+        "SELECT country FROM {$table} WHERE ip_address = %s AND country NOT IN ('Unknown', 'Local', '') ORDER BY login_at ASC, id ASC LIMIT 1",
+        $ip
+    ));
+    return $c ?: null;
+}
+
+function acore_geoip_is_blocked(): bool {
+    return (bool) get_transient('acore_geoip_blocked');
+}
+
+// Honour ip-api rate-limit headers: if X-Rl hits 0, stop calling for X-Ttl seconds.
+function acore_geoip_note_headers($response): void {
+    $rl  = wp_remote_retrieve_header($response, 'x-rl');
+    $ttl = wp_remote_retrieve_header($response, 'x-ttl');
+    if ($rl !== '' && (int) $rl <= 0) {
+        set_transient('acore_geoip_blocked', 1, max(1, (int) $ttl));
+    }
+}
+
+function acore_lookup_country($ip) {
+    if (!acore_geoip_is_public_ip($ip)) {
         return 'Local';
     }
-
     if (get_option('acore_geoip_lookup', '0') !== '1') {
         return 'Unknown';
     }
-
-    $response = wp_remote_get("https://ip-api.com/json/{$ip}?fields=status,countryCode", [
-        'timeout' => 3,
-    ]);
-
-    if (is_wp_error($response)) {
+    // Already resolved this IP before? Reuse it - no API call.
+    $known = acore_geoip_known_country($ip);
+    if ($known) {
+        return $known;
+    }
+    // Inside an ip-api cooldown - defer to the backfill cron.
+    if (acore_geoip_is_blocked()) {
         return 'Unknown';
     }
 
-    $data = json_decode(wp_remote_retrieve_body($response), true);
+    $response = wp_remote_get("http://ip-api.com/json/{$ip}?fields=status,countryCode", [
+        'timeout' => 3,
+    ]);
+    if (is_wp_error($response)) {
+        return 'Unknown';
+    }
+    acore_geoip_note_headers($response);
 
+    $data = json_decode(wp_remote_retrieve_body($response), true);
     if (isset($data['status'], $data['countryCode']) && $data['status'] === 'success') {
         return $data['countryCode'];
     }
-
     return 'Unknown';
+}
+
+/* GeoIP backfill: resolve Unknown countries in the background, oldest first,
+   reusing known IPs and using the batch endpoint, within ip-api's limits. */
+add_filter('cron_schedules', function ($s) {
+    if (!isset($s['acore_5min'])) {
+        $s['acore_5min'] = ['interval' => 300, 'display' => 'Every 5 minutes (ACore)'];
+    }
+    return $s;
+});
+
+add_action('init', __NAMESPACE__ . '\\acore_geoip_schedule_backfill');
+function acore_geoip_schedule_backfill() {
+    if (!wp_next_scheduled('acore_geoip_backfill_event')) {
+        wp_schedule_event(time() + 300, 'acore_5min', 'acore_geoip_backfill_event');
+    }
+}
+
+add_action('acore_geoip_backfill_event', __NAMESPACE__ . '\\acore_geoip_backfill');
+function acore_geoip_backfill() {
+    if (get_option('acore_security_logging', '0') !== '1'
+        || get_option('acore_geoip_lookup', '0') !== '1'
+        || acore_geoip_is_blocked()) {
+        return;
+    }
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'acore_login_history';
+
+    $rows = $wpdb->get_results(
+        "SELECT ip_address, MIN(login_at) AS oldest
+         FROM {$table}
+         WHERE country = 'Unknown'
+         GROUP BY ip_address
+         ORDER BY oldest ASC
+         LIMIT 100",
+        ARRAY_A
+    );
+    if (!$rows) {
+        return;
+    }
+
+    $toQuery = [];
+    foreach ($rows as $r) {
+        $ip = $r['ip_address'];
+        if (!acore_geoip_is_public_ip($ip)) {
+            $wpdb->query($wpdb->prepare("UPDATE {$table} SET country = 'Local' WHERE ip_address = %s AND country = 'Unknown'", $ip));
+            continue;
+        }
+        $known = acore_geoip_known_country($ip);
+        if ($known) {
+            $wpdb->query($wpdb->prepare("UPDATE {$table} SET country = %s WHERE ip_address = %s AND country = 'Unknown'", $known, $ip));
+            continue;
+        }
+        $toQuery[] = $ip;
+    }
+    if (empty($toQuery)) {
+        return;
+    }
+
+    $toQuery  = array_slice(array_values(array_unique($toQuery)), 0, 100);
+    $response = wp_remote_post('http://ip-api.com/batch?fields=status,countryCode,query', [
+        'timeout' => 5,
+        'headers' => ['Content-Type' => 'application/json'],
+        'body'    => wp_json_encode(array_map(function ($ip) { return ['query' => $ip]; }, $toQuery)),
+    ]);
+    if (is_wp_error($response)) {
+        return;
+    }
+    acore_geoip_note_headers($response);
+
+    $results = json_decode(wp_remote_retrieve_body($response), true);
+    if (!is_array($results)) {
+        return;
+    }
+    foreach ($results as $res) {
+        if (empty($res['query'])) {
+            continue;
+        }
+        if (isset($res['status'], $res['countryCode']) && $res['status'] === 'success') {
+            $wpdb->query($wpdb->prepare(
+                "UPDATE {$table} SET country = %s WHERE ip_address = %s AND country = 'Unknown'",
+                $res['countryCode'],
+                $res['query']
+            ));
+        }
+    }
 }
 
 function acore_get_login_history($user_id, $limit = 50) {

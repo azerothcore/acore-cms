@@ -42,6 +42,26 @@ button.acore-char-row {
     appearance: none;
 }
 
+/* Clicking a card/button shouldn't select its text (name, number, label). */
+button.acore-char-row,
+button.acore-char-row *,
+.item-restore-card,
+.item-restore-card * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Tools setting labels: informational only (no control activation), help cursor. */
+.acore-help-label {
+    cursor: help;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .acore-char-row {
     display: flex;
     align-items: center;

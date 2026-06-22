@@ -26,6 +26,7 @@
                                     <button type="button" class="acore-char-row acore-char-card"
                                          data-char-guid="<?= intval($char['guid']) ?>"
                                          data-char-name="<?= esc_attr($char['name']) ?>"
+                                         title="<?= esc_attr(sprintf('Show items that can be restored to %s', $char['name'])) ?>"
                                          style="<?= esc_attr($clsStyle) ?>">
                                         <span class="acore-char-name"><?= esc_html($char['name']) ?></span>
                                         <span class="acore-char-meta">
@@ -128,6 +129,7 @@
                     var num = document.createElement('span');
                     num.className = 'item-restore-num';
                     num.textContent = index + 1;
+                    num.title = 'Position in your list of restorable items.';
 
                     // Icon container — wowhead puts the icon as background-image on the <a>
                     var iconWrap = document.createElement('div');
@@ -144,6 +146,7 @@
                     btn.className = 'item-restore-btn';
                     btn.type = 'button';
                     btn.textContent = 'Restore';
+                    btn.title = 'Send this item back to ' + characterName + ' by in-game mail.';
                     (function (itemId, charName, cardEl, btnEl) {
                         btnEl.addEventListener('click', function () {
                             restoreItem(itemId, charName, cardEl, btnEl);
@@ -153,6 +156,7 @@
                     // Delete date
                     var dateEl = document.createElement('span');
                     dateEl.className = 'item-restore-date';
+                    dateEl.title = 'Date this item was deleted.';
                     var d = item['DeleteDate'];
                     if (d) {
                         var dStr = String(d);
