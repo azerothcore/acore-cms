@@ -402,16 +402,44 @@ class ACoreServices
     }
 
     public function getRestorableItemsByCharacter($character) {
-        $query = "SELECT `Id`, `ItemEntry`
-            FROM `recovery_item`
-            WHERE `Guid` = ?
-        ";
+        $conn  = $this->getCharacterEm()->getConnection();
+        $accId = $this->getAcoreAccountId();
+
+        if (!is_numeric($character) || !$accId) {
+            throw new \InvalidArgumentException('Invalid character');
+        }
+
+        $ownership = $conn->prepare(
+            "SELECT 1 FROM `characters` WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL"
+        );
+        $ownership->bindValue(1, intval($character));
+        $ownership->bindValue(2, intval($accId));
+        if (!$ownership->executeQuery()->fetchOne()) {
+            throw new \InvalidArgumentException('Character not found');
+        }
+
+        $stmt = $conn->prepare(
+            "SELECT `Id`, `ItemEntry`, `Count`, `DeleteDate`
+             FROM `recovery_item`
+             WHERE `Guid` = ?
+             ORDER BY `DeleteDate` DESC"
+        );
+        $stmt->bindValue(1, intval($character));
+        return $stmt->executeQuery()->fetchAllAssociative();
+    }
+
+    public function currentAccountOwnsCharacterName($name): bool {
+        $accId = $this->getAcoreAccountId();
+        if (!$accId || $name === '' || $name === null) {
+            return false;
+        }
         $conn = $this->getCharacterEm()->getConnection();
-        $stmt = $conn->prepare($query);
-        $stmt->bindValue(1, $character);
-        $stmt->executeQuery();
-        $res = $stmt->executeQuery();
-        return $res->fetchAllAssociative();
+        $stmt = $conn->prepare(
+            "SELECT 1 FROM `characters` WHERE `name` = ? AND `account` = ? AND `deleteDate` IS NULL"
+        );
+        $stmt->bindValue(1, $name);
+        $stmt->bindValue(2, intval($accId));
+        return (bool) $stmt->executeQuery()->fetchOne();
     }
 
     /** 
