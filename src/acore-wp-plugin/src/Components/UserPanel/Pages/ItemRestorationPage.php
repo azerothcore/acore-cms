@@ -81,9 +81,18 @@
     var noResults  = document.getElementById('item-list-no-content');
     var loading    = document.getElementById('item-restore-loading');
 
-    var listUrl    = '<?= get_rest_url(null, 'acore/v1/item-restore/list/') ?>';
-    var restoreUrl = '<?= get_rest_url(null, 'acore/v1/item-restore') ?>';
+    var listUrl    = '<?= esc_js(get_rest_url(null, ACORE_SLUG . '/v1/item-restore/list/')) ?>';
+    var restoreUrl = '<?= esc_js(get_rest_url(null, ACORE_SLUG . '/v1/item-restore')) ?>';
     var restNonce  = '<?= esc_js(wp_create_nonce('wp_rest')) ?>';
+
+    function parseJsonResponse(response) {
+        return response.json().catch(function () { return {}; }).then(function (body) {
+            if (!response.ok) {
+                throw new Error((body && body.message) ? body.message : 'Request failed.');
+            }
+            return body;
+        });
+    }
 
     // wowhead quality class → card border colour
     var wowQualityColors = {
@@ -109,7 +118,7 @@
         grid.innerHTML = '';
 
         fetch(listUrl + guid, { headers: { 'Accept': 'application/json', 'X-WP-Nonce': restNonce } })
-            .then(function (r) { return r.json(); })
+            .then(parseJsonResponse)
             .then(function (items) {
                 loading.style.display = 'none';
 
@@ -203,7 +212,7 @@
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-WP-Nonce': restNonce },
             body: JSON.stringify({ item: id, cname: characterName }),
         })
-            .then(function (r) { return r.json(); })
+            .then(parseJsonResponse)
             .then(function (data) {
                 if (typeof data === 'string' && data.toLowerCase().includes('mail')) {
                     cardEl.parentElement.removeChild(cardEl);

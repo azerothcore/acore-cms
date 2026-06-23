@@ -387,6 +387,8 @@ class SettingsController {
         //! DEV NOTE: Put the rest of stuff within try { ... } check to handle every exception properly
         try {
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                check_admin_referer('acore_tools_save', 'acore_tools_nonce');
+
                 foreach (Opts::I()->getConfs() as $key => $value) {
                     if (isset($_POST[$key])) {
                         if ($key == 'acore_name_unlock_allowed_banned_names_table') {

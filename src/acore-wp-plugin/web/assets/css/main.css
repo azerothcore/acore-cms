@@ -117,7 +117,7 @@ button.acore-char-row *,
     /* badge shape */
     padding: 2px 6px;
     border-radius: 3px;
-    border: 1.5px solid currentColor;
+    border: 1.5px solid currentcolor;
     color: #50575e;
 }
 
@@ -475,6 +475,12 @@ button.acore-char-row *,
     grid-template-columns: repeat(6, 56px);
     gap: 6px;
     justify-content: center;
+}
+
+@media (max-width: 480px) {
+    .mail-items-grid {
+        grid-template-columns: repeat(4, 56px);
+    }
 }
 
 .mail-item-slot {

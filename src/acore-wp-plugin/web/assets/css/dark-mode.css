@@ -18,7 +18,7 @@ body.acore-dark-mode #acore-security-page .postbox {
 }
 
 /* Fix hardcoded dark thead in item restoration — let dark mode handle it */
-#acore-item-restoration-page .table thead {
+body.acore-dark-mode #acore-item-restoration-page .table thead {
     background: #1d2327;
     color: #fff;
 }

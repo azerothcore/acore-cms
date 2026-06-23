@@ -635,7 +635,7 @@ function acore_profile_2fa_removal_warning($user) {
     }
 
     // Check current 2FA state - website
-    $webActive = \ACore\Components\ServerInfo\acore_website_totp_enabled($user->ID);
+    $webActive = \ACore\Components\ServerInfo\acore_website_2fa_enabled($user->ID);
 
     // Check current 2FA state - ingame
     $gameActive = false;
@@ -664,7 +664,9 @@ function acore_profile_2fa_removal_warning($user) {
                 - <?php printf(
                     __('Website 2FA removed on %1$s by %2$s.', 'acore-wp-plugin'),
                     '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>',
-                    '<strong>' . esc_html($lastWebRemoval['staff']) . '</strong>'
+                    (($lastWebRemoval['by'] ?? 'admin') === 'self'
+                        ? '<strong>' . esc_html__('you', 'acore-wp-plugin') . '</strong>'
+                        : '<strong>' . esc_html($lastWebRemoval['staff'] ?? __('a staff member', 'acore-wp-plugin')) . '</strong>')
                 ); ?>
             </p>
         <?php endif; ?>
@@ -737,7 +739,7 @@ add_action('admin_notices', function () {
         if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
     }
 
-    $webActive = \ACore\Components\ServerInfo\acore_website_totp_enabled($user->ID);
+    $webActive = \ACore\Components\ServerInfo\acore_website_2fa_enabled($user->ID);
     $gameActive = false;
     try {
         $conn   = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();

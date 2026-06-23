@@ -141,6 +141,11 @@ function acore_2fa_unlock_key(int $userId): string {
     return 'acore_2fa_panel_unlock_' . $userId . '_' . hash('sha256', $token);
 }
 
+function acore_2fa_attempt_key(int $userId): string {
+    $token = function_exists('wp_get_session_token') ? (string) wp_get_session_token() : '';
+    return 'acore_2fa_verify_attempts_' . $userId . '_' . hash('sha256', $token);
+}
+
 /**
  * Whether the current user has In-game 2FA active (account.totp_secret set).
  */
@@ -190,6 +195,7 @@ function acore_2fa_sync_self_removals(int $userId): void {
 add_action( 'rest_api_init', function () {
    register_rest_route( ACORE_SLUG . '/v1', 'server-info', array(
        'methods'  => 'GET',
+       'permission_callback' => function() { return current_user_can('manage_options'); },
        'callback' => function( $request ) {
             $result = ServerInfoApi::serverInfo();
             $errorPatterns = [
@@ -199,7 +205,8 @@ add_action( 'rest_api_init', function () {
             ];
             foreach ($errorPatterns as $pattern) {
                 if (stripos($result, $pattern) !== false) {
-                    return new \WP_Error('soap_error', $result, ['status' => 503]);
+                    error_log('[acore] server-info SOAP error: ' . (is_scalar($result) ? (string) $result : 'non-scalar response'));
+                    return new \WP_Error('soap_error', __('Server information is temporarily unavailable.', 'acore-wp-plugin'), ['status' => 503]);
                 }
             }
             return ['message' => $result];
@@ -287,12 +294,7 @@ add_action( 'rest_api_init', function () {
            }
 
            if ($type === 'website') {
-               $totpKey        = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
-               $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
-               $active         = !empty($totpKey) && (
-                   (is_array($enabledMethods) && in_array('totp', $enabledMethods, true)) ||
-                   $enabledMethods === 'totp'
-               );
+               $active      = acore_website_2fa_enabled($user->ID);
                $backupCodes = get_user_meta($user->ID, 'wp_2fa_backup_codes', true);
                $resp = [
                    'found'        => true,
@@ -438,22 +440,21 @@ add_action( 'rest_api_init', function () {
        'methods'             => 'POST',
        'permission_callback' => function() { return is_user_logged_in(); },
        'callback'            => function( \WP_REST_Request $request ) {
-           $user           = wp_get_current_user();
-           $rawKey         = (string) get_user_meta($user->ID, 'wp_2fa_totp_key', true);
-           $enabledMethods = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
-           $totpActive     = !empty($rawKey) && (
-               (is_array($enabledMethods) && in_array('totp', $enabledMethods)) ||
-               $enabledMethods === 'totp'
-           );
-           if (!$totpActive)
-               return new \WP_Error('no_website_2fa', __('You must have website 2FA (TOTP) enabled to remove in-game 2FA from here.'), ['status' => 403]);
+           $user = wp_get_current_user();
+           if (!acore_website_2fa_enabled($user->ID))
+               return new \WP_Error('no_website_2fa', __('You must have website 2FA enabled to remove in-game 2FA from here.'), ['status' => 403]);
 
-           $data  = $request->get_json_params();
-           $token = isset($data['token']) ? trim((string) $data['token']) : '';
-           if (!preg_match('/^\d{6}$/', $token))
-               return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
-           if (!\ACore\Components\ServerInfo\acore_wp2fa_code_is_valid($user->ID, $token))
-               return new \WP_Error('wrong_token', __('Incorrect code. Please try again.'), ['status' => 401]);
+           // Authorise via a recent panel unlock (TOTP or email) OR a fresh TOTP code.
+           if (!get_transient(acore_2fa_unlock_key($user->ID))) {
+               if (!acore_website_totp_enabled($user->ID))
+                   return new \WP_Error('verify_required', __('Please verify your 2FA above before removing in-game 2FA.'), ['status' => 403]);
+               $data  = $request->get_json_params();
+               $token = isset($data['token']) ? trim((string) $data['token']) : '';
+               if (!preg_match('/^\d{6}$/', $token))
+                   return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
+               if (!\ACore\Components\ServerInfo\acore_wp2fa_code_is_valid($user->ID, $token))
+                   return new \WP_Error('wrong_token', __('Incorrect code. Please try again.'), ['status' => 401]);
+           }
 
            try {
                $accId = ACoreServices::I()->getAcoreAccountId();
@@ -476,13 +477,20 @@ add_action( 'rest_api_init', function () {
            if (!acore_website_totp_enabled($user->ID))
                return new \WP_Error('no_website_2fa', __('Website 2FA is not enabled on your account.'), ['status' => 400]);
 
+           $attemptKey = acore_2fa_attempt_key($user->ID);
+           if ((int) get_transient($attemptKey) >= 5)
+               return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
+
            $data  = $request->get_json_params();
            $token = isset($data['token']) ? trim((string) $data['token']) : '';
            if (!preg_match('/^\d{6}$/', $token))
                return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
-           if (!\ACore\Components\ServerInfo\acore_wp2fa_code_is_valid($user->ID, $token))
+           if (!\ACore\Components\ServerInfo\acore_wp2fa_code_is_valid($user->ID, $token)) {
+               set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
                return new \WP_Error('wrong_token', __('Incorrect code. Please try again.'), ['status' => 401]);
+           }
 
+           delete_transient($attemptKey);
            // Remember this unlock briefly so page refreshes don't re-prompt for the code.
            set_transient(acore_2fa_unlock_key($user->ID), time(), 30 * MINUTE_IN_SECONDS);
 
@@ -528,15 +536,22 @@ add_action( 'rest_api_init', function () {
        'callback'            => function( \WP_REST_Request $request ) {
            $user = wp_get_current_user();
            $key  = 'acore_2fa_email_code_' . acore_2fa_unlock_key($user->ID);
+           $attemptKey = acore_2fa_attempt_key($user->ID);
+           if ((int) get_transient($attemptKey) >= 5)
+               return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
+
            $data = $request->get_json_params();
            $code = isset($data['code']) ? trim((string) $data['code']) : '';
            if (!preg_match('/^\d{6}$/', $code))
                return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
 
            $stored = get_transient($key);
-           if (!$stored || !hash_equals((string) $stored, wp_hash($code)))
+           if (!$stored || !hash_equals((string) $stored, wp_hash($code))) {
+               set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
                return new \WP_Error('wrong_token', __('Incorrect or expired code. Please try again.'), ['status' => 401]);
+           }
 
+           delete_transient($attemptKey);
            delete_transient($key);
            set_transient(acore_2fa_unlock_key($user->ID), time(), 30 * MINUTE_IN_SECONDS);
 

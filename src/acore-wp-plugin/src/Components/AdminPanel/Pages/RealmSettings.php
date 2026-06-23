@@ -366,6 +366,7 @@
             data: JSON.stringify({ requirements: reqs }),
             beforeSend: function(xhr){ xhr.setRequestHeader('X-WP-Nonce', nonce); }
         }).done(function(){
+            referencedSlugs = reqs.map(function(req){ return req[1]; });
             $msg.css('color', '#238636').text('Saved!');
             setTimeout(function(){ $msg.text(''); }, 3000);
         }).fail(function(){

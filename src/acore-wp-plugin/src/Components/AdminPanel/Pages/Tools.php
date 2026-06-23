@@ -88,6 +88,7 @@
             <h2>Tools</h2>
             <hr>
             <form method="post">
+                <?php wp_nonce_field('acore_tools_save', 'acore_tools_nonce'); ?>
                 <div class="row">
 
                     <!-- Col 1: World Server Integration -->
@@ -120,6 +121,7 @@
                                             </th>
                                             <td>
                                                 <?php if (!$hasResurrectionMod): ?>
+                                                    <input type="hidden" name="acore_resurrection_scroll" value="0">
                                                     <span class="acore-missing-module-wrap">
                                                         <select name="acore_resurrection_scroll" id="acore_resurrection_scroll" disabled>
                                                             <option value="0">Disabled</option>
@@ -175,6 +177,9 @@
                                         <tr>
                                             <th><label class="acore-help-label" title="When enabled, login IPs are sent to ip-api.com to resolve their country. Disabled keeps IPs in-house (country shows as Unknown). Backfills older Unknown entries in the background within ip-api's free rate limit.">GeoIP Country Lookup</label></th>
                                             <td>
+                                                <?php if (Opts::I()->acore_security_logging != '1'): ?>
+                                                    <input type="hidden" name="acore_geoip_lookup" value="0">
+                                                <?php endif; ?>
                                                 <span id="acore-geoip-wrap"
                                                       class="<?= Opts::I()->acore_security_logging != '1' ? 'acore-days-inactive-disabled' : '' ?>"
                                                       title="<?= Opts::I()->acore_security_logging != '1' ? 'Security Logging must be enabled' : '' ?>">
@@ -531,9 +536,9 @@
         const $tr = $('<tr>').appendTo('#acore-name-unlock-thresholds tbody');
         $tr.data('i', i);
         let $td = $('<td>').appendTo($tr);
-        $(`<input type="number" name="acore_name_unlock_thresholds[${i}][0]" min="1" max="256" value="${level}">`).appendTo($td);
+        $('<input>', { type: 'number', name: `acore_name_unlock_thresholds[${i}][0]`, min: 1, max: 256 }).val(level).appendTo($td);
         $td = $('<td>').appendTo($tr);
-        $(`<input type="number" name="acore_name_unlock_thresholds[${i}][1]" min="1" value="${days}">`).appendTo($td);
+        $('<input>', { type: 'number', name: `acore_name_unlock_thresholds[${i}][1]`, min: 1 }).val(days).appendTo($td);
         $td = $('<td>').appendTo($tr);
         const $btnDel = $(`<div class="button acore-btn-danger">`).appendTo($td);
         $btnDel.append(`<span class="dashicons dashicons-trash"></span>`);
@@ -588,8 +593,10 @@
     });
 
     <?php foreach (Opts::I()->acore_name_unlock_thresholds as $i => $threshold) {
-        if ($threshold[0] != '' && $threshold[1] != '') {
-            echo "addThreshold($i, $threshold[0], $threshold[1]);";
+        $level = isset($threshold[0]) ? filter_var($threshold[0], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 256]]) : false;
+        $days  = isset($threshold[1]) ? filter_var($threshold[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
+        if ($level !== false && $days !== false) {
+            echo 'addThreshold(' . wp_json_encode((int) $i) . ', ' . wp_json_encode($level) . ', ' . wp_json_encode($days) . ');';
         }
     } ?>
 

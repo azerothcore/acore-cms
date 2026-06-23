@@ -14,7 +14,7 @@ class UserController {
     private $view;
 
     public function __construct() {
-        $this->view = new UserView($this);
+        $this->view = new UserView();
     }
 
     public function showRafProgress() {
@@ -218,7 +218,7 @@ class UserController {
      * @return UserModel
      */
     public function getModel() {
-        return $this->model;
+        return $this;
     }
 
 }

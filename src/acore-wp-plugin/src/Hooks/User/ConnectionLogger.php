@@ -146,10 +146,16 @@ function acore_ip_in_cidr($ip, $cidr): bool {
         return $ip === $cidr;
     }
     list($subnet, $bits) = explode('/', $cidr, 2);
+    if (!ctype_digit((string) $bits)) {
+        return false;
+    }
     $bits  = (int) $bits;
     $ipBin = @inet_pton($ip);
     $suBin = @inet_pton($subnet);
     if ($ipBin === false || $suBin === false || strlen($ipBin) !== strlen($suBin)) {
+        return false;
+    }
+    if ($bits > strlen($ipBin) * 8) {
         return false;
     }
     $bytes = intdiv($bits, 8);

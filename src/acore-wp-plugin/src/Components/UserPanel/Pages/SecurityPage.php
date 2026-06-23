@@ -290,7 +290,7 @@ $expandOnLoad = !empty($passwordMessage);
                 <?php endif; ?>
             </h3>
 
-            <?php if (!$websiteTotpEnabled): ?>
+            <?php if (!$websiteAnyEnabled): ?>
                 <!-- Website 2FA not set up -  grey out entire in-game block with notice -->
                 <div class="acore-2fa-disabled">
             <?php endif; ?>
@@ -347,7 +347,7 @@ $expandOnLoad = !empty($passwordMessage);
                 </div>
             <?php endif; ?>
 
-            <?php if (!$websiteTotpEnabled): ?>
+            <?php if (!$websiteAnyEnabled): ?>
                 </div><!-- /greyed-out wrapper -->
                 <p class="acore-2fa-required-note">
                     <span class="dashicons dashicons-lock"></span>
@@ -457,7 +457,9 @@ $expandOnLoad = !empty($passwordMessage);
         removeBtn.addEventListener('click', function(){
             var code = document.getElementById('acore-ingame-2fa-code').value.trim();
             var msg  = document.getElementById('acore-ingame-2fa-msg');
-            if (!/^\d{6}$/.test(code)) {
+            // A code is optional when the panel was already unlocked (e.g. via email 2FA);
+            // if one is typed it must be 6 digits.
+            if (code !== '' && !/^\d{6}$/.test(code)) {
                 msg.style.color = '#d63638';
                 msg.textContent = '<?php echo esc_js(__('Please enter a valid 6-digit code.', 'acore-wp-plugin')); ?>';
                 return;
