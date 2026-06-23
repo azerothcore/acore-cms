@@ -24,9 +24,19 @@ class ResurrectionScrollMenu
         return self::$instance;
     }
 
+    private function isAvailable(): bool
+    {
+        if (Opts::I()->acore_resurrection_scroll != '1') {
+            return false;
+        }
+        $csv      = get_option('acore_modules_csv', '');
+        $modules  = $csv ? array_map('trim', explode(',', $csv)) : [];
+        return in_array('mod-resurrection-scroll', $modules);
+    }
+
     function acore_resurrection_scroll_menu()
     {
-        if (Opts::I()->acore_resurrection_scroll == '1') {
+        if ($this->isAvailable()) {
             add_submenu_page('profile.php', 'Scroll of Resurrection', 'Scroll of Resurrection', 'read', ACORE_SLUG . '-resurrection-scroll', array($this, 'acore_resurrection_scroll_menu_page'));
         }
     }
@@ -41,6 +51,5 @@ class ResurrectionScrollMenu
 function resurrection_scroll_menu_init()
 {
     $menu = ResurrectionScrollMenu::I();
-
     add_action('admin_menu', array($menu, 'acore_resurrection_scroll_menu'));
 }
