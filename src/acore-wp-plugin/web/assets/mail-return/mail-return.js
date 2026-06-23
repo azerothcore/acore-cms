@@ -1,19 +1,21 @@
 jQuery(document).ready(function () {
-    jQuery("#mail-return-char-select").on("change", function () {
-        var charGuid = jQuery(this).val();
-        var mailList = jQuery("#mail-return-list");
+    jQuery("#acore-characters-mail").on("click", ".acore-char-card", function () {
+        var card = jQuery(this);
+        var charGuid = card.data("char-guid");
         var mailItems = jQuery("#mail-return-items");
-        var emptyMsg = jQuery("#mail-return-empty");
-        var loading = jQuery("#mail-return-loading");
+        var emptyWrap = jQuery("#mail-return-empty-wrap");
+        var emptyMsg  = jQuery("#mail-return-empty");
+        var loading   = jQuery("#mail-return-loading");
+        var content   = jQuery("#mail-return-content");
 
-        if (!charGuid) {
-            mailList.hide();
-            return;
-        }
+        jQuery(".acore-char-card").removeClass("active");
+        card.addClass("active");
 
         loading.show();
-        mailList.hide();
         mailItems.empty();
+        emptyMsg.text("No unread sent mails found for this character.");
+        emptyWrap.hide();
+        content.hide();
 
         jQuery.ajax({
             type: "GET",
@@ -22,79 +24,163 @@ jQuery(document).ready(function () {
             xhrFields: { withCredentials: true },
             success: function (mails) {
                 loading.hide();
-                mailList.show();
 
                 if (mails.length === 0) {
-                    emptyMsg.show();
+                    emptyWrap.show();
                     return;
                 }
 
-                emptyMsg.hide();
+                content.show();
+
+                // Class border-left colors (mirrors AcoreCharColors.php light values)
+                var classColors = {
+                    1: '#C69B6D', 2: '#F48CBA', 3: '#AAD372', 4: '#C8A800',
+                    5: '#909090', 6: '#C41E3A', 7: '#0070DD', 8: '#3FC7EB',
+                    9: '#8788EE', 11: '#FF7C0A'
+                };
+
+                // Expansion colors for level display (mirrors User.php / AcoreCharColors.php)
+                function expansionColor(level) {
+                    if (level <= 60) return '#C39361'; // Vanilla
+                    if (level <= 70) return '#62C907'; // TBC
+                    return '#5DACEB';                   // Wrath
+                }
+
+                // Race names (mirrors AcoreCharColors::RACE_NAMES)
+                var raceNames = {
+                    1: 'Human', 2: 'Orc', 3: 'Dwarf', 4: 'Night Elf', 5: 'Undead',
+                    6: 'Tauren', 7: 'Gnome', 8: 'Troll', 10: 'Blood Elf', 11: 'Draenei'
+                };
+                var classNames = {
+                    1: 'Warrior', 2: 'Paladin', 3: 'Hunter', 4: 'Rogue', 5: 'Priest',
+                    6: 'Death Knight', 7: 'Shaman', 8: 'Mage', 9: 'Warlock', 11: 'Druid'
+                };
+
+                // Faction colors (mirrors AcoreCharColors::FACTION_COLORS)
+                var allianceRaces = [1, 3, 4, 7, 11];
+                function factionClr(raceId) {
+                    return allianceRaces.indexOf(raceId) !== -1 ? '#3FACF4' : '#FF653D';
+                }
 
                 mails.forEach(function (mail) {
-                    var sentDate = new Date(mail.deliver_time * 1000).toLocaleString();
                     var genderSuffix = mail.receiver_gender == 0 ? "m" : "f";
-                    var raceIcon = mailReturnData.assetsUrl + "race/" + mail.receiver_race + genderSuffix + ".webp";
+                    var raceIcon  = mailReturnData.assetsUrl + "race/"  + mail.receiver_race  + genderSuffix + ".webp";
                     var classIcon = mailReturnData.assetsUrl + "class/" + mail.receiver_class + ".webp";
+                    var clsColor  = classColors[mail.receiver_class] || '#646970';
+                    var faction   = factionClr(mail.receiver_race);
+                    var raceName  = raceNames[mail.receiver_race]  || 'Unknown';
+                    var clsName   = classNames[mail.receiver_class] || 'Unknown';
 
-                    // Build items HTML
-                    var itemsHtml = "";
+                    // Subject line — with optional CoD label
+                    var subjectText = mail.subject || "(No Subject)";
+                    var subjectHtml = jQuery('<div>').text(subjectText).html();
+                    var codHtml = (mail.cod && parseInt(mail.cod) > 0)
+                        ? ' <span class="mail-cod-label">· <strong>CoD</strong>: Cash on Delivery</span>'
+                        : '';
+
+                    // WoW item quality → border color
+                    var qualityColors = {
+                        0: '#9d9d9d', // Poor (gray)
+                        1: '#c0c0c0', // Common (white → light grey for dark bg visibility)
+                        2: '#1eff00', // Uncommon (green)
+                        3: '#0070dd', // Rare (blue)
+                        4: '#a335ee', // Epic (purple)
+                        5: '#ff8000', // Legendary (orange)
+                        6: '#e6cc80', // Artifact
+                        7: '#e6cc80', // Heirloom
+                    };
+
+                    // Items grid — quality-colored border, quantity always shown
+                    var itemsHtml = '';
                     if (mail.items && mail.items.length > 0) {
-                        itemsHtml = '<div class="mail-items">';
-                        mail.items.forEach(function (item, idx) {
-                            if (idx > 0) itemsHtml += "&ensp;";
-                            var qty = item.count > 1 ? " x" + item.count : "";
-                            itemsHtml += '<a href="https://www.wowhead.com/wotlk/item=' + item.itemEntry + '" data-wowhead="item=' + item.itemEntry + '">' + item.item_name + '</a>' + qty;
+                        itemsHtml = '<div class="mail-items-grid">';
+                        mail.items.forEach(function (item) {
+                            var safeName    = jQuery('<div>').text(item.item_name).html();
+                            var qualityClr  = qualityColors[item.item_quality] || '#9d9d9d';
+                            itemsHtml += '<div class="mail-item-slot" style="border-color:' + qualityClr + '" title="' + safeName + '">'
+                                + '<a href="https://www.wowhead.com/wotlk/item=' + item.itemEntry
+                                + '" data-wowhead="item=' + item.itemEntry + '" title="' + safeName + '">' + safeName + '</a>'
+                                + '<span class="mail-item-qty">' + item.count + '</span>'
+                                + '</div>';
                         });
-                        itemsHtml += "</div>";
+                        itemsHtml += '</div>';
                     }
 
-                    // Build money HTML
-                    var moneyHtml = "";
-                    if (mail.money > 0) {
-                        moneyHtml = '<div class="mail-money">Money: ' + formatMoney(mail.money) + '</div>';
-                    }
+                    // Level badge: same expansion badge as character selector
+                    var lvlExp = mail.receiver_level <= 60 ? 'vanilla' : (mail.receiver_level <= 70 ? 'tbc' : 'wrath');
+                    var levelBadge = jQuery('<span>')
+                        .addClass('acore-level')
+                        .attr('data-exp', lvlExp)
+                        .text('LEVEL ' + mail.receiver_level);
 
                     var entry = jQuery('<li>').append(
-                        jQuery('<div>').addClass('mail-entry').append(
-                            // Header row: subject + return button
-                            jQuery('<div>').addClass('mail-header').append(
-                                jQuery('<span>').addClass('mail-subject').text(mail.subject || "(No Subject)"),
-                                jQuery('<button>')
-                                    .addClass('mail-return-button')
-                                    .attr('data-mail-id', mail.id)
-                                    .attr('data-char-guid', charGuid)
-                                    .text('Return')
-                            ),
-                            // Recipient bar with icons
-                            jQuery('<div>').addClass('mail-recipient').append(
-                                jQuery('<span>').text('To:'),
-                                jQuery('<img>').attr({ src: raceIcon, alt: 'race' }),
-                                jQuery('<img>').attr({ src: classIcon, alt: 'class' }),
-                                jQuery('<span>').addClass('recipient-name').text(mail.receiver_name),
-                                jQuery('<span>').css('color', '#646970').text('(Level ' + mail.receiver_level + ')')
-                            ),
-                            // Sent date
-                            jQuery('<div>').addClass('mail-meta').text('Sent: ' + sentDate + '  |  Expires: ' + new Date(mail.expire_time * 1000).toLocaleString()),
-                            // Items
-                            jQuery(itemsHtml),
-                            // Money
-                            jQuery(moneyHtml)
+                        jQuery('<div>').addClass('mail-entry').css({
+                            // Faction color on top/right/bottom; class color on left — mirrors char row design
+                            'border-top':    '2px solid ' + faction,
+                            'border-right':  '2px solid ' + faction,
+                            'border-bottom': '2px solid ' + faction,
+                            'border-left':   '4px solid ' + clsColor,
+                        }).append(
+                            // Row 1: To (recipient) + Return button — bordered with class color
+                            jQuery('<div>').addClass('mail-header')
+                                .css('border-left-color', clsColor)
+                                .append(
+                                    jQuery('<div>').addClass('mail-recipient').append(
+                                        jQuery('<span>').addClass('mail-to-label').text('To:'),
+                                        jQuery('<img>').attr({ src: raceIcon,  height: 28, width: 28, alt: raceName, title: raceName }).addClass('mail-recipient-icon').css('border-color', faction),
+                                        jQuery('<img>').attr({ src: classIcon, height: 28, width: 28, alt: clsName,  title: clsName  }).addClass('mail-recipient-icon').css('border-color', clsColor),
+                                        jQuery('<span>').addClass('recipient-name').text(mail.receiver_name),
+                                        levelBadge
+                                    ),
+                                    jQuery('<button>')
+                                        .addClass('mail-return-button')
+                                        .attr('data-mail-id', mail.id)
+                                        .attr('data-char-guid', charGuid)
+                                        .text('Return')
+                                ),
+                            // Row 2: subject + CoD label
+                            jQuery('<div>').addClass('mail-subject').html('<span class="mail-subject-label">Title:</span> <em><strong>' + subjectHtml + '</strong></em>' + codHtml),
+                            // Row 3: item icon grid
+                            jQuery(itemsHtml)
                         )
                     );
 
                     mailItems.append(entry);
                 });
 
-                // Refresh Wowhead tooltips for the newly added links
+                // Refresh Wowhead tooltips + upgrade icons to large JPG
+                function upgradeWowheadIcons() {
+                    document.querySelectorAll('.mail-item-slot > a').forEach(function (a) {
+                        var bg = a.style.backgroundImage;
+                        if (bg) {
+                            bg = bg.replace(/\/icons\/(tiny|small)\//, '/icons/large/')
+                                   .replace(/\.gif(["']?\))/, '.jpg$1');
+                            a.style.backgroundImage = bg;
+                        }
+                    });
+                }
                 if (typeof $WowheadPower !== "undefined" && $WowheadPower.refreshLinks) {
                     $WowheadPower.refreshLinks();
+                    setTimeout(upgradeWowheadIcons, 1500);
+                } else {
+                    // power.js loads async — wait for it
+                    var attempts = 0;
+                    var wait = setInterval(function () {
+                        attempts++;
+                        if (typeof $WowheadPower !== "undefined" && $WowheadPower.refreshLinks) {
+                            $WowheadPower.refreshLinks();
+                            clearInterval(wait);
+                            setTimeout(upgradeWowheadIcons, 1500);
+                        } else if (attempts > 20) {
+                            clearInterval(wait);
+                        }
+                    }, 250);
                 }
             },
             error: function (xhr, status, error) {
                 loading.hide();
-                mailList.show();
-                emptyMsg.text("Failed to load mails.").show();
+                emptyMsg.text("Failed to load mails.");
+                emptyWrap.show();
                 console.error("Failed to load mails:", error);
             }
         });
