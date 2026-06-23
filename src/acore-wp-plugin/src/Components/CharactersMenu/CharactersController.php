@@ -14,10 +14,18 @@ class CharactersController {
 
     public function loadHome() {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $this->saveCharacterOrder();
-            ?>
-            <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
-            <?php
+            check_admin_referer('acore_character_order', 'acore_character_order_nonce');
+            if (isset($_POST["acore_reset_order"])) {
+                $this->resetCharacterOrder();
+                ?>
+                <div class="updated"><p><strong>Character order reset successfully.</strong></p></div>
+                <?php
+            } else {
+                $this->saveCharacterOrder();
+                ?>
+                <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
+                <?php
+            }
         }
 
         $accId = ACoreServices::I()->getAcoreAccountId();
@@ -36,6 +44,16 @@ class CharactersController {
 
     public function getView() {
         return $this->view;
+    }
+
+    private function resetCharacterOrder() {
+        $accId = ACoreServices::I()->getAcoreAccountId();
+        $conn = ACoreServices::I()->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare(
+            "UPDATE `characters` SET `order` = NULL WHERE `account` = ? AND `deleteDate` IS NULL"
+        );
+        $stmt->bindValue(1, $accId);
+        $stmt->executeQuery();
     }
 
     private function saveCharacterOrder() {
