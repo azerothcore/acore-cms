@@ -775,6 +775,96 @@ add_action('admin_notices', function () {
     <?php
 });
 
+// Ban / Mute warning at the TOP of Profile > Profile (admin_notices)
+add_action('admin_notices', function () {
+    global $pagenow;
+    if ($pagenow !== 'profile.php') return;
+    if (isset($_GET['page'])) return;
+
+    $now   = time();
+    $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
+    if (!$accId) return;
+
+    try {
+        $authConn = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
+        $charConn = \ACore\Manager\ACoreServices::I()->getCharacterEm()->getConnection();
+
+        $accBanRow = $authConn->executeQuery(
+            "SELECT `unbandate` FROM `account_banned`
+             WHERE `id` = ? AND `active` = 1
+               AND (`unbandate` = 0 OR `unbandate` > UNIX_TIMESTAMP())
+             ORDER BY `bandate` DESC LIMIT 1", [$accId]
+        )->fetchAssociative();
+
+        $muteRow  = $authConn->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])->fetchAssociative();
+        $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
+        $isMuted     = $mutetime < 0 || $mutetime > $now;
+        $mutePending = $mutetime < 0;
+
+        $bannedChars = $charConn->executeQuery(
+            "SELECT c.`name`, cb.`unbandate`
+             FROM `characters` c
+             JOIN `character_banned` cb ON cb.`guid` = c.`guid`
+             WHERE c.`account` = ? AND c.`deleteDate` IS NULL
+               AND cb.`active` = 1
+               AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
+             ORDER BY c.`name`", [$accId]
+        )->fetchAllAssociative();
+
+        $isAccountBanned = !empty($accBanRow);
+        $hasBannedChars  = !empty($bannedChars);
+
+        if (!$isAccountBanned && !$isMuted && !$hasBannedChars) return;
+
+    } catch (\Exception $e) { return; }
+
+    $chars_url = admin_url('profile.php?page=' . ACORE_SLUG . '-characters-menu');
+    $fmtDate   = fn($ts) => date('jS \o\f F, Y \a\t H:i', intval($ts));
+    ?>
+    <div class="notice notice-warning" style="padding:12px 14px;">
+
+        <?php if ($isMuted || $isAccountBanned): ?>
+        <div style="display:flex; gap:0; margin-bottom:<?= $hasBannedChars ? '10px' : '0' ?>;">
+            <?php if ($isMuted): ?>
+            <div style="flex:1; <?= $isAccountBanned ? 'border-right:1px solid rgba(0,0,0,0.15); padding-right:16px; margin-right:16px;' : '' ?>">
+                <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your account has been muted', 'acore-wp-plugin'); ?></p>
+                <?php if ($mutePending): ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php _e('Starts upon login', 'acore-wp-plugin'); ?></p>
+                <?php else: ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($mutetime) . '</strong>'); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            <?php if ($isAccountBanned):
+                $accBanPerma = intval($accBanRow['unbandate']) === 0; ?>
+            <div style="flex:1;">
+                <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your account has been banned', 'acore-wp-plugin'); ?></p>
+                <?php if ($accBanPerma): ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php _e('Permanently', 'acore-wp-plugin'); ?></p>
+                <?php else: ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($accBanRow['unbandate']) . '</strong>'); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($hasBannedChars): ?>
+        <?php if ($isMuted || $isAccountBanned): ?><hr style="margin:8px 0; border-color:rgba(0,0,0,0.15);"><?php endif; ?>
+        <div>
+            <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your characters have been banned', 'acore-wp-plugin'); ?></p>
+            <?php foreach ($bannedChars as $bc):
+                    $perma = intval($bc['unbandate']) === 0; ?>
+                <p style="margin:2px 0; font-size:13px;">- <strong><?= esc_html($bc['name']) ?></strong><?php if ($perma): ?> - <?php _e('Permanently banned', 'acore-wp-plugin'); ?><?php else: ?> - <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($bc['unbandate']) . '</strong>'); ?><?php endif; ?></p>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <p style="margin:8px 0 0; font-size:13px;"><a href="<?= esc_url($chars_url) ?>"><?php _e('Go to Characters page &rarr;', 'acore-wp-plugin'); ?></a></p>
+    </div>
+    <?php
+});
+
 add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connections');
 
 function acore_profile_recent_connections($user) {
