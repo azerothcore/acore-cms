@@ -46,7 +46,7 @@ class CharactersController {
                AND cb.`active` = 1
                AND (cb.`unbandate` = 0 OR cb.`unbandate` = cb.`bandate` OR cb.`unbandate` > UNIX_TIMESTAMP())
             WHERE c.`deleteDate` IS NULL AND c.`account` = ?
-            ORDER BY COALESCE(c.`order`, c.`guid`)
+            ORDER BY (c.`order` IS NULL), c.`order`, c.`guid`
         ";
         $chars = $conn->executeQuery($query, [$accId])->fetchAllAssociative();
 
