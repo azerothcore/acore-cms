@@ -781,18 +781,19 @@ add_action('admin_notices', function () {
     if ($pagenow !== 'profile.php') return;
     if (isset($_GET['page'])) return;
 
-    $now   = time();
-    $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
-    if (!$accId) return;
+    $now = time();
 
     try {
+        $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
+        if (!$accId) return;
+
         $authConn = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
         $charConn = \ACore\Manager\ACoreServices::I()->getCharacterEm()->getConnection();
 
         $accBanRow = $authConn->executeQuery(
-            "SELECT `unbandate` FROM `account_banned`
+            "SELECT `bandate`, `unbandate` FROM `account_banned`
              WHERE `id` = ? AND `active` = 1
-               AND (`unbandate` = 0 OR `unbandate` > UNIX_TIMESTAMP())
+               AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
              ORDER BY `bandate` DESC LIMIT 1", [$accId]
         )->fetchAssociative();
 
@@ -816,7 +817,7 @@ add_action('admin_notices', function () {
 
         if (!$isAccountBanned && !$isMuted && !$hasBannedChars) return;
 
-    } catch (\Exception $e) { return; }
+    } catch (\Throwable $e) { return; }
 
     $chars_url = admin_url('profile.php?page=' . ACORE_SLUG . '-characters-menu');
     $fmtDate   = fn($ts) => date('jS \o\f F, Y \a\t H:i', intval($ts));
@@ -836,7 +837,7 @@ add_action('admin_notices', function () {
             </div>
             <?php endif; ?>
             <?php if ($isAccountBanned):
-                $accBanPerma = intval($accBanRow['unbandate']) === 0; ?>
+                $accBanPerma = intval($accBanRow['unbandate']) === 0 || $accBanRow['unbandate'] === $accBanRow['bandate']; ?>
             <div style="flex:1;">
                 <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your account has been banned', 'acore-wp-plugin'); ?></p>
                 <?php if ($accBanPerma): ?>

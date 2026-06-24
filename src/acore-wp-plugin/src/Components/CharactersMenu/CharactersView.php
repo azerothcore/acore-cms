@@ -38,7 +38,7 @@ class CharactersView {
 
         // Account ban
         $isAccountBanned = !empty($accBanRow);
-        $accBanPerma     = $isAccountBanned && intval($accBanRow['unbandate']) === 0;
+        $accBanPerma     = $isAccountBanned && (intval($accBanRow['unbandate']) === 0 || $accBanRow['unbandate'] === $accBanRow['bandate']);
         $accBanRemaining = ($isAccountBanned && !$accBanPerma) ? max(0, intval($accBanRow['unbandate']) - $now) : 0;
 
         ob_start();

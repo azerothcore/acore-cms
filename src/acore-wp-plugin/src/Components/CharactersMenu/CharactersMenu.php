@@ -29,13 +29,14 @@ class CharactersMenu
         $menuTitle = 'Characters';
         try {
             $accId    = ACoreServices::I()->getAcoreAccountId();
+            if (!$accId) throw new \Exception('no account');
             $authConn = ACoreServices::I()->getAccountEm()->getConnection();
             $now      = time();
 
             $isBanned = (bool) $authConn->executeQuery(
                 "SELECT 1 FROM `account_banned`
                  WHERE `id` = ? AND `active` = 1
-                   AND (`unbandate` = 0 OR `unbandate` > UNIX_TIMESTAMP())
+                   AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
                  LIMIT 1", [$accId]
             )->fetchOne();
 
@@ -49,7 +50,7 @@ class CharactersMenu
                     $menuTitle .= ' <span style="background:#ffc107;color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;vertical-align:middle;text-transform:uppercase;">Muted</span>';
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // silently skip badge on DB error
         }
 

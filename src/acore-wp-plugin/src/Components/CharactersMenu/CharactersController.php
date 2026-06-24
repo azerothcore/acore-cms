@@ -29,6 +29,11 @@ class CharactersController {
         }
 
         $accId = ACoreServices::I()->getAcoreAccountId();
+        if (!$accId) {
+            echo $this->getView()->getHomeRender([], 0, null);
+            return;
+        }
+
         $conn  = ACoreServices::I()->getCharacterEm()->getConnection();
 
         $query = "SELECT
@@ -40,14 +45,14 @@ class CharactersController {
                 ON cb.`guid` = c.`guid`
                AND cb.`active` = 1
                AND (cb.`unbandate` = 0 OR cb.`unbandate` = cb.`bandate` OR cb.`unbandate` > UNIX_TIMESTAMP())
-            WHERE c.`deleteDate` IS NULL AND c.`account` = $accId
+            WHERE c.`deleteDate` IS NULL AND c.`account` = ?
             ORDER BY COALESCE(c.`order`, c.`guid`)
         ";
-        $chars = $conn->executeQuery($query)->fetchAllAssociative();
+        $chars = $conn->executeQuery($query, [$accId])->fetchAllAssociative();
 
         $authConn = ACoreServices::I()->getAccountEm()->getConnection();
 
-        $muteRow = $authConn
+        $muteRow  = $authConn
             ->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])
             ->fetchAssociative();
         $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
@@ -57,7 +62,7 @@ class CharactersController {
             ->executeQuery(
                 "SELECT `bandate`, `unbandate` FROM `account_banned`
                  WHERE `id` = ? AND `active` = 1
-                   AND (`unbandate` = 0 OR `unbandate` > UNIX_TIMESTAMP())
+                   AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
                  ORDER BY `bandate` DESC LIMIT 1",
                 [$accId]
             )
