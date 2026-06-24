@@ -23,7 +23,7 @@ class CharactersController {
             } else {
                 $this->saveCharacterOrder();
                 ?>
-                <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
+                <div class="updated"><p><strong>Character settings successfully saved.</strong></p></div>
                 <?php
             }
         }
@@ -77,6 +77,10 @@ class CharactersController {
 
     private function resetCharacterOrder() {
         $accId = ACoreServices::I()->getAcoreAccountId();
+        $accId = is_numeric($accId) ? (int) $accId : 0;
+        if ($accId <= 0) {
+            return;
+        }
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
         $stmt = $conn->prepare(
             "UPDATE `characters` SET `order` = NULL WHERE `account` = ? AND `deleteDate` IS NULL"

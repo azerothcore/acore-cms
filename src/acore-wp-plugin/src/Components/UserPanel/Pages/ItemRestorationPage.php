@@ -214,24 +214,19 @@
         })
             .then(parseJsonResponse)
             .then(function (data) {
-                if (typeof data === 'string' && data.toLowerCase().includes('mail')) {
-                    cardEl.parentElement.removeChild(cardEl);
-                    successBox.textContent = data;
-                    successBox.classList.remove('invisible');
-                    // renumber remaining cards
-                    var remaining = grid.querySelectorAll('.item-restore-card');
-                    remaining.forEach(function (c, i) {
-                        var n = c.querySelector('.item-restore-num');
-                        if (n) n.textContent = i + 1;
-                    });
-                    if (remaining.length === 0) {
-                        content.style.display = 'none';
-                        noResults.style.display = 'block';
-                    }
-                } else {
-                    errorBox.textContent = typeof data === 'string' ? data : JSON.stringify(data);
-                    btnEl.disabled = false;
-                    btnEl.textContent = 'Restore';
+                var message = typeof data === 'string' ? data : (data && data.message ? data.message : 'Item restored successfully.');
+                cardEl.parentElement.removeChild(cardEl);
+                successBox.textContent = message;
+                successBox.classList.remove('invisible');
+                // renumber remaining cards
+                var remaining = grid.querySelectorAll('.item-restore-card');
+                remaining.forEach(function (c, i) {
+                    var n = c.querySelector('.item-restore-num');
+                    if (n) n.textContent = i + 1;
+                });
+                if (remaining.length === 0) {
+                    content.style.display = 'none';
+                    noResults.style.display = 'block';
                 }
             })
             .catch(function (err) {

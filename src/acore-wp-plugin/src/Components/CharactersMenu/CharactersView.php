@@ -53,7 +53,7 @@ class CharactersView {
                     <div class="card">
                         <div class="card-body">
                             <h3>Order Character Screen</h3>
-                            <p>Change the order in which the characters appear in your in-game character selection screen, by dragging them, matches in-game position.</p>
+                            <p>Change the order in which your characters appear in the in-game selection screen by dragging them into your preferred position.</p>
                             <?php if ($isAccountBanned || $isMuted): ?>
                                 <div class="acore-account-notices">
                                     <?php if ($isAccountBanned): ?>
@@ -102,8 +102,8 @@ class CharactersView {
                                                 <span class="acore-char-name"><?= esc_html($char["name"]) ?></span>
                                                 <span class="acore-char-meta">
                                                     <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char["level"])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char["level"]))) ?>">Level <?= intval($char["level"]) ?></span>
-                                                    <img class="race-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char["race"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/race/" . intval($char["race"]) . (intval($char["gender"]) == 0 ? "m" : "f") . ".webp") ?>">
-                                                    <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/class/" . intval($char["class"]) . ".webp") ?>">
+                                                    <img class="race-icon" height="32" width="32" alt="<?= esc_attr(AcoreCharColors::getRaceName(intval($char["race"]))) ?>" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char["race"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/race/" . intval($char["race"]) . (intval($char["gender"]) == 0 ? "m" : "f") . ".webp") ?>">
+                                                    <img class="class-icon" height="32" width="32" alt="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/class/" . intval($char["class"]) . ".webp") ?>">
                                                 </span>
                                             </div>
                                             <div class="acore-char-ext-col acore-char-ext-col--ban<?= $charBanned ? ' acore-char-ext-col--banned' : '' ?>">

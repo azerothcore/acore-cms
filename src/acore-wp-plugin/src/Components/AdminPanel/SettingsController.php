@@ -392,6 +392,11 @@ class SettingsController {
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 check_admin_referer('acore_tools_save', 'acore_tools_nonce');
 
+                // If the thresholds sentinel is present but no rows were submitted, clear them
+                if (isset($_POST['acore_name_unlock_thresholds_present']) && !isset($_POST['acore_name_unlock_thresholds'])) {
+                    $this->storeConf('acore_name_unlock_thresholds', []);
+                }
+
                 foreach (Opts::I()->getConfs() as $key => $value) {
                     if (isset($_POST[$key])) {
                         if ($key == 'acore_name_unlock_allowed_banned_names_table') {

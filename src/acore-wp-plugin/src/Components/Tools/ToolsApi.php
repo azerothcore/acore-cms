@@ -7,19 +7,27 @@ use ACore\Manager\Opts;
 
 class ToolsApi {
     public static function ItemRestoreList($request) {
-        return ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
+        try {
+            return ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
+        } catch (\InvalidArgumentException $e) {
+            return new \WP_Error('invalid_character', 'Character not found.', ['status' => 403]);
+        }
     }
 
     public static function ItemRestore($data) {
-        $cname = $data['cname'];
+        $cname = isset($data['cname']) && is_string($data['cname']) ? trim($data['cname']) : '';
         $item  = filter_var($data['item'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($item === false) {
             return new \WP_Error('invalid_item', 'Invalid item id.', ['status' => 400]);
         }
-        if (!ACoreServices::I()->currentAccountOwnsCharacterName($cname)) {
-            return new \WP_Error('forbidden', 'You do not own that character.', ['status' => 403]);
+        if ($cname === '') {
+            return new \WP_Error('invalid_character', 'Invalid character.', ['status' => 400]);
         }
-        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $cname");
+        $ownedCharacterName = ACoreServices::I()->getOwnedRestorableItemCharacterName($item, $cname);
+        if ($ownedCharacterName === null) {
+            return new \WP_Error('forbidden', 'Restorable item not found for that character.', ['status' => 403]);
+        }
+        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $ownedCharacterName");
     }
 }
 

@@ -177,9 +177,7 @@
                                         <tr>
                                             <th><label class="acore-help-label" title="When enabled, login IPs are sent to ip-api.com to resolve their country. Disabled keeps IPs in-house (country shows as Unknown). Backfills older Unknown entries in the background within ip-api's free rate limit.">GeoIP Country Lookup</label></th>
                                             <td>
-                                                <?php if (Opts::I()->acore_security_logging != '1'): ?>
-                                                    <input type="hidden" name="acore_geoip_lookup" value="0">
-                                                <?php endif; ?>
+                                                <input type="hidden" name="acore_geoip_lookup" value="0">
                                                 <span id="acore-geoip-wrap"
                                                       class="<?= Opts::I()->acore_security_logging != '1' ? 'acore-days-inactive-disabled' : '' ?>"
                                                       title="<?= Opts::I()->acore_security_logging != '1' ? 'Security Logging must be enabled' : '' ?>">
@@ -248,10 +246,11 @@
 
                                 <span>Allowed banned names table (characters database):</span>
                                 <input type="text" name="acore_name_unlock_allowed_banned_names_table"
-                                    value="<?= Opts::I()->acore_name_unlock_allowed_banned_names_table ?>">
+                                    value="<?= esc_attr(Opts::I()->acore_name_unlock_allowed_banned_names_table) ?>">
                                 <br><br>
 
                                 <span>Inactivity Thresholds per Level:</span>
+                                <input type="hidden" name="acore_name_unlock_thresholds_present" value="1">
                                 <table id="acore-name-unlock-thresholds" class="form-table table table-borderless" role="presentation">
                                     <thead>
                                         <tr>
@@ -592,7 +591,12 @@
         );
     });
 
-    <?php foreach (Opts::I()->acore_name_unlock_thresholds as $i => $threshold) {
+    <?php
+    $thresholds = Opts::I()->acore_name_unlock_thresholds;
+    if (!is_array($thresholds)) {
+        $thresholds = [];
+    }
+    foreach ($thresholds as $i => $threshold) {
         $level = isset($threshold[0]) ? filter_var($threshold[0], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 256]]) : false;
         $days  = isset($threshold[1]) ? filter_var($threshold[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
         if ($level !== false && $days !== false) {
