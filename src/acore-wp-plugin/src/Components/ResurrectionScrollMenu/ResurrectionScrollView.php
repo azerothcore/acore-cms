@@ -16,7 +16,7 @@ class ResurrectionScrollView
         ob_start();
 
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
-        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.1');
+        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.5');
         wp_enqueue_script('bootstrap-js', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js', array(), '5.1.3');
 
         // Determine account status
@@ -42,7 +42,7 @@ class ResurrectionScrollView
 
 ?>
 
-        <div class="wrap">
+        <div class="wrap acore-rscroll">
             <h2>Scroll of Resurrection</h2>
 
             <div class="row">
@@ -66,10 +66,10 @@ class ResurrectionScrollView
                                                 <?php if ($isActive) { ?>
                                                     <span class="badge bg-success">Enrolled</span>
                                                 <?php } elseif ($isEligible) { ?>
-                                                    <span class="badge bg-info">Eligible</span>
+                                                    <span class="badge bg-success">Eligible</span>
                                                     <span class="text-muted">- Log in to the game server to activate</span>
                                                 <?php } else { ?>
-                                                    <span class="badge bg-secondary">Not Eligible</span>
+                                                    <span class="badge bg-danger">Not Eligible</span>
                                                     <?php if ($lastLogout) {
                                                         $eligibleTimestamp = $lastLogout + ($daysInactive * 86400);
                                                         $eligibleDate = new \DateTime();

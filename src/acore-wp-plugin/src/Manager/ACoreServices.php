@@ -402,16 +402,67 @@ class ACoreServices
     }
 
     public function getRestorableItemsByCharacter($character) {
-        $query = "SELECT `Id`, `ItemEntry`
-            FROM `recovery_item`
-            WHERE `Guid` = ?
-        ";
+        $conn  = $this->getCharacterEm()->getConnection();
+        $accId = $this->getAcoreAccountId();
+
+        if (!is_numeric($character) || !$accId) {
+            throw new \InvalidArgumentException('Invalid character');
+        }
+
+        $ownership = $conn->prepare(
+            "SELECT 1 FROM `characters` WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL"
+        );
+        $ownership->bindValue(1, intval($character));
+        $ownership->bindValue(2, intval($accId));
+        if (!$ownership->executeQuery()->fetchOne()) {
+            throw new \InvalidArgumentException('Character not found');
+        }
+
+        $stmt = $conn->prepare(
+            "SELECT `Id`, `ItemEntry`, `Count`, `DeleteDate`
+             FROM `recovery_item`
+             WHERE `Guid` = ?
+             ORDER BY `DeleteDate` DESC"
+        );
+        $stmt->bindValue(1, intval($character));
+        return $stmt->executeQuery()->fetchAllAssociative();
+    }
+
+    public function getOwnedRestorableItemCharacterName(int $itemId, string $name): ?string {
+        $accId = $this->getAcoreAccountId();
+        if (!$accId || $itemId < 1 || $name === '') {
+            return null;
+        }
         $conn = $this->getCharacterEm()->getConnection();
-        $stmt = $conn->prepare($query);
-        $stmt->bindValue(1, $character);
-        $stmt->executeQuery();
-        $res = $stmt->executeQuery();
-        return $res->fetchAllAssociative();
+        $stmt = $conn->prepare(
+            "SELECT c.`name`
+             FROM `recovery_item` ri
+             INNER JOIN `characters` c ON c.`guid` = ri.`Guid`
+             WHERE ri.`Id` = ?
+               AND c.`name` = ?
+               AND c.`account` = ?
+               AND c.`deleteDate` IS NULL
+             LIMIT 1"
+        );
+        $stmt->bindValue(1, $itemId);
+        $stmt->bindValue(2, $name);
+        $stmt->bindValue(3, intval($accId));
+        $characterName = $stmt->executeQuery()->fetchOne();
+        return $characterName === false ? null : $characterName;
+    }
+
+    public function currentAccountOwnsCharacterName($name): bool {
+        $accId = $this->getAcoreAccountId();
+        if (!$accId || $name === '' || $name === null) {
+            return false;
+        }
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare(
+            "SELECT 1 FROM `characters` WHERE `name` = ? AND `account` = ? AND `deleteDate` IS NULL"
+        );
+        $stmt->bindValue(1, $name);
+        $stmt->bindValue(2, intval($accId));
+        return (bool) $stmt->executeQuery()->fetchOne();
     }
 
     /** 

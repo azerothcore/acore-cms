@@ -18,7 +18,7 @@ class SmartstoneService {
      * other service types will be rejected by the mod's HandleSmartStoneUnlockAccountCommand.
      *
      * $accountName is expected to come from a WordPress user_login (sanitize_user
-     * restricts these to alphanumerics, dot, hyphen, underscore, at — no spaces),
+     * restricts these to alphanumerics, dot, hyphen, underscore, at - no spaces),
      * but we still cast the numeric args at the boundary as belt-and-braces.
      */
     public function addAccountVanity($accountName, $category, $vanityID) {
