@@ -34,11 +34,17 @@ class CharactersController {
         $query = "SELECT
             c.`guid`, c.`name`, c.`order`, c.`race`, c.`class`, c.`level`, c.`gender`,
             (
-                SELECT 1 FROM `character_banned` cb
+                SELECT `bandate` FROM `character_banned` cb
                 WHERE cb.`guid` = c.`guid` AND cb.`active` = 1
                   AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
-                LIMIT 1
-            ) AS `is_banned`
+                ORDER BY cb.`bandate` DESC LIMIT 1
+            ) AS `ban_bandate`,
+            (
+                SELECT `unbandate` FROM `character_banned` cb
+                WHERE cb.`guid` = c.`guid` AND cb.`active` = 1
+                  AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
+                ORDER BY cb.`bandate` DESC LIMIT 1
+            ) AS `ban_unbandate`
             FROM `characters` c
             WHERE c.`deleteDate` IS NULL AND c.`account` = $accId
             ORDER BY COALESCE(c.`order`, c.`guid`)
@@ -51,21 +57,19 @@ class CharactersController {
             ->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])
             ->fetchAssociative();
         $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
-        // Negative = pending mute (minutes, applied on next login); positive = Unix timestamp expiry
-        $isMuted = $mutetime < 0 || $mutetime > time();
+        // Negative = pending mute (seconds magnitude, applied on next login); positive = Unix timestamp expiry
 
-        $banRow = $authConn
+        $accBanRow = $authConn
             ->executeQuery(
-                "SELECT 1 FROM `account_banned`
+                "SELECT `bandate`, `unbandate` FROM `account_banned`
                  WHERE `id` = ? AND `active` = 1
                    AND (`unbandate` = 0 OR `unbandate` > UNIX_TIMESTAMP())
-                 LIMIT 1",
+                 ORDER BY `bandate` DESC LIMIT 1",
                 [$accId]
             )
             ->fetchAssociative();
-        $isAccountBanned = (bool) $banRow;
 
-        echo $this->getView()->getHomeRender($chars, $isMuted, $isAccountBanned);
+        echo $this->getView()->getHomeRender($chars, $mutetime, $accBanRow);
     }
 
     public function getView() {
