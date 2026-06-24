@@ -29,17 +29,43 @@ class CharactersController {
         }
 
         $accId = ACoreServices::I()->getAcoreAccountId();
-        $query = "SELECT
-            `guid`, `name`, `order`, `race`, `class`, `level`, `gender`
-            FROM `characters`
-            WHERE `characters`.`deleteDate` IS NULL AND `account` = $accId
-            ORDER BY COALESCE(`order`, `guid`)
-        ";
-        $conn = ACoreServices::I()->getCharacterEm()->getConnection();
-        $queryResult = $conn->executeQuery($query);
-        $chars = $queryResult->fetchAllAssociative();
+        $conn  = ACoreServices::I()->getCharacterEm()->getConnection();
 
-        echo $this->getView()->getHomeRender($chars);
+        $query = "SELECT
+            c.`guid`, c.`name`, c.`order`, c.`race`, c.`class`, c.`level`, c.`gender`,
+            (
+                SELECT 1 FROM `character_banned` cb
+                WHERE cb.`guid` = c.`guid` AND cb.`active` = 1
+                  AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
+                LIMIT 1
+            ) AS `is_banned`
+            FROM `characters` c
+            WHERE c.`deleteDate` IS NULL AND c.`account` = $accId
+            ORDER BY COALESCE(c.`order`, c.`guid`)
+        ";
+        $chars = $conn->executeQuery($query)->fetchAllAssociative();
+
+        $authConn = ACoreServices::I()->getAccountEm()->getConnection();
+
+        $muteRow = $authConn
+            ->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])
+            ->fetchAssociative();
+        $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
+        // Negative = pending mute (minutes, applied on next login); positive = Unix timestamp expiry
+        $isMuted = $mutetime < 0 || $mutetime > time();
+
+        $banRow = $authConn
+            ->executeQuery(
+                "SELECT 1 FROM `account_banned`
+                 WHERE `id` = ? AND `active` = 1
+                   AND (`unbandate` = 0 OR `unbandate` > UNIX_TIMESTAMP())
+                 LIMIT 1",
+                [$accId]
+            )
+            ->fetchAssociative();
+        $isAccountBanned = (bool) $banRow;
+
+        echo $this->getView()->getHomeRender($chars, $isMuted, $isAccountBanned);
     }
 
     public function getView() {
