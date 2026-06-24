@@ -24,43 +24,50 @@ class CharactersView {
         ?>
         <div class="wrap">
             <div class="row">
-                <div class="col-sm-4">
+                <div class="col-sm-10">
                     <div class="card">
                         <div class="card-body">
                             <h3>Order Character Screen</h3>
                             <p>Change the order in which the characters appear in your in-game character selection screen, by dragging them, matches in-game position.</p>
                             <hr>
-                            <form action="" method="POST" novalidate="novalidate">
-                                <?php wp_nonce_field('acore_character_order', 'acore_character_order_nonce'); ?>
+                            <div class="acore-char-screen-cols">
+                                <div class="acore-char-screen-selector">
+                                    <form action="" method="POST" novalidate="novalidate">
+                                        <?php wp_nonce_field('acore_character_order', 'acore_character_order_nonce'); ?>
 
-                                <ul id="acore-characters-order" class="acore-char-list list-unstyled">
-                                    <?php $charPos = 0; foreach ($characters as $char) {
-                                        $clsStyle = AcoreCharColors::rowStyle(intval($char["class"]), intval($char["race"]));
-                                        $charPos++;
-                                        $displayPos = $char['order'] !== null ? intval($char['order']) + 1 : $charPos;
-                                    ?>
-                                        <li>
-                                            <div class="acore-char-row" style="<?= esc_attr($clsStyle) ?>">
-                                                <span class="acore-char-pos"><?= $displayPos ?></span>
-                                                <span class="acore-char-name"><?= esc_html($char["name"]) ?></span>
-                                                <span class="acore-char-meta">
-                                                    <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char["level"])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char["level"]))) ?>">Level <?= intval($char["level"]) ?></span>
-                                                    <img class="race-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char["race"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/race/" . intval($char["race"]) . (intval($char["gender"]) == 0 ? "m" : "f") . ".webp") ?>">
-                                                    <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/class/" . intval($char["class"]) . ".webp") ?>">
-                                                </span>
+                                        <ul id="acore-characters-order" class="acore-char-list list-unstyled">
+                                            <?php $charPos = 0; foreach ($characters as $char) {
+                                                $clsStyle = AcoreCharColors::rowStyle(intval($char["class"]), intval($char["race"]));
+                                                $charPos++;
+                                                $displayPos = $char['order'] !== null ? intval($char['order']) + 1 : $charPos;
+                                            ?>
+                                                <li>
+                                                    <div class="acore-char-row" style="<?= esc_attr($clsStyle) ?>">
+                                                        <span class="acore-char-pos"><?= $displayPos ?></span>
+                                                        <span class="acore-char-name"><?= esc_html($char["name"]) ?></span>
+                                                        <span class="acore-char-meta">
+                                                            <span class="acore-level" data-exp="<?= AcoreCharColors::expansionSlug(intval($char["level"])) ?>" title="<?= esc_attr(AcoreCharColors::expansionLabel(intval($char["level"]))) ?>">Level <?= intval($char["level"]) ?></span>
+                                                            <img class="race-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getRaceName(intval($char["race"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/race/" . intval($char["race"]) . (intval($char["gender"]) == 0 ? "m" : "f") . ".webp") ?>">
+                                                            <img class="class-icon" height="32" width="32" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/class/" . intval($char["class"]) . ".webp") ?>">
+                                                        </span>
+                                                    </div>
+                                                    <input type="hidden" name="characterorder[]" value="<?= esc_attr($char["guid"]) ?>">
+                                                </li>
+                                            <?php } ?>
+                                        </ul>
+
+                                        <?php if (!empty($characters)) { ?>
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                                                <input type="submit" name="submit" class="button button-primary" value="Save Order">
+                                                <input type="submit" name="acore_reset_order" class="button acore-btn-danger" value="Reset Order">
                                             </div>
-                                            <input type="hidden" name="characterorder[]" value="<?= esc_attr($char["guid"]) ?>">
-                                        </li>
-                                    <?php } ?>
-                                </ul>
-
-                                <?php if (!empty($characters)) { ?>
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                                        <input type="submit" name="submit" class="button button-primary" value="Save Order">
-                                        <input type="submit" name="acore_reset_order" class="button acore-btn-danger" value="Reset Order">
-                                    </div>
-                                <?php } ?>
-                            </form>
+                                        <?php } ?>
+                                    </form>
+                                </div>
+                                <div class="acore-char-screen-col"></div>
+                                <div class="acore-char-screen-col"></div>
+                                <div class="acore-char-screen-col"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -68,6 +75,31 @@ class CharactersView {
         </div>
 
         <!-- .acore-btn-danger styling lives in theme.css (shared light/dark) -->
+
+        <style>
+        .acore-char-screen-cols {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .acore-char-screen-selector {
+            flex: 0 0 40%;
+            width: 40%;
+            min-width: 0;
+        }
+        .acore-char-screen-col {
+            flex: 1;
+            min-width: 120px;
+        }
+        .acore-char-col-header {
+            font-weight: 600;
+            font-size: 13px;
+            margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        </style>
 
         <script>
         jQuery(document).ready(function($) {

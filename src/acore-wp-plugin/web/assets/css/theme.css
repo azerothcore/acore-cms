@@ -43,6 +43,29 @@ body.acore-dark-mode {
     --q1: #c0c0c0; /* pure white reads poorly on dark; soften common quality */
 }
 
+/* ── Character order screen: selector + extra columns ───────────────── */
+.acore-char-screen-cols {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+.acore-char-screen-selector {
+    flex: 0 0 auto;
+    width: 320px;
+}
+.acore-char-screen-col {
+    flex: 1;
+    min-width: 120px;
+}
+.acore-char-col-header {
+    font-weight: 600;
+    font-size: 13px;
+    margin: 0 0 8px;
+    color: var(--acore-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 /* ── Danger buttons (Reset Order, Remove, Reset, …) ─────────────────── */
 body.acore-dark-mode .acore-btn-danger .dashicons {
     color: var(--acore-danger-text) !important;
