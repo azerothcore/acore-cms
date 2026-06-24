@@ -68,4 +68,7 @@ function characters_menu_init()
     $charactersMenu = CharactersMenu::I();
 
     add_action('admin_menu', array($charactersMenu, 'acore_characters_menu'));
+    add_action('admin_head', function () {
+        echo '<style>#adminmenu a[href*="acore-characters-menu"]{display:flex!important;align-items:center!important;justify-content:space-between!important;}</style>';
+    });
 }

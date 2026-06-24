@@ -802,13 +802,13 @@ add_action('admin_notices', function () {
         $mutePending = $mutetime < 0;
 
         $bannedChars = $charConn->executeQuery(
-            "SELECT c.`name`, cb.`unbandate`
+            "SELECT c.`name`, cb.`bandate`, cb.`unbandate`
              FROM `characters` c
              JOIN `character_banned` cb ON cb.`guid` = c.`guid`
              WHERE c.`account` = ? AND c.`deleteDate` IS NULL
                AND cb.`active` = 1
-               AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
-             ORDER BY c.`name`", [$accId]
+               AND (cb.`unbandate` = 0 OR cb.`unbandate` = cb.`bandate` OR cb.`unbandate` > UNIX_TIMESTAMP())
+             ORDER BY COALESCE(c.`order`, c.`guid`)", [$accId]
         )->fetchAllAssociative();
 
         $isAccountBanned = !empty($accBanRow);
@@ -854,8 +854,8 @@ add_action('admin_notices', function () {
         <div>
             <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your characters have been banned', 'acore-wp-plugin'); ?></p>
             <?php foreach ($bannedChars as $bc):
-                    $perma = intval($bc['unbandate']) === 0; ?>
-                <p style="margin:2px 0; font-size:13px;">- <strong><?= esc_html($bc['name']) ?></strong><?php if ($perma): ?> - <?php _e('Permanently banned', 'acore-wp-plugin'); ?><?php else: ?> - <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($bc['unbandate']) . '</strong>'); ?><?php endif; ?></p>
+                $perma = intval($bc['unbandate']) === 0 || $bc['unbandate'] === $bc['bandate']; ?>
+                <p style="margin:2px 0; font-size:13px;">- <strong><?= esc_html($bc['name']) ?></strong><?php if ($perma): ?> - <?php _e('Banned', 'acore-wp-plugin'); ?><?php else: ?> - <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($bc['unbandate']) . '</strong>'); ?><?php endif; ?></p>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>

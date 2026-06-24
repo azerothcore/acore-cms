@@ -33,19 +33,13 @@ class CharactersController {
 
         $query = "SELECT
             c.`guid`, c.`name`, c.`order`, c.`race`, c.`class`, c.`level`, c.`gender`,
-            (
-                SELECT `bandate` FROM `character_banned` cb
-                WHERE cb.`guid` = c.`guid` AND cb.`active` = 1
-                  AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
-                ORDER BY cb.`bandate` DESC LIMIT 1
-            ) AS `ban_bandate`,
-            (
-                SELECT `unbandate` FROM `character_banned` cb
-                WHERE cb.`guid` = c.`guid` AND cb.`active` = 1
-                  AND (cb.`unbandate` = 0 OR cb.`unbandate` > UNIX_TIMESTAMP())
-                ORDER BY cb.`bandate` DESC LIMIT 1
-            ) AS `ban_unbandate`
+            cb.`bandate`   AS `ban_bandate`,
+            cb.`unbandate` AS `ban_unbandate`
             FROM `characters` c
+            LEFT JOIN `character_banned` cb
+                ON cb.`guid` = c.`guid`
+               AND cb.`active` = 1
+               AND (cb.`unbandate` = 0 OR cb.`unbandate` = cb.`bandate` OR cb.`unbandate` > UNIX_TIMESTAMP())
             WHERE c.`deleteDate` IS NULL AND c.`account` = $accId
             ORDER BY COALESCE(c.`order`, c.`guid`)
         ";

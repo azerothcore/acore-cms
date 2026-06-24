@@ -90,10 +90,10 @@ class CharactersView {
                                         $clsStyle      = AcoreCharColors::rowStyle(intval($char["class"]), intval($char["race"]));
                                         $charPos++;
                                         $displayPos    = $char['order'] !== null ? intval($char['order']) + 1 : $charPos;
-                                        $banBandate    = isset($char['ban_bandate'])   ? intval($char['ban_bandate'])   : null;
-                                        $banUnbandate  = isset($char['ban_unbandate']) ? intval($char['ban_unbandate']) : null;
+                                        $banBandate    = ($char['ban_bandate']   !== null && $char['ban_bandate']   !== '') ? intval($char['ban_bandate'])   : null;
+                                        $banUnbandate  = ($char['ban_unbandate'] !== null && $char['ban_unbandate'] !== '') ? intval($char['ban_unbandate']) : null;
                                         $charBanned    = $banBandate !== null;
-                                        $charBanPerma  = $charBanned && $banUnbandate === 0;
+                                        $charBanPerma  = $charBanned && ($banUnbandate === null || $banUnbandate === 0 || $banUnbandate === $banBandate);
                                         $charBanRemain = ($charBanned && !$charBanPerma) ? max(0, $banUnbandate - $now) : 0;
                                     ?>
                                         <li class="acore-char-li-row">
