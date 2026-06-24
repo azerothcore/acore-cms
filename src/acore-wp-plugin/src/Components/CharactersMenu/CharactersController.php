@@ -3,6 +3,7 @@
 namespace ACore\Components\CharactersMenu;
 
 use ACore\Manager\ACoreServices;
+use ACore\Manager\Opts;
 use ACore\Components\CharactersMenu\CharactersView;
 
 class CharactersController {
@@ -68,7 +69,30 @@ class CharactersController {
             )
             ->fetchAssociative();
 
-        echo $this->getView()->getHomeRender($chars, $mutetime, $accBanRow);
+        $serverRevision    = '';
+        $serverRevisionUrl = '';
+        try {
+            $worldConn  = ACoreServices::I()->getWorldEm()->getConnection();
+            $versionRow = $worldConn
+                ->executeQuery("SELECT `core_version`, `core_revision` FROM `version` LIMIT 1")
+                ->fetchAssociative();
+            if ($versionRow) {
+                $full = $versionRow['core_version'] ?: '';
+                if (preg_match('/^(AzerothCore rev\.\s+\S+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/', $full, $m)) {
+                    $serverRevision = $m[1];
+                } else {
+                    $serverRevision = $full;
+                }
+                $hash = $versionRow['core_revision'] ?: '';
+                if ($hash) {
+                    $serverRevisionUrl = 'https://github.com/azerothcore/azerothcore-wotlk/commit/' . $hash;
+                }
+            }
+        } catch (\Throwable $e) {
+            // non-fatal
+        }
+
+        echo $this->getView()->getHomeRender($chars, $mutetime, $accBanRow, $serverRevision, $serverRevisionUrl, Opts::I()->acore_bug_report_url ?: '', Opts::I()->acore_pdump_enabled == '1');
     }
 
     public function getView() {

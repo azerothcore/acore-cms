@@ -189,6 +189,25 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <th><label class="acore-help-label" title="Allows players to export their characters individually or all at once as a PDUMP file, importable into any AzerothCore server. Custom content (Transmog, Physical Costumes) is NOT included. The following information is automatically anonymised before download: character name, position and hearthstone (reset to faction capital), gold, timestamps, online status, achievement dates, mail contents and sender, item creator/gifter GUIDs, aura caster GUIDs, equipment set names, custom chat channels, and all character and account IDs (replaced with random values).">Enable PDUMP</label></th>
+                                            <td>
+                                                <select name="acore_pdump_enabled" id="acore_pdump_enabled">
+                                                    <option value="0" <?php if (Opts::I()->acore_pdump_enabled != '1') echo 'selected'; ?>>Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->acore_pdump_enabled == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr id="acore-pdump-bug-url-row" <?php if (Opts::I()->acore_pdump_enabled != '1') echo 'style="opacity:0.45;pointer-events:none;"'; ?>>
+                                            <th><label class="acore-help-label" title="GitHub Issues URL where players are directed to report bugs when a PDUMP export fails. Requires PDUMP to be enabled.">PDUMP Bug Report URL</label></th>
+                                            <td>
+                                                <input type="url" name="acore_bug_report_url" id="acore_bug_report_url"
+                                                    value="<?= esc_attr(Opts::I()->acore_bug_report_url) ?>"
+                                                    placeholder="https://github.com/your-org/your-repo/issues/new"
+                                                    style="width:100%;max-width:480px;"
+                                                    <?php if (Opts::I()->acore_pdump_enabled != '1') echo 'disabled'; ?>>
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th><label class="acore-help-label" title="If disabled, users cannot reuse any of their last 10 passwords when changing it.">Allow Old Passwords</label></th>
                                             <td>
                                                 <select name="acore_allow_old_passwords" id="acore_allow_old_passwords">
@@ -330,6 +349,14 @@
         $wrap.toggleClass('acore-days-inactive-disabled', !on)
              .attr('title', on ? '' : 'Scroll of Resurrection must be enabled');
         $('#acore_resurrection_scroll_days_inactive').prop('disabled', !on);
+    });
+
+    /* PDUMP Bug Report URL depends on PDUMP being enabled */
+    $('#acore_pdump_enabled').on('change', function(){
+        var on = $(this).val() === '1';
+        var $row = $('#acore-pdump-bug-url-row');
+        $row.css({ opacity: on ? '' : '0.45', 'pointer-events': on ? '' : 'none' });
+        $('#acore_bug_report_url').prop('disabled', !on);
     });
 
     /* GeoIP depends on Security Logging being enabled */

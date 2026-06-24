@@ -47,6 +47,8 @@ class Opts {
         [81, 360], // else, 360 days
     ];
     public $acore_name_unlock_allowed_banned_names_table="";
+    public $acore_pdump_enabled="0";
+    public $acore_bug_report_url="https://github.com/azerothcore/acore-cms/issues/new";
     public $acore_security_logging="0";
     public $acore_allow_old_passwords="0";
     public $acore_geoip_lookup="0";

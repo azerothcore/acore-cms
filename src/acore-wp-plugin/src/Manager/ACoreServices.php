@@ -142,6 +142,15 @@ class ACoreServices
 
     /**
      *
+     * @return \Doctrine\ORM\EntityManager
+     */
+    public function getWorldEm()
+    {
+        return $this->emWorld;
+    }
+
+    /**
+     *
      * @return string
      */
     public function getCharName($charId, $deleted = false)

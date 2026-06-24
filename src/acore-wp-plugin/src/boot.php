@@ -9,6 +9,8 @@ require_once ACORE_PATH_PLG . 'src/Deps/class-tgm-plugin-activation.php';
 
 require_once ACORE_PATH_PLG . 'src/Components/AdminPanel/AdminPanel.php';
 require_once ACORE_PATH_PLG . 'src/Components/CharactersMenu/CharactersMenu.php';
+require_once ACORE_PATH_PLG . 'src/Components/CharactersMenu/CharacterDumpWriter.php';
+require_once ACORE_PATH_PLG . 'src/Components/CharactersMenu/CharacterDumpApi.php';
 require_once ACORE_PATH_PLG . 'src/Components/UnstuckMenu/UnstuckMenu.php';
 require_once ACORE_PATH_PLG . 'src/Components/MailReturnMenu/MailReturnMenu.php';
 require_once ACORE_PATH_PLG . 'src/Components/ResurrectionScrollMenu/ResurrectionScrollMenu.php';
