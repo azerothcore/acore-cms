@@ -781,6 +781,13 @@ add_action('admin_notices', function () {
     if ($pagenow !== 'profile.php') return;
     if (isset($_GET['page'])) return;
 
+    $punishEnabled  = \ACore\Manager\Opts::I()->acore_punishment_info_enabled == '1';
+    $showAccBan     = $punishEnabled && \ACore\Manager\Opts::I()->acore_punishment_info_account_ban   == '1';
+    $showAccMute    = $punishEnabled && \ACore\Manager\Opts::I()->acore_punishment_info_account_mute  == '1';
+    $showCharBan    = $punishEnabled && \ACore\Manager\Opts::I()->acore_punishment_info_character_ban == '1';
+
+    if (!$showAccBan && !$showAccMute && !$showCharBan) return;
+
     $now = time();
 
     try {
@@ -790,19 +797,24 @@ add_action('admin_notices', function () {
         $authConn = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
         $charConn = \ACore\Manager\ACoreServices::I()->getCharacterEm()->getConnection();
 
-        $accBanRow = $authConn->executeQuery(
+        $accBanRow = $showAccBan ? $authConn->executeQuery(
             "SELECT `bandate`, `unbandate` FROM `account_banned`
              WHERE `id` = ? AND `active` = 1
                AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
              ORDER BY `bandate` DESC LIMIT 1", [$accId]
-        )->fetchAssociative();
+        )->fetchAssociative() : false;
 
-        $muteRow  = $authConn->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])->fetchAssociative();
-        $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
-        $isMuted     = $mutetime < 0 || $mutetime > $now;
-        $mutePending = $mutetime < 0;
+        $isMuted     = false;
+        $mutePending = false;
+        $mutetime    = 0;
+        if ($showAccMute) {
+            $muteRow  = $authConn->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])->fetchAssociative();
+            $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
+            $isMuted     = $mutetime < 0 || $mutetime > $now;
+            $mutePending = $mutetime < 0;
+        }
 
-        $bannedChars = $charConn->executeQuery(
+        $bannedChars = $showCharBan ? $charConn->executeQuery(
             "SELECT c.`name`, cb.`bandate`, cb.`unbandate`
              FROM `characters` c
              JOIN `character_banned` cb ON cb.`guid` = c.`guid`
@@ -810,7 +822,7 @@ add_action('admin_notices', function () {
                AND cb.`active` = 1
                AND (cb.`unbandate` = 0 OR cb.`unbandate` = cb.`bandate` OR cb.`unbandate` > UNIX_TIMESTAMP())
              ORDER BY COALESCE(c.`order`, c.`guid`)", [$accId]
-        )->fetchAllAssociative();
+        )->fetchAllAssociative() : [];
 
         $isAccountBanned = !empty($accBanRow);
         $hasBannedChars  = !empty($bannedChars);

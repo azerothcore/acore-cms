@@ -189,7 +189,33 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th><label class="acore-help-label" title="Allows players to export their characters individually or all at once as a PDUMP file, importable into any AzerothCore server. Custom content (Transmog, Physical Costumes) is NOT included. The following information is automatically anonymised before download: character name, position and hearthstone (reset to faction capital), gold, timestamps, online status, achievement dates, mail contents and sender, item creator/gifter GUIDs, aura caster GUIDs, equipment set names, custom chat channels, and all character and account IDs (replaced with random values).">Enable PDUMP</label></th>
+                                            <th><label class="acore-help-label" title="This sets the settings to show for account bans, account mutes and character bans.">Punishment Info</label></th>
+                                            <td>
+                                                <select name="acore_punishment_info_enabled" id="acore_punishment_info_enabled">
+                                                    <option value="0" <?php if (Opts::I()->acore_punishment_info_enabled != '1') echo 'selected'; ?>>Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->acore_punishment_info_enabled == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                                <div id="acore-punishment-info-row" style="display:flex;gap:16px;margin-top:8px;<?php if (Opts::I()->acore_punishment_info_enabled != '1') echo 'opacity:0.45;pointer-events:none;'; ?>">
+                                                    <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;">
+                                                        Account Ban
+                                                        <input type="hidden" name="acore_punishment_info_account_ban" value="0">
+                                                        <input type="checkbox" name="acore_punishment_info_account_ban" value="1" <?php if (Opts::I()->acore_punishment_info_account_ban == '1') echo 'checked'; ?> <?php if (Opts::I()->acore_punishment_info_enabled != '1') echo 'disabled'; ?>>
+                                                    </label>
+                                                    <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;">
+                                                        Account Mute
+                                                        <input type="hidden" name="acore_punishment_info_account_mute" value="0">
+                                                        <input type="checkbox" name="acore_punishment_info_account_mute" value="1" <?php if (Opts::I()->acore_punishment_info_account_mute == '1') echo 'checked'; ?> <?php if (Opts::I()->acore_punishment_info_enabled != '1') echo 'disabled'; ?>>
+                                                    </label>
+                                                    <label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;">
+                                                        Character Ban
+                                                        <input type="hidden" name="acore_punishment_info_character_ban" value="0">
+                                                        <input type="checkbox" name="acore_punishment_info_character_ban" value="1" <?php if (Opts::I()->acore_punishment_info_character_ban == '1') echo 'checked'; ?> <?php if (Opts::I()->acore_punishment_info_enabled != '1') echo 'disabled'; ?>>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th><label class="acore-help-label" title="Allows players to export their characters individually or all at once as a PDUMP file, importable into any AzerothCore server. Custom content (Transmog, Physical Costumes) is NOT included. The following information is automatically anonymised before download: character name, position and hearthstone (reset to faction capital), gold, timestamps, online status, achievement dates, mail contents and sender, item creator/gifter GUIDs, aura caster GUIDs, equipment set names, custom chat channels, and all character and account IDs (replaced with random values).">Enable PDump</label></th>
                                             <td>
                                                 <select name="acore_pdump_enabled" id="acore_pdump_enabled">
                                                     <option value="0" <?php if (Opts::I()->acore_pdump_enabled != '1') echo 'selected'; ?>>Disabled</option>
@@ -349,6 +375,14 @@
         $wrap.toggleClass('acore-days-inactive-disabled', !on)
              .attr('title', on ? '' : 'Scroll of Resurrection must be enabled');
         $('#acore_resurrection_scroll_days_inactive').prop('disabled', !on);
+    });
+
+    /* Punishment Info checkboxes depend on master toggle */
+    $('#acore_punishment_info_enabled').on('change', function(){
+        var on = $(this).val() === '1';
+        var $row = $('#acore-punishment-info-row');
+        $row.css({ opacity: on ? '' : '0.45', 'pointer-events': on ? '' : 'none' });
+        $row.find('input[type="checkbox"]').prop('disabled', !on);
     });
 
     /* PDUMP Bug Report URL depends on PDUMP being enabled */

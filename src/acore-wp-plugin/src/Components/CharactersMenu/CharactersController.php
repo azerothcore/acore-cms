@@ -92,7 +92,16 @@ class CharactersController {
             // non-fatal
         }
 
-        echo $this->getView()->getHomeRender($chars, $mutetime, $accBanRow, $serverRevision, $serverRevisionUrl, Opts::I()->acore_bug_report_url ?: '', Opts::I()->acore_pdump_enabled == '1');
+        $punishmentEnabled = Opts::I()->acore_punishment_info_enabled == '1';
+        echo $this->getView()->getHomeRender(
+            $chars, $mutetime, $accBanRow,
+            $serverRevision, $serverRevisionUrl,
+            Opts::I()->acore_bug_report_url ?: '',
+            Opts::I()->acore_pdump_enabled == '1',
+            $punishmentEnabled && Opts::I()->acore_punishment_info_account_ban  == '1',
+            $punishmentEnabled && Opts::I()->acore_punishment_info_account_mute == '1',
+            $punishmentEnabled && Opts::I()->acore_punishment_info_character_ban == '1'
+        );
     }
 
     public function getView() {

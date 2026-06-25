@@ -28,7 +28,7 @@ class CharactersView {
     private function formatDate($ts) { return date('d-m-Y', intval($ts)); }
     private function formatTime($ts) { return date('H:i',   intval($ts)); }
 
-    public function getHomeRender($characters, $mutetime = 0, $accBanRow = null, $serverRevision = '', $serverRevisionUrl = '', $bugReportUrl = '', $pdumpEnabled = false) {
+    public function getHomeRender($characters, $mutetime = 0, $accBanRow = null, $serverRevision = '', $serverRevisionUrl = '', $bugReportUrl = '', $pdumpEnabled = false, $showAccountBan = false, $showAccountMute = false, $showCharBan = false) {
         $now = time();
 
         // Account mute
@@ -54,9 +54,9 @@ class CharactersView {
                         <div class="card-body">
                             <h3>Order Character Screen</h3>
                             <p>Change the order in which your characters appear in the in-game selection screen by dragging them into your preferred position.</p>
-                            <?php if ($isAccountBanned || $isMuted): ?>
+                            <?php if (($isAccountBanned && $showAccountBan) || ($isMuted && $showAccountMute)): ?>
                                 <div class="acore-account-notices">
-                                    <?php if ($isAccountBanned): ?>
+                                    <?php if ($isAccountBanned && $showAccountBan): ?>
                                         <div class="acore-notice-pill badge bg-danger">
                                             <span><?= $accBanPerma ? 'Banned' : esc_html('Banned for: ' . $this->formatDuration($accBanRemaining)) ?></span>
                                             <?php if (!$accBanPerma): ?>
@@ -64,7 +64,7 @@ class CharactersView {
                                             <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
-                                    <?php if ($isMuted): ?>
+                                    <?php if ($isMuted && $showAccountMute): ?>
                                         <div class="acore-notice-pill badge bg-warning">
                                             <span><?= $mutePending ? esc_html('Muted for ' . $this->formatDuration($muteRemaining)) : esc_html('Muted for: ' . $this->formatDuration($muteRemaining)) ?></span>
                                             <?php if ($mutePending): ?><span class="acore-notice-subtext">Starts upon login</span><?php endif; ?>
@@ -110,8 +110,8 @@ class CharactersView {
                                                     <img class="class-icon" height="32" width="32" alt="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/class/" . intval($char["class"]) . ".webp") ?>">
                                                 </span>
                                             </div>
-                                            <div class="acore-char-ext-col acore-char-ext-col--ban<?= $charBanned ? ' acore-char-ext-col--banned' : '' ?>">
-                                                <?php if ($charBanned): ?>
+                                            <div class="acore-char-ext-col acore-char-ext-col--ban<?= ($charBanned && $showCharBan) ? ' acore-char-ext-col--banned' : '' ?>">
+                                                <?php if ($charBanned && $showCharBan): ?>
                                                     <?php if ($charBanPerma): ?>
                                                         <span class="acore-ban-badge">Banned</span>
                                                     <?php else: ?>

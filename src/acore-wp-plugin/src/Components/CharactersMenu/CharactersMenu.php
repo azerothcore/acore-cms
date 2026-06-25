@@ -4,6 +4,7 @@ namespace ACore\Components\CharactersMenu;
 
 use ACore\Components\CharactersMenu\CharactersController;
 use ACore\Manager\ACoreServices;
+use ACore\Manager\Opts;
 
 add_action('init', __NAMESPACE__ . '\\characters_menu_init');
 
@@ -26,28 +27,37 @@ class CharactersMenu
 
     function acore_characters_menu()
     {
-        $menuTitle = 'Characters';
+        $menuTitle      = 'Characters';
+        $punishEnabled  = Opts::I()->acore_punishment_info_enabled == '1';
+        $showAccBan     = $punishEnabled && Opts::I()->acore_punishment_info_account_ban  == '1';
+        $showAccMute    = $punishEnabled && Opts::I()->acore_punishment_info_account_mute == '1';
         try {
-            $accId    = ACoreServices::I()->getAcoreAccountId();
-            if (!$accId) throw new \Exception('no account');
-            $authConn = ACoreServices::I()->getAccountEm()->getConnection();
-            $now      = time();
+            if ($showAccBan || $showAccMute) {
+                $accId    = ACoreServices::I()->getAcoreAccountId();
+                if (!$accId) throw new \Exception('no account');
+                $authConn = ACoreServices::I()->getAccountEm()->getConnection();
+                $now      = time();
 
-            $isBanned = (bool) $authConn->executeQuery(
-                "SELECT 1 FROM `account_banned`
-                 WHERE `id` = ? AND `active` = 1
-                   AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
-                 LIMIT 1", [$accId]
-            )->fetchOne();
+                if ($showAccBan) {
+                    $isBanned = (bool) $authConn->executeQuery(
+                        "SELECT 1 FROM `account_banned`
+                         WHERE `id` = ? AND `active` = 1
+                           AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
+                         LIMIT 1", [$accId]
+                    )->fetchOne();
 
-            if ($isBanned) {
-                $menuTitle .= ' <span style="background:#dc3545;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;vertical-align:middle;text-transform:uppercase;">Banned</span>';
-            } else {
-                $muteRow  = $authConn->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])->fetchAssociative();
-                $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
-                $isMuted  = $mutetime < 0 || $mutetime > $now;
-                if ($isMuted) {
-                    $menuTitle .= ' <span style="background:#ffc107;color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;vertical-align:middle;text-transform:uppercase;">Muted</span>';
+                    if ($isBanned) {
+                        $menuTitle .= ' <span style="background:#dc3545;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;vertical-align:middle;text-transform:uppercase;">Banned</span>';
+                    }
+                }
+
+                if ($showAccMute) {
+                    $muteRow  = $authConn->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])->fetchAssociative();
+                    $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
+                    $isMuted  = $mutetime < 0 || $mutetime > $now;
+                    if ($isMuted) {
+                        $menuTitle .= ' <span style="background:#ffc107;color:#000;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;vertical-align:middle;text-transform:uppercase;">Muted</span>';
+                    }
                 }
             }
         } catch (\Throwable $e) {
