@@ -7,27 +7,43 @@ use ACore\Manager\Opts;
 
 class ToolsApi {
     public static function ItemRestoreList($request) {
-        return ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
+        try {
+            return ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
+        } catch (\InvalidArgumentException $e) {
+            return new \WP_Error('invalid_character', 'Character not found.', ['status' => 403]);
+        }
     }
 
     public static function ItemRestore($data) {
-        $item = $data['item'];
-        $cname = $data['cname'];
-        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $cname");
+        $cname = isset($data['cname']) && is_string($data['cname']) ? trim($data['cname']) : '';
+        $item  = filter_var($data['item'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($item === false) {
+            return new \WP_Error('invalid_item', 'Invalid item id.', ['status' => 400]);
+        }
+        if ($cname === '') {
+            return new \WP_Error('invalid_character', 'Invalid character.', ['status' => 400]);
+        }
+        $ownedCharacterName = ACoreServices::I()->getOwnedRestorableItemCharacterName($item, $cname);
+        if ($ownedCharacterName === null) {
+            return new \WP_Error('forbidden', 'Restorable item not found for that character.', ['status' => 403]);
+        }
+        return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $ownedCharacterName");
     }
 }
 
 add_action( 'rest_api_init', function () {
    register_rest_route( ACORE_SLUG . '/v1', 'item-restore/list/(?P<cguid>\d+)', array(
-       'methods'  => 'GET',
-       'callback' => function( $request ) {
+       'methods'             => 'GET',
+       'permission_callback' => function() { return is_user_logged_in(); },
+       'callback'            => function( $request ) {
             return ToolsApi::ItemRestoreList($request);
        }
    ));
 
    register_rest_route( ACORE_SLUG . '/v1', 'item-restore', array(
-    'methods'  => 'POST',
-    'callback' => function( $request ) {
+    'methods'             => 'POST',
+    'permission_callback' => function() { return is_user_logged_in(); },
+    'callback'            => function( $request ) {
 
         // if free item-restoration is disabled, return
         if (Opts::I()->acore_item_restoration != '1') {

@@ -108,6 +108,7 @@ function user_profile_update($user_id, $old_user_data)
         if ($result instanceof \Exception) {
             die(sprintf(__("#2 ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
         }
+        update_user_meta($user_id, 'acore_password_changed_at', current_time('mysql'));
     }
 }
 
@@ -132,6 +133,7 @@ function user_password_reset($user, $new_pass)
     if ($result instanceof \Exception) {
         die(sprintf(__("#1 ACore Error: Game server error: %s", 'acore-wp-plugin'), $result->getMessage()));
     }
+    update_user_meta($user->ID, 'acore_password_changed_at', current_time('mysql'));
 }
 
 add_action('password_reset', __NAMESPACE__ . '\user_password_reset', 10, 2);
@@ -369,17 +371,63 @@ function extra_user_profile_fields($user)
 
     <table class="form-table">
         <tr>
-            <th><label for="acore-user-game-expansion"><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
+            <th><label><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
             <td>
-                <select id="acore-user-game-expansion" name="acore-user-game-expansion">
-                    <?php
-                    foreach (Common::EXPANSIONS as $key => $value) {
-                    ?><option value=<?= $value ?> <?= $userExpansion == $value ? "selected" : "" ?>><?= $key ?></option>
-                    <?php
+                <?php
+                $expansions = [
+                    Common::EXPANSION_CLASSIC => ['label' => 'Vanilla',               'color' => '#C39361'],
+                    Common::EXPANSION_TBC     => ['label' => 'The Burning Crusade',    'color' => '#62C907'],
+                    Common::EXPANSION_WOTLK   => ['label' => 'Wrath of the Lich King', 'color' => '#5DACEB'],
+                ];
+                ?>
+
+                <div class="acore-expansion-wrapper">
+                    <div class="acore-expansion-arrow" id="acore-exp-arrow"></div>
+                    <div class="acore-expansion-selector">
+                        <?php foreach ($expansions as $val => $exp): ?>
+                        <label class="acore-expansion-option<?= $userExpansion == $val ? ' is-selected' : '' ?>" style="--exp-color:<?= esc_attr($exp['color']) ?>;">
+                            <input type="radio" name="acore-user-game-expansion" value="<?= $val ?>" <?= $userExpansion == $val ? 'checked' : '' ?>>
+                            <span class="acore-expansion-label"><?= esc_html($exp['label']) ?></span>
+                        </label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <p class="acore-expansion-warning">
+                    &#9888; <strong><?php _e('Warning:', 'acore-wp-plugin'); ?></strong>
+                    <?php _e('This will restrict your account to the selected content. For example, selecting Vanilla means you cannot access TBC zones, create Draenei or Blood Elves, make Death Knights, or travel to Northrend.', 'acore-wp-plugin'); ?>
+                </p>
+
+                <script>
+                (function() {
+                    var arrow = document.getElementById('acore-exp-arrow');
+
+                    function updateArrow() {
+                        var selected = document.querySelector('.acore-expansion-option.is-selected');
+                        var wrapper  = document.querySelector('.acore-expansion-wrapper');
+                        if (!selected || !wrapper || !arrow) return;
+
+                        var wRect = wrapper.getBoundingClientRect();
+                        var sRect = selected.getBoundingClientRect();
+                        var centerX = sRect.left + sRect.width / 2 - wRect.left;
+                        var color   = selected.style.getPropertyValue('--exp-color') || '#646970';
+
+                        arrow.style.left           = centerX + 'px';
+                        arrow.style.borderTopColor = color;
                     }
-                    ?>
-                </select>
-                <span class="description"><?php _e("Game expansion to enable", 'acore-wp-plugin'); ?></span>
+
+                    document.querySelectorAll('.acore-expansion-option input[type="radio"]').forEach(function(radio) {
+                        radio.addEventListener('change', function() {
+                            document.querySelectorAll('.acore-expansion-option').forEach(function(o) { o.classList.remove('is-selected'); });
+                            this.closest('.acore-expansion-option').classList.add('is-selected');
+                            updateArrow();
+                        });
+                    });
+
+                    // Position on load
+                    updateArrow();
+                })();
+                </script>
             </td>
         </tr>
         <?php
@@ -440,11 +488,15 @@ function save_extra_user_profile_fields($user_id)
     }
 
 
-    $expansion = $_POST['acore-user-game-expansion'];
+    if (!isset($_POST['acore-user-game-expansion'])) {
+        return;
+    }
 
-    if (!$expansion || !in_array($expansion, Common::EXPANSIONS)) {
+    $rawExpansion = wp_unslash($_POST['acore-user-game-expansion']);
+    $expansion    = is_numeric($rawExpansion) ? (int) $rawExpansion : null;
+
+    if ($expansion === null || !in_array($expansion, Common::EXPANSIONS, true)) {
         $expansion = Common::EXPANSION_WOTLK;
-        // throw new \Exception(__("Invalid Expansion!", "acore-wp-plugin"));
     }
 
     if ($expansion != $gameUser->getExpansion()) {
@@ -564,3 +616,316 @@ function login_checks()
 }
 
 add_action('login_enqueue_scripts', __NAMESPACE__ . '\login_checks');
+
+add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_2fa_removal_warning');
+add_action('edit_user_profile', __NAMESPACE__ . '\acore_profile_2fa_removal_warning');
+
+function acore_profile_2fa_removal_warning($user) {
+    // admin_notices already shows this at the top of plain profile.php — avoid duplicate
+    global $pagenow;
+    if ($pagenow === 'profile.php' && !isset($_GET['page'])) return;
+
+    $adminLog        = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
+    $adminLog        = is_array($adminLog) ? $adminLog : [];
+    $lastWebRemoval  = null;
+    $lastGameRemoval = null;
+    foreach ($adminLog as $entry) {
+        if ($entry['type'] === 'website') $lastWebRemoval  = $entry;
+        if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
+    }
+
+    // Check current 2FA state - website
+    $webActive = \ACore\Components\ServerInfo\acore_website_2fa_enabled($user->ID);
+
+    // Check current 2FA state - ingame
+    $gameActive = false;
+    try {
+        $conn   = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
+        $result = $conn->executeQuery('SELECT totp_secret FROM account WHERE username = ?', [strtoupper($user->user_login)]);
+        $row    = $result->fetchAssociative();
+        $gameActive = $row && $row['totp_secret'] !== null;
+    } catch (\Exception $e) {
+        // DB unavailable - skip
+    }
+
+    $showWebWarning  = $lastWebRemoval  && !$webActive;
+    $showGameWarning = $lastGameRemoval && !$gameActive;
+
+    if (!$showWebWarning && !$showGameWarning) return;
+
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    ?>
+    <div class="notice notice-warning" style="margin:16px 0; padding:10px 14px;">
+        <p style="margin:0 0 4px; font-weight:600;">
+            <?php _e('Your 2FA was manually removed by a staff member.', 'acore-wp-plugin'); ?>
+        </p>
+        <?php if ($showWebWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">
+                - <?php printf(
+                    __('Website 2FA removed on %1$s by %2$s.', 'acore-wp-plugin'),
+                    '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>',
+                    (($lastWebRemoval['by'] ?? 'admin') === 'self'
+                        ? '<strong>' . esc_html__('you', 'acore-wp-plugin') . '</strong>'
+                        : '<strong>' . esc_html($lastWebRemoval['staff'] ?? __('a staff member', 'acore-wp-plugin')) . '</strong>')
+                ); ?>
+            </p>
+        <?php endif; ?>
+        <?php if ($showGameWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">
+                - <?php printf(
+                    __('In-game 2FA removed on %1$s by %2$s.', 'acore-wp-plugin'),
+                    '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastGameRemoval['timestamp'])) . '</strong>',
+                    '<strong>' . esc_html($lastGameRemoval['staff']) . '</strong>'
+                ); ?>
+            </p>
+        <?php endif; ?>
+        <p style="margin:6px 0 0; font-size:13px;">
+            <a href="<?= esc_url($security_url) ?>"><?php _e('Go to Security page to re-enable &rarr;', 'acore-wp-plugin'); ?></a>
+        </p>
+    </div>
+    <?php
+}
+
+// Remove WP2FA plugin blocks from the standard WordPress profile page only.
+// They belong in the dedicated Security sub-page — skip removal when there.
+add_action('admin_init', function () {
+    global $pagenow;
+    if ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') return;
+    $page = isset($_GET['page']) ? $_GET['page'] : '';
+    if ($page === ACORE_SLUG . '-security') return; // Security sub-page: leave hooks intact
+
+    global $wp_filter;
+    foreach (['show_user_profile', 'edit_user_profile'] as $hook) {
+        if (empty($wp_filter[$hook])) continue;
+        foreach ($wp_filter[$hook]->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $key => $cb) {
+                $func = $cb['function'];
+                $id   = '';
+                if (is_array($func) && is_object($func[0]))     $id = get_class($func[0]);
+                elseif (is_array($func) && is_string($func[0])) $id = $func[0];
+                elseif (is_string($func))                        $id = $func;
+                if ($id && (
+                    stripos($id, 'WP2FA')      !== false ||
+                    stripos($id, 'wp_2fa')     !== false ||
+                    stripos($id, 'Two_Factor') !== false
+                )) {
+                    unset($wp_filter[$hook]->callbacks[$priority][$key]);
+                }
+            }
+        }
+    }
+}, 99);
+
+// Hide "New Password" fields on the standard profile page
+add_filter('show_password_fields', function ($show) {
+    global $pagenow;
+    if ($pagenow === 'profile.php') return false;
+    return $show;
+});
+
+// 2FA removal warning at the TOP of Profile > Profile (admin_notices)
+add_action('admin_notices', function () {
+    global $pagenow;
+    if ($pagenow !== 'profile.php') return;
+    if (isset($_GET['page'])) return; // sub-pages (Security, etc.) — skip
+
+    $user = wp_get_current_user();
+    $adminLog        = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
+    $adminLog        = is_array($adminLog) ? $adminLog : [];
+    $lastWebRemoval  = null;
+    $lastGameRemoval = null;
+    foreach ($adminLog as $entry) {
+        if ($entry['type'] === 'website') $lastWebRemoval  = $entry;
+        if ($entry['type'] === 'ingame')  $lastGameRemoval = $entry;
+    }
+
+    $webActive = \ACore\Components\ServerInfo\acore_website_2fa_enabled($user->ID);
+    $gameActive = false;
+    try {
+        $conn   = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
+        $result = $conn->executeQuery('SELECT totp_secret FROM account WHERE username = ?', [strtoupper($user->user_login)]);
+        $row    = $result->fetchAssociative();
+        $gameActive = $row && $row['totp_secret'] !== null;
+    } catch (\Exception $e) {}
+
+    $showWebWarning  = $lastWebRemoval  && !$webActive;
+    $showGameWarning = $lastGameRemoval && !$gameActive;
+    if (!$showWebWarning && !$showGameWarning) return;
+
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    ?>
+    <div class="notice notice-warning" style="padding:10px 14px;">
+        <p style="margin:0 0 4px; font-weight:600;"><?php _e('Your 2FA was manually removed by a staff member.', 'acore-wp-plugin'); ?></p>
+        <?php if ($showWebWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">- <?php printf(
+                __('Website 2FA removed on %1$s by %2$s. Please re-enable it for account security.', 'acore-wp-plugin'),
+                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastWebRemoval['timestamp'])) . '</strong>',
+                '<strong>' . esc_html($lastWebRemoval['staff']) . '</strong>'
+            ); ?></p>
+        <?php endif; ?>
+        <?php if ($showGameWarning): ?>
+            <p style="margin:4px 0 0; font-size:13px;">- <?php printf(
+                __('In-game 2FA removed on %1$s by %2$s. Please re-enable it for account security.', 'acore-wp-plugin'),
+                '<strong>' . esc_html(wp_date('jS \o\f F, Y \a\t H:i', $lastGameRemoval['timestamp'])) . '</strong>',
+                '<strong>' . esc_html($lastGameRemoval['staff']) . '</strong>'
+            ); ?></p>
+        <?php endif; ?>
+        <p style="margin:6px 0 0; font-size:13px;"><a href="<?= esc_url($security_url) ?>"><?php _e('Go to Security page to re-enable &rarr;', 'acore-wp-plugin'); ?></a></p>
+    </div>
+    <?php
+});
+
+// Ban / Mute warning at the TOP of Profile > Profile (admin_notices)
+add_action('admin_notices', function () {
+    global $pagenow;
+    if ($pagenow !== 'profile.php') return;
+    if (isset($_GET['page'])) return;
+
+    $punishEnabled  = \ACore\Manager\Opts::I()->acore_punishment_info_enabled == '1';
+    $showAccBan     = $punishEnabled && \ACore\Manager\Opts::I()->acore_punishment_info_account_ban   == '1';
+    $showAccMute    = $punishEnabled && \ACore\Manager\Opts::I()->acore_punishment_info_account_mute  == '1';
+    $showCharBan    = $punishEnabled && \ACore\Manager\Opts::I()->acore_punishment_info_character_ban == '1';
+
+    if (!$showAccBan && !$showAccMute && !$showCharBan) return;
+
+    $now = time();
+
+    try {
+        $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
+        if (!$accId) return;
+
+        $authConn = \ACore\Manager\ACoreServices::I()->getAccountEm()->getConnection();
+        $charConn = \ACore\Manager\ACoreServices::I()->getCharacterEm()->getConnection();
+
+        $accBanRow = $showAccBan ? $authConn->executeQuery(
+            "SELECT `bandate`, `unbandate` FROM `account_banned`
+             WHERE `id` = ? AND `active` = 1
+               AND (`unbandate` = 0 OR `unbandate` = `bandate` OR `unbandate` > UNIX_TIMESTAMP())
+             ORDER BY `bandate` DESC LIMIT 1", [$accId]
+        )->fetchAssociative() : false;
+
+        $isMuted     = false;
+        $mutePending = false;
+        $mutetime    = 0;
+        if ($showAccMute) {
+            $muteRow  = $authConn->executeQuery("SELECT `mutetime` FROM `account` WHERE `id` = ?", [$accId])->fetchAssociative();
+            $mutetime = $muteRow ? intval($muteRow['mutetime']) : 0;
+            $isMuted     = $mutetime < 0 || $mutetime > $now;
+            $mutePending = $mutetime < 0;
+        }
+
+        $bannedChars = $showCharBan ? $charConn->executeQuery(
+            "SELECT c.`name`, cb.`bandate`, cb.`unbandate`
+             FROM `characters` c
+             JOIN `character_banned` cb ON cb.`guid` = c.`guid`
+             WHERE c.`account` = ? AND c.`deleteDate` IS NULL
+               AND cb.`active` = 1
+               AND (cb.`unbandate` = 0 OR cb.`unbandate` = cb.`bandate` OR cb.`unbandate` > UNIX_TIMESTAMP())
+             ORDER BY COALESCE(c.`order`, c.`guid`)", [$accId]
+        )->fetchAllAssociative() : [];
+
+        $isAccountBanned = !empty($accBanRow);
+        $hasBannedChars  = !empty($bannedChars);
+
+        if (!$isAccountBanned && !$isMuted && !$hasBannedChars) return;
+
+    } catch (\Throwable $e) { return; }
+
+    $chars_url = admin_url('profile.php?page=' . ACORE_SLUG . '-characters-menu');
+    $fmtDate   = fn($ts) => date('jS \o\f F, Y \a\t H:i', intval($ts));
+    ?>
+    <div class="notice notice-warning" style="padding:12px 14px;">
+
+        <?php if ($isMuted || $isAccountBanned): ?>
+        <div style="display:flex; gap:0; margin-bottom:<?= $hasBannedChars ? '10px' : '0' ?>;">
+            <?php if ($isMuted): ?>
+            <div style="flex:1; <?= $isAccountBanned ? 'border-right:1px solid rgba(0,0,0,0.15); padding-right:16px; margin-right:16px;' : '' ?>">
+                <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your account has been muted', 'acore-wp-plugin'); ?></p>
+                <?php if ($mutePending): ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php _e('Starts upon login', 'acore-wp-plugin'); ?></p>
+                <?php else: ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($mutetime) . '</strong>'); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            <?php if ($isAccountBanned):
+                $accBanPerma = intval($accBanRow['unbandate']) === 0 || $accBanRow['unbandate'] === $accBanRow['bandate']; ?>
+            <div style="flex:1;">
+                <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your account has been banned', 'acore-wp-plugin'); ?></p>
+                <?php if ($accBanPerma): ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php _e('Permanently', 'acore-wp-plugin'); ?></p>
+                <?php else: ?>
+                    <p style="margin:2px 0; font-size:13px;">- <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($accBanRow['unbandate']) . '</strong>'); ?></p>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if ($hasBannedChars): ?>
+        <?php if ($isMuted || $isAccountBanned): ?><hr style="margin:8px 0; border-color:rgba(0,0,0,0.15);"><?php endif; ?>
+        <div>
+            <p style="margin:0 0 6px; font-weight:700; font-size:13px;"><?php _e('Your characters have been banned', 'acore-wp-plugin'); ?></p>
+            <?php foreach ($bannedChars as $bc):
+                $perma = intval($bc['unbandate']) === 0 || $bc['unbandate'] === $bc['bandate']; ?>
+                <p style="margin:2px 0; font-size:13px;">- <strong><?= esc_html($bc['name']) ?></strong><?php if ($perma): ?> - <?php _e('Banned', 'acore-wp-plugin'); ?><?php else: ?> - <?php printf(__('Ends: %s', 'acore-wp-plugin'), '<strong>' . $fmtDate($bc['unbandate']) . '</strong>'); ?><?php endif; ?></p>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <p style="margin:8px 0 0; font-size:13px;"><a href="<?= esc_url($chars_url) ?>"><?php _e('Go to Characters page &rarr;', 'acore-wp-plugin'); ?></a></p>
+    </div>
+    <?php
+});
+
+add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_recent_connections');
+
+function acore_profile_recent_connections($user) {
+    $security_url = admin_url('profile.php?page=' . ACORE_SLUG . '-security');
+    $myIp = acore_resolve_client_ip();
+
+    $rows = acore_get_login_history($user->ID, 10);
+    $rows = array_slice($rows, 0, 10);
+    ?>
+    <h2 class="acore-conn-heading"><span><?php _e('Recent Connections', 'acore-wp-plugin'); ?></span><span class="acore-conn-myip"><?php _e('Your IPv4:', 'acore-wp-plugin'); ?> <?= esc_html($myIp) ?></span></h2>
+    <?php if (empty($rows)): ?>
+        <p><?php _e('No connections recorded yet.', 'acore-wp-plugin'); ?></p>
+    <?php else: ?>
+        <p class="acore-conn-note" style="margin:0 0 8px;">
+            <?php _e('This only shows the latest 10 logins.', 'acore-wp-plugin'); ?>
+            <?php printf(esc_html__('Showing %d entries.', 'acore-wp-plugin'), count($rows)); ?>
+        </p>
+        <table class="wp-list-table widefat fixed striped acore-conn-table" style="max-width:860px;">
+            <thead>
+                <tr>
+                    <th><?php _e('IP Address', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Country', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Date / Time', 'acore-wp-plugin'); ?></th>
+                    <th><?php _e('Where', 'acore-wp-plugin'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($rows as $row):
+                    $ip      = $row['ip_address'] ?? ($row['ip'] ?? '');
+                    $country = $row['country'] ?? '';
+                    $when    = $row['login_at'] ?? ($row['timestamp'] ?? '');
+                    $src     = (($row['source'] ?? 'website') === 'ingame')
+                                ? __('In-game', 'acore-wp-plugin')
+                                : __('Website', 'acore-wp-plugin');
+                    $cur     = ($ip !== '' && $ip === $myIp);
+                ?>
+                    <tr<?= $cur ? ' class="acore-conn-current" title="' . esc_attr__('This matches your current IP', 'acore-wp-plugin') . '"' : '' ?>>
+                        <td><?= esc_html($ip) ?></td>
+                        <td><?= esc_html($country !== '' ? $country : 'Unknown') ?></td>
+                        <td><?= esc_html($when !== '' ? acore_format_connection_date($when) : '') ?></td>
+                        <td><?= esc_html($src) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <p style="margin-top:10px;">
+            <a href="<?= esc_url($security_url) ?>" class="button"><?php _e('See more', 'acore-wp-plugin'); ?> &rarr;</a>
+        </p>
+    <?php endif; ?>
+    <?php
+}

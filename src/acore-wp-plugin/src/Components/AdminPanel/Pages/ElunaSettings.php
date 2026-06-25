@@ -6,6 +6,7 @@
     <h2> <?= __('AzerothCore Settings', Opts::I()->page_alias) ?></h2>
     <p>Configure database connection for Eluna script that need use of the CMS.</p>
     <form name="form-acore-eluna-settings" method="post" action="">
+        <?php wp_nonce_field('acore_eluna_settings_save', 'acore_eluna_settings_nonce'); ?>
         <div class="row">
             <div class="col-sm-6">
                 <div class="card p-0">
