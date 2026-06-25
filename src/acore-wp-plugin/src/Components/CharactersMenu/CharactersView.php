@@ -122,7 +122,13 @@ class CharactersView {
                                             </div>
                                             <div class="acore-char-ext-col">
                                                 <?php if ($pdumpEnabled): ?>
-                                                <button type="button" class="button button-primary acore-export-btn" data-char-guid="<?= esc_attr($char['guid']) ?>" data-char-name="<?= esc_attr($char['name']) ?>">Export</button>
+                                                <button type="button" class="button button-primary acore-export-btn"
+                                                    data-char-guid="<?= esc_attr($char['guid']) ?>"
+                                                    data-char-name="<?= esc_attr($char['name']) ?>"
+                                                    data-char-order="<?= esc_attr($displayPos) ?>"
+                                                    data-char-level="<?= esc_attr(intval($char['level'])) ?>"
+                                                    data-char-race="<?= esc_attr(AcoreCharColors::getRaceName(intval($char['race']))) ?>"
+                                                    data-char-class="<?= esc_attr(AcoreCharColors::getClassName(intval($char['class']))) ?>">Export</button>
                                                 <?php endif; ?>
                                             </div>
                                             <div class="acore-char-ext-col"></div>
@@ -343,11 +349,27 @@ class CharactersView {
             var acorePdumpRevisionUrl = <?= json_encode($serverRevisionUrl ?: '') ?>;
             var acorePdumpBugReportUrl = <?= json_encode($bugReportUrl ?: '') ?>;
             var acorePdumpRestBase    = <?= json_encode(get_rest_url(null, ACORE_SLUG . '/v1/pdump/')) ?>;
+            var acorePdumpAllUrl      = <?= json_encode(get_rest_url(null, ACORE_SLUG . '/v1/pdump/all')) ?>;
             var acorePdumpNonce       = <?= json_encode(wp_create_nonce('wp_rest')) ?>;
             var acorePdumpModal       = document.getElementById('acore-pdump-modal');
             var acorePdumpBody        = document.getElementById('acore-pdump-modal-body');
             var acorePdumpConfirm     = document.getElementById('acore-pdump-confirm');
             var acorePdumpOnConfirm   = null;
+
+            function acorePdumpFilename(order, level, race, cls) {
+                var now = new Date();
+                var pad = function(n) { return String(n).padStart(2, '0'); };
+                return order + '_' + level + '_' + race + '_' + cls + '_'
+                    + pad(now.getDate()) + '_' + pad(now.getMonth() + 1) + '_' + now.getFullYear() + '_'
+                    + pad(now.getHours()) + '_' + pad(now.getMinutes()) + '_' + pad(now.getSeconds()) + '.dump';
+            }
+
+            function acorePdumpZipFilename() {
+                var now = new Date();
+                var pad = function(n) { return String(n).padStart(2, '0'); };
+                return 'dump_all_' + pad(now.getDate()) + '_' + pad(now.getMonth() + 1) + '_' + now.getFullYear() + '_'
+                    + pad(now.getHours()) + '_' + pad(now.getMinutes()) + '_' + pad(now.getSeconds()) + '.zip';
+            }
 
             function acorePdumpRevisionLink() {
                 if (!acorePdumpRevision) return '(unknown revision)';
@@ -402,11 +424,7 @@ class CharactersView {
                 acorePdumpOnConfirm = null;
             }
 
-            /**
-             * Fetch the dump for one character GUID and trigger a browser download.
-             * Uses fetch() + Blob so errors are surfaced without a page navigation.
-             */
-            function acoreDownloadDump(guid, charName) {
+            function acoreDownloadDump(guid, order, level, race, cls) {
                 fetch(acorePdumpRestBase + guid, {
                     headers: { 'X-WP-Nonce': acorePdumpNonce }
                 }).then(function(resp) {
@@ -422,7 +440,45 @@ class CharactersView {
                     }
                     return resp.blob();
                 }).then(function(blob) {
-                    var filename = charName.toUpperCase() + '_' + new Date().toISOString().slice(0,10) + '.dump';
+                    var filename = acorePdumpFilename(order, level, race, cls);
+                    var url  = URL.createObjectURL(blob);
+                    var link = document.createElement('a');
+                    link.href     = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+                }).catch(function(err) {
+                    acoreShowPdumpError(
+                        err && err.message ? err.message : String(err),
+                        err && err.detail  ? err.detail  : null
+                    );
+                });
+            }
+
+            function acoreDownloadAll(chars) {
+                fetch(acorePdumpAllUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': acorePdumpNonce
+                    },
+                    body: JSON.stringify({ characters: chars })
+                }).then(function(resp) {
+                    if (!resp.ok) {
+                        return resp.json().then(function(body) {
+                            var data   = (body && body.data) ? body.data : body;
+                            var msg    = (data && data.message) ? data.message : 'Export failed (HTTP ' + resp.status + ').';
+                            var detail = (data && data.detail)  ? data.detail  : null;
+                            var err    = new Error(msg);
+                            err.detail = detail;
+                            throw err;
+                        });
+                    }
+                    return resp.blob();
+                }).then(function(blob) {
+                    var filename = acorePdumpZipFilename();
                     var url  = URL.createObjectURL(blob);
                     var link = document.createElement('a');
                     link.href     = url;
@@ -449,8 +505,12 @@ class CharactersView {
             });
 
             $(document).on('click', '.acore-export-btn', function() {
-                var guid = $(this).data('char-guid');
-                var name = $(this).data('char-name');
+                var guid  = $(this).data('char-guid');
+                var name  = $(this).data('char-name');
+                var order = $(this).data('char-order');
+                var level = $(this).data('char-level');
+                var race  = $(this).data('char-race');
+                var cls   = $(this).data('char-class');
                 var upper = name.toUpperCase();
                 var msg  = 'You\'re about to PDUMP a.k.a make a copy of your character <strong>' + upper + '</strong> that can be used in AzerothCore. '
                          + 'This will <strong>NOT COPY</strong> any custom contents, for example modules like Transmog or Custom Items like Physical Costumes. '
@@ -463,28 +523,35 @@ class CharactersView {
                          + '<strong>EQUIPMENT SET NAMES</strong> &bull; <strong>CUSTOM CHAT CHANNELS</strong> &bull; '
                          + '<strong>CHARACTER &amp; ACCOUNT IDs</strong> (replaced with random values).';
                 acoreShowPdumpModal(msg, function() {
-                    acoreDownloadDump(guid, name);
+                    acoreDownloadDump(guid, order, level, race, cls);
                 });
             });
 
             $(document).on('click', '.acore-export-all-btn', function() {
                 var chars = [];
                 $('.acore-export-btn').each(function() {
-                    chars.push({ guid: $(this).data('char-guid'), name: $(this).data('char-name') });
+                    chars.push({
+                        guid:    $(this).data('char-guid'),
+                        name:    $(this).data('char-name'),
+                        order:   $(this).data('char-order'),
+                        level:   $(this).data('char-level'),
+                        race:    $(this).data('char-race'),
+                        'class': $(this).data('char-class')
+                    });
                 });
                 var nameList = chars.map(function(c) { return '<strong>' + c.name.toUpperCase() + '</strong>'; }).join(', ');
                 var msg = 'You\'re about to PDUMP a.k.a make a copy of <strong>ALL</strong> your characters: ' + nameList + '. '
                         + 'This will <strong>NOT COPY</strong> any custom contents, for example modules like Transmog or Custom Items like Physical Costumes. '
                         + '<br><br>This Character Dump was extracted from this version:<br>' + acorePdumpRevisionLink()
                         + '<br><br>The following information will be anonymised or omitted from the dump: '
-                        + 'character name, position, hearthstone location, gold, timestamps, online status, '
-                        + 'achievement dates, mail contents and sender, item creator/gifter, custom chat channels, '
-                        + 'and all character &amp; account IDs (replaced with random values).';
+                        + '<strong>CHARACTER NAME</strong> &bull; <strong>POSITION</strong> &bull; <strong>HEARTHSTONE LOCATION</strong> &bull; '
+                        + '<strong>GOLD</strong> &bull; <strong>TIMESTAMPS</strong> &bull; <strong>ONLINE STATUS</strong> &bull; '
+                        + '<strong>ACHIEVEMENT DATES</strong> &bull; <strong>MAIL CONTENTS &amp; SENDER</strong> &bull; '
+                        + '<strong>ITEM CREATOR/GIFTER</strong> &bull; <strong>AURA CASTER</strong> &bull; '
+                        + '<strong>EQUIPMENT SET NAMES</strong> &bull; <strong>CUSTOM CHAT CHANNELS</strong> &bull; '
+                        + '<strong>CHARACTER &amp; ACCOUNT IDs</strong> (replaced with random values).';
                 acoreShowPdumpModal(msg, function() {
-                    // Download sequentially with a small delay so the browser doesn't block multiple downloads
-                    chars.forEach(function(c, i) {
-                        setTimeout(function() { acoreDownloadDump(c.guid, c.name); }, i * 800);
-                    });
+                    acoreDownloadAll(chars);
                 });
             });
         });

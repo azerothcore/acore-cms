@@ -11,6 +11,11 @@ add_action('rest_api_init', function () {
         'callback'            => __NAMESPACE__ . '\handlePdump',
         'permission_callback' => '__return_true',
     ]);
+    register_rest_route(ACORE_SLUG . '/v1', 'pdump/all', [
+        'methods'             => 'POST',
+        'callback'            => __NAMESPACE__ . '\handlePdumpAll',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 function handlePdump(\WP_REST_Request $request): void
@@ -85,5 +90,98 @@ function handlePdump(\WP_REST_Request $request): void
     header('Cache-Control: no-cache, no-store, must-revalidate');
     header('Pragma: no-cache');
     echo $dump;
+    exit;
+}
+
+function handlePdumpAll(\WP_REST_Request $request): void
+{
+    $accId = ACoreServices::I()->getAcoreAccountId();
+
+    if (Opts::I()->acore_pdump_enabled != '1') {
+        wp_send_json_error(['message' => 'PDUMP export is not enabled on this server.'], 403);
+        exit;
+    }
+
+    if (!$accId) {
+        wp_send_json_error(['message' => 'Forbidden.'], 403);
+        exit;
+    }
+
+    $body       = $request->get_json_params();
+    $characters = $body['characters'] ?? [];
+    if (empty($characters) || !is_array($characters)) {
+        wp_send_json_error(['message' => 'No characters provided.'], 400);
+        exit;
+    }
+
+    $conn = ACoreServices::I()->getCharacterEm()->getConnection();
+    $now  = date('d_m_Y_H_i_s');
+
+    $phpWarnings = [];
+    set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline) use (&$phpWarnings): bool {
+        $phpWarnings[] = "[{$errno}] {$errstr} in {$errfile}:{$errline}";
+        return true;
+    });
+
+    ob_start();
+
+    $files = [];
+    foreach ($characters as $char) {
+        $guid = isset($char['guid']) ? (int) $char['guid'] : 0;
+        if ($guid < 1) continue;
+
+        $row = $conn->executeQuery(
+            "SELECT `name` FROM `characters`
+             WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL LIMIT 1",
+            [$guid, $accId]
+        )->fetchAssociative();
+
+        if (!$row) continue;
+
+        $writer = new CharacterDumpWriter($conn);
+        $dump   = $writer->getDump($guid);
+        if ($dump === null) continue;
+
+        $order = preg_replace('/[^0-9]/',    '', (string)($char['order']   ?? '0'));
+        $level = preg_replace('/[^0-9]/',    '', (string)($char['level']   ?? '0'));
+        $race  = preg_replace('/[^a-zA-Z]/', '', (string)($char['race']    ?? 'Unknown'));
+        $class = preg_replace('/[^a-zA-Z]/', '', (string)($char['class']   ?? 'Unknown'));
+
+        $files["{$order}_{$level}_{$race}_{$class}_{$now}.dump"] = $dump;
+    }
+
+    ob_end_clean();
+    restore_error_handler();
+
+    if (!empty($phpWarnings)) {
+        wp_send_json_error([
+            'message' => 'An internal error occurred while generating the dump.',
+            'detail'  => implode("\n", $phpWarnings),
+        ], 500);
+        exit;
+    }
+
+    if (empty($files)) {
+        wp_send_json_error(['message' => 'No valid characters could be exported.'], 400);
+        exit;
+    }
+
+    $tmp = tempnam(sys_get_temp_dir(), 'pdump_');
+    $zip = new \ZipArchive();
+    $zip->open($tmp, \ZipArchive::OVERWRITE);
+    foreach ($files as $filename => $content) {
+        $zip->addFromString($filename, $content);
+    }
+    $zip->close();
+
+    if (ob_get_level()) ob_end_clean();
+
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="dump_all_' . $now . '.zip"');
+    header('Content-Length: ' . filesize($tmp));
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    readfile($tmp);
+    unlink($tmp);
     exit;
 }
