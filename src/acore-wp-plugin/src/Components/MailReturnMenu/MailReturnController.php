@@ -64,7 +64,7 @@ class MailReturnController
 
         // Get mails sent by this character that are unread by the receiver
         // messageType = 0 means player mail
-        $query = "SELECT m.`id`, m.`subject`, m.`has_items`, m.`money`,
+        $query = "SELECT m.`id`, m.`subject`, m.`has_items`, m.`money`, m.`cod`,
                 m.`expire_time`, m.`deliver_time`,
                 rc.`name` AS receiver_name, rc.`race` AS receiver_race,
                 rc.`class` AS receiver_class, rc.`gender` AS receiver_gender,
@@ -94,7 +94,7 @@ class MailReturnController
             $placeholders = implode(',', array_fill(0, count($mailIds), '?'));
             $worldDb = Opts::I()->acore_db_world_name;
             $itemQuery = "SELECT mi.`mail_id`, ii.`itemEntry`, ii.`count`,
-                    it.`name` AS item_name
+                    it.`name` AS item_name, it.`Quality` AS item_quality
                 FROM `mail_items` mi
                 JOIN `item_instance` ii ON mi.`item_guid` = ii.`guid`
                 JOIN `$worldDb`.`item_template` it ON ii.`itemEntry` = it.`entry`
