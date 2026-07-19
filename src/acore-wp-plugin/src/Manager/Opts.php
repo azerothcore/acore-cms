@@ -40,6 +40,7 @@ class Opts {
     public $acore_resurrection_scroll="";
     public $acore_resurrection_scroll_days_inactive="180";
     public $acore_item_restoration="";
+    public $acore_smartstone_enabled="";
     public $acore_name_unlock_thresholds = [
         [5, 30], // level < 5 -> 30 days
         [30, 90], // level < 30 -> 90 days

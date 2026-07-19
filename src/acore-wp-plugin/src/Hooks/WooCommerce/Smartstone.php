@@ -279,10 +279,11 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         }
 
         // Gifting: persist the resolved recipient so payment_complete can route
-        // the SOAP unlock to their account. Charname is informational (for admin
-        // order view); only acore_gift_account is functional.
+        // the SOAP unlock to their account. The account login is stored under an
+        // underscore-prefixed key so WooCommerce keeps it out of customer-facing
+        // order details and emails; only the character name is shown to the buyer.
         if (self::isAccountWide($smartstone_category) && isset($values['acore_gift_account'])) {
-            \wc_add_order_item_meta($item_id, "acore_gift_account", $values['acore_gift_account']);
+            \wc_add_order_item_meta($item_id, "_acore_gift_account", $values['acore_gift_account']);
             if (isset($values['acore_gift_charname'])) {
                 \wc_add_order_item_meta($item_id, "acore_gift_charname", $values['acore_gift_charname']);
             }
@@ -340,8 +341,8 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
                 if (self::isAccountWide($smartstone_category)) {
                     // Gifted items route to the recipient's account; otherwise unlock
                     // for the buyer. Resolution + ban-check happened at add-to-cart time.
-                    $target = !empty($item['acore_gift_account'])
-                        ? $item['acore_gift_account']
+                    $target = !empty($item['_acore_gift_account'])
+                        ? $item['_acore_gift_account']
                         : $accountName;
                     if (!$target) {
                         throw new \Exception("Smartstone account-wide unlock requires a buyer with a linked AC account; order $order_id has none.");

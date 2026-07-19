@@ -63,6 +63,16 @@ class CartValidation extends \ACore\Lib\WpClass {
             return false;
         }
 
+        // Gift via smartstone token: for giftable char-change services, a
+        // recipient name replaces the self character selection. Validate the
+        // recipient and skip the remaining self-service field checks.
+        if (CharChange::isGiftEligible($sku)) {
+            $destName = isset($_REQUEST['acore_char_dest']) ? trim((string) $_REQUEST['acore_char_dest']) : '';
+            if ($destName !== '') {
+                return CharChange::validateGiftRecipient($destName);
+            }
+        }
+
         if (in_array('acore_char_sel', self::$skuList[$activeSku])) {
             $guid = intval($_REQUEST['acore_char_sel'] ?? 0);
 
