@@ -3,6 +3,7 @@
 namespace ACore\Hooks\WooCommerce;
 
 use ACore\Manager\ACoreServices;
+use ACore\Manager\Opts;
 
 class CharChange extends \ACore\Lib\WpClass {
 
@@ -14,6 +15,62 @@ class CharChange extends \ACore\Lib\WpClass {
         "char-change-customize",
         "char-restore-delete"
     );
+
+    /**
+     * SKUs that can be gifted through the smartstone token system, mapped to
+     * the mod's TokenType enum (src/Smartstone.h):
+     *   1 = Rename, 2 = Faction change, 3 = Race change, 4 = Customize.
+     * char-restore-delete has no token equivalent and is intentionally absent.
+     */
+    private static $tokenTypes = array(
+        "char-change-name" => 1,
+        "char-change-faction" => 2,
+        "char-change-race" => 3,
+        "char-change-customize" => 4,
+    );
+
+    private static function giftingEnabled(): bool {
+        return Opts::I()->acore_smartstone_enabled == '1';
+    }
+
+    /** A concrete service SKU the buyer may gift (smartstone must be enabled). */
+    public static function isGiftEligible($sku): bool {
+        return self::giftingEnabled() && isset(self::$tokenTypes[$sku]);
+    }
+
+    /**
+     * Whether to offer the gift field on the product page. Uses the display SKU,
+     * which for the variable "char-change" product is the parent (variations all
+     * map to giftable services), so the base SKU is accepted here too.
+     */
+    private static function isGiftableDisplaySku($sku): bool {
+        return self::giftingEnabled()
+            && ($sku === 'char-change' || isset(self::$tokenTypes[$sku]));
+    }
+
+    /**
+     * Validate a gift recipient (character name -> account). Adds a WooCommerce
+     * notice and returns false on any problem. Mirrors the smartstone
+     * account-wide gifting checks.
+     */
+    public static function validateGiftRecipient($destName): bool {
+        $ACoreSrv = ACoreServices::I();
+
+        $char = $ACoreSrv->getCharactersRepo()->findOneByName($destName);
+        if (!$char) {
+            \wc_add_notice(__('Recipient character not found.', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+        if ($ACoreSrv->getCharactersBannedRepo()->isActiveByGuid($char->getGuid())) {
+            \wc_add_notice(__('Recipient character is banned.', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+        if ($ACoreSrv->getAccountBannedRepo()->isActiveById($char->getAccount())) {
+            \wc_add_notice(__('Recipient account is banned.', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+        return true;
+    }
 
     public static function init() {
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
@@ -36,6 +93,12 @@ class CharChange extends \ACore\Lib\WpClass {
         if ($current_user) {
             FieldElements::charList($current_user->user_login, self::isDeletedSKU($product->get_sku()));
         }
+
+        // Optional gifting via smartstone token: leaving the field blank keeps
+        // the normal self-service (instant apply to the selected character).
+        if (self::isGiftableDisplaySku($product->get_sku())) {
+            FieldElements::destCharacter(__('Gift to a character (optional, leave blank to apply to your own selected character):', 'acore-wp-plugin'));
+        }
     }
 
     // 3) SAVE INTO ITEM DATA
@@ -43,7 +106,30 @@ class CharChange extends \ACore\Lib\WpClass {
     // ( each cart item has their own data )
     public static function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
-        if (!in_array($product->get_sku(), self::$skuList)) {
+        $sku = $product->get_sku();
+        if (!in_array($sku, self::$skuList)) {
+            return $cart_item_data;
+        }
+
+        // Gift mode: a recipient name was supplied for a giftable service. Resolve
+        // it to an account now so payment_complete can grant the token there.
+        // add_to_cart_validation has already vetted existence/ban state.
+        $destName = self::isGiftEligible($sku) && isset($_REQUEST['acore_char_dest'])
+            ? trim((string) $_REQUEST['acore_char_dest'])
+            : '';
+        if ($destName !== '') {
+            $cart_item_data['acore_item_sku'] = $sku;
+            $cart_item_data['unique_key'] = md5(microtime() . rand());
+
+            $ACoreSrv = ACoreServices::I();
+            $char = $ACoreSrv->getCharactersRepo()->findOneByName($destName);
+            if ($char) {
+                $account = $ACoreSrv->getAccountRepo()->findOneById($char->getAccount());
+                if ($account) {
+                    $cart_item_data['acore_gift_account'] = $account->getUsername();
+                    $cart_item_data['acore_gift_charname'] = $char->getName();
+                }
+            }
             return $cart_item_data;
         }
 
@@ -71,6 +157,14 @@ class CharChange extends \ACore\Lib\WpClass {
             return $custom_items;
         }
 
+        if (isset($cart_item['acore_gift_account'])) {
+            $giftCharname = isset($cart_item['acore_gift_charname'])
+                ? $cart_item['acore_gift_charname']
+                : '(recipient)';
+            $custom_items[] = array("name" => 'Gift for', "value" => $giftCharname);
+            return $custom_items;
+        }
+
         if (isset($cart_item['acore_char_sel'])) {
             $ACoreSrv = ACoreServices::I();
             $charRepo = $ACoreSrv->getCharactersRepo();
@@ -92,6 +186,19 @@ class CharChange extends \ACore\Lib\WpClass {
     // This is a piece of code that will add your custom field with order meta.
     public static function add_order_item_meta($item_id, $values, $cart_item_key) {
         if (!in_array($values['acore_item_sku'], self::$skuList)) {
+            return;
+        }
+
+        // Gift: persist the resolved recipient so payment_complete can grant the
+        // token. The account login is stored under an underscore-prefixed key so
+        // WooCommerce keeps it out of customer-facing order details and emails;
+        // only the character name is shown to the buyer. Charname is informational.
+        if (isset($values['acore_gift_account'])) {
+            wc_add_order_item_meta($item_id, "acore_item_sku", $values['acore_item_sku']);
+            wc_add_order_item_meta($item_id, "_acore_gift_account", $values['acore_gift_account']);
+            if (isset($values['acore_gift_charname'])) {
+                wc_add_order_item_meta($item_id, "acore_gift_charname", $values['acore_gift_charname']);
+            }
             return;
         }
 
@@ -135,6 +242,18 @@ class CharChange extends \ACore\Lib\WpClass {
 
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
+                    // Gift: grant a token to the recipient's account instead of
+                    // applying the change directly. The recipient redeems it in-game.
+                    if (!empty($item["_acore_gift_account"])
+                        && isset(self::$tokenTypes[$item["acore_item_sku"]])) {
+                        $tokenType = self::$tokenTypes[$item["acore_item_sku"]];
+                        $res = $WoWSrv->getSmartstoneSoap()->grantToken($item["_acore_gift_account"], $tokenType);
+                        if ($res instanceof \Exception) {
+                            throw new \Exception("There was an error granting a token to " . $item["_acore_gift_account"] . " - " . $res->getMessage());
+                        }
+                        continue;
+                    }
+
                     switch ($item["acore_item_sku"]) {
                         case "char-change-name":
                             $charName = $WoWSrv->getCharName($item["acore_char_sel"]);

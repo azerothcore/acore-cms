@@ -27,4 +27,19 @@ class SmartstoneService {
         return $this->executeCommand(".smartstone unlock account $accountName $category $vanityID true");
     }
 
+    /**
+     * Grant a service token to an account. The recipient redeems it in-game
+     * (`.smartstone token claim`) on the character of their choice.
+     *
+     * $tokenType values come from the mod's TokenType enum (src/Smartstone.h):
+     *   1 = Rename, 2 = Faction change, 3 = Race change, 4 = Customize.
+     *
+     * $accountName is a WordPress user_login (sanitize_user restricts it to
+     * alphanumerics, dot, hyphen, underscore, at - no spaces).
+     */
+    public function grantToken($accountName, $tokenType) {
+        $tokenType = (int) $tokenType;
+        return $this->executeCommand(".smartstone token grant $accountName $tokenType");
+    }
+
 }

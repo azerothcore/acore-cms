@@ -61,6 +61,18 @@
                                                 <input type="number" name="acore_resurrection_scroll_days_inactive" id="acore_resurrection_scroll_days_inactive" min="1" value="<?= esc_attr(Opts::I()->acore_resurrection_scroll_days_inactive) ?>">
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <th>
+                                                <label for="acore_smartstone_enabled">Smartstone Token Gifting</label>
+                                                <p class="description">Requires the mod-chromiecraft-smartstone module. Lets buyers gift name/faction/race/customize services as tokens.</p>
+                                            </th>
+                                            <td>
+                                                <select name="acore_smartstone_enabled" id="acore_smartstone_enabled">
+                                                    <option value="0">Disabled</option>
+                                                    <option value="1" <?php if (Opts::I()->acore_smartstone_enabled == '1') echo 'selected'; ?>>Enabled</option>
+                                                </select>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
