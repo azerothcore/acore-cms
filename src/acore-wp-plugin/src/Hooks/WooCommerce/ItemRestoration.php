@@ -175,6 +175,9 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       <div id="item-list-no-content" class="alert alert-info hidden" role="alert">
           <span>There are no items to recover for the selected character</span>
       </div>
+      <div id="item-list-load-error" class="alert alert-danger" role="alert" style="display: none;">
+          <span>We could not load your deleted items, please try again later.</span>
+      </div>
       <div class="table-responsive hidden" id="itemContainer" style="overflow: auto; height: 300px;">
           <table class="table table-bordered table-hover align-middle">
               <thead style="background: #1d2327; color: #fff;">
@@ -198,8 +201,12 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       const itemList = document.getElementById('itemList');
       const itemListLoaders = document.querySelectorAll('.loading-item-list');
       const noResults =  document.getElementById('item-list-no-content');
+      const loadError = document.getElementById('item-list-load-error');
       const loaderIcon = document.getElementById('loader-icon');
       const charList = document.querySelector("#acore_char_sel");
+      // the REST routes require a logged-in user, which cookie auth alone does not
+      // provide: without this nonce WordPress treats the request as anonymous
+      const restNonce = '<?= esc_js(wp_create_nonce('wp_rest')); ?>';
       selectCharacter(charList.value);
 
       charList.onchange = (function (onchange) {
@@ -219,6 +226,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
 
       function selectCharacter(charGuid) {
         noResults.style.display = 'none';
+        loadError.style.display = 'none';
         loaderIcon.style.display = 'block';
 
         itemListLoaders.forEach(element => element.classList.remove('hidden'));
@@ -226,8 +234,16 @@ class ItemRestoration extends \ACore\Lib\WpClass {
           const character = charGuid;
           const characterName = charList.options[charList.selectedIndex].innerText;
 
-          fetch('<?= get_rest_url(null, 'acore/v1/item-restore/list/'); ?>' + character)
-          .then((response) => response.json())
+          fetch('<?= get_rest_url(null, 'acore/v1/item-restore/list/'); ?>' + character, {
+              headers: { 'Accept': 'application/json', 'X-WP-Nonce': restNonce }
+          })
+          .then((response) => {
+              if (!response.ok) {
+                  throw new Error('Request failed with status ' + response.status);
+              }
+
+              return response.json();
+          })
           .then(function(items) {
 
               loaderIcon.style.display = 'none';
@@ -272,6 +288,11 @@ class ItemRestoration extends \ACore\Lib\WpClass {
 
                   buttonCell.appendChild(button);
               });
+          })
+          .catch(() => {
+              loaderIcon.style.display = 'none';
+              itemContainer.classList.add('hidden');
+              loadError.style.display = 'block';
           })
           .finally(() => {
               $WowheadPower.refreshLinks();
