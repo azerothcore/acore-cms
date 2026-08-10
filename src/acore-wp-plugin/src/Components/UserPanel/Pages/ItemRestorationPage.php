@@ -3,7 +3,7 @@
     use ACore\Utils\AcoreCharColors;
 ?>
 
-<script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
+<script>const aowow_tooltips = {colorlinks: true, iconizelinks: true, renamelinks: true};</script>
 <div class="wrap" id="acore-item-restoration-page">
     <h1><?php _e('Item Restoration', Opts::I()->page_alias); ?></h1>
     <div id="item-restore-layout">
@@ -94,7 +94,7 @@
         });
     }
 
-    // wowhead quality class → card border colour
+    // aowow quality class → card border colour
     var wowQualityColors = {
         q0: '#9d9d9d', q1: '#c0c0c0', q2: '#1eff00',
         q3: '#0070dd', q4: '#a335ee', q5: '#ff8000',
@@ -140,12 +140,12 @@
                     num.textContent = index + 1;
                     num.title = 'Position in your list of restorable items.';
 
-                    // Icon container — wowhead puts the icon as background-image on the <a>
+                    // Icon container — aowow puts the icon as background-image on the <a>
                     var iconWrap = document.createElement('div');
                     iconWrap.className = 'item-restore-icon';
 
                     var link = document.createElement('a');
-                    link.href = 'https://www.wowhead.com/wotlk/item=' + item['ItemEntry'];
+                    link.href = 'https://wowgaming.altervista.org/aowow/?item=' + item['ItemEntry'];
                     link.setAttribute('data-wowhead', 'item=' + item['ItemEntry']);
 
                     iconWrap.appendChild(link);
