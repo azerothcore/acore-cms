@@ -98,7 +98,7 @@ jQuery(document).ready(function () {
                             var safeName    = jQuery('<div>').text(item.item_name).html();
                             var qualityClr  = qualityColors[item.item_quality] || '#9d9d9d';
                             itemsHtml += '<div class="mail-item-slot" style="border-color:' + qualityClr + '" title="' + safeName + '">'
-                                + '<a href="https://www.wowhead.com/wotlk/item=' + item.itemEntry
+                                + '<a href="https://wowgaming.altervista.org/aowow/?item=' + item.itemEntry
                                 + '" data-wowhead="item=' + item.itemEntry + '" title="' + safeName + '">' + safeName + '</a>'
                                 + '<span class="mail-item-qty">' + item.count + '</span>'
                                 + '</div>';
@@ -148,7 +148,7 @@ jQuery(document).ready(function () {
                     mailItems.append(entry);
                 });
 
-                // Refresh Wowhead tooltips + upgrade icons to large JPG
+                // Refresh aowow tooltips + upgrade icons to large JPG
                 function upgradeWowheadIcons() {
                     document.querySelectorAll('.mail-item-slot > a').forEach(function (a) {
                         var bg = a.style.backgroundImage;

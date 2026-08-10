@@ -33,7 +33,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
   
         if ($current_user) {
             FieldElements::charList($current_user->user_login, false);
-            wp_enqueue_script('power-js', 'https://wow.zamimg.com/widgets/power.js', array());
+            wp_enqueue_script('power-js', 'https://wowgaming.altervista.org/aowow/static/widgets/power.js', array());
             self::showItemRestorationPerCharacter();
         }
     }
@@ -194,7 +194,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       <br>
       <input type="hidden" name="acore_restore_item_sel" id="acore_restore_item_sel">
       <script>
-      const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};
+      const aowow_tooltips = {colorlinks: true, iconizelinks: true, renamelinks: true};
 
       // Register event listeners & element specifiers
       const itemContainer = document.getElementById('itemContainer');
