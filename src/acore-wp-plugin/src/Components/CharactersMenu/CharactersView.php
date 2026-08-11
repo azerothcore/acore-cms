@@ -41,6 +41,18 @@ class CharactersView {
         $accBanPerma     = $isAccountBanned && (intval($accBanRow['unbandate']) === 0 || $accBanRow['unbandate'] === $accBanRow['bandate']);
         $accBanRemaining = ($isAccountBanned && !$accBanPerma) ? max(0, intval($accBanRow['unbandate']) - $now) : 0;
 
+        // The ban column is dropped entirely when nobody is banned, so the header and the row cells
+        // must agree on its presence or the flex columns stop lining up.
+        $anyCharBanned = false;
+        if ($showCharBan) {
+            foreach ($characters as $char) {
+                if (isset($char['ban_bandate']) && $char['ban_bandate'] !== '') {
+                    $anyCharBanned = true;
+                    break;
+                }
+            }
+        }
+
         ob_start();
         wp_enqueue_style('bootstrap-css', '//cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), '5.1.3');
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.5');
@@ -81,7 +93,9 @@ class CharactersView {
 
                                 <div class="acore-col-headers">
                                     <div class="acore-col-header-selector"></div>
-                                    <div class="acore-col-header-cell">Ban / Mute<span class="acore-col-header-fmt">DD-MM-YYYY at HH:MM</span></div>
+                                    <?php if ($anyCharBanned): ?>
+                                        <div class="acore-col-header-cell">Ban<span class="acore-col-header-fmt">DD-MM-YYYY at HH:MM</span></div>
+                                    <?php endif; ?>
                                     <div class="acore-col-header-cell">
                                         <?php if ($pdumpEnabled): ?>
                                         <button type="button" class="button button-primary acore-export-all-btn">Export All</button>
@@ -110,16 +124,18 @@ class CharactersView {
                                                     <img class="class-icon" height="32" width="32" alt="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" title="<?= esc_attr(AcoreCharColors::getClassName(intval($char["class"]))) ?>" src="<?= esc_url(ACORE_URL_PLG . "web/assets/class/" . intval($char["class"]) . ".webp") ?>">
                                                 </span>
                                             </div>
-                                            <div class="acore-char-ext-col acore-char-ext-col--ban<?= ($charBanned && $showCharBan) ? ' acore-char-ext-col--banned' : '' ?>">
-                                                <?php if ($charBanned && $showCharBan): ?>
-                                                    <?php if ($charBanPerma): ?>
-                                                        <span class="acore-ban-badge">Banned</span>
-                                                    <?php else: ?>
-                                                        <span class="acore-ban-badge">Banned for: <?= esc_html($this->formatDuration($charBanRemain)) ?></span>
-                                                        <span class="acore-ban-date">Ends: <?= esc_html($this->formatDate($banUnbandate)) ?> at <?= esc_html($this->formatTime($banUnbandate)) ?></span>
+                                            <?php if ($anyCharBanned): ?>
+                                                <div class="acore-char-ext-col acore-char-ext-col--ban<?= $charBanned ? ' acore-char-ext-col--banned' : '' ?>">
+                                                    <?php if ($charBanned): ?>
+                                                        <?php if ($charBanPerma): ?>
+                                                            <span class="acore-ban-badge">Banned</span>
+                                                        <?php else: ?>
+                                                            <span class="acore-ban-badge">Banned for: <?= esc_html($this->formatDuration($charBanRemain)) ?></span>
+                                                            <span class="acore-ban-date">Ends: <?= esc_html($this->formatDate($banUnbandate)) ?> at <?= esc_html($this->formatTime($banUnbandate)) ?></span>
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
-                                                <?php endif; ?>
-                                            </div>
+                                                </div>
+                                            <?php endif; ?>
                                             <div class="acore-char-ext-col">
                                                 <?php if ($pdumpEnabled): ?>
                                                 <button type="button" class="button button-primary acore-export-btn"
