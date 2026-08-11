@@ -26,9 +26,10 @@ class UserMenu
         return self::$instance;
     }
 
-    // action function for above hook
     function acore_user_menu()
     {
+        add_submenu_page('profile.php', 'Security', 'Security', 'read', ACORE_SLUG . '-security', array($this, 'security_page'));
+
         if (Opts::I()->eluna_recruit_a_friend == '1') {
             add_submenu_page('profile.php', 'Recruit a Friend', 'Recruit a Friend', 'read', ACORE_SLUG . '-eluna-raf-progress', array($this, 'eluna_raf_progress_page'));
         }
@@ -36,6 +37,13 @@ class UserMenu
         if (Opts::I()->acore_item_restoration == '1') {
             add_submenu_page('profile.php', 'Item Restoration', 'Item Restoration', 'read', ACORE_SLUG . '-item-restoration', array($this, 'item_restoration_page'));
         }
+    }
+
+    // action function for above hook
+    function security_page()
+    {
+        $ctrl = new UserController();
+        $ctrl->showSecurityPage();
     }
 
     // action function for above hook
@@ -48,6 +56,7 @@ class UserMenu
         }
     }
 
+    // action function for above hook
     function item_restoration_page()
     {
         $SettingsCtrl = new UserController();

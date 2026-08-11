@@ -14,6 +14,14 @@ class UserView {
         return ob_get_clean();
     }
 
+    /* Page: Security */
+    function getSecurityRender($connections, $passwordChangedAt, $twoFaData, $ingame2faActive, $passwordMessage = null) {
+        ob_start();
+        wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.5');
+        include(__DIR__ . '/Pages/SecurityPage.php');
+        return ob_get_clean();
+    }
+
     /* Page: Item Restoration */
     function getItemRestorationRender($characters) {
         extract([$characters]);

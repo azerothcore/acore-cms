@@ -43,6 +43,8 @@ button.acore-char-row {
 }
 
 /* Clicking a card/button shouldn't select its text (name, number, label). */
+.acore-char-row,
+.acore-char-row *,
 button.acore-char-row,
 button.acore-char-row *,
 .item-restore-card,

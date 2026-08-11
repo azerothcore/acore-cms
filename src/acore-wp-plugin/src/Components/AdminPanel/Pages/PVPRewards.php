@@ -14,6 +14,7 @@
                     <h5>Give rewards</h5>
                     <hr>
                     <form name="pvp-rewards" method="post" id="pvp-rewards" class="initial-form hide-if-no-js">
+                        <?php wp_nonce_field('acore_pvp_rewards_save', 'acore_pvp_rewards_nonce'); ?>
                         <input type="hidden" name="page" value="<?= ACORE_SLUG . '-pvp-rewards'; ?>" />
                         <table class="form-table table table-borderless" role="presentation">
                             <tbody>

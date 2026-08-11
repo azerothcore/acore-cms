@@ -142,6 +142,15 @@ class ACoreServices
 
     /**
      *
+     * @return \Doctrine\ORM\EntityManager
+     */
+    public function getWorldEm()
+    {
+        return $this->emWorld;
+    }
+
+    /**
+     *
      * @return string
      */
     public function getCharName($charId, $deleted = false)
@@ -426,6 +435,29 @@ class ACoreServices
         );
         $stmt->bindValue(1, intval($character));
         return $stmt->executeQuery()->fetchAllAssociative();
+    }
+
+    public function getOwnedRestorableItemCharacterName(int $itemId, string $name): ?string {
+        $accId = $this->getAcoreAccountId();
+        if (!$accId || $itemId < 1 || $name === '') {
+            return null;
+        }
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare(
+            "SELECT c.`name`
+             FROM `recovery_item` ri
+             INNER JOIN `characters` c ON c.`guid` = ri.`Guid`
+             WHERE ri.`Id` = ?
+               AND c.`name` = ?
+               AND c.`account` = ?
+               AND c.`deleteDate` IS NULL
+             LIMIT 1"
+        );
+        $stmt->bindValue(1, $itemId);
+        $stmt->bindValue(2, $name);
+        $stmt->bindValue(3, intval($accId));
+        $characterName = $stmt->executeQuery()->fetchOne();
+        return $characterName === false ? null : $characterName;
     }
 
     public function currentAccountOwnsCharacterName($name): bool {
