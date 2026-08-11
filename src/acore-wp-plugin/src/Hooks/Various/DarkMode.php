@@ -118,15 +118,18 @@ function acore_dark_mode_js(string $nonce): string {
     return <<<JS
 (function($){
     var nonce = '{$nonce}';
+    var dmToggleInFlight = false;
     $(document).on('click', '#wp-admin-bar-acore-dark-mode > a', function(e){
         e.preventDefault();
+        if (dmToggleInFlight) return;
+        dmToggleInFlight = true;
         $.post(ajaxurl, { action: 'acore_toggle_dark_mode', nonce: nonce }, function(res){
             if (!res.success) return;
             var dark = res.data.dark;
             $('body').toggleClass('acore-dark-mode', dark);
             $('#acore-dm-icon').html(dark ? '&#9728;' : '&#9790;');
             $('#wp-admin-bar-acore-dark-mode > a').attr('title', dark ? 'Switch to light mode' : 'Switch to dark mode');
-        });
+        }).always(function(){ dmToggleInFlight = false; });
     });
 })(jQuery);
 JS;

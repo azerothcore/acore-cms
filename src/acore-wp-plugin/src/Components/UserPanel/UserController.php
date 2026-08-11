@@ -9,13 +9,12 @@ use ACore\Components\UserPanel\UserView;
 class UserController {
 
     /**
-     *
      * @var UserView
      */
     private $view;
 
     public function __construct() {
-        $this->view = new UserView($this);
+        $this->view = new UserView();
     }
 
     public function showRafProgress() {
@@ -28,6 +27,7 @@ class UserController {
         $user = wp_get_current_user();
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            check_admin_referer('acore_raf_recruit', 'acore_raf_nonce');
             $maxRecruitDatetime = (new \DateTime($user->get("user_registered")))->modify('+7days');
 
             if ($maxRecruitDatetime < (new \DateTime())) {
@@ -36,7 +36,10 @@ class UserController {
                 if (!isset($_POST["recruited"])) {
                     $errorMessages[] = "No recruiter value sent.";
                 } else {
-                    $recruiterCode = $_POST["recruited"];
+                    $recruiterCode = absint($_POST["recruited"]);
+                    if ($recruiterCode <= 0) {
+                        $errorMessages[] = "Invalid recruiter value sent.";
+                    }
                     $existingRecruiterId = $acServices->getUserNameByUserId($recruiterCode);
                     $newRecruitId = $acServices->getAcoreAccountId();
 
@@ -52,13 +55,10 @@ class UserController {
                         $userIp = $acServices->getAcoreAccountLastIp();
                         $activeUserIp = "";
                         if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-                            // check ip from share internet
                             $activeUserIp = $_SERVER['HTTP_CLIENT_IP'];
                         } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-                            // to check ip is pass from proxy
                             $activeUserIp = $_SERVER['HTTP_X_FORWARDED_FOR'];
                         } else {
-                            // use default remote ip
                             $activeUserIp = $_SERVER['REMOTE_ADDR'];
                         }
 
@@ -136,28 +136,78 @@ class UserController {
     }
 
     public function showItemRestorationPage() {
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $this->saveCharacterOrder();
-            ?>
-            <div class="updated"><p><strong>Character settings succesfully saved.</strong></p></div>
-            <?php
-        }
-
         $account = ACoreServices::I()->getAcoreAccountId();
         $conn = ACoreServices::I()->getCharacterEm()->getConnection();
         $queryResult = $conn->executeQuery(
-            "   SELECT `guid`, `name`, `order`
-                FROM `characters`
-                WHERE `characters`.`deleteDate` IS NULL AND `account` = $account
-                ORDER BY `order`, `guid`
-            "
+            "SELECT `guid`, `name`, `order`, `race`, `class`, `gender`, `level`
+             FROM `characters`
+             WHERE `deleteDate` IS NULL AND `account` = $account
+             ORDER BY `order`, `guid`"
         );
 
         echo $this->getView()->getItemRestorationRender($queryResult->fetchAllAssociative());
     }
 
+    public function showSecurityPage() {
+        $user = wp_get_current_user();
+
+        // Detect & log a user-initiated Website 2FA removal (records the user's IP).
+        if (function_exists('ACore\\Components\\ServerInfo\\acore_2fa_sync_self_removals')) {
+            \ACore\Components\ServerInfo\acore_2fa_sync_self_removals($user->ID);
+        }
+
+        $passwordMessage   = \ACore\Hooks\User\acore_pw_get_message($user->ID);
+        $passwordChangedAt = get_user_meta($user->ID, 'acore_password_changed_at', true);
+        $twoFaData         = $this->getTwoFaData($user);
+        $ingame2faActive   = $this->getIngame2faStatus();
+        $connections       = \ACore\Hooks\User\acore_get_login_history($user->ID, 500);
+
+        echo $this->getView()->getSecurityRender($connections, $passwordChangedAt, $twoFaData, $ingame2faActive, $passwordMessage);
+    }
+
+    private function getIngame2faStatus(): bool {
+        try {
+            $accId = ACoreServices::I()->getAcoreAccountId();
+            if (!$accId) return false;
+            $conn   = ACoreServices::I()->getAccountEm()->getConnection();
+            $result = $conn->executeQuery('SELECT totp_secret FROM account WHERE id = ?', [$accId]);
+            $row    = $result->fetchAssociative();
+            return $row && $row['totp_secret'] !== null;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    private function getTwoFaData(\WP_User $user) {
+        $active = class_exists('\WP2FA\WP2FA') || function_exists('wp2fa_get_enabled_providers_for_user');
+
+        if (!$active) {
+            return ['plugin_active' => false];
+        }
+
+        $primaryMethods  = get_user_meta($user->ID, 'wp_2fa_enabled_methods', true);
+        $backupMethods   = get_user_meta($user->ID, 'wp_2fa_backup_methods_enabled', true);
+        $totpKey         = get_user_meta($user->ID, 'wp_2fa_totp_key', true);
+        // TOTP is only considered enabled when the key exists AND it is actively
+        // listed as a primary method - WP2FA may leave the key in meta after removal.
+        $totpEnabled     = !empty($totpKey) && (
+                               (is_array($primaryMethods) && in_array('totp', $primaryMethods)) ||
+                               $primaryMethods === 'totp'
+                           );
+        $emailEnabled    = (is_array($primaryMethods) && in_array('email', $primaryMethods))
+                         || $primaryMethods === 'email';
+
+        return [
+            'plugin_active'   => true,
+            'primary_methods' => $primaryMethods ?: [],
+            'backup_methods'  => $backupMethods  ?: [],
+            'totp_enabled'    => $totpEnabled,
+            'email_enabled'   => $emailEnabled,
+            'setup_url'       => admin_url('profile.php?page=wp-2fa-setup'),
+        ];
+    }
+
     /**
-     *
      * @return UserView
      */
     public function getView() {
@@ -165,11 +215,10 @@ class UserController {
     }
 
     /**
-     *
      * @return UserModel
      */
     public function getModel() {
-        return $this->model;
+        return $this;
     }
 
 }

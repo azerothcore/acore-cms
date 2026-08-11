@@ -83,7 +83,7 @@ class AcoreCharColors {
      */
     public static function rowStyle(int $classId, int $raceId): string {
         $cls     = self::CLASS_COLORS[$classId]  ?? ['light' => self::FALLBACK_LIGHT, 'dark' => self::FALLBACK_DARK];
-        $faction = self::RACE_FACTION[$raceId]   ?? 'unknown';
+        $faction = self::RACE_FACTION[$raceId] ?? 'unknown';
         $fLight  = $faction === 'alliance' ? '#3FACF4' : '#FF653D';
         $fDark   = $faction === 'alliance' ? '#3FACF4' : '#FF653D';
         return sprintf(
