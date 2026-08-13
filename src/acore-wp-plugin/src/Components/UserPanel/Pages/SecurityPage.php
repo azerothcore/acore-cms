@@ -106,8 +106,8 @@ $expandOnLoad = !empty($passwordMessage);
     $restNonce  = wp_create_nonce('wp_rest');
 
     // Label of the in-game otpauth:// entry, so the authenticator app shows which
-    // server and account the code belongs to. The site name is decoded because it
-    // goes into a URI, not into HTML.
+    // server and account the code belongs to. The site name is decoded because the
+    // app should show "Ben & Co", not the entity-encoded form WordPress stores.
     $qrIssuer  = trim(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES));
     if ($qrIssuer === '') $qrIssuer = 'AzerothCore';
     $qrAccount = strtoupper($user->user_login);
@@ -541,12 +541,14 @@ $expandOnLoad = !empty($passwordMessage);
     if (qrBtn && qrInput) {
         var qrOut     = document.getElementById('acore-ingame-qr-out');
         var qrMsg     = document.getElementById('acore-ingame-qr-msg');
-        // JSON-encoded, not esc_js(): a site name may contain quotes, and these
-        // two end up inside the otpauth URI rather than in HTML.
-        var qrIssuer  = <?= wp_json_encode($qrIssuer) ?>;
-        var qrAccount = <?= wp_json_encode($qrAccount) ?>;
+        // JSON-encoded, not esc_js(): a site name may contain quotes, and esc_js()
+        // would turn them into HTML entities inside the otpauth URI. The HEX flags
+        // keep a site title made of comment or tag markup from ending this block early.
+        var qrIssuer  = <?= wp_json_encode($qrIssuer, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        var qrAccount = <?= wp_json_encode($qrAccount, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var qrShow    = '<?php echo esc_js(__('Show QR code', 'acore-wp-plugin')); ?>';
         var qrHide    = '<?php echo esc_js(__('Hide QR code', 'acore-wp-plugin')); ?>';
+        var qrKeyLength = 32; // base32 length of the secret the core hands out
         var qrWanted  = false;
 
         var qrClear = function(){
@@ -568,8 +570,15 @@ $expandOnLoad = !empty($passwordMessage);
         var qrRender = function(){
             // The in-game key is base32; accept it typed in lowercase or with separators.
             var key = (qrInput.value || '').toUpperCase().replace(/[\s-]/g, '').replace(/=+$/, '');
-            if (!/^[A-Z2-7]{16,}$/.test(key)) {
+            if (!/^[A-Z2-7]+$/.test(key)) {
                 qrFail('<?php echo esc_js(__('That does not look like a 2FA key. Paste the key the game showed you, made of letters A-Z and digits 2-7.', 'acore-wp-plugin')); ?>');
+                return;
+            }
+            // Exactly 32 characters: a shorter one still draws a perfectly scannable
+            // QR code, and the app would then produce codes the server rejects.
+            if (key.length !== qrKeyLength) {
+                qrFail('<?php echo esc_js(__('A 2FA key is %1$d characters long, this one has %2$d. Check you copied all of it.', 'acore-wp-plugin')); ?>'
+                       .replace('%1$d', qrKeyLength).replace('%2$d', key.length));
                 return;
             }
             if (typeof qrcode === 'undefined') {

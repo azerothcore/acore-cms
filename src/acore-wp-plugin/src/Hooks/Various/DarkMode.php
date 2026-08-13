@@ -148,5 +148,5 @@ function acore_dark_mode_wizard_css() {
         return;
     }
     echo '<link rel="stylesheet" id="acore-theme-wizard-css" media="all" href="'
-        . esc_url(ACORE_URL_PLG . 'web/assets/css/theme.css') . '?ver=3.7" />' . "\n";
+        . esc_url(ACORE_URL_PLG . 'web/assets/css/theme.css') . '?ver=3.8" />' . "\n";
 }
