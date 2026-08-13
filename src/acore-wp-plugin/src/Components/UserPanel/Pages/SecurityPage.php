@@ -176,10 +176,24 @@ $expandOnLoad = !empty($passwordMessage);
                 </div>
             <?php endif; ?>
 
-            <p style="margin:0 0 16px;">
-                <?php _e('You will need an authenticator app (such as Google Authenticator or any app of your choice) configured with a <strong>Time-based (TOTP)</strong> key.', 'acore-wp-plugin'); ?>
+            <p style="margin:0 0 10px;">
+                <?php _e('You will need an authenticator app configured with a <strong>Time-based (TOTP)</strong> key.', 'acore-wp-plugin'); ?>
+                <?php printf(
+                    __('We recommend <a href="%s" target="_blank" rel="noopener noreferrer">FreeOTP</a>, a free and open source authenticator app, but any app of your choice (Google Authenticator, Aegis, ...) works too.', 'acore-wp-plugin'),
+                    'https://freeotp.github.io/'
+                ); ?>
                 <?php _e('Keep in mind there are <strong>two separate setups</strong>: one exclusively for logging into the website, and another for logging into the game server. Each has its own independent code.', 'acore-wp-plugin'); ?>
             </p>
+
+            <p style="margin:0 0 6px; font-size:13px; color:#646970;">
+                <?php _e('If your app asks for these settings when you add the key manually, use:', 'acore-wp-plugin'); ?>
+            </p>
+            <ul style="margin:0 0 16px 18px; font-size:13px; line-height:1.7; list-style:disc;">
+                <li><?php _e('Type: <strong>Time-based (TOTP)</strong>', 'acore-wp-plugin'); ?></li>
+                <li><?php _e('Digits: <strong>6</strong>', 'acore-wp-plugin'); ?></li>
+                <li><?php _e('Algorithm: <strong>SHA1</strong>', 'acore-wp-plugin'); ?></li>
+                <li><?php _e('Interval: <strong>30 seconds</strong>', 'acore-wp-plugin'); ?></li>
+            </ul>
 
             <hr style="margin:0 0 20px;">
 
@@ -314,7 +328,7 @@ $expandOnLoad = !empty($passwordMessage);
                         <br><em style="opacity:0.85;"><?php _e('Tip: to copy text from the in-game chat you can use an addon such as Prat (3.3.5).', 'acore-wp-plugin'); ?></em>
                     </li>
                     <li>
-                        <?php _e('When adding the key in your app, set the key type to <strong>Time based</strong> (TOTP).', 'acore-wp-plugin'); ?>
+                        <?php _e('When adding the key in your app, set the key type to <strong>Time based</strong> (TOTP), with <strong>6</strong> digits, <strong>SHA1</strong> algorithm and a <strong>30 seconds</strong> interval.', 'acore-wp-plugin'); ?>
                     </li>
                     <li>
                         <?php _e('Your app will show a 6-digit code that refreshes every few seconds. Use the code currently shown - if it is about to refresh, wait for a fresh one to avoid errors.', 'acore-wp-plugin'); ?>
