@@ -271,7 +271,11 @@
     /* ── SOAP check on page load ──────────────────────────────────────── */
     function checkSoap(manual) {
         if (manual) $soapBtn.prop('disabled', true).val('Checking…');
-        $.get(restBase + 'server-info', function(data) {
+        $.ajax({
+            url: restBase + 'server-info',
+            method: 'GET',
+            beforeSend: function(xhr){ xhr.setRequestHeader('X-WP-Nonce', nonce); }
+        }).done(function() {
             setSoapStatus(true);
         }).fail(function() {
             setSoapStatus(false);
