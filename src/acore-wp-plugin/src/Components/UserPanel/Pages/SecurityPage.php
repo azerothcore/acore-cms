@@ -339,9 +339,12 @@ $expandOnLoad = !empty($passwordMessage);
                         <br><?php _e('Or paste the key below to get a QR code with all of those settings already in it, and scan it with your app instead of typing anything:', 'acore-wp-plugin'); ?>
                         <div class="acore-qr">
                             <div class="acore-qr-controls">
+                                <?php // The whole in-game block is inert while website 2FA is missing, so keep
+                                      // keyboard users out of these controls too, not just the mouse. ?>
                                 <input type="text" id="acore-ingame-qr-key" spellcheck="false" autocomplete="off"
-                                       autocapitalize="characters" placeholder="K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO">
-                                <button type="button" id="acore-ingame-qr-btn" class="button">
+                                       autocapitalize="characters" placeholder="K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO"
+                                       <?php disabled(!$websiteAnyEnabled); ?>>
+                                <button type="button" id="acore-ingame-qr-btn" class="button" <?php disabled(!$websiteAnyEnabled); ?>>
                                     <?php _e('Show QR code', 'acore-wp-plugin'); ?>
                                 </button>
                             </div>
@@ -557,6 +560,7 @@ $expandOnLoad = !empty($passwordMessage);
         var qrFail = function(text){
             qrOut.style.display = 'none';
             qrOut.innerHTML     = '';
+            qrBtn.textContent   = qrShow;
             qrMsg.style.color   = '#d63638';
             qrMsg.textContent   = text;
         };
