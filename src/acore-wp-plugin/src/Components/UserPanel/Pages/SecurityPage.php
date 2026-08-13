@@ -105,6 +105,13 @@ $expandOnLoad = !empty($passwordMessage);
     $statusBase = rest_url(ACORE_SLUG . '/v1/2fa-status');
     $restNonce  = wp_create_nonce('wp_rest');
 
+    // Label of the in-game otpauth:// entry, so the authenticator app shows which
+    // server and account the code belongs to. The site name is decoded because it
+    // goes into a URI, not into HTML.
+    $qrIssuer  = trim(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES));
+    if ($qrIssuer === '') $qrIssuer = 'AzerothCore';
+    $qrAccount = strtoupper($user->user_login);
+
     // Admin-removal log: find last entry per type
     $adminLog         = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
     $adminLog         = is_array($adminLog) ? $adminLog : [];
@@ -329,6 +336,22 @@ $expandOnLoad = !empty($passwordMessage);
                     </li>
                     <li>
                         <?php _e('When adding the key in your app, set the key type to <strong>Time based</strong> (TOTP), with <strong>6</strong> digits, <strong>SHA1</strong> algorithm and a <strong>30 seconds</strong> interval.', 'acore-wp-plugin'); ?>
+                        <br><?php _e('Or paste the key below to get a QR code with all of those settings already in it, and scan it with your app instead of typing anything:', 'acore-wp-plugin'); ?>
+                        <div class="acore-qr">
+                            <div class="acore-qr-controls">
+                                <input type="text" id="acore-ingame-qr-key" spellcheck="false" autocomplete="off"
+                                       autocapitalize="characters" placeholder="K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO">
+                                <button type="button" id="acore-ingame-qr-btn" class="button">
+                                    <?php _e('Show QR code', 'acore-wp-plugin'); ?>
+                                </button>
+                            </div>
+                            <p class="acore-qr-note">
+                                <span class="dashicons dashicons-lock"></span>
+                                <?php _e('The key stays in your browser: the QR code is drawn on this page and is never sent anywhere.', 'acore-wp-plugin'); ?>
+                            </p>
+                            <div id="acore-ingame-qr-out" class="acore-qr-out" style="display:none;"></div>
+                            <div id="acore-ingame-qr-msg" class="acore-qr-msg"></div>
+                        </div>
                     </li>
                     <li>
                         <?php _e('Your app will show a 6-digit code that refreshes every few seconds. Use the code currently shown - if it is about to refresh, wait for a fresh one to avoid errors.', 'acore-wp-plugin'); ?>
@@ -506,6 +529,78 @@ $expandOnLoad = !empty($passwordMessage);
                 removeBtn.disabled = false;
                 removeBtn.textContent = '<?php echo esc_js(__('Remove In-game 2FA', 'acore-wp-plugin')); ?>';
             });
+        });
+    }
+
+    /* In-game 2FA: turn the key shown in game into a QR code, drawn in the browser */
+    var qrBtn   = document.getElementById('acore-ingame-qr-btn');
+    var qrInput = document.getElementById('acore-ingame-qr-key');
+    if (qrBtn && qrInput) {
+        var qrOut     = document.getElementById('acore-ingame-qr-out');
+        var qrMsg     = document.getElementById('acore-ingame-qr-msg');
+        // JSON-encoded, not esc_js(): a site name may contain quotes, and these
+        // two end up inside the otpauth URI rather than in HTML.
+        var qrIssuer  = <?= wp_json_encode($qrIssuer) ?>;
+        var qrAccount = <?= wp_json_encode($qrAccount) ?>;
+        var qrShow    = '<?php echo esc_js(__('Show QR code', 'acore-wp-plugin')); ?>';
+        var qrHide    = '<?php echo esc_js(__('Hide QR code', 'acore-wp-plugin')); ?>';
+        var qrWanted  = false;
+
+        var qrClear = function(){
+            qrWanted = false;
+            qrOut.style.display = 'none';
+            qrOut.innerHTML     = '';
+            qrMsg.textContent   = '';
+            qrBtn.textContent   = qrShow;
+        };
+
+        var qrFail = function(text){
+            qrOut.style.display = 'none';
+            qrOut.innerHTML     = '';
+            qrMsg.style.color   = '#d63638';
+            qrMsg.textContent   = text;
+        };
+
+        var qrRender = function(){
+            // The in-game key is base32; accept it typed in lowercase or with separators.
+            var key = (qrInput.value || '').toUpperCase().replace(/[\s-]/g, '').replace(/=+$/, '');
+            if (!/^[A-Z2-7]{16,}$/.test(key)) {
+                qrFail('<?php echo esc_js(__('That does not look like a 2FA key. Paste the key the game showed you, made of letters A-Z and digits 2-7.', 'acore-wp-plugin')); ?>');
+                return;
+            }
+            if (typeof qrcode === 'undefined') {
+                qrFail('<?php echo esc_js(__('The QR code generator could not be loaded. Reload the page, or add the key manually with the settings above.', 'acore-wp-plugin')); ?>');
+                return;
+            }
+            var uri = 'otpauth://totp/' + encodeURIComponent(qrIssuer) + ':' + encodeURIComponent(qrAccount)
+                    + '?secret='    + key
+                    + '&issuer='    + encodeURIComponent(qrIssuer)
+                    + '&algorithm=SHA1&digits=6&period=30';
+            var qr = qrcode(0, 'M');
+            qr.addData(uri, 'Byte');
+            qr.make();
+            qrOut.innerHTML = qr.createSvgTag({
+                cellSize: 4,
+                margin:   4,
+                scalable: true,
+                alt:      '<?php echo esc_js(__('In-game 2FA QR code', 'acore-wp-plugin')); ?>'
+            });
+            qrOut.style.display = '';
+            qrBtn.textContent   = qrHide;
+            qrMsg.style.color   = '';
+            qrMsg.textContent   = '<?php echo esc_js(__('Scan it with your authenticator app, then go on with the next step.', 'acore-wp-plugin')); ?>';
+        };
+
+        qrBtn.addEventListener('click', function(){
+            if (qrOut.style.display !== 'none') { qrClear(); return; }
+            qrWanted = true;
+            qrRender();
+        });
+        qrInput.addEventListener('keydown', function(e){
+            if (e.key === 'Enter') { e.preventDefault(); qrWanted = true; qrRender(); }
+        });
+        qrInput.addEventListener('input', function(){
+            if (qrWanted) qrRender();
         });
     }
 

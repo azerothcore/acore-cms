@@ -409,6 +409,42 @@ body.acore-dark-mode .acore-2fa-required-note {
 }
 body.acore-dark-mode .acore-2fa-required-note .dashicons { color: #f5c451 !important; }
 
+/* ── In-game 2FA QR code (built in the browser from the key shown in game) ── */
+.acore-qr { margin: 8px 0 4px; }
+.acore-qr-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.acore-qr-controls input {
+    width: 330px;
+    max-width: 100%;
+    font-family: monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.acore-qr-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--acore-muted);
+}
+.acore-qr-note .dashicons { font-size: 15px; width: 15px; height: 15px; flex: 0 0 auto; }
+/* White plate under the code: keeps it scannable in dark mode too */
+.acore-qr-out {
+    width: 190px;
+    margin-top: 10px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid var(--acore-border);
+    border-radius: 6px;
+}
+.acore-qr-out svg { display: block; width: 100%; height: auto; }
+.acore-qr-msg { margin-top: 6px; font-size: 12px; color: var(--acore-muted); }
+
 /* ── Highlight the connection row matching the viewer's current IP ── */
 #acore-security-page .wp-list-table > tbody > tr.acore-conn-current > td {
     background: #fff3cd !important;
