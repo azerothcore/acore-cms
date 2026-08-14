@@ -120,13 +120,16 @@ $expandOnLoad = !empty($passwordMessage);
     $ingameOtpauth     = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::otpauthUri($qrAccount, $ingameKey) : '';
 
     // Removal takes any code the site can actually check - the in-game one when
-    // its key is readable, the website one otherwise. With neither there is
-    // nothing to ask for, so the button stands alone.
+    // its key is readable, the website one otherwise. A recent panel unlock stands
+    // in for either. With none of the three the site cannot tell who is asking, so
+    // it does not offer removal at all and the in-game command is the way out.
     $ingameRemoveNeedsCode = false;
+    $ingameRemovable       = $twofaUnlocked;
     if ($ingame2faActive && !$twofaUnlocked) {
         $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
         $ingameRemoveNeedsCode = $websiteTotpEnabled
             || ($accId && \ACore\Components\ServerInfo\IngameTotp::currentSecret($accId) !== '');
+        $ingameRemovable = $ingameRemoveNeedsCode;
     }
 
     // Admin-removal log: find last entry per type
@@ -421,24 +424,28 @@ $expandOnLoad = !empty($passwordMessage);
                 <p style="margin:12px 0 8px; color:#646970; font-size:13px;">
                     <?php if ($ingameRemoveNeedsCode): ?>
                         <?php _e('To disable in-game 2FA, enter the 6-digit code your authenticator app is showing:', 'acore-wp-plugin'); ?>
-                    <?php else: ?>
+                    <?php elseif ($ingameRemovable): ?>
                         <?php _e('You can disable in-game 2FA here, or inside the game with <code>.account 2fa remove &lt;6-digit-code&gt;</code>.', 'acore-wp-plugin'); ?>
+                    <?php else: ?>
+                        <?php _e('This site cannot check your in-game code, so it cannot turn in-game 2FA off for you. Log into the game and type <code>.account 2fa remove &lt;6-digit-code&gt;</code> with the code your authenticator app is showing.', 'acore-wp-plugin'); ?>
                     <?php endif; ?>
                 </p>
 
-                <div id="acore-ingame-2fa-wrap">
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-                        <?php if ($ingameRemoveNeedsCode): ?>
-                            <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
-                                   maxlength="6" placeholder="000000" autocomplete="one-time-code"
-                                   style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
-                        <?php endif; ?>
-                        <button type="button" id="acore-ingame-2fa-remove" class="button button-primary">
-                            <?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>
-                        </button>
+                <?php if ($ingameRemovable): ?>
+                    <div id="acore-ingame-2fa-wrap">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                            <?php if ($ingameRemoveNeedsCode): ?>
+                                <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
+                                       maxlength="6" placeholder="000000" autocomplete="one-time-code"
+                                       style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
+                            <?php endif; ?>
+                            <button type="button" id="acore-ingame-2fa-remove" class="button button-primary">
+                                <?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>
+                            </button>
+                        </div>
+                        <div id="acore-ingame-2fa-msg" style="font-size:13px;"></div>
                     </div>
-                    <div id="acore-ingame-2fa-msg" style="font-size:13px;"></div>
-                </div>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div><!-- /postbox inside -->

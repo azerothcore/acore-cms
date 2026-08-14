@@ -452,24 +452,28 @@ add_action( 'rest_api_init', function () {
                $ingameSecret = IngameTotp::currentSecret($accId);
                $websiteTotp  = acore_website_totp_enabled($user->ID);
 
-               if ($ingameSecret !== '' || $websiteTotp) {
-                   $attemptKey = 'acore_ingame_2fa_remove_attempts_' . acore_2fa_unlock_key($user->ID);
-                   if ((int) get_transient($attemptKey) >= 5)
-                       return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
+               // With no code to check, the only thing standing behind this request is
+               // the account password - which is exactly what in-game 2FA exists to
+               // survive. The core's own command is the way out.
+               if ($ingameSecret === '' && !$websiteTotp)
+                   return new \WP_Error('cannot_verify', __('In-game 2FA can only be removed inside the game. Log in and type: .account 2fa remove <6-digit-code>', 'acore-wp-plugin'), ['status' => 403]);
 
-                   $data  = $request->get_json_params();
-                   $token = isset($data['token']) ? trim((string) $data['token']) : '';
-                   if (!preg_match('/^\d{6}$/', $token))
-                       return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
+               $attemptKey = 'acore_ingame_2fa_remove_attempts_' . acore_2fa_unlock_key($user->ID);
+               if ((int) get_transient($attemptKey) >= 5)
+                   return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
 
-                   $valid = ($ingameSecret !== '' && acore_totp_validate($ingameSecret, $token))
-                         || ($websiteTotp && acore_wp2fa_code_is_valid($user->ID, $token));
-                   if (!$valid) {
-                       set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
-                       return new \WP_Error('wrong_token', __('Incorrect code. Please try again.'), ['status' => 401]);
-                   }
-                   delete_transient($attemptKey);
+               $data  = $request->get_json_params();
+               $token = isset($data['token']) ? trim((string) $data['token']) : '';
+               if (!preg_match('/^\d{6}$/', $token))
+                   return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.', 'acore-wp-plugin'), ['status' => 400]);
+
+               $valid = ($ingameSecret !== '' && acore_totp_validate($ingameSecret, $token))
+                     || ($websiteTotp && acore_wp2fa_code_is_valid($user->ID, $token));
+               if (!$valid) {
+                   set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
+                   return new \WP_Error('wrong_token', __('Incorrect code. Please try again.', 'acore-wp-plugin'), ['status' => 401]);
                }
+               delete_transient($attemptKey);
            }
 
            try {
