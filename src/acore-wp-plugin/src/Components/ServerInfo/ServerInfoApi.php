@@ -458,8 +458,10 @@ add_action( 'rest_api_init', function () {
                if ($ingameSecret === '' && !$websiteTotp)
                    return new \WP_Error('cannot_verify', __('In-game 2FA can only be removed inside the game. Log in and type: .account 2fa remove <6-digit-code>', 'acore-wp-plugin'), ['status' => 403]);
 
-               $attemptKey = 'acore_ingame_2fa_remove_attempts_' . acore_2fa_unlock_key($user->ID);
-               if ((int) get_transient($attemptKey) >= 5)
+               // Keyed on the user, not the session: a guessed code strips a game-account
+               // factor, and a per-session counter is reset by logging in again.
+               $attemptKey = 'acore_ingame_2fa_remove_attempts_' . $user->ID;
+               if ((int) get_transient($attemptKey) >= 10)
                    return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
 
                $data  = $request->get_json_params();
@@ -495,8 +497,9 @@ add_action( 'rest_api_init', function () {
            if (!IngameTotp::isConfigured())
                return new \WP_Error('not_configured', __('In-game 2FA cannot be set up from here. Please set it up inside the game.', 'acore-wp-plugin'), ['status' => 501]);
 
-           $attemptKey = 'acore_ingame_2fa_attempts_' . acore_2fa_unlock_key($user->ID);
-           if ((int) get_transient($attemptKey) >= 5)
+           // Keyed on the user, not the session, so logging in again does not reset it.
+           $attemptKey = 'acore_ingame_2fa_attempts_' . $user->ID;
+           if ((int) get_transient($attemptKey) >= 10)
                return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
 
            $data  = $request->get_json_params();
