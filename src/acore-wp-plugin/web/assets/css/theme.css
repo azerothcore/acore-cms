@@ -219,12 +219,13 @@ body.acore-dark-mode.mycred-log-page .wp-list-table th {
     border-color: var(--acore-border) !important;
     background: transparent !important;
 }
-/* myCRED paints both parities itself (odd #fff, even #f6f7f7), so neither can
-   be left to the transparent cells above. */
+/* myCRED paints both parities itself (odd #fff, even #f6f7f7 via tr.alt), so
+   neither can be left to the transparent cells above. */
 body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr:nth-child(odd) {
     background: var(--acore-surface-2) !important;
 }
-body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr:nth-child(even) {
+body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr:nth-child(even),
+body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr.alt {
     background: var(--acore-surface) !important;
 }
 body.acore-dark-mode.mycred-log-page .wp-list-table a { color: var(--acore-accent) !important; }

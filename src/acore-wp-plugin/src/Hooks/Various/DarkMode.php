@@ -26,6 +26,14 @@ function acore_dark_mode_body_class($classes) {
     if (get_user_meta(get_current_user_id(), 'acore_dark_mode', true) === '1') {
         $classes .= ' acore-dark-mode';
     }
+
+    // myCRED renders its screens (points history, log, settings) under generic
+    // WP admin markup, so theme.css needs a hook of its own to target them.
+    $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    if (strpos($page, 'mycred') === 0) {
+        $classes .= ' mycred-log-page';
+    }
+
     return $classes;
 }
 
@@ -35,7 +43,7 @@ function acore_dark_mode_enqueue() {
     wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', [], '3.0');
     wp_enqueue_style('acore-dark-mode', ACORE_URL_PLG . 'web/assets/css/dark-mode.css', ['acore-css'], '3.7');
     // Central light/dark theme layer (edit colours here). Loaded last so it wins.
-    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '4.1');
+    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '4.2');
 
     $nonce = wp_create_nonce('acore_dark_mode');
     wp_add_inline_script('jquery-core', acore_dark_mode_js($nonce));
@@ -148,5 +156,5 @@ function acore_dark_mode_wizard_css() {
         return;
     }
     echo '<link rel="stylesheet" id="acore-theme-wizard-css" media="all" href="'
-        . esc_url(ACORE_URL_PLG . 'web/assets/css/theme.css') . '?ver=4.1" />' . "\n";
+        . esc_url(ACORE_URL_PLG . 'web/assets/css/theme.css') . '?ver=4.2" />' . "\n";
 }
