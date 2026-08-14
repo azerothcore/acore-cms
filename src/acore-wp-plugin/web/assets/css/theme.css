@@ -219,8 +219,13 @@ body.acore-dark-mode.mycred-log-page .wp-list-table th {
     border-color: var(--acore-border) !important;
     background: transparent !important;
 }
+/* myCRED paints both parities itself (odd #fff, even #f6f7f7), so neither can
+   be left to the transparent cells above. */
 body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr:nth-child(odd) {
     background: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode.mycred-log-page .wp-list-table > tbody > tr:nth-child(even) {
+    background: var(--acore-surface) !important;
 }
 body.acore-dark-mode.mycred-log-page .wp-list-table a { color: var(--acore-accent) !important; }
 
@@ -242,6 +247,65 @@ body.acore-dark-mode.mycred-log-page #myCRED-wrap h1,
 body.acore-dark-mode.mycred-log-page #myCRED-wrap h2,
 body.acore-dark-mode.mycred-log-page #myCRED-wrap p {
     color: var(--acore-text) !important;
+}
+
+/* ── Dashboard: Activity widget ─────────────────────────────────────────
+ * WP paints the odd post rows and every comment row light (#f6f7f7) and pins
+ * the widget headings to #1d2327 from an id selector, so both need overriding
+ * or the light text sits on a light band. */
+body.acore-dark-mode #dashboard-widgets h3,
+body.acore-dark-mode #dashboard-widgets h4 {
+    color: var(--acore-text);
+}
+body.acore-dark-mode #future-posts li:nth-child(odd),
+body.acore-dark-mode #published-posts li:nth-child(odd),
+body.acore-dark-mode #activity-widget #the-comment-list .comment-item {
+    background: var(--acore-surface-2);
+}
+body.acore-dark-mode #activity-widget #the-comment-list .unapproved {
+    background-color: rgba(240, 180, 41, 0.12);
+}
+body.acore-dark-mode #future-posts li,
+body.acore-dark-mode #published-posts li,
+body.acore-dark-mode #latest-comments #the-comment-list .comment-meta {
+    color: var(--acore-muted);
+}
+body.acore-dark-mode #activity-widget #the-comment-list blockquote,
+body.acore-dark-mode #activity-widget #the-comment-list blockquote p {
+    color: var(--acore-muted);
+}
+body.acore-dark-mode .activity-block,
+body.acore-dark-mode #activity-widget #the-comment-list .comment-item:first-child {
+    border-color: var(--acore-border);
+}
+
+/* ── Recruit a Friend: recruited-friends table ──────────────────────────
+ * Bootstrap leaves the cells transparent and keeps its light text colour, so
+ * pin both here rather than relying on whatever is painted underneath. */
+body.acore-dark-mode #acore-raf-page .table {
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--acore-text);
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-bg: transparent;
+    --bs-table-border-color: var(--acore-border);
+}
+body.acore-dark-mode #acore-raf-page .table > :not(caption) > * > * {
+    background-color: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+    box-shadow: none !important;
+}
+body.acore-dark-mode #acore-raf-page .table thead th,
+body.acore-dark-mode #acore-raf-page .table tbody th {
+    background-color: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode #acore-raf-page .table-hover > tbody > tr:hover > * {
+    background-color: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode #acore-raf-page .text-muted {
+    color: var(--acore-muted) !important;
 }
 
 /* ── WP 2FA standalone setup wizard (profile.php?page=wp-2fa-setup) ──────
