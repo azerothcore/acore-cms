@@ -311,11 +311,6 @@ $expandOnLoad = !empty($passwordMessage);
                 <?php endif; ?>
             </h3>
 
-            <?php if (!$websiteAnyEnabled): ?>
-                <!-- Website 2FA not set up -  grey out entire in-game block with notice -->
-                <div class="acore-2fa-disabled">
-            <?php endif; ?>
-
             <?php if (!$ingame2faActive): ?>
                 <!-- In-game 2FA disabled -  show setup instructions -->
                 <p style="margin:12px 0 8px; color:#646970; font-size:13px;">
@@ -339,12 +334,9 @@ $expandOnLoad = !empty($passwordMessage);
                         <br><?php _e('Or paste the key below to get a QR code with all of those settings already in it, and scan it with your app instead of typing anything:', 'acore-wp-plugin'); ?>
                         <div class="acore-qr">
                             <div class="acore-qr-controls">
-                                <?php // The whole in-game block is inert while website 2FA is missing, so keep
-                                      // keyboard users out of these controls too, not just the mouse. ?>
                                 <input type="text" id="acore-ingame-qr-key" spellcheck="false" autocomplete="off"
-                                       autocapitalize="characters" placeholder="K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO"
-                                       <?php disabled(!$websiteAnyEnabled); ?>>
-                                <button type="button" id="acore-ingame-qr-btn" class="button" <?php disabled(!$websiteAnyEnabled); ?>>
+                                       autocapitalize="characters" placeholder="K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO">
+                                <button type="button" id="acore-ingame-qr-btn" class="button">
                                     <?php _e('Show QR code', 'acore-wp-plugin'); ?>
                                 </button>
                             </div>
@@ -369,6 +361,12 @@ $expandOnLoad = !empty($passwordMessage);
                     </li>
                 </ol>
             <?php else: ?>
+                <?php if (!$websiteAnyEnabled): ?>
+                    <!-- Removal is authorised with a website 2FA code, so the form stays inert
+                         until website 2FA exists. Setting it up in game is not affected. -->
+                    <div class="acore-2fa-disabled">
+                <?php endif; ?>
+
                 <!-- In-game 2FA enabled - show remove form -->
                 <p style="margin:12px 0 8px; color:#646970; font-size:13px;">
                     <?php _e('To disable in-game 2FA, enter your current website 2FA code below:', 'acore-wp-plugin'); ?>
@@ -378,21 +376,24 @@ $expandOnLoad = !empty($passwordMessage);
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
                         <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
                                maxlength="6" placeholder="000000"
-                               style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
-                        <button type="button" id="acore-ingame-2fa-remove" class="button button-primary">
+                               style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;"
+                               <?php disabled(!$websiteAnyEnabled); ?>>
+                        <button type="button" id="acore-ingame-2fa-remove" class="button button-primary" <?php disabled(!$websiteAnyEnabled); ?>>
                             <?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>
                         </button>
                     </div>
                     <div id="acore-ingame-2fa-msg" style="font-size:13px;"></div>
                 </div>
-            <?php endif; ?>
 
-            <?php if (!$websiteAnyEnabled): ?>
-                </div><!-- /greyed-out wrapper -->
-                <p class="acore-2fa-required-note">
-                    <span class="dashicons dashicons-lock"></span>
-                    <?php _e('Website 2FA must be set up before you can manage In-game 2FA here.', 'acore-wp-plugin'); ?>
-                </p>
+                <?php if (!$websiteAnyEnabled): ?>
+                    </div><!-- /greyed-out wrapper -->
+                    <p class="acore-2fa-required-note">
+                        <span class="dashicons dashicons-lock"></span>
+                        <span>
+                            <?php _e('Website 2FA must be set up before you can remove In-game 2FA from here. You can always remove it inside the game with <code>.account 2fa remove &lt;6-digit-code&gt;</code>.', 'acore-wp-plugin'); ?>
+                        </span>
+                    </p>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div><!-- /postbox inside -->
