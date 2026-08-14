@@ -18,6 +18,10 @@ class UserView {
     function getSecurityRender($connections, $passwordChangedAt, $twoFaData, $ingame2faActive, $passwordMessage = null) {
         ob_start();
         wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', array(), '0.5');
+        // Only the in-game setup instructions draw a QR code, and they are hidden once it is enabled.
+        if (!$ingame2faActive) {
+            wp_enqueue_script('acore-qrcode', ACORE_URL_PLG . 'web/libraries/qrcode/qrcode.js', array(), '1.4.4', true);
+        }
         include(__DIR__ . '/Pages/SecurityPage.php');
         return ob_get_clean();
     }

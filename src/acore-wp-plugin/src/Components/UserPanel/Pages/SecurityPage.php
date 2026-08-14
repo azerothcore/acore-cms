@@ -103,7 +103,34 @@ $expandOnLoad = !empty($passwordMessage);
     $emailRequestBase = rest_url(ACORE_SLUG . '/v1/request-email-2fa');
     $emailVerifyBase  = rest_url(ACORE_SLUG . '/v1/verify-email-2fa');
     $statusBase = rest_url(ACORE_SLUG . '/v1/2fa-status');
+    $enableBase = rest_url(ACORE_SLUG . '/v1/enable-ingame-2fa');
     $restNonce  = wp_create_nonce('wp_rest');
+
+    // Label of the in-game otpauth:// entry, so the authenticator app shows which
+    // server and account the code belongs to. The site name is decoded because the
+    // app should show "Ben & Co", not the entity-encoded form WordPress stores.
+    $qrIssuer  = trim(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES));
+    if ($qrIssuer === '') $qrIssuer = 'AzerothCore';
+    $qrAccount = strtoupper($user->user_login);
+
+    // With the master secret configured the site can hand out the key itself;
+    // without it the key can only come from `.account 2fa setup` inside the game.
+    $ingameSetupOnSite = !$ingame2faActive && \ACore\Components\ServerInfo\IngameTotp::isConfigured();
+    $ingameKey         = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::pendingSecret($user->ID) : '';
+    $ingameOtpauth     = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::otpauthUri($qrAccount, $ingameKey) : '';
+
+    // Removal takes any code the site can actually check - the in-game one when
+    // its key is readable, the website one otherwise. A recent panel unlock stands
+    // in for either. With none of the three the site cannot tell who is asking, so
+    // it does not offer removal at all and the in-game command is the way out.
+    $ingameRemoveNeedsCode = false;
+    $ingameRemovable       = $twofaUnlocked;
+    if ($ingame2faActive && !$twofaUnlocked) {
+        $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
+        $ingameRemoveNeedsCode = $websiteTotpEnabled
+            || ($accId && \ACore\Components\ServerInfo\IngameTotp::currentSecret($accId) !== '');
+        $ingameRemovable = $ingameRemoveNeedsCode;
+    }
 
     // Admin-removal log: find last entry per type
     $adminLog         = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
@@ -176,10 +203,24 @@ $expandOnLoad = !empty($passwordMessage);
                 </div>
             <?php endif; ?>
 
-            <p style="margin:0 0 16px;">
-                <?php _e('You will need an authenticator app (such as Google Authenticator or any app of your choice) configured with a <strong>Time-based (TOTP)</strong> key.', 'acore-wp-plugin'); ?>
+            <p style="margin:0 0 10px;">
+                <?php _e('You will need an authenticator app configured with a <strong>Time-based (TOTP)</strong> key.', 'acore-wp-plugin'); ?>
+                <?php printf(
+                    __('We recommend <a href="%s" target="_blank" rel="noopener noreferrer">FreeOTP</a>, a free and open source authenticator app, but any app of your choice (Google Authenticator, Aegis, ...) works too.', 'acore-wp-plugin'),
+                    'https://freeotp.github.io/'
+                ); ?>
                 <?php _e('Keep in mind there are <strong>two separate setups</strong>: one exclusively for logging into the website, and another for logging into the game server. Each has its own independent code.', 'acore-wp-plugin'); ?>
             </p>
+
+            <p style="margin:0 0 6px; font-size:13px; color:#646970;">
+                <?php _e('If your app asks for these settings when you add the key manually, use:', 'acore-wp-plugin'); ?>
+            </p>
+            <ul style="margin:0 0 16px 18px; font-size:13px; line-height:1.7; list-style:disc;">
+                <li><?php _e('Type: <strong>Time-based (TOTP)</strong>', 'acore-wp-plugin'); ?></li>
+                <li><?php _e('Digits: <strong>6</strong>', 'acore-wp-plugin'); ?></li>
+                <li><?php _e('Algorithm: <strong>SHA1</strong>', 'acore-wp-plugin'); ?></li>
+                <li><?php _e('Interval: <strong>30 seconds</strong>', 'acore-wp-plugin'); ?></li>
+            </ul>
 
             <hr style="margin:0 0 20px;">
 
@@ -290,12 +331,46 @@ $expandOnLoad = !empty($passwordMessage);
                 <?php endif; ?>
             </h3>
 
-            <?php if (!$websiteAnyEnabled): ?>
-                <!-- Website 2FA not set up -  grey out entire in-game block with notice -->
-                <div class="acore-2fa-disabled">
-            <?php endif; ?>
+            <?php if ($ingameSetupOnSite): ?>
+                <!-- In-game 2FA disabled, and the site holds the master secret: hand out the key here -->
+                <p style="margin:12px 0 10px; color:#646970; font-size:13px;">
+                    <?php _e('Scan this QR code with your authenticator app - or add the key by hand - then enter the 6-digit code it gives you.', 'acore-wp-plugin'); ?>
+                </p>
 
-            <?php if (!$ingame2faActive): ?>
+                <div class="acore-2fa-setup">
+                    <div id="acore-ingame-qr-out" class="acore-qr-out"></div>
+                    <div class="acore-2fa-setup-main">
+                        <span class="acore-2fa-key-label"><?php _e('Your 2FA key', 'acore-wp-plugin'); ?></span>
+                        <div class="acore-2fa-key-row">
+                            <code id="acore-ingame-key"><?= esc_html($ingameKey) ?></code>
+                            <button type="button" id="acore-ingame-key-copy" class="button"
+                                    title="<?php esc_attr_e('Copy the key', 'acore-wp-plugin'); ?>">
+                                <span class="dashicons dashicons-clipboard"></span>
+                            </button>
+                        </div>
+                        <p class="acore-qr-msg" style="margin-bottom:12px;">
+                            <?php _e('Adding it by hand? Time-based (TOTP), 6 digits, SHA1, 30 seconds.', 'acore-wp-plugin'); ?>
+                        </p>
+                        <div class="acore-2fa-confirm">
+                            <input type="text" id="acore-ingame-enable-code" inputmode="numeric" pattern="\d{6}"
+                                   maxlength="6" placeholder="000000" autocomplete="one-time-code">
+                            <button type="button" id="acore-ingame-enable" class="button button-primary">
+                                <?php _e('Enable In-game 2FA', 'acore-wp-plugin'); ?>
+                            </button>
+                        </div>
+                        <div id="acore-ingame-enable-msg" class="acore-qr-msg"></div>
+                    </div>
+                </div>
+
+                <p class="acore-qr-note">
+                    <span class="dashicons dashicons-info-outline"></span>
+                    <span>
+                        <?php _e('Your app will show a 6-digit code that refreshes every 30 seconds. If the one you typed is about to expire, wait for a fresh one.', 'acore-wp-plugin'); ?>
+                        <?php _e('Prefer to do it in game? Type <code>.account 2fa setup 1</code> and follow what it prints - the game hands out a key of its own, and the one above then no longer applies.', 'acore-wp-plugin'); ?>
+                    </span>
+                </p>
+
+            <?php elseif (!$ingame2faActive): ?>
                 <!-- In-game 2FA disabled -  show setup instructions -->
                 <p style="margin:12px 0 8px; color:#646970; font-size:13px;">
                     <?php _e('To enable in-game 2FA, follow these steps inside the game:', 'acore-wp-plugin'); ?>
@@ -314,7 +389,23 @@ $expandOnLoad = !empty($passwordMessage);
                         <br><em style="opacity:0.85;"><?php _e('Tip: to copy text from the in-game chat you can use an addon such as Prat (3.3.5).', 'acore-wp-plugin'); ?></em>
                     </li>
                     <li>
-                        <?php _e('When adding the key in your app, set the key type to <strong>Time based</strong> (TOTP).', 'acore-wp-plugin'); ?>
+                        <?php _e('When adding the key in your app, set the key type to <strong>Time based</strong> (TOTP), with <strong>6</strong> digits, <strong>SHA1</strong> algorithm and a <strong>30 seconds</strong> interval.', 'acore-wp-plugin'); ?>
+                        <br><?php _e('Or paste the key below to get a QR code with all of those settings already in it, and scan it with your app instead of typing anything:', 'acore-wp-plugin'); ?>
+                        <div class="acore-qr">
+                            <div class="acore-qr-controls">
+                                <input type="text" id="acore-ingame-qr-key" spellcheck="false" autocomplete="off"
+                                       autocapitalize="characters" placeholder="K6NXC763GDQTZJG3CTH4WIOGAW6MZYOO">
+                                <button type="button" id="acore-ingame-qr-btn" class="button">
+                                    <?php _e('Show QR code', 'acore-wp-plugin'); ?>
+                                </button>
+                            </div>
+                            <p class="acore-qr-note">
+                                <span class="dashicons dashicons-lock"></span>
+                                <?php _e('The key stays in your browser: the QR code is drawn on this page and is never sent anywhere.', 'acore-wp-plugin'); ?>
+                            </p>
+                            <div id="acore-ingame-qr-out" class="acore-qr-out" style="display:none;"></div>
+                            <div id="acore-ingame-qr-msg" class="acore-qr-msg"></div>
+                        </div>
                     </li>
                     <li>
                         <?php _e('Your app will show a 6-digit code that refreshes every few seconds. Use the code currently shown - if it is about to refresh, wait for a fresh one to avoid errors.', 'acore-wp-plugin'); ?>
@@ -331,28 +422,30 @@ $expandOnLoad = !empty($passwordMessage);
             <?php else: ?>
                 <!-- In-game 2FA enabled - show remove form -->
                 <p style="margin:12px 0 8px; color:#646970; font-size:13px;">
-                    <?php _e('To disable in-game 2FA, enter your current website 2FA code below:', 'acore-wp-plugin'); ?>
+                    <?php if ($ingameRemoveNeedsCode): ?>
+                        <?php _e('To disable in-game 2FA, enter the 6-digit code your authenticator app is showing:', 'acore-wp-plugin'); ?>
+                    <?php elseif ($ingameRemovable): ?>
+                        <?php _e('You can disable in-game 2FA here, or inside the game with <code>.account 2fa remove &lt;6-digit-code&gt;</code>.', 'acore-wp-plugin'); ?>
+                    <?php else: ?>
+                        <?php _e('This site cannot check your in-game code, so it cannot turn in-game 2FA off for you. Log into the game and type <code>.account 2fa remove &lt;6-digit-code&gt;</code> with the code your authenticator app is showing.', 'acore-wp-plugin'); ?>
+                    <?php endif; ?>
                 </p>
 
-                <div id="acore-ingame-2fa-wrap">
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-                        <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
-                               maxlength="6" placeholder="000000"
-                               style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
-                        <button type="button" id="acore-ingame-2fa-remove" class="button button-primary">
-                            <?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>
-                        </button>
+                <?php if ($ingameRemovable): ?>
+                    <div id="acore-ingame-2fa-wrap">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+                            <?php if ($ingameRemoveNeedsCode): ?>
+                                <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
+                                       maxlength="6" placeholder="000000" autocomplete="one-time-code"
+                                       style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
+                            <?php endif; ?>
+                            <button type="button" id="acore-ingame-2fa-remove" class="button button-primary">
+                                <?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>
+                            </button>
+                        </div>
+                        <div id="acore-ingame-2fa-msg" style="font-size:13px;"></div>
                     </div>
-                    <div id="acore-ingame-2fa-msg" style="font-size:13px;"></div>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!$websiteAnyEnabled): ?>
-                </div><!-- /greyed-out wrapper -->
-                <p class="acore-2fa-required-note">
-                    <span class="dashicons dashicons-lock"></span>
-                    <?php _e('Website 2FA must be set up before you can manage In-game 2FA here.', 'acore-wp-plugin'); ?>
-                </p>
+                <?php endif; ?>
             <?php endif; ?>
 
         </div><!-- /postbox inside -->
@@ -455,9 +548,10 @@ $expandOnLoad = !empty($passwordMessage);
     var removeBtn = document.getElementById('acore-ingame-2fa-remove');
     if (removeBtn) {
         removeBtn.addEventListener('click', function(){
-            var code = document.getElementById('acore-ingame-2fa-code').value.trim();
-            var msg  = document.getElementById('acore-ingame-2fa-msg');
-            // A code is optional when the panel was already unlocked (e.g. via email 2FA);
+            var codeEl = document.getElementById('acore-ingame-2fa-code');
+            var code   = codeEl ? codeEl.value.trim() : '';
+            var msg    = document.getElementById('acore-ingame-2fa-msg');
+            // The field is only rendered when there is a code to check against;
             // if one is typed it must be 6 digits.
             if (code !== '' && !/^\d{6}$/.test(code)) {
                 msg.style.color = '#d63638';
@@ -492,6 +586,172 @@ $expandOnLoad = !empty($passwordMessage);
                 removeBtn.disabled = false;
                 removeBtn.textContent = '<?php echo esc_js(__('Remove In-game 2FA', 'acore-wp-plugin')); ?>';
             });
+        });
+    }
+
+    /* Base32 length of an in-game key, both the one we hand out and the one the game does */
+    var qrKeyLength = 32;
+
+    /* Draws an otpauth:// URI into a container. The generator is loaded in the
+       footer, so callers have to wait for DOMContentLoaded before drawing. */
+    var qrDraw = function(container, uri){
+        if (typeof qrcode === 'undefined') return false;
+        var qr = qrcode(0, 'M');
+        qr.addData(uri, 'Byte');
+        qr.make();
+        container.innerHTML = qr.createSvgTag({
+            cellSize: 4,
+            margin:   4,
+            scalable: true,
+            alt:      '<?php echo esc_js(__('In-game 2FA QR code', 'acore-wp-plugin')); ?>'
+        });
+        return true;
+    };
+
+    /* In-game 2FA setup, website-issued key: draw its QR code and confirm a first code */
+    var enableBtn = document.getElementById('acore-ingame-enable');
+    if (enableBtn) {
+        var keyEl    = document.getElementById('acore-ingame-key');
+        var keyOut   = document.getElementById('acore-ingame-qr-out');
+        var enableIn = document.getElementById('acore-ingame-enable-code');
+        var enableMsg = document.getElementById('acore-ingame-enable-msg');
+        // JSON-encoded, not esc_js(): a site name may contain quotes, and esc_js()
+        // would turn them into HTML entities inside the otpauth URI. The HEX flags
+        // keep a site title made of comment or tag markup from ending this block early.
+        var otpauth  = <?= wp_json_encode($ingameOtpauth, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+        document.addEventListener('DOMContentLoaded', function(){
+            if (!qrDraw(keyOut, otpauth)) {
+                keyOut.style.display = 'none';
+                enableMsg.style.color = '#d63638';
+                enableMsg.textContent = '<?php echo esc_js(__('The QR code could not be drawn. Add the key to your app by hand with the settings shown here.', 'acore-wp-plugin')); ?>';
+            }
+        });
+
+        var copyBtn = document.getElementById('acore-ingame-key-copy');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function(){
+                var done = function(){
+                    enableMsg.style.color = '#00a32a';
+                    enableMsg.textContent = '<?php echo esc_js(__('Key copied.', 'acore-wp-plugin')); ?>';
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(keyEl.textContent).then(done, function(){});
+                    return;
+                }
+                var range = document.createRange();
+                range.selectNodeContents(keyEl);
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                if (document.execCommand('copy')) done();
+            });
+        }
+
+        var submitEnable = function(){
+            var code = (enableIn.value || '').trim();
+            if (!/^\d{6}$/.test(code)) {
+                enableMsg.style.color = '#d63638';
+                enableMsg.textContent = '<?php echo esc_js(__('Please enter a valid 6-digit code.', 'acore-wp-plugin')); ?>';
+                return;
+            }
+            enableBtn.disabled = true;
+            enableBtn.textContent = '<?php echo esc_js(__('Enabling…', 'acore-wp-plugin')); ?>';
+            enableMsg.textContent = '';
+            fetch('<?= esc_js($enableBase) ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce':   '<?= esc_js($restNonce) ?>'
+                },
+                body: JSON.stringify({ token: code })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (!d || !d.success) throw d;
+                enableMsg.style.color = '#00a32a';
+                enableMsg.textContent = '<?php echo esc_js(__('In-game 2FA is on. The game will ask for a code the next time you log in.', 'acore-wp-plugin')); ?>';
+                setTimeout(function(){ window.location.reload(); }, 2200);
+            })
+            .catch(function(err){
+                enableMsg.style.color = '#d63638';
+                enableMsg.textContent = (err && (err.message || (err.data && err.data.message))) || '<?php echo esc_js(__('An error occurred. Please try again.', 'acore-wp-plugin')); ?>';
+                enableBtn.disabled = false;
+                enableBtn.textContent = '<?php echo esc_js(__('Enable In-game 2FA', 'acore-wp-plugin')); ?>';
+            });
+        };
+        enableBtn.addEventListener('click', submitEnable);
+        enableIn.addEventListener('keydown', function(e){
+            if (e.key === 'Enter') { e.preventDefault(); submitEnable(); }
+        });
+    }
+
+    /* In-game 2FA setup, key issued by the game: turn what the user pastes into a QR code */
+    var qrBtn   = document.getElementById('acore-ingame-qr-btn');
+    var qrInput = document.getElementById('acore-ingame-qr-key');
+    if (qrBtn && qrInput) {
+        var qrOut     = document.getElementById('acore-ingame-qr-out');
+        var qrMsg     = document.getElementById('acore-ingame-qr-msg');
+        var qrIssuer  = <?= wp_json_encode($qrIssuer, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        var qrAccount = <?= wp_json_encode($qrAccount, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        var qrShow    = '<?php echo esc_js(__('Show QR code', 'acore-wp-plugin')); ?>';
+        var qrHide    = '<?php echo esc_js(__('Hide QR code', 'acore-wp-plugin')); ?>';
+        var qrWanted  = false;
+
+        var qrClear = function(){
+            qrWanted = false;
+            qrOut.style.display = 'none';
+            qrOut.innerHTML     = '';
+            qrMsg.textContent   = '';
+            qrBtn.textContent   = qrShow;
+        };
+
+        var qrFail = function(text){
+            qrOut.style.display = 'none';
+            qrOut.innerHTML     = '';
+            qrBtn.textContent   = qrShow;
+            qrMsg.style.color   = '#d63638';
+            qrMsg.textContent   = text;
+        };
+
+        var qrRender = function(){
+            // The in-game key is base32; accept it typed in lowercase or with separators.
+            var key = (qrInput.value || '').toUpperCase().replace(/[\s-]/g, '').replace(/=+$/, '');
+            if (!/^[A-Z2-7]+$/.test(key)) {
+                qrFail('<?php echo esc_js(__('That does not look like a 2FA key. Paste the key the game showed you, made of letters A-Z and digits 2-7.', 'acore-wp-plugin')); ?>');
+                return;
+            }
+            // Exactly 32 characters: a shorter one still draws a perfectly scannable
+            // QR code, and the app would then produce codes the server rejects.
+            if (key.length !== qrKeyLength) {
+                qrFail('<?php echo esc_js(__('A 2FA key is %1$d characters long, this one has %2$d. Check you copied all of it.', 'acore-wp-plugin')); ?>'
+                       .replace('%1$d', qrKeyLength).replace('%2$d', key.length));
+                return;
+            }
+            var uri = 'otpauth://totp/' + encodeURIComponent(qrIssuer) + ':' + encodeURIComponent(qrAccount)
+                    + '?secret='    + key
+                    + '&issuer='    + encodeURIComponent(qrIssuer)
+                    + '&algorithm=SHA1&digits=6&period=30';
+            if (!qrDraw(qrOut, uri)) {
+                qrFail('<?php echo esc_js(__('The QR code generator could not be loaded. Reload the page, or add the key manually with the settings above.', 'acore-wp-plugin')); ?>');
+                return;
+            }
+            qrOut.style.display = '';
+            qrBtn.textContent   = qrHide;
+            qrMsg.style.color   = '';
+            qrMsg.textContent   = '<?php echo esc_js(__('Scan it with your authenticator app, then go on with the next step.', 'acore-wp-plugin')); ?>';
+        };
+
+        qrBtn.addEventListener('click', function(){
+            if (qrOut.style.display !== 'none') { qrClear(); return; }
+            qrWanted = true;
+            qrRender();
+        });
+        qrInput.addEventListener('keydown', function(e){
+            if (e.key === 'Enter') { e.preventDefault(); qrWanted = true; qrRender(); }
+        });
+        qrInput.addEventListener('input', function(){
+            if (qrWanted) qrRender();
         });
     }
 

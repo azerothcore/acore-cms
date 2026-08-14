@@ -362,52 +362,89 @@ body.wp2fa-setup .app-key-wrapper input {
 }
 
 
-/* ── "Disabled" sections (e.g. In-game 2FA before Website 2FA is set up) ──
- * A greyed background box signals "disabled" while text stays fully legible
- * (no opacity wash-out). Works in both light and dark themes. */
-.acore-2fa-disabled {
-    position: relative;
-    pointer-events: none;
-    user-select: none;
-    background: var(--acore-surface-2);
-    border: 1px solid var(--acore-border);
-    border-radius: 6px;
-    padding: 10px 16px 12px;
-    margin-top: 8px;
-}
-/* Light theme: keep the intro + steps at readable contrast on the grey box */
-.acore-2fa-disabled p,
-.acore-2fa-disabled li { color: #3c434a !important; }
-.acore-2fa-disabled p:first-child { color: #50575e !important; }
-/* Dark theme */
-body.acore-dark-mode .acore-2fa-disabled,
-body.acore-dark-mode .acore-2fa-disabled p,
-body.acore-dark-mode .acore-2fa-disabled li,
-body.acore-dark-mode .acore-2fa-disabled span { color: var(--acore-text) !important; }
-body.acore-dark-mode .acore-2fa-disabled p:first-child { color: var(--acore-muted) !important; }
-
-/* ── "Website 2FA required" callout (bright & visible in both themes) ── */
-.acore-2fa-required-note {
+/* ── In-game 2FA QR code (built in the browser from the key shown in game) ── */
+.acore-qr { margin: 8px 0 4px; }
+.acore-qr-controls {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 10px 0 0;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.4;
+    flex-wrap: wrap;
+}
+.acore-qr-controls input {
+    width: 330px;
+    max-width: 100%;
+    font-family: monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.acore-qr-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--acore-muted);
+}
+.acore-qr-note .dashicons { font-size: 15px; width: 15px; height: 15px; flex: 0 0 auto; }
+.acore-qr-note code { font-size: 12px; }
+/* White plate under the code: keeps it scannable in dark mode too */
+.acore-qr-out {
+    width: 190px;
+    margin-top: 10px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid var(--acore-border);
     border-radius: 6px;
-    color: #9a5b00;
-    background: #fff4e0;
-    border: 1px solid #f0b429;
 }
-.acore-2fa-required-note .dashicons { color: #d98300; flex: 0 0 auto; }
-body.acore-dark-mode .acore-2fa-required-note {
-    color: #f5c451 !important;
-    background: rgba(240, 180, 41, 0.12) !important;
-    border-color: #8a6d1f !important;
+.acore-qr-out svg { display: block; width: 100%; height: auto; }
+.acore-qr-msg { margin-top: 6px; font-size: 12px; color: var(--acore-muted); }
+
+/* ── In-game 2FA setup with a key issued by the site: QR beside key and code ── */
+.acore-2fa-setup {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin: 0 0 10px;
 }
-body.acore-dark-mode .acore-2fa-required-note .dashicons { color: #f5c451 !important; }
+.acore-2fa-setup .acore-qr-out { margin-top: 0; flex: 0 0 auto; }
+.acore-2fa-setup-main { flex: 1 1 260px; min-width: 240px; }
+.acore-2fa-key-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--acore-muted);
+    margin-bottom: 4px;
+}
+.acore-2fa-key-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+/* Scoped by id so the page-wide dark-mode `code` padding does not shrink it */
+#acore-security-page .acore-2fa-key-row code {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    word-break: break-all;
+    padding: 6px 8px;
+}
+.acore-2fa-key-row .button { flex: 0 0 auto; }
+.acore-2fa-key-row .dashicons { vertical-align: middle; }
+.acore-2fa-confirm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.acore-2fa-confirm input {
+    width: 110px;
+    text-align: center;
+    letter-spacing: 0.2em;
+    font-size: 18px;
+}
 
 /* ── Highlight the connection row matching the viewer's current IP ── */
 #acore-security-page .wp-list-table > tbody > tr.acore-conn-current > td {

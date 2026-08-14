@@ -246,6 +246,16 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <th><label class="acore-help-label" title="The TOTPMasterSecret from your authserver.conf, hexadecimal and with no prefix. With it set, players can turn on In-game 2FA from their Security page: the site generates the key, shows the QR code and writes it to the account itself. Left empty, they get the .account 2fa setup instructions instead.">In-game 2FA Master Secret</label></th>
+                                            <td>
+                                                <input type="password" name="acore_totp_master_secret" id="acore_totp_master_secret"
+                                                    value="<?= esc_attr(Opts::I()->acore_totp_master_secret) ?>"
+                                                    autocomplete="off" spellcheck="false"
+                                                    placeholder="same value as TOTPMasterSecret"
+                                                    style="width:100%;max-width:480px;font-family:monospace;">
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th><label class="acore-help-label" title="If disabled, users cannot reuse any of their last 10 passwords when changing it.">Allow Old Passwords</label></th>
                                             <td>
                                                 <select name="acore_allow_old_passwords" id="acore_allow_old_passwords">

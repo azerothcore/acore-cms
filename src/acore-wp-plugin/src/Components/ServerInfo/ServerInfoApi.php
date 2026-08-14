@@ -440,31 +440,94 @@ add_action( 'rest_api_init', function () {
        'methods'             => 'POST',
        'permission_callback' => function() { return is_user_logged_in(); },
        'callback'            => function( \WP_REST_Request $request ) {
-           $user = wp_get_current_user();
-           if (!acore_website_2fa_enabled($user->ID))
-               return new \WP_Error('no_website_2fa', __('You must have website 2FA enabled to remove in-game 2FA from here.'), ['status' => 403]);
+           $user  = wp_get_current_user();
+           $accId = ACoreServices::I()->getAcoreAccountId();
+           if (!$accId) return new \WP_Error('no_account', __('Could not find your game account.'), ['status' => 404]);
 
-           // Authorise via a recent panel unlock (TOTP or email) OR a fresh TOTP code.
+           // A recent website 2FA unlock (TOTP or email) already proves who this is.
+           // Otherwise take any code we can actually check: the in-game one when its
+           // key is readable, the website one when that is set up. In-game 2FA is
+           // independent of website 2FA, so neither one gates the other.
            if (!get_transient(acore_2fa_unlock_key($user->ID))) {
-               if (!acore_website_totp_enabled($user->ID))
-                   return new \WP_Error('verify_required', __('Please verify your 2FA above before removing in-game 2FA.'), ['status' => 403]);
+               $ingameSecret = IngameTotp::currentSecret($accId);
+               $websiteTotp  = acore_website_totp_enabled($user->ID);
+
+               // With no code to check, the only thing standing behind this request is
+               // the account password - which is exactly what in-game 2FA exists to
+               // survive. The core's own command is the way out.
+               if ($ingameSecret === '' && !$websiteTotp)
+                   return new \WP_Error('cannot_verify', __('In-game 2FA can only be removed inside the game. Log in and type: .account 2fa remove <6-digit-code>', 'acore-wp-plugin'), ['status' => 403]);
+
+               $attemptKey = 'acore_ingame_2fa_remove_attempts_' . acore_2fa_unlock_key($user->ID);
+               if ((int) get_transient($attemptKey) >= 5)
+                   return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
+
                $data  = $request->get_json_params();
                $token = isset($data['token']) ? trim((string) $data['token']) : '';
                if (!preg_match('/^\d{6}$/', $token))
-                   return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.'), ['status' => 400]);
-               if (!\ACore\Components\ServerInfo\acore_wp2fa_code_is_valid($user->ID, $token))
-                   return new \WP_Error('wrong_token', __('Incorrect code. Please try again.'), ['status' => 401]);
+                   return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.', 'acore-wp-plugin'), ['status' => 400]);
+
+               $valid = ($ingameSecret !== '' && acore_totp_validate($ingameSecret, $token))
+                     || ($websiteTotp && acore_wp2fa_code_is_valid($user->ID, $token));
+               if (!$valid) {
+                   set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
+                   return new \WP_Error('wrong_token', __('Incorrect code. Please try again.', 'acore-wp-plugin'), ['status' => 401]);
+               }
+               delete_transient($attemptKey);
            }
 
            try {
-               $accId = ACoreServices::I()->getAcoreAccountId();
-               if (!$accId) return new \WP_Error('no_account', __('Could not find your game account.'), ['status' => 404]);
                $conn = ACoreServices::I()->getAccountEm()->getConnection();
                $conn->executeStatement('UPDATE account SET totp_secret = NULL WHERE id = ?', [$accId]);
                return ['success' => true];
            } catch (\Exception $e) {
                return new \WP_Error('db_error', __('Database error. Please try again.'), ['status' => 500]);
            }
+       }
+   ) );
+
+   // User: turn on in-game 2FA with a code from the key the Security page showed
+   register_rest_route( ACORE_SLUG . '/v1', 'enable-ingame-2fa', array(
+       'methods'             => 'POST',
+       'permission_callback' => function() { return is_user_logged_in(); },
+       'callback'            => function( \WP_REST_Request $request ) {
+           $user = wp_get_current_user();
+           if (!IngameTotp::isConfigured())
+               return new \WP_Error('not_configured', __('In-game 2FA cannot be set up from here. Please set it up inside the game.', 'acore-wp-plugin'), ['status' => 501]);
+
+           $attemptKey = 'acore_ingame_2fa_attempts_' . acore_2fa_unlock_key($user->ID);
+           if ((int) get_transient($attemptKey) >= 5)
+               return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
+
+           $data  = $request->get_json_params();
+           $token = isset($data['token']) ? trim((string) $data['token']) : '';
+           if (!preg_match('/^\d{6}$/', $token))
+               return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.', 'acore-wp-plugin'), ['status' => 400]);
+
+           // The key is only kept until it is confirmed, so an expired one means
+           // the page is showing a key that no longer exists.
+           $secret = IngameTotp::peekPendingSecret($user->ID);
+           if ($secret === '')
+               return new \WP_Error('no_pending_key', __('This key has expired. Reload the page to get a new one.', 'acore-wp-plugin'), ['status' => 410]);
+
+           if (!acore_totp_validate($secret, $token)) {
+               set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
+               return new \WP_Error('wrong_token', __('Incorrect code. Please try again with the code your app is showing now.', 'acore-wp-plugin'), ['status' => 401]);
+           }
+
+           try {
+               $accId = ACoreServices::I()->getAcoreAccountId();
+               if (!$accId)
+                   return new \WP_Error('no_account', __('Could not find your game account.', 'acore-wp-plugin'), ['status' => 404]);
+               if (!IngameTotp::activate($accId, $secret))
+                   return new \WP_Error('already_enabled', __('In-game 2FA is already set up on this account.', 'acore-wp-plugin'), ['status' => 409]);
+           } catch (\Exception $e) {
+               return new \WP_Error('db_error', __('Database error. Please try again.', 'acore-wp-plugin'), ['status' => 500]);
+           }
+
+           IngameTotp::forgetPendingSecret($user->ID);
+           delete_transient($attemptKey);
+           return ['success' => true];
        }
    ) );
 
