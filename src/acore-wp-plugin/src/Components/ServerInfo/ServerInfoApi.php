@@ -468,6 +468,51 @@ add_action( 'rest_api_init', function () {
        }
    ) );
 
+   // User: turn on in-game 2FA with a code from the key the Security page showed
+   register_rest_route( ACORE_SLUG . '/v1', 'enable-ingame-2fa', array(
+       'methods'             => 'POST',
+       'permission_callback' => function() { return is_user_logged_in(); },
+       'callback'            => function( \WP_REST_Request $request ) {
+           $user = wp_get_current_user();
+           if (!IngameTotp::isConfigured())
+               return new \WP_Error('not_configured', __('In-game 2FA cannot be set up from here. Please set it up inside the game.', 'acore-wp-plugin'), ['status' => 501]);
+
+           $attemptKey = 'acore_ingame_2fa_attempts_' . acore_2fa_unlock_key($user->ID);
+           if ((int) get_transient($attemptKey) >= 5)
+               return new \WP_Error('rate_limited', __('Too many incorrect codes. Please wait a few minutes.', 'acore-wp-plugin'), ['status' => 429]);
+
+           $data  = $request->get_json_params();
+           $token = isset($data['token']) ? trim((string) $data['token']) : '';
+           if (!preg_match('/^\d{6}$/', $token))
+               return new \WP_Error('invalid_token', __('Please enter a valid 6-digit code.', 'acore-wp-plugin'), ['status' => 400]);
+
+           // The key is only kept until it is confirmed, so an expired one means
+           // the page is showing a key that no longer exists.
+           $secret = IngameTotp::peekPendingSecret($user->ID);
+           if ($secret === '')
+               return new \WP_Error('no_pending_key', __('This key has expired. Reload the page to get a new one.', 'acore-wp-plugin'), ['status' => 410]);
+
+           if (!acore_totp_validate($secret, $token)) {
+               set_transient($attemptKey, ((int) get_transient($attemptKey)) + 1, 10 * MINUTE_IN_SECONDS);
+               return new \WP_Error('wrong_token', __('Incorrect code. Please try again with the code your app is showing now.', 'acore-wp-plugin'), ['status' => 401]);
+           }
+
+           try {
+               $accId = ACoreServices::I()->getAcoreAccountId();
+               if (!$accId)
+                   return new \WP_Error('no_account', __('Could not find your game account.', 'acore-wp-plugin'), ['status' => 404]);
+               if (!IngameTotp::activate($accId, $secret))
+                   return new \WP_Error('already_enabled', __('In-game 2FA is already set up on this account.', 'acore-wp-plugin'), ['status' => 409]);
+           } catch (\Exception $e) {
+               return new \WP_Error('db_error', __('Database error. Please try again.', 'acore-wp-plugin'), ['status' => 500]);
+           }
+
+           IngameTotp::forgetPendingSecret($user->ID);
+           delete_transient($attemptKey);
+           return ['success' => true];
+       }
+   ) );
+
    // User: verify own website 2FA (TOTP) code - used to gate sensitive panels (e.g. backup codes)
    register_rest_route( ACORE_SLUG . '/v1', 'verify-website-2fa', array(
        'methods'             => 'POST',
