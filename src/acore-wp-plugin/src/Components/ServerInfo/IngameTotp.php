@@ -95,6 +95,37 @@ class IngameTotp {
     }
 
     /**
+     * The key the account is currently using, as Base32, or '' when it cannot be
+     * read. The core encrypts it only when TOTPMasterSecret is set on its side
+     * (cs_account.cpp), and a bare secret is the only one short enough to have no
+     * IV and tag after it, so its length tells the two apart.
+     *
+     * Reading it lets the site check an in-game code without ever needing the
+     * website's own 2FA.
+     */
+    public static function currentSecret(int $accountId): string {
+        try {
+            $conn = ACoreServices::I()->getAccountEm()->getConnection();
+            $row  = $conn->executeQuery('SELECT HEX(totp_secret) AS secret FROM account WHERE id = ?', [$accountId])->fetchAssociative();
+        } catch (\Throwable $e) {
+            return '';
+        }
+        if (!$row || empty($row['secret'])) return '';
+
+        $blob = (string) hex2bin($row['secret']);
+        if (strlen($blob) === self::SECRET_BYTES) return self::base32Encode($blob);
+
+        $key = self::masterKey();
+        if ($key === null || strlen($blob) <= 24) return '';
+
+        $raw = openssl_decrypt(
+            substr($blob, 0, -24), 'aes-128-gcm', $key, OPENSSL_RAW_DATA,
+            substr($blob, -24, 12), substr($blob, -12)
+        );
+        return $raw === false ? '' : self::base32Encode($raw);
+    }
+
+    /**
      * The otpauth:// URI behind the QR code. The site name is decoded because the
      * app should show "Ben & Co", not the entity-encoded form WordPress stores.
      */

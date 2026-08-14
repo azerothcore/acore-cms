@@ -119,6 +119,16 @@ $expandOnLoad = !empty($passwordMessage);
     $ingameKey         = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::pendingSecret($user->ID) : '';
     $ingameOtpauth     = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::otpauthUri($qrAccount, $ingameKey) : '';
 
+    // Removal takes any code the site can actually check - the in-game one when
+    // its key is readable, the website one otherwise. With neither there is
+    // nothing to ask for, so the button stands alone.
+    $ingameRemoveNeedsCode = false;
+    if ($ingame2faActive && !$twofaUnlocked) {
+        $accId = \ACore\Manager\ACoreServices::I()->getAcoreAccountId();
+        $ingameRemoveNeedsCode = $websiteTotpEnabled
+            || ($accId && \ACore\Components\ServerInfo\IngameTotp::currentSecret($accId) !== '');
+    }
+
     // Admin-removal log: find last entry per type
     $adminLog         = get_user_meta($user->ID, 'acore_2fa_admin_log', true);
     $adminLog         = is_array($adminLog) ? $adminLog : [];
@@ -407,39 +417,28 @@ $expandOnLoad = !empty($passwordMessage);
                     </li>
                 </ol>
             <?php else: ?>
-                <?php if (!$websiteAnyEnabled): ?>
-                    <!-- Removal is authorised with a website 2FA code, so the form stays inert
-                         until website 2FA exists. Setting it up in game is not affected. -->
-                    <div class="acore-2fa-disabled">
-                <?php endif; ?>
-
                 <!-- In-game 2FA enabled - show remove form -->
                 <p style="margin:12px 0 8px; color:#646970; font-size:13px;">
-                    <?php _e('To disable in-game 2FA, enter your current website 2FA code below:', 'acore-wp-plugin'); ?>
+                    <?php if ($ingameRemoveNeedsCode): ?>
+                        <?php _e('To disable in-game 2FA, enter the 6-digit code your authenticator app is showing:', 'acore-wp-plugin'); ?>
+                    <?php else: ?>
+                        <?php _e('You can disable in-game 2FA here, or inside the game with <code>.account 2fa remove &lt;6-digit-code&gt;</code>.', 'acore-wp-plugin'); ?>
+                    <?php endif; ?>
                 </p>
 
                 <div id="acore-ingame-2fa-wrap">
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-                        <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
-                               maxlength="6" placeholder="000000"
-                               style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;"
-                               <?php disabled(!$websiteAnyEnabled); ?>>
-                        <button type="button" id="acore-ingame-2fa-remove" class="button button-primary" <?php disabled(!$websiteAnyEnabled); ?>>
+                        <?php if ($ingameRemoveNeedsCode): ?>
+                            <input type="text" id="acore-ingame-2fa-code" inputmode="numeric" pattern="\d{6}"
+                                   maxlength="6" placeholder="000000" autocomplete="one-time-code"
+                                   style="width:110px; text-align:center; letter-spacing:0.2em; font-size:18px;">
+                        <?php endif; ?>
+                        <button type="button" id="acore-ingame-2fa-remove" class="button button-primary">
                             <?php _e('Remove In-game 2FA', 'acore-wp-plugin'); ?>
                         </button>
                     </div>
                     <div id="acore-ingame-2fa-msg" style="font-size:13px;"></div>
                 </div>
-
-                <?php if (!$websiteAnyEnabled): ?>
-                    </div><!-- /greyed-out wrapper -->
-                    <p class="acore-2fa-required-note">
-                        <span class="dashicons dashicons-lock"></span>
-                        <span>
-                            <?php _e('Website 2FA must be set up before you can remove In-game 2FA from here. You can always remove it inside the game with <code>.account 2fa remove &lt;6-digit-code&gt;</code>.', 'acore-wp-plugin'); ?>
-                        </span>
-                    </p>
-                <?php endif; ?>
             <?php endif; ?>
 
         </div><!-- /postbox inside -->
@@ -542,9 +541,10 @@ $expandOnLoad = !empty($passwordMessage);
     var removeBtn = document.getElementById('acore-ingame-2fa-remove');
     if (removeBtn) {
         removeBtn.addEventListener('click', function(){
-            var code = document.getElementById('acore-ingame-2fa-code').value.trim();
-            var msg  = document.getElementById('acore-ingame-2fa-msg');
-            // A code is optional when the panel was already unlocked (e.g. via email 2FA);
+            var codeEl = document.getElementById('acore-ingame-2fa-code');
+            var code   = codeEl ? codeEl.value.trim() : '';
+            var msg    = document.getElementById('acore-ingame-2fa-msg');
+            // The field is only rendered when there is a code to check against;
             // if one is typed it must be 6 digits.
             if (code !== '' && !/^\d{6}$/.test(code)) {
                 msg.style.color = '#d63638';
