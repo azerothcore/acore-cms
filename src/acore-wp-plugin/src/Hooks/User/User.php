@@ -114,9 +114,76 @@ function user_profile_update($user_id, $old_user_data)
 
 add_action('profile_update', __NAMESPACE__ . '\user_profile_update', 10, 2);
 
-do_action('validate_password_reset', function (\WP_Error $errors, \WP_User $user) {
+add_action('validate_password_reset', function (\WP_Error $errors, \WP_User $user) {
     validateComplexPassword($errors);
 }, 10, 2);
+
+/**
+ * Keep Jetpack Account Protection's password-length guidance aligned with the
+ * AzerothCore password limit. Jetpack currently treats 150 characters as its
+ * minimum supported maximum, so its own length filter cannot lower this value.
+ */
+function filter_jetpack_password_length_message($translated, $text, $domain)
+{
+    if ($domain !== 'jetpack-account-protection') {
+        return $translated;
+    }
+
+    $maxLength = UserValidator::PASSWORD_LENGTH;
+
+    if (in_array($text, array(
+        'Between 6 and 150 characters',
+        '<strong>Error:</strong> The password must be between 6 and 150 characters.',
+    ), true)) {
+        return str_replace('150', (string) $maxLength, $translated);
+    }
+
+    if (in_array($text, array(
+        'Between %1$d and %2$d characters',
+        '<strong>Error:</strong> The password must be between %1$d and %2$d characters.',
+    ), true)) {
+        return str_replace('%2$d', (string) $maxLength, $translated);
+    }
+
+    return $translated;
+}
+
+add_filter(
+    'gettext_jetpack-account-protection',
+    __NAMESPACE__ . '\\filter_jetpack_password_length_message',
+    10,
+    3
+);
+
+/**
+ * Prevent the WordPress reset form from accepting more characters than the game
+ * can authenticate. The reset form does not expose a PHP filter for these input
+ * attributes, so apply the native maxlength attribute in the login footer.
+ */
+function limit_password_reset_fields()
+{
+    $action = isset($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
+    if (!in_array($action, array('rp', 'resetpass'), true) && !isset($_GET['key'])) {
+        return;
+    }
+
+    $maxLength = (int) UserValidator::PASSWORD_LENGTH;
+    ?>
+    <script>
+        (function () {
+            var maxLength = <?= $maxLength ?>;
+            ['pass1', 'pass2'].forEach(function (id) {
+                var input = document.getElementById(id);
+                if (input) {
+                    input.setAttribute('maxlength', String(maxLength));
+                }
+            });
+        }());
+    </script>
+    <?php
+}
+
+add_action('login_footer', __NAMESPACE__ . '\\limit_password_reset_fields', 99);
 
 /**
  *
