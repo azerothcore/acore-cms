@@ -6,6 +6,7 @@ $changedLabel = $passwordChangedAt
     ? \ACore\Hooks\User\acore_format_connection_date($passwordChangedAt)
     : __('Never', 'acore-wp-plugin');
 $expandOnLoad = !empty($passwordMessage);
+$passwordMaxLength = \ACore\Manager\UserValidator::PASSWORD_LENGTH;
 ?>
 
 <div class="wrap" id="acore-security-page">
@@ -57,11 +58,16 @@ $expandOnLoad = !empty($passwordMessage);
                             <td>
                                 <div class="acore-pw-field">
                                     <input type="password" name="acore_new_pass" id="acore_new_pass"
-                                        class="regular-text" autocomplete="new-password" />
+                                        class="regular-text" autocomplete="new-password"
+                                        maxlength="<?= (int) $passwordMaxLength ?>"
+                                        aria-describedby="acore-password-length-description" />
                                     <button type="button" class="acore-pw-toggle button" aria-label="<?php _e('Show password', 'acore-wp-plugin'); ?>">
                                         <span class="dashicons dashicons-visibility"></span>
                                     </button>
                                 </div>
+                                <p class="description" id="acore-password-length-description">
+                                    <?php printf(esc_html__('Maximum %d characters.', 'acore-wp-plugin'), (int) $passwordMaxLength); ?>
+                                </p>
                             </td>
                         </tr>
                         <tr>
@@ -71,7 +77,9 @@ $expandOnLoad = !empty($passwordMessage);
                             <td>
                                 <div class="acore-pw-field">
                                     <input type="password" name="acore_confirm_pass" id="acore_confirm_pass"
-                                        class="regular-text" autocomplete="new-password" />
+                                        class="regular-text" autocomplete="new-password"
+                                        maxlength="<?= (int) $passwordMaxLength ?>"
+                                        aria-describedby="acore-password-length-description" />
                                     <button type="button" class="acore-pw-toggle button" aria-label="<?php _e('Show password', 'acore-wp-plugin'); ?>">
                                         <span class="dashicons dashicons-visibility"></span>
                                     </button>
