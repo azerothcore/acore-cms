@@ -40,8 +40,13 @@ RUN docker-php-ext-install soap \
     && docker-php-ext-install gmp
 
 # Install Redis PHP extension
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+ARG REDIS_PECL_VERSION=6.3.0
+
+RUN curl -fsSL -o /tmp/redis.tgz \
+    "https://pecl.php.net/get/redis-${REDIS_PECL_VERSION}.tgz" \
+    && pecl install /tmp/redis.tgz \
+    && docker-php-ext-enable redis \
+    && rm -f /tmp/redis.tgz
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
