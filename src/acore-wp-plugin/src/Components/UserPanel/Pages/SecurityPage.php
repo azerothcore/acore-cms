@@ -121,8 +121,8 @@ $passwordMaxLength = \ACore\Manager\UserValidator::PASSWORD_LENGTH;
     if ($qrIssuer === '') $qrIssuer = 'AzerothCore';
     $qrAccount = strtoupper($user->user_login);
 
-    // With the master secret configured the site can hand out the key itself;
-    // without it the key can only come from `.account 2fa setup` inside the game.
+    // The site hands out the key itself unless the master secret is set to
+    // something it cannot use, in which case `.account 2fa setup` is the way in.
     $ingameSetupOnSite = !$ingame2faActive && \ACore\Components\ServerInfo\IngameTotp::isConfigured();
     $ingameKey         = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::pendingSecret($user->ID) : '';
     $ingameOtpauth     = $ingameSetupOnSite ? \ACore\Components\ServerInfo\IngameTotp::otpauthUri($qrAccount, $ingameKey) : '';
@@ -340,7 +340,7 @@ $passwordMaxLength = \ACore\Manager\UserValidator::PASSWORD_LENGTH;
             </h3>
 
             <?php if ($ingameSetupOnSite): ?>
-                <!-- In-game 2FA disabled, and the site holds the master secret: hand out the key here -->
+                <!-- In-game 2FA disabled, and the site can write the key itself: hand it out here -->
                 <p style="margin:12px 0 10px; color:#646970; font-size:13px;">
                     <?php _e('Scan this QR code with your authenticator app - or add the key by hand - then enter the 6-digit code it gives you.', 'acore-wp-plugin'); ?>
                 </p>

@@ -246,7 +246,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th><label class="acore-help-label" title="The TOTPMasterSecret from your authserver.conf, hexadecimal and with no prefix. With it set, players can turn on In-game 2FA from their Security page: the site generates the key, shows the QR code and writes it to the account itself. Left empty, they get the .account 2fa setup instructions instead.">In-game 2FA Master Secret</label></th>
+                                            <th><label class="acore-help-label" title="The TOTPMasterSecret from your authserver.conf, hexadecimal and with no prefix. Players turn on In-game 2FA from their Security page: the site generates the key, shows the QR code and writes it to the account itself. Leave this empty if authserver.conf leaves it empty - it has to match, or the server will not be able to read the keys the site writes.">In-game 2FA Master Secret</label></th>
                                             <td>
                                                 <input type="password" name="acore_totp_master_secret" id="acore_totp_master_secret"
                                                     value="<?= esc_attr(Opts::I()->acore_totp_master_secret) ?>"

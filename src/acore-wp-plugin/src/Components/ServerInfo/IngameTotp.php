@@ -11,12 +11,14 @@ use ACore\Manager\Opts;
  * The core keeps the key it suggests in worldserver memory only (a static map in
  * cs_account.cpp), so a key shown here can never be confirmed with the in-game
  * command - the website has to write `account.totp_secret` itself. authserver
- * reads that column back through AEDecrypt<AES> (AuthSession.cpp), so the stored
- * blob has to match byte for byte what the core writes:
+ * reads that column back the same way the core wrote it (AuthSession.cpp), so
+ * the stored blob has to match byte for byte:
  *
- *   AES-128-GCM(secret) . iv(12) . tag(12)
+ *   with TOTPMasterSecret set:  AES-128-GCM(secret) . iv(12) . tag(12)
+ *   with it unset:              the bare secret
  *
- * keyed by TOTPMasterSecret, which therefore has to be configured here too.
+ * Both sides key off the same config value, so leaving it empty here is fine as
+ * long as authserver.conf leaves it empty too.
  */
 class IngameTotp {
 
@@ -41,7 +43,19 @@ class IngameTotp {
         return $be === false ? null : strrev($be);
     }
 
+    /** Whether a master secret is set at all, however malformed. */
+    private static function hasMasterSecret(): bool {
+        return trim((string) Opts::I()->acore_totp_master_secret) !== '';
+    }
+
+    /**
+     * Whether the site can hand out in-game keys. With no master secret the key
+     * goes in unencrypted, which is what the core does in that case too; a
+     * secret that is set but unusable is a misconfiguration, and writing a key
+     * the server cannot read back would lock the player out of the game.
+     */
     public static function isConfigured(): bool {
+        if (!self::hasMasterSecret()) return true;
         return self::masterKey() !== null && function_exists('openssl_encrypt');
     }
 
@@ -78,18 +92,23 @@ class IngameTotp {
      * a key the user is depending on.
      */
     public static function activate(int $accountId, string $base32Secret): bool {
-        $key = self::masterKey();
-        if ($key === null) return false;
+        $blob = self::base32Decode($base32Secret);
+        $key  = self::masterKey();
 
-        $iv  = random_bytes(12);
-        $tag = '';
-        $ct  = openssl_encrypt(self::base32Decode($base32Secret), 'aes-128-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 12);
-        if ($ct === false) return false;
+        if ($key === null) {
+            if (self::hasMasterSecret()) return false;
+        } else {
+            $iv  = random_bytes(12);
+            $tag = '';
+            $ct  = openssl_encrypt($blob, 'aes-128-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 12);
+            if ($ct === false) return false;
+            $blob = $ct . $iv . $tag;
+        }
 
         $conn = ACoreServices::I()->getAccountEm()->getConnection();
         $rows = $conn->executeStatement(
             'UPDATE account SET totp_secret = UNHEX(?) WHERE id = ? AND totp_secret IS NULL',
-            [bin2hex($ct . $iv . $tag), $accountId]
+            [bin2hex($blob), $accountId]
         );
         return $rows === 1;
     }
