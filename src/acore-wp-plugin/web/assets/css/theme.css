@@ -739,3 +739,443 @@ body.acore-dark-mode #wpcontent #wpbody-content a.btn.btn-primary {
     border-color: #388bfd !important;
     color: #79c0ff !important;
 }
+
+/* ── Screen Options / Help drop-down panels (#screen-meta) ───────────────
+   WP core paints the whole strip white (#screen-meta, the toggle buttons,
+   the help-tab backdrop), and it shows on every admin screen. */
+body.acore-dark-mode #screen-meta {
+    background-color: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text);
+}
+body.acore-dark-mode #screen-meta-links .show-settings {
+    border-color: var(--acore-border);
+}
+body.acore-dark-mode #screen-options-wrap legend,
+body.acore-dark-mode #screen-options-wrap h5,
+body.acore-dark-mode #contextual-help-wrap h5 {
+    color: var(--acore-text);
+}
+body.acore-dark-mode #screen-meta .metabox-prefs label,
+body.acore-dark-mode #screen-meta p,
+body.acore-dark-mode #screen-meta li,
+body.acore-dark-mode #screen-meta strong {
+    color: var(--acore-text);
+}
+body.acore-dark-mode #screen-meta a {
+    color: var(--acore-accent);
+}
+/* Pagination input: myCRED ids (mycred_epp_*) get painted surface-coloured by the
+   generic [id^="mycred"] rule, which makes the field vanish into the panel. */
+body.acore-dark-mode #screen-meta input[type="number"],
+body.acore-dark-mode #screen-meta input[type="text"] {
+    background-color: var(--acore-bg) !important;
+    border: 1px solid var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+
+/* Help tab column: the backdrop behind the panel and the active tab */
+body.acore-dark-mode #contextual-help-back {
+    background: var(--acore-surface-2);
+    border-color: var(--acore-border);
+}
+body.acore-dark-mode .contextual-help-tabs a {
+    color: var(--acore-text);
+}
+body.acore-dark-mode .contextual-help-tabs a:hover {
+    color: #ffffff;
+}
+body.acore-dark-mode .contextual-help-tabs .active {
+    background: var(--acore-surface-2);
+    border-left-color: var(--acore-accent);
+    box-shadow: none;
+}
+body.acore-dark-mode .contextual-help-tabs .active a {
+    border-color: var(--acore-border);
+    color: #ffffff;
+}
+body.acore-dark-mode .help-tab-content,
+body.acore-dark-mode .contextual-help-sidebar,
+body.acore-dark-mode .contextual-help-sidebar p {
+    color: var(--acore-text);
+}
+
+/* ── My Sites list (my-sites.php) ────────────────────────────────────────
+   Core paints the cards #fff / #f6f7f7 in a stack of breakpoint-specific
+   rules, so one !important override covers every width. */
+body.acore-dark-mode .my-sites li,
+body.acore-dark-mode ul.my-sites.striped > li {
+    background-color: var(--acore-surface) !important;
+    color: var(--acore-text);
+}
+/* Other core lists using ul.striped keep a visible stripe */
+body.acore-dark-mode ul.striped > li:nth-child(odd) {
+    background-color: var(--acore-surface-2);
+}
+body.acore-dark-mode .my-sites.striped li:after {
+    background: var(--acore-border) !important;
+}
+body.acore-dark-mode .my-sites li h3 {
+    color: var(--acore-text);
+}
+body.acore-dark-mode .my-sites li a {
+    color: var(--acore-accent);
+}
+
+/* ── List-table nav buttons (Apply / Filter) ─────────────────────────────
+   myCRED paints .button white !important from a #myCRED-wrap selector, so only
+   a two-ID selector outranks it. */
+body.acore-dark-mode #wpcontent #wpbody-content .tablenav input.button,
+body.acore-dark-mode #wpcontent #wpbody-content .tablenav .button:not(.button-primary):not(.tablenav-pages-navspan) {
+    background: #1c2b45 !important;
+    border-color: #388bfd !important;
+    color: #79c0ff !important;
+}
+body.acore-dark-mode #wpcontent #wpbody-content .tablenav-pages .button,
+body.acore-dark-mode #wpcontent #wpbody-content .tablenav-pages .tablenav-pages-navspan {
+    background: var(--acore-surface-2) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-muted) !important;
+}
+
+/* ── Dashboard welcome panel ─────────────────────────────────────────────
+   The header keeps its own dark artwork; only the three-column strip below
+   it is hardcoded white. */
+body.acore-dark-mode .welcome-panel .welcome-panel-column-container {
+    background: var(--acore-surface) !important;
+}
+body.acore-dark-mode .welcome-panel-column-content h3,
+body.acore-dark-mode .welcome-panel-column-content p {
+    color: var(--acore-text);
+}
+body.acore-dark-mode .welcome-panel-column-content a {
+    color: var(--acore-accent);
+}
+/* The column icons ship a near-black rounded square as a fill attribute,
+   which all but disappears on a dark surface. */
+body.acore-dark-mode .welcome-panel-column > svg rect {
+    fill: var(--acore-surface-2);
+}
+
+/* ── Filter bars (.wp-filter): media grid, plugins, themes ───────────────── */
+body.acore-dark-mode .wp-filter {
+    background: var(--acore-surface);
+    border-color: var(--acore-border);
+    color: var(--acore-text);
+}
+body.acore-dark-mode .wp-filter label,
+body.acore-dark-mode .wp-filter .media-attachments-filter-heading,
+body.acore-dark-mode .wp-filter .media-search-input-label {
+    color: var(--acore-text);
+}
+body.acore-dark-mode .wp-filter a {
+    color: var(--acore-accent);
+}
+body.acore-dark-mode .view-switch a:before {
+    color: var(--acore-border-strong);
+}
+body.acore-dark-mode .view-switch a.current:before {
+    color: var(--acore-accent);
+}
+
+/* ── List-screen chrome (edit.php, upload.php, …) ─────────────────────────
+   The "Add New" pill and the current filter link are the two bits core keeps
+   light on every post-type screen. */
+body.acore-dark-mode .wrap .page-title-action,
+body.acore-dark-mode .wrap .page-title-action:active {
+    background: #1c2b45;
+    border-color: #388bfd;
+    color: #79c0ff;
+}
+body.acore-dark-mode .wrap .page-title-action:hover,
+body.acore-dark-mode .wrap .page-title-action:focus {
+    background: #2f81f7;
+    border-color: #2f81f7;
+    color: #ffffff;
+}
+body.acore-dark-mode .subsubsub a.current,
+body.acore-dark-mode .ac_match {
+    color: #ffffff;
+}
+
+/* Freemius opt-in notice: its own "success" green is too dark to read here */
+body.acore-dark-mode .fs-notice.success,
+body.acore-dark-mode .fs-notice.success a {
+    color: #3fb950;
+}
+
+/* =====================================================================
+ * Admin-wide sweep
+ *
+ * Surfaces that WordPress core and the bundled plugins paint light no
+ * matter what our earlier rules say. Bundled plugins ship !important
+ * from id-prefixed selectors, so overriding them needs !important and,
+ * where noted, a second id in the selector.
+ * ===================================================================== */
+
+/* ── Page chrome ──────────────────────────────────────────────────────────
+   myCRED repaints <body> #f0f4ff and the wrappers #fafafc; PMPro uses
+   #f5f8fa. All of them beat the plain background rule in dark-mode.css. */
+/* The html prefix matters: myCRED's `body.mycred-admin-page` tint is also
+   !important and its stylesheet loads after ours, so equal specificity loses. */
+html body.acore-dark-mode,
+html body.acore-dark-mode #wpwrap,
+html body.acore-dark-mode #wpcontent,
+html body.acore-dark-mode #wpbody,
+html body.acore-dark-mode #wpbody-content,
+html body.acore-dark-mode #wpfooter {
+    background-color: var(--acore-bg) !important;
+}
+body.acore-dark-mode #wpbody-content > .wrap {
+    background: transparent !important;
+}
+
+/* ── List tables ─────────────────────────────────────────────────────────
+   Core stripes rows on the <tr> and plugins repaint the cells, so paint
+   both parities at row level and let the cells go transparent. */
+body.acore-dark-mode #wpbody-content table.wp-list-table > tbody > tr,
+body.acore-dark-mode #wpbody-content table.widefat > tbody > tr {
+    background-color: var(--acore-surface) !important;
+}
+body.acore-dark-mode #wpbody-content table.wp-list-table > tbody > tr:nth-child(odd),
+body.acore-dark-mode #wpbody-content table.widefat > tbody > tr:nth-child(odd),
+body.acore-dark-mode #wpbody-content table.wp-list-table > tbody > tr.alternate,
+body.acore-dark-mode #wpbody-content table.widefat > tbody > tr.alternate {
+    background-color: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode #wpbody-content table.wp-list-table > tbody > tr > td,
+body.acore-dark-mode #wpbody-content table.wp-list-table > tbody > tr > th,
+body.acore-dark-mode #wpbody-content table.widefat > tbody > tr > td,
+body.acore-dark-mode #wpbody-content table.widefat > tbody > tr > th {
+    background-color: transparent !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode #wpbody-content table.wp-list-table > thead > tr,
+body.acore-dark-mode #wpbody-content table.wp-list-table > tfoot > tr,
+body.acore-dark-mode #wpbody-content table.widefat > thead > tr,
+body.acore-dark-mode #wpbody-content table.widefat > tfoot > tr,
+body.acore-dark-mode #wpbody-content table.wp-list-table > thead > tr > *,
+body.acore-dark-mode #wpbody-content table.wp-list-table > tfoot > tr > *,
+body.acore-dark-mode #wpbody-content table.widefat > thead > tr > *,
+body.acore-dark-mode #wpbody-content table.widefat > tfoot > tr > * {
+    background-color: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+/* plugins.php tints the rows of active plugins */
+body.acore-dark-mode #wpbody-content .plugins tr.active,
+body.acore-dark-mode #wpbody-content .plugins tr.active > td,
+body.acore-dark-mode #wpbody-content .plugins tr.active > th {
+    background-color: #15243a !important;
+}
+
+/* ── Secondary buttons and native controls anywhere in the content area ──
+   Same two-id trick as the myCRED search submit: plugins force white on
+   .button and on bare selects from #id selectors. */
+body.acore-dark-mode #wpcontent #wpbody-content .button:not(.button-primary):not(.acore-btn-danger):not(.tablenav-pages-navspan) {
+    background: #1c2b45 !important;
+    border-color: #388bfd !important;
+    color: #79c0ff !important;
+}
+body.acore-dark-mode #wpcontent #wpbody-content select,
+body.acore-dark-mode #wpcontent #wpbody-content textarea,
+body.acore-dark-mode #wpcontent #wpbody-content input[type="text"],
+body.acore-dark-mode #wpcontent #wpbody-content input[type="search"],
+body.acore-dark-mode #wpcontent #wpbody-content input[type="email"],
+body.acore-dark-mode #wpcontent #wpbody-content input[type="url"],
+body.acore-dark-mode #wpcontent #wpbody-content input[type="number"],
+body.acore-dark-mode #wpcontent #wpbody-content input[type="password"] {
+    background-color: var(--acore-bg) !important;
+    border: 1px solid var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+
+/* ── Nav tabs (.nav-tab-wrapper) ─────────────────────────────────────────── */
+body.acore-dark-mode .nav-tab {
+    background: var(--acore-surface-2) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode .nav-tab:hover {
+    background: #2f81f7 !important;
+    border-color: #2f81f7 !important;
+    color: #ffffff !important;
+}
+body.acore-dark-mode .nav-tab-active,
+body.acore-dark-mode .nav-tab-active:hover,
+body.acore-dark-mode .nav-tab-active:focus {
+    background: var(--acore-surface) !important;
+    border-bottom-color: var(--acore-surface) !important;
+    color: #ffffff !important;
+}
+
+/* ── Accordion / widget panels: nav-menus.php, widgets.php, myCRED hooks ── */
+body.acore-dark-mode .manage-menus,
+body.acore-dark-mode .accordion-section-title,
+body.acore-dark-mode .accordion-section-content,
+body.acore-dark-mode .accordion-trigger,
+body.acore-dark-mode .tabs-panel,
+body.acore-dark-mode li.tabs,
+body.acore-dark-mode #nav-menu-header,
+body.acore-dark-mode #nav-menu-footer,
+body.acore-dark-mode #post-body,
+body.acore-dark-mode .bulk-select-button,
+body.acore-dark-mode #menu-management,
+body.acore-dark-mode #menu-management .menu-edit,
+body.acore-dark-mode .menu-item-handle,
+body.acore-dark-mode .menu-item-settings,
+body.acore-dark-mode .widget-top,
+body.acore-dark-mode .widget-inside,
+body.acore-dark-mode .widgets-holder-wrap,
+body.acore-dark-mode .widget-liquid-left,
+body.acore-dark-mode .widget-liquid-right {
+    background-color: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+
+/* ── Site Health / Privacy screen headers ────────────────────────────────── */
+body.acore-dark-mode .health-check-header,
+body.acore-dark-mode .privacy-settings-header {
+    background: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .health-check-header h1,
+body.acore-dark-mode .privacy-settings-header h1,
+body.acore-dark-mode .health-check-title-section,
+body.acore-dark-mode .privacy-settings-title-section {
+    color: var(--acore-text) !important;
+}
+
+/* ── Appearance screens ──────────────────────────────────────────────────── */
+body.acore-dark-mode .theme-browser .theme .theme-name {
+    background: rgba(13, 17, 23, 0.78) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode #custom-background-image {
+    background-color: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+}
+
+/* ── Paid Memberships Pro ────────────────────────────────────────────────
+   Its whole admin UI is driven by :root tokens, so remapping them covers
+   the body tint, boxes, tab strip and table stripes in one go. */
+body.acore-dark-mode {
+    --pmpro--border--color: #30363d;
+    --pmpro--box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.4);
+    --pmpro--color--blue-lightest: #161b22;
+    --pmpro--color--blue-medium: #21262d;
+    --pmpro--color--blue-medium-transparent: #21262dcc;
+    --pmpro--color--blue-darkest: #30363d;
+    --pmpro--color--blue-darkest-transparent: #30363dcc;
+    --pmpro--color--almost-black: #c9d1d9; /* PMPro uses this as its text colour */
+
+    --pmpro--color--info-background: #10243a;
+    --pmpro--color--info-border: #1f4f7a;
+    --pmpro--color--info-text: #79c0ff;
+    --pmpro--color--info-link: #a5d6ff;
+    --pmpro--color--success-background: #12261a;
+    --pmpro--color--success-border: #2d6a2d;
+    --pmpro--color--success-text: #56d364;
+    --pmpro--color--success-link: #7ee787;
+    --pmpro--color--error-background: #2d1618;
+    --pmpro--color--error-border: #7a2b2f;
+    --pmpro--color--error-text: #ff7b72;
+    --pmpro--color--error-link: #ffa198;
+    --pmpro--color--alert-background: #2d2208;
+    --pmpro--color--alert-border: #7a5c12;
+    --pmpro--color--alert-text: #d4a843;
+    --pmpro--color--alert-link: #e3b341;
+}
+/* the few surfaces PMPro hardcodes white */
+body.acore-dark-mode .pmpro_banner,
+body.acore-dark-mode .pmpro_style_variation_item-preview,
+body.acore-dark-mode #pmpro-admin-add-ons .add-on-item {
+    background-color: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode #pmpro_report_memberships .wp-list-table tbody:nth-child(odd) th,
+body.acore-dark-mode #pmpro_report_memberships .wp-list-table tbody:nth-child(odd) td,
+body.acore-dark-mode #pmpro_report_sales .wp-list-table tbody:nth-child(odd) th,
+body.acore-dark-mode #pmpro_report_sales .wp-list-table tbody:nth-child(odd) td {
+    background-color: var(--acore-surface-2) !important;
+}
+
+/* ── Advanced Custom Fields ─────────────────────────────────────────────── */
+body.acore-dark-mode .acf-headerbar,
+body.acore-dark-mode .acf-admin-toolbar {
+    background: var(--acore-surface) !important;
+    border-color: var(--acore-border) !important;
+    color: var(--acore-text) !important;
+}
+
+/* ── myCRED "About" marketing page ──────────────────────────────────────── */
+body.acore-dark-mode.mycred-log-page .intro,
+body.acore-dark-mode.mycred-log-page .features,
+body.acore-dark-mode.mycred-log-page .testimonials {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+}
+
+/* ── Text that stayed dark once the surfaces behind it went dark ─────────── */
+
+/* Keyboard skip links (only visible while focused) */
+body.acore-dark-mode .screen-reader-text:focus,
+body.acore-dark-mode .screen-reader-shortcut:focus {
+    background-color: var(--acore-surface-2);
+    color: #79c0ff;
+}
+
+/* Destructive row actions: core's #b32d2e is unreadable on a dark row */
+body.acore-dark-mode #wpbody-content .submitdelete,
+body.acore-dark-mode #wpbody-content .vim-destructive,
+body.acore-dark-mode #wpbody-content .row-actions span[class*="delete"] a,
+body.acore-dark-mode #wpbody-content .row-actions span[class*="trash"] a,
+body.acore-dark-mode #wpbody-content .row-actions span[class*="spam"] a,
+body.acore-dark-mode #wpbody-content .row-actions span[class*="cancel"] a {
+    color: #ff7b72 !important;
+}
+
+/* Filter-link counts, e.g. "All (10)" — a notch brighter than --acore-muted,
+   which lands under 3:1 at this size */
+body.acore-dark-mode #wpbody-content span.count {
+    color: #b0b8c4 !important;
+}
+
+/* myCRED paints screen titles #455377 on its post-type screens */
+body.acore-dark-mode #wpbody-content h1.wp-heading-inline,
+body.acore-dark-mode #wpbody-content h1.wp-heading-inline a {
+    color: var(--acore-text) !important;
+}
+
+/* Link-styled buttons such as "Copy URL" in the media list */
+body.acore-dark-mode #wpbody-content .button-link {
+    color: var(--acore-accent) !important;
+}
+
+/* nav-menus.php "Most Recent / View All / Most Used" tabs */
+body.acore-dark-mode a.nav-tab-link {
+    color: var(--acore-accent) !important;
+}
+body.acore-dark-mode li.tabs a.nav-tab-link {
+    color: #ffffff !important;
+}
+
+body.acore-dark-mode #pmpro-admin-add-ons a {
+    color: var(--acore-accent) !important;
+}
+body.acore-dark-mode #wpbody-content [class*="acf-"] h1,
+body.acore-dark-mode #wpbody-content [class*="acf-"] h2,
+body.acore-dark-mode #wpbody-content [class*="acf-"] h3 {
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode #wpbody-content .mycred-tools-selected {
+    color: #c792ea !important;
+}
+
+/* The QR plate stays white so codes remain scannable, but an empty one is
+   just a white sliver on the page. */
+.acore-qr-out:empty {
+    display: none;
+}
