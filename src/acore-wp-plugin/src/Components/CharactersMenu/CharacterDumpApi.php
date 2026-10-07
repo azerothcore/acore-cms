@@ -38,6 +38,71 @@ function pdumpGetAccountSecurity(int $accId): int
 }
 
 /**
+ * Resolve the account's effective RBAC permissions the way worldserver does:
+ * default permissions for its security level, plus account grants, minus
+ * account denials, expanded through rbac_linked_permissions.
+ *
+ * @param int $accId AzerothCore account ID
+ * @return array<int,true>|null Permission IDs as keys, null if RBAC tables are unavailable
+ */
+function pdumpGetAccountPermissions(int $accId): ?array
+{
+    try {
+        $authConn = ACoreServices::I()->getAccountEm()->getConnection();
+        $realm    = '(SELECT `id` FROM `realmlist` LIMIT 1)';
+        $secLevel = pdumpGetAccountSecurity($accId);
+
+        $granted = [];
+        $rows = $authConn->executeQuery(
+            "SELECT `permissionId` FROM `rbac_default_permissions`
+             WHERE `secId` = ? AND (`realmId` = -1 OR `realmId` = {$realm})",
+            [$secLevel]
+        )->fetchFirstColumn();
+        foreach ($rows as $id) {
+            $granted[(int) $id] = true;
+        }
+
+        $denied = [];
+        $rows = $authConn->executeQuery(
+            "SELECT `permissionId`, `granted` FROM `rbac_account_permissions`
+             WHERE `accountId` = ? AND (`realmId` = -1 OR `realmId` = {$realm})",
+            [$accId]
+        )->fetchAllAssociative();
+        foreach ($rows as $row) {
+            if ((int) $row['granted'] === 1) {
+                $granted[(int) $row['permissionId']] = true;
+            } else {
+                $denied[(int) $row['permissionId']] = true;
+            }
+        }
+        // Expand linked permissions (roles) on both sets, then remove denials
+        $expand = function (array $perms) use ($authConn): array {
+            $frontier = array_keys($perms);
+            while (!empty($frontier)) {
+                $placeholders = implode(',', array_fill(0, count($frontier), '?'));
+                $linked = $authConn->executeQuery(
+                    "SELECT `linkedId` FROM `rbac_linked_permissions` WHERE `id` IN ({$placeholders})",
+                    $frontier
+                )->fetchFirstColumn();
+                $frontier = [];
+                foreach ($linked as $id) {
+                    $id = (int) $id;
+                    if (!isset($perms[$id])) {
+                        $perms[$id] = true;
+                        $frontier[] = $id;
+                    }
+                }
+            }
+            return $perms;
+        };
+
+        return array_diff_key($expand($granted), $expand($denied));
+    } catch (\Throwable $e) {
+        return null;
+    }
+}
+
+/**
  * Ensure the PDUMP export log table exists (lazy, runs once via wp_option version flag).
  */
 function pdumpEnsureLogTable(): void
@@ -253,8 +318,8 @@ function pdumpResolveEffectiveCooldown(string $type, int $userId, int $accId): i
     $candidates = [];
 
     // ── Subscription overrides ──────────────────────────────────────────────
-    // Reads from acore_cms_subscriptions (auth DB). Raw levels 2/6/7 map to
-    // tiers 1/2/3 per GetConvertedMembershipLevel() in mod-acore-subscriptions.
+    // Reads from acore_cms_subscriptions (auth DB), which stores the PMPro
+    // membership level ID. Tiers are matched against that ID directly.
     if ($opts->acore_pdump_subscription_enabled == '1') {
         $tiers = (array) $opts->acore_pdump_subscription_cooldowns;
         if (!empty($tiers)) {
@@ -267,9 +332,7 @@ function pdumpResolveEffectiveCooldown(string $type, int $userId, int $accId): i
                     [$accId]
                 )->fetchAssociative();
                 if ($subRow) {
-                    $rawLevel   = (int) $subRow['membership_level'];
-                    $levelMap   = [2 => 1, 6 => 2, 7 => 3]; // ADMIRER→1, WATCHER→2, KEEPER→3
-                    $memberLevel = $levelMap[$rawLevel] ?? 0;
+                    $memberLevel = (int) $subRow['membership_level'];
                     if ($memberLevel > 0) {
                         foreach ($tiers as $tier) {
                             if ((int) ($tier['level'] ?? 0) === $memberLevel) {
@@ -291,15 +354,15 @@ function pdumpResolveEffectiveCooldown(string $type, int $userId, int $accId): i
     if ($opts->acore_pdump_rbac_enabled == '1') {
         $tiers = (array) $opts->acore_pdump_rbac_cooldowns;
         if (!empty($tiers)) {
-            // Default permission IDs: Player=195 (sec 0), Mod=194 (sec 1), GM=193 (sec 2), Admin=192 (sec 3)
-            $gmlevel = pdumpGetAccountSecurity($accId);
-            $permId  = 195 - $gmlevel;
-            foreach ($tiers as $tier) {
-                if ((int) ($tier['perm_id'] ?? 0) === $permId) {
-                    $candidates[] = !empty($tier['use_default'])
-                        ? $default
-                        : max(0, (int) ($tier[$type] ?? 0));
-                    break;
+            // Every tier whose permission the account holds is a candidate
+            $permIds = pdumpGetAccountPermissions($accId);
+            if ($permIds !== null) {
+                foreach ($tiers as $tier) {
+                    if (isset($permIds[(int) ($tier['perm_id'] ?? 0)])) {
+                        $candidates[] = !empty($tier['use_default'])
+                            ? $default
+                            : max(0, (int) ($tier[$type] ?? 0));
+                    }
                 }
             }
         }
@@ -333,9 +396,9 @@ function pdumpResolveEffectiveCooldown(string $type, int $userId, int $accId): i
         }
     }
 
-    // Return the most permissive (minimum) cooldown across all matched overrides,
-    // or the global default when no override matched.
-    return empty($candidates) ? $default : min($candidates);
+    // Return the most permissive (minimum) cooldown across all matched overrides
+    // and the global default, so an override can never exceed the default.
+    return min(array_merge([$default], $candidates));
 }
 
 /**
@@ -366,6 +429,27 @@ function pdumpReleaseLock(string $lockName): void
     $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lockName));
 }
 
+/**
+ * Give back a cooldown slot reserved by a failed export, restoring the
+ * previous timestamp (or clearing it when there was none).
+ *
+ * @param int      $userId WordPress user ID
+ * @param string   $type   'single' or 'all'
+ * @param int|null $prev   Timestamp before the reservation, null if nothing was reserved
+ */
+function pdumpRestoreCooldown(int $userId, string $type, ?int $prev): void
+{
+    if ($prev === null) {
+        return;
+    }
+    $key = '_acore_pdump_last_' . $type;
+    if ($prev > 0) {
+        update_user_meta($userId, $key, $prev);
+    } else {
+        delete_user_meta($userId, $key);
+    }
+}
+
 function handlePdump(\WP_REST_Request $request): void
 {
     $guid  = (int) $request->get_param('guid');
@@ -392,9 +476,23 @@ function handlePdump(\WP_REST_Request $request): void
         exit;
     }
 
+    $conn = ACoreServices::I()->getCharacterEm()->getConnection();
+    $row  = $conn->executeQuery(
+        "SELECT `name`, `level`, `race`, `class` FROM `characters`
+         WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL
+         LIMIT 1",
+        [$guid, $accId]
+    )->fetchAssociative();
+
+    if (!$row) {
+        wp_send_json_error(['message' => 'Character not found.'], 403);
+        exit;
+    }
+
     $userId   = get_current_user_id();
     $cooldown = pdumpResolveEffectiveCooldown('single', $userId, $accId);
     $lockName = null;
+    $prevTime = null;
 
     if ($cooldown > 0) {
         $lockName = pdumpAcquireLock($userId, 'single');
@@ -417,21 +515,9 @@ function handlePdump(\WP_REST_Request $request): void
         }
 
         // Reserve the slot atomically before releasing the lock
+        $prevTime = $lastTime;
         update_user_meta($userId, '_acore_pdump_last_single', time());
         pdumpReleaseLock($lockName);
-    }
-
-    $conn = ACoreServices::I()->getCharacterEm()->getConnection();
-    $row  = $conn->executeQuery(
-        "SELECT `name`, `level`, `race`, `class` FROM `characters`
-         WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL
-         LIMIT 1",
-        [$guid, $accId]
-    )->fetchAssociative();
-
-    if (!$row) {
-        wp_send_json_error(['message' => 'Character not found.'], 403);
-        exit;
     }
 
     $charName = $row['name'];
@@ -454,6 +540,7 @@ function handlePdump(\WP_REST_Request $request): void
     restore_error_handler();
 
     if (!empty($phpWarnings)) {
+        pdumpRestoreCooldown($userId, 'single', $prevTime);
         wp_send_json_error([
             'message' => 'An internal error occurred while generating the dump.',
             'detail'  => implode("\n", $phpWarnings),
@@ -462,6 +549,7 @@ function handlePdump(\WP_REST_Request $request): void
     }
 
     if ($dump === null) {
+        pdumpRestoreCooldown($userId, 'single', $prevTime);
         wp_send_json_error(['message' => 'Character is deleted and cannot be exported.'], 400);
         exit;
     }
@@ -516,9 +604,17 @@ function handlePdumpAll(\WP_REST_Request $request): void
         exit;
     }
 
+    $body       = $request->get_json_params();
+    $characters = $body['characters'] ?? [];
+    if (empty($characters) || !is_array($characters)) {
+        wp_send_json_error(['message' => 'No characters provided.'], 400);
+        exit;
+    }
+
     $userId      = get_current_user_id();
     $cooldownAll = pdumpResolveEffectiveCooldown('all', $userId, $accId);
     $lockName    = null;
+    $prevTimeAll = null;
 
     if ($cooldownAll > 0) {
         $lockName = pdumpAcquireLock($userId, 'all');
@@ -541,15 +637,9 @@ function handlePdumpAll(\WP_REST_Request $request): void
         }
 
         // Reserve the slot atomically before releasing the lock
+        $prevTimeAll = $lastTimeAll;
         update_user_meta($userId, '_acore_pdump_last_all', time());
         pdumpReleaseLock($lockName);
-    }
-
-    $body       = $request->get_json_params();
-    $characters = $body['characters'] ?? [];
-    if (empty($characters) || !is_array($characters)) {
-        wp_send_json_error(['message' => 'No characters provided.'], 400);
-        exit;
     }
 
     $conn = ACoreServices::I()->getCharacterEm()->getConnection();
@@ -602,6 +692,7 @@ function handlePdumpAll(\WP_REST_Request $request): void
     restore_error_handler();
 
     if (!empty($phpWarnings)) {
+        pdumpRestoreCooldown($userId, 'all', $prevTimeAll);
         wp_send_json_error([
             'message' => 'An internal error occurred while generating the dump.',
             'detail'  => implode("\n", $phpWarnings),
@@ -610,6 +701,7 @@ function handlePdumpAll(\WP_REST_Request $request): void
     }
 
     if (empty($files)) {
+        pdumpRestoreCooldown($userId, 'all', $prevTimeAll);
         wp_send_json_error(['message' => 'No valid characters could be exported.'], 400);
         exit;
     }

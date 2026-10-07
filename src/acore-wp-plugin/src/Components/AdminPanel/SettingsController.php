@@ -429,13 +429,13 @@ class SettingsController {
                         ];
                         if ($cdKey === 'acore_pdump_subscription_cooldowns') {
                             $base['level'] = max(0, (int) ($row['level'] ?? 0));
-                            $base['name']  = sanitize_text_field($row['name'] ?? '');
+                            $base['name']  = sanitize_text_field(wp_unslash($row['name'] ?? ''));
                         } elseif ($cdKey === 'acore_pdump_rbac_cooldowns') {
                             $base['perm_id']   = max(0, (int) ($row['perm_id']   ?? 0));
-                            $base['perm_name'] = sanitize_text_field($row['perm_name'] ?? '');
+                            $base['perm_name'] = sanitize_text_field(wp_unslash($row['perm_name'] ?? ''));
                         } elseif ($cdKey === 'acore_pdump_contributor_cooldowns') {
                             $base['level'] = max(1, min(4, (int) ($row['level'] ?? 1)));
-                            $base['name']  = sanitize_text_field($row['name'] ?? '');
+                            $base['name']  = sanitize_text_field(wp_unslash($row['name'] ?? ''));
                         }
                         $sanitized[] = $base;
                     }

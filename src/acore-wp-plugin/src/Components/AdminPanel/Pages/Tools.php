@@ -361,7 +361,6 @@
                                     $rbacEnabled   = Opts::I()->acore_pdump_rbac_enabled == '1';
                                     $rbacCooldowns = Opts::I()->acore_pdump_rbac_cooldowns;
                                     if (!is_array($rbacCooldowns)) $rbacCooldowns = [];
-                                    $rbacSecLevel  = (int) Opts::I()->acore_pdump_rbac_default_sec_level;
                                     $contribEnabled   = Opts::I()->acore_pdump_contributor_enabled == '1';
                                     $contribCooldowns = Opts::I()->acore_pdump_contributor_cooldowns;
                                     if (!is_array($contribCooldowns)) $contribCooldowns = [];
@@ -394,17 +393,13 @@
                                             </td>
                                         </tr>
                                         <tr class="acore-pdump-dependent" <?= $dep ?>>
-                                            <th><label class="acore-help-label" title="The secId from rbac_default_permissions representing a normal player (typically 0). This is the baseline used by both the default cooldowns and the RBAC overrides below.">Player Security Level</label></th>
-                                            <td><input type="number" name="acore_pdump_rbac_default_sec_level" id="acore_pdump_rbac_default_sec_level" min="0" value="<?= esc_attr($rbacSecLevel) ?>" style="width:60px;text-align:center;" <?= $dis ?>></td>
-                                        </tr>
-                                        <tr class="acore-pdump-dependent" <?= $dep ?>>
-                                            <th><label class="acore-help-label" title="Mirrors realmlist.allowedSecurityLevel — the minimum account security required to log in to the server. Accounts with security below this value cannot use PDUMP. Default 1: regular players (security 0) are blocked while the server is in GM-only / maintenance mode. Set to 0 to disable this check.">Allowed Security Level</label></th>
+                                            <th><label class="acore-help-label" title="Mirrors realmlist.allowedSecurityLevel — the minimum account security required to log in to the server. Accounts with security below this value cannot use PDUMP. Default 0: everyone can use PDUMP. Set to 1 to allow only GMs and above (like a GM-only realm).">Allowed Security Level</label></th>
                                             <td><input type="number" name="acore_pdump_allowed_sec_level" min="0" max="255" value="<?= esc_attr((int) Opts::I()->acore_pdump_allowed_sec_level) ?>" style="width:60px;text-align:center;" <?= $dis ?>></td>
                                         </tr>
                                         <tr class="acore-pdump-dependent" <?= $dep ?>>
                                             <td colspan="2">
                                                 <label class="acore-help-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;" title="When the server's realmlist.allowedSecurityLevel is ≥ 1, only GMs can log in (maintenance mode). Enable this to automatically block PDUMP exports while the server is inaccessible to regular players.">
-                                                    <input type="hidden" name="acore_pdump_block_maintenance" value="0">
+                                                    <input type="hidden" name="acore_pdump_block_maintenance" value="0" <?= $dis ?>>
                                                     <input type="checkbox" name="acore_pdump_block_maintenance" value="1" <?= $blockMaintenance ? 'checked' : '' ?> <?= $dis ?>>
                                                     Block PDUMP during maintenance
                                                 </label>
@@ -423,7 +418,7 @@
                                                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
                                                     <strong style="font-size:13px;">Minimum Requirements</strong>
                                                     <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8b949e;margin-left:auto;white-space:nowrap;cursor:pointer;">
-                                                        <input type="hidden" name="acore_pdump_min_req_enabled" value="0">
+                                                        <input type="hidden" name="acore_pdump_min_req_enabled" value="0" <?= $dis ?>>
                                                         <input type="checkbox" id="acore-pdump-min-req-enabled-cb" name="acore_pdump_min_req_enabled" value="1" <?= $minReqEnabled ? 'checked' : '' ?> <?= $dis ?>>
                                                         Enabled
                                                     </label>
@@ -506,7 +501,7 @@
                                                         <span style="font-size:11px;color:#8b949e;">(Everyone / Default)</span>
                                                     </div>
                                                     <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8b949e;margin-left:auto;white-space:nowrap;cursor:pointer;">
-                                                        <input type="hidden" name="acore_pdump_single_enabled" value="0">
+                                                        <input type="hidden" name="acore_pdump_single_enabled" value="0" <?= $dis ?>>
                                                         <input type="checkbox" id="acore-pdump-single-enabled-cb" name="acore_pdump_single_enabled" value="1" <?= $singleEnabled ? 'checked' : '' ?> <?= $dis ?>>
                                                         Enabled
                                                     </label>
@@ -531,7 +526,7 @@
                                                         <span style="font-size:11px;color:#8b949e;">(Everyone / Default)</span>
                                                     </div>
                                                     <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8b949e;margin-left:auto;white-space:nowrap;cursor:pointer;">
-                                                        <input type="hidden" name="acore_pdump_all_enabled" value="0">
+                                                        <input type="hidden" name="acore_pdump_all_enabled" value="0" <?= $dis ?>>
                                                         <input type="checkbox" id="acore-pdump-all-enabled-cb" name="acore_pdump_all_enabled" value="1" <?= $allEnabled ? 'checked' : '' ?> <?= $dis ?>>
                                                         Enabled
                                                     </label>
@@ -574,7 +569,7 @@
                                                     <div class="acore-pdump-sub-entry" style="border:1px solid #30363d;border-radius:4px;padding:10px;margin-bottom:8px;">
                                                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                                                             <label style="font-size:12px;font-weight:600;margin:0;">Level</label>
-                                                            <input type="number" name="acore_pdump_subscription_cooldowns[<?= $i ?>][level]" min="0" value="<?= (int)($row['level'] ?? 0) ?>" style="width:60px;text-align:center;">
+                                                            <input type="number" name="acore_pdump_subscription_cooldowns[<?= $i ?>][level]" min="0" title="PMPro membership level ID" value="<?= (int)($row['level'] ?? 0) ?>" style="width:60px;text-align:center;">
                                                             <label style="font-size:12px;font-weight:600;margin:0 0 0 4px;">Name</label>
                                                             <input type="text" name="acore_pdump_subscription_cooldowns[<?= $i ?>][name]" value="<?= esc_attr($row['name'] ?? '') ?>" placeholder="optional" style="flex:1;min-width:80px;">
                                                             <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#8b949e;margin-left:auto;white-space:nowrap;">
@@ -848,14 +843,6 @@
         var total = y * 31536000 + mo * 2592000 + d * 86400 + h * 3600;
         var target = $wrap.data('target');
         $('#' + target).val(total);
-
-        var parts = [];
-        if (y)  parts.push(y  + 'y');
-        if (mo) parts.push(mo + 'mo');
-        if (d)  parts.push(d  + 'd');
-        if (h)  parts.push(h  + 'h');
-        var label = total > 0 ? parts.join(' ') : 'No cooldown';
-        $('[data-for="' + target + '"]').text(label);
     }
 
     $('.acore-cooldown-inputs').each(function() {
@@ -937,12 +924,12 @@
         return '<div class="acore-pdump-sub-entry" style="border:1px solid #30363d;border-radius:4px;padding:10px;margin-bottom:8px;">'
             + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
             + '<label style="font-size:12px;font-weight:600;margin:0;">Level</label>'
-            + '<input type="number" name="acore_pdump_subscription_cooldowns[' + i + '][level]" min="0" value="0" style="width:60px;text-align:center;">'
+            + '<input type="number" name="acore_pdump_subscription_cooldowns[' + i + '][level]" min="0" title="PMPro membership level ID" value="0" style="width:60px;text-align:center;">'
             + '<label style="font-size:12px;font-weight:600;margin:0 0 0 4px;">Name</label>'
             + '<input type="text" name="acore_pdump_subscription_cooldowns[' + i + '][name]" value="" placeholder="optional" style="flex:1;min-width:80px;">'
             + '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#8b949e;margin-left:auto;white-space:nowrap;">'
             + '<input type="hidden" name="acore_pdump_subscription_cooldowns[' + i + '][use_default]" value="0">'
-            + '<input type="checkbox" class="acore-pdump-use-default" name="acore_pdump_subscription_cooldowns[' + i + '][use_default]" value="1"> Use Default</label>'
+            + '<input type="checkbox" class="acore-pdump-use-default" name="acore_pdump_subscription_cooldowns[' + i + '][use_default]" value="1" checked> Use Default</label>'
             + '<button type="button" class="button acore-btn-danger acore-pdump-sub-remove" style="padding:2px 6px;" title="Remove"><span class="dashicons dashicons-trash" style="margin-top:4px;"></span></button>'
             + '</div>'
             + '<div class="acore-pdump-col-single">'
@@ -969,7 +956,7 @@
             + '<input type="text" name="acore_pdump_rbac_cooldowns[' + i + '][perm_name]" value="' + permName.replace(/"/g, '&quot;') + '" placeholder="optional" style="flex:1;min-width:80px;">'
             + '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#8b949e;margin-left:auto;white-space:nowrap;">'
             + '<input type="hidden" name="acore_pdump_rbac_cooldowns[' + i + '][use_default]" value="0">'
-            + '<input type="checkbox" class="acore-pdump-use-default" name="acore_pdump_rbac_cooldowns[' + i + '][use_default]" value="1"> Use Default</label>'
+            + '<input type="checkbox" class="acore-pdump-use-default" name="acore_pdump_rbac_cooldowns[' + i + '][use_default]" value="1" checked> Use Default</label>'
             + '<button type="button" class="button acore-btn-danger acore-pdump-rbac-remove" style="padding:2px 6px;" title="Remove"><span class="dashicons dashicons-trash" style="margin-top:4px;"></span></button>'
             + '</div>'
             + '<div class="acore-pdump-col-single">'
@@ -987,6 +974,7 @@
     $('#acore-pdump-sub-add').on('click', function() {
         var i = $('#acore-pdump-sub-list .acore-pdump-sub-entry').length;
         $('#acore-pdump-sub-list').append(acorePdumpMakeSubEntry(i));
+        acorePdumpApplyUseDefault($('#acore-pdump-sub-list .acore-pdump-use-default').last());
     });
     $('#acore-pdump-sub-list').on('click', '.acore-pdump-sub-remove', function() {
         var $entry = $(this).closest('.acore-pdump-sub-entry');
@@ -1018,6 +1006,7 @@
     $('#acore-pdump-rbac-add').on('click', function() {
         var i = $('#acore-pdump-rbac-list .acore-pdump-rbac-entry').length;
         $('#acore-pdump-rbac-list').append(acorePdumpMakeRbacEntry(i));
+        acorePdumpApplyUseDefault($('#acore-pdump-rbac-list .acore-pdump-use-default').last());
     });
     $('#acore-pdump-rbac-list').on('click', '.acore-pdump-rbac-remove', function() {
         var $entry = $(this).closest('.acore-pdump-rbac-entry');
@@ -1045,6 +1034,7 @@
             $.each(rbacDefaults, function(i, d) {
                 $('#acore-pdump-rbac-list').append(acorePdumpMakeRbacEntry(i, d));
             });
+            $('#acore-pdump-rbac-list .acore-pdump-use-default').each(function() { acorePdumpApplyUseDefault($(this)); });
         });
     });
 
@@ -1071,7 +1061,7 @@
             + '<input type="text" name="acore_pdump_contributor_cooldowns[' + i + '][name]" value="' + name.replace(/"/g, '&quot;') + '" placeholder="optional" style="flex:1;min-width:80px;">'
             + '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:#8b949e;margin-left:auto;white-space:nowrap;">'
             + '<input type="hidden" name="acore_pdump_contributor_cooldowns[' + i + '][use_default]" value="0">'
-            + '<input type="checkbox" class="acore-pdump-use-default" name="acore_pdump_contributor_cooldowns[' + i + '][use_default]" value="1"> Use Default</label>'
+            + '<input type="checkbox" class="acore-pdump-use-default" name="acore_pdump_contributor_cooldowns[' + i + '][use_default]" value="1" checked> Use Default</label>'
             + '<button type="button" class="button acore-btn-danger acore-pdump-contrib-remove" style="padding:2px 6px;" title="Remove"><span class="dashicons dashicons-trash" style="margin-top:4px;"></span></button>'
             + '</div>'
             + '<div class="acore-pdump-col-single">'
@@ -1088,6 +1078,7 @@
     $('#acore-pdump-contrib-add').on('click', function() {
         var i = $('#acore-pdump-contrib-list .acore-pdump-contrib-entry').length;
         $('#acore-pdump-contrib-list').append(acorePdumpMakeContribEntry(i));
+        acorePdumpApplyUseDefault($('#acore-pdump-contrib-list .acore-pdump-use-default').last());
     });
     $('#acore-pdump-contrib-list').on('click', '.acore-pdump-contrib-remove', function() {
         var $entry = $(this).closest('.acore-pdump-contrib-entry');
@@ -1115,6 +1106,7 @@
             $.each(contribDefaults, function(i, d) {
                 $('#acore-pdump-contrib-list').append(acorePdumpMakeContribEntry(i, d));
             });
+            $('#acore-pdump-contrib-list .acore-pdump-use-default').each(function() { acorePdumpApplyUseDefault($(this)); });
         });
     });
 
@@ -1140,9 +1132,6 @@
         var $grid = $('#acore-pdump-' + type + '-cd-grid');
         $grid.css({ opacity: isOn ? '' : '0.45', 'pointer-events': isOn ? '' : 'none' });
         $grid.find('input:not(.acore-pdump-cd-secs)').prop('disabled', !isOn);
-        /* If both types are disabled, show a warning badge; otherwise hide it */
-        var bothOff = !$('#acore-pdump-single-enabled-cb').prop('checked') && !$('#acore-pdump-all-enabled-cb').prop('checked');
-        $('#acore-pdump-both-disabled-notice').toggle(bothOff);
     }
     $('#acore-pdump-single-enabled-cb').on('change', function() {
         acoreApplyPdumpTypeToggle($(this).prop('checked'), 'single');

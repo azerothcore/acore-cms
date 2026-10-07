@@ -60,9 +60,8 @@ class Opts {
     public $acore_pdump_subscription_enabled="0";
     public $acore_pdump_subscription_cooldowns=[];
     public $acore_pdump_rbac_enabled="0";
-    public $acore_pdump_rbac_default_sec_level="0";
-    // Accounts with account.security >= this value cannot use PDUMP. Default 1 = GMs and above are blocked.
-    public $acore_pdump_allowed_sec_level="1";
+    // Minimum account security required to use PDUMP, like realmlist.allowedSecurityLevel. 0 = everyone (default).
+    public $acore_pdump_allowed_sec_level="0";
     public $acore_pdump_single_enabled="1";
     public $acore_pdump_all_enabled="1";
     // Automatically block PDUMP when the realm's allowedSecurityLevel is >= 1 (maintenance / GM-only mode).
@@ -80,17 +79,17 @@ class Opts {
     // Minimum character level any character on the account must have reached. 0 = no requirement.
     public $acore_pdump_min_char_level="80";
     public $acore_pdump_rbac_cooldowns=[
-        ['perm_id' => 195, 'perm_name' => 'Player',        'single' => 0, 'all' => 0],
-        ['perm_id' => 194, 'perm_name' => 'Moderator',     'single' => 0, 'all' => 0],
-        ['perm_id' => 193, 'perm_name' => 'Gamemaster',    'single' => 0, 'all' => 0],
-        ['perm_id' => 192, 'perm_name' => 'Administrator', 'single' => 0, 'all' => 0],
+        ['perm_id' => 195, 'perm_name' => 'Player',        'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['perm_id' => 194, 'perm_name' => 'Moderator',     'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['perm_id' => 193, 'perm_name' => 'Gamemaster',    'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['perm_id' => 192, 'perm_name' => 'Administrator', 'single' => 0, 'all' => 0, 'use_default' => 1],
     ];
     public $acore_pdump_contributor_enabled="0";
     public $acore_pdump_contributor_cooldowns=[
-        ['level' => 1, 'name' => 'Bronze',   'single' => 0, 'all' => 0],
-        ['level' => 2, 'name' => 'Silver',   'single' => 0, 'all' => 0],
-        ['level' => 3, 'name' => 'Gold',     'single' => 0, 'all' => 0],
-        ['level' => 4, 'name' => 'Platinum', 'single' => 0, 'all' => 0],
+        ['level' => 1, 'name' => 'Bronze',   'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['level' => 2, 'name' => 'Silver',   'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['level' => 3, 'name' => 'Gold',     'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['level' => 4, 'name' => 'Platinum', 'single' => 0, 'all' => 0, 'use_default' => 1],
     ];
     public $acore_security_logging="0";
     public $acore_allow_old_passwords="0";
