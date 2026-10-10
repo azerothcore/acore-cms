@@ -757,7 +757,7 @@ function acore_profile_2fa_removal_warning($user) {
 // They belong in the dedicated Security sub-page — skip removal when there.
 add_action('admin_init', function () {
     global $pagenow;
-    if ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') return;
+    if ($pagenow !== 'profile.php') return;
     $page = isset($_GET['page']) ? $_GET['page'] : '';
     if ($page === ACORE_SLUG . '-security') return; // Security sub-page: leave hooks intact
 
