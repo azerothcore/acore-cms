@@ -92,15 +92,27 @@ class CharactersController {
             // non-fatal
         }
 
-        $punishmentEnabled = Opts::I()->acore_punishment_info_enabled == '1';
+        // ── PDUMP eligibility ───────────────────────────────────────────────
+        $opts          = Opts::I();
+        $pdumpGlobal   = $opts->acore_pdump_enabled == '1';
+        $pdumpSingleOn = $pdumpGlobal && $opts->acore_pdump_single_enabled == '1';
+        $pdumpAllOn    = $pdumpGlobal && $opts->acore_pdump_all_enabled    == '1';
+
+        if (($pdumpSingleOn || $pdumpAllOn) && pdumpCheckEligibility($accId) !== null) {
+            $pdumpSingleOn = false;
+            $pdumpAllOn    = false;
+        }
+
+        $punishmentEnabled = $opts->acore_punishment_info_enabled == '1';
         echo $this->getView()->getHomeRender(
             $chars, $mutetime, $accBanRow,
             $serverRevision, $serverRevisionUrl,
-            Opts::I()->acore_bug_report_url ?: '',
-            Opts::I()->acore_pdump_enabled == '1',
-            $punishmentEnabled && Opts::I()->acore_punishment_info_account_ban  == '1',
-            $punishmentEnabled && Opts::I()->acore_punishment_info_account_mute == '1',
-            $punishmentEnabled && Opts::I()->acore_punishment_info_character_ban == '1'
+            $opts->acore_bug_report_url ?: '',
+            $pdumpSingleOn,
+            $pdumpAllOn,
+            $punishmentEnabled && $opts->acore_punishment_info_account_ban  == '1',
+            $punishmentEnabled && $opts->acore_punishment_info_account_mute == '1',
+            $punishmentEnabled && $opts->acore_punishment_info_character_ban == '1'
         );
     }
 
