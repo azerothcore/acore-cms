@@ -136,6 +136,9 @@ class CharChange extends \ACore\Lib\WpClass {
                     animate ? panel.slideUp(200) : panel.hide();
                 }
 
+                // Browsers restore form values on reload/back, which would leave a hidden recipient.
+                collapse(false);
+
                 toggle.on('click', function () {
                     if (toggle.attr('aria-expanded') === 'true') {
                         collapse(true);
