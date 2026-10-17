@@ -99,37 +99,72 @@ class CharChange extends \ACore\Lib\WpClass {
         // Optional gifting via smartstone token: leaving the field blank keeps
         // the normal self-service (instant apply to the selected character).
         if (self::isGiftableDisplaySku($product->get_sku())) {
-            FieldElements::destCharacter(__('Gift to a character (optional, leave blank to apply to your own selected character):', 'acore-wp-plugin'));
-            if ($product->is_type('variable')) {
-                self::giftFieldVariationToggle();
-            }
+            self::giftServiceField($product->is_type('variable'));
         }
     }
 
     /**
-     * The gift field renders once for the whole variable product, but not every
-     * variation is giftable (char-restore-delete has no token equivalent).
-     * Hide the field, and clear anything typed into it, while a non-giftable
-     * variation is selected. isGiftEligible ignores the recipient server side
-     * either way; this keeps the offer from showing in the first place.
+     * The recipient field starts collapsed behind a "Gift Service" button, since
+     * buyers filled it in by reflex and ended up gifting by mistake. Collapsing
+     * clears it, so a hidden name never rides along in the POST.
+     *
+     * On variable products the field renders once for the parent, but not every
+     * variation is giftable (char-restore-delete has no token equivalent), so the
+     * whole block hides while a non-giftable variation is selected.
+     * isGiftEligible stays the server side gate either way.
      */
-    private static function giftFieldVariationToggle(): void {
+    private static function giftServiceField(bool $isVariable): void {
         ?>
+        <div class="acore-gift-service">
+            <button type="button" class="button acore-gift-toggle" aria-expanded="false" aria-controls="acore-gift-panel">
+                <?= esc_html__('Gift Service', 'acore-wp-plugin') ?>
+            </button>
+            <div id="acore-gift-panel" class="acore-gift-panel" style="display: none; margin-top: 10px;">
+                <?php FieldElements::destCharacter(__('Character to gift this service to:', 'acore-wp-plugin')); ?>
+            </div>
+            <br>
+        </div>
         <script>
             jQuery(function ($) {
+                var giftService = $('.acore-gift-service');
+                var toggle = giftService.find('.acore-gift-toggle');
+                var panel = giftService.find('.acore-gift-panel');
+
+                function collapse(animate) {
+                    toggle.attr('aria-expanded', 'false');
+                    panel.find('input').val('');
+                    animate ? panel.slideUp(200) : panel.hide();
+                }
+
+                // Browsers restore form values on reload/back, which would leave a hidden recipient.
+                collapse(false);
+
+                toggle.on('click', function () {
+                    if (toggle.attr('aria-expanded') === 'true') {
+                        collapse(true);
+                        return;
+                    }
+                    toggle.attr('aria-expanded', 'true');
+                    panel.slideDown(200, function () {
+                        panel.find('input').trigger('focus');
+                    });
+                });
+
+                <?php if ($isVariable) { ?>
                 var giftableSkus = <?= json_encode(array_keys(self::$tokenTypes)) ?>;
-                var giftField = $('.acore-gift-field');
                 $('form.variations_form')
                     .on('found_variation', function (event, variation) {
                         var giftable = giftableSkus.indexOf(variation.sku) !== -1;
-                        giftField.toggle(giftable);
+                        giftService.toggle(giftable);
                         if (!giftable) {
-                            giftField.find('input').val('');
+                            collapse(false);
                         }
                     })
                     .on('reset_data', function () {
-                        giftField.hide().find('input').val('');
+                        giftService.hide();
+                        collapse(false);
                     });
+                <?php } ?>
             });
         </script>
         <?php
