@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     depends_on:
       - wp-db
-    image: phpmyadmin/phpmyadmin
+    image: phpmyadmin
     env_file:
       .env
     environment:

@@ -1,4 +1,5 @@
-FROM wordpress:6.8-php8.3-fpm
+# no WordPress version in the tag: versioned tags stop getting PHP updates once a newer WordPress is out
+FROM wordpress:php8.3-fpm
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
