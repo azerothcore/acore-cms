@@ -53,7 +53,44 @@ class Opts {
     public $acore_punishment_info_account_mute="1";
     public $acore_punishment_info_character_ban="1";
     public $acore_pdump_enabled="0";
+    public $acore_pdump_log_enabled="1";
     public $acore_bug_report_url="https://github.com/azerothcore/acore-cms/issues/new";
+    public $acore_pdump_cooldown_single="2592000";  // 1 month (30 days)
+    public $acore_pdump_cooldown_all="7776000";     // 3 months (90 days)
+    public $acore_pdump_subscription_enabled="0";
+    public $acore_pdump_subscription_cooldowns=[];
+    public $acore_pdump_rbac_enabled="0";
+    // Minimum account security required to use PDUMP, like realmlist.allowedSecurityLevel. 0 = everyone (default).
+    public $acore_pdump_allowed_sec_level="0";
+    public $acore_pdump_single_enabled="1";
+    public $acore_pdump_all_enabled="1";
+    // Automatically block PDUMP when the realm's allowedSecurityLevel is >= 1 (maintenance / GM-only mode).
+    public $acore_pdump_block_maintenance="1";
+    // Master toggle for the minimum-requirements checks (playtime, account age, character level).
+    public $acore_pdump_min_req_enabled="0";
+    // Individual toggles for each minimum requirement check.
+    public $acore_pdump_min_playtime_enabled="0";
+    public $acore_pdump_min_acct_age_enabled="0";
+    public $acore_pdump_min_char_level_enabled="0";
+    // Minimum total account playtime in seconds (sum across all characters). 0 = no requirement.
+    public $acore_pdump_min_playtime="0";
+    // Minimum account age in seconds since registration. 0 = no requirement.
+    public $acore_pdump_min_acct_age="0";
+    // Minimum character level any character on the account must have reached. 0 = no requirement.
+    public $acore_pdump_min_char_level="80";
+    public $acore_pdump_rbac_cooldowns=[
+        ['perm_id' => 195, 'perm_name' => 'Player',        'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['perm_id' => 194, 'perm_name' => 'Moderator',     'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['perm_id' => 193, 'perm_name' => 'Gamemaster',    'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['perm_id' => 192, 'perm_name' => 'Administrator', 'single' => 0, 'all' => 0, 'use_default' => 1],
+    ];
+    public $acore_pdump_contributor_enabled="0";
+    public $acore_pdump_contributor_cooldowns=[
+        ['level' => 1, 'name' => 'Bronze',   'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['level' => 2, 'name' => 'Silver',   'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['level' => 3, 'name' => 'Gold',     'single' => 0, 'all' => 0, 'use_default' => 1],
+        ['level' => 4, 'name' => 'Platinum', 'single' => 0, 'all' => 0, 'use_default' => 1],
+    ];
     public $acore_security_logging="0";
     public $acore_allow_old_passwords="0";
     public $acore_geoip_lookup="0";
