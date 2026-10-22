@@ -488,6 +488,17 @@ class CharactersView {
                 });
             }
 
+            function acorePdumpSaveBlob(blob, filename) {
+                var url  = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.href     = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+            }
+
             function acoreDownloadAll(chars) {
                 fetch(acorePdumpAllUrl, {
                     method: 'POST',
@@ -508,17 +519,24 @@ class CharactersView {
                             throw err;
                         });
                     }
-                    return resp.blob();
-                }).then(function(blob) {
-                    var filename = acorePdumpZipFilename();
-                    var url  = URL.createObjectURL(blob);
-                    var link = document.createElement('a');
-                    link.href     = url;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+                    // Without the PHP zip extension the server sends JSON with one entry per dump
+                    if ((resp.headers.get('Content-Type') || '').indexOf('application/json') !== -1) {
+                        return resp.json().then(function(body) {
+                            var files = (body && body.files) ? body.files : [];
+                            files.forEach(function(f, i) {
+                                // Stagger the downloads so browsers don't drop them
+                                setTimeout(function() {
+                                    var bin   = atob(f.content);
+                                    var bytes = new Uint8Array(bin.length);
+                                    for (var j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+                                    acorePdumpSaveBlob(new Blob([bytes], { type: 'text/plain' }), f.name);
+                                }, i * 400);
+                            });
+                        });
+                    }
+                    return resp.blob().then(function(blob) {
+                        acorePdumpSaveBlob(blob, acorePdumpZipFilename());
+                    });
                 }).catch(function(err) {
                     acoreShowPdumpError(
                         err && err.message ? err.message : String(err),

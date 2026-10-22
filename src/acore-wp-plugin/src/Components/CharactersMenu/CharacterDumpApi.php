@@ -127,7 +127,9 @@ function pdumpEnsureLogTable(): void
     ) {$charset};";
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
-    update_option('acore_pdump_log_db_v', '1');
+    if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table) {
+        update_option('acore_pdump_log_db_v', '1');
+    }
 }
 
 /**
@@ -603,7 +605,10 @@ function handlePdump(\WP_REST_Request $request): void
         exit;
     }
 
-    $filename = 'char_' . $guid . '_' . date('Ymd_His') . '.dump';
+    // No GUID or name in the filename: the dump itself is anonymised
+    $raceSlug  = preg_replace('/[^a-zA-Z]/', '', AcoreCharColors::getRaceName((int) ($row['race'] ?? 0)));
+    $classSlug = preg_replace('/[^a-zA-Z]/', '', AcoreCharColors::getClassName((int) ($row['class'] ?? 0)));
+    $filename  = (int) ($row['level'] ?? 0) . "_{$raceSlug}_{$classSlug}_" . date('d_m_Y_H_i_s') . '.dump';
 
     if (Opts::I()->acore_pdump_log_enabled == '1') {
         pdumpWriteLog($userId, $accId, 'single', [[
@@ -762,16 +767,44 @@ function handlePdumpAll(\WP_REST_Request $request): void
         exit;
     }
 
-    $tmp = tempnam(sys_get_temp_dir(), 'pdump_');
-    $zip = new \ZipArchive();
-    $zip->open($tmp, \ZipArchive::OVERWRITE);
-    foreach ($files as $filename => $content) {
-        $zip->addFromString($filename, $content);
+    // Build a zip when the PHP zip extension is available; otherwise (or if writing
+    // the archive fails) fall back to sending every dump as its own file.
+    $tmp   = false;
+    $zipOk = false;
+    if (class_exists('ZipArchive')) {
+        $tmp   = tempnam(sys_get_temp_dir(), 'pdump_');
+        $zip   = new \ZipArchive();
+        $zipOk = $tmp !== false && $zip->open($tmp, \ZipArchive::OVERWRITE) === true;
+        if ($zipOk) {
+            foreach ($files as $filename => $content) {
+                $zipOk = $zip->addFromString($filename, $content) && $zipOk;
+            }
+            $zipOk = $zip->close() && $zipOk;
+        }
+        if (!$zipOk) {
+            error_log('[acore-pdump] Could not create the Export All archive; sending the dumps as separate files.');
+            if ($tmp !== false) {
+                @unlink($tmp);
+            }
+        }
+    } else {
+        error_log('[acore-pdump] PHP zip extension (ZipArchive) is not installed; sending Export All dumps as separate files.');
     }
-    $zip->close();
 
     if (Opts::I()->acore_pdump_log_enabled == '1') {
         pdumpWriteLog($userId, $accId, 'all', $logChars);
+    }
+
+    if (!$zipOk) {
+        $list = [];
+        foreach ($files as $filename => $content) {
+            $list[] = ['name' => $filename, 'content' => base64_encode($content)];
+        }
+        if (ob_get_level()) ob_end_clean();
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        wp_send_json(['files' => $list]);
+        exit;
     }
 
     if (ob_get_level()) ob_end_clean();
