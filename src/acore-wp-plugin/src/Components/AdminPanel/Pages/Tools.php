@@ -324,7 +324,7 @@
                         function acorePdumpCdGrid(string $name, int $total, string $dis = ''): string {
                             $y  = intdiv($total, 31536000);
                             $mo = intdiv($total % 31536000, 2592000);
-                            $d  = intdiv($total % 2592000, 86400);
+                            $d  = intdiv($total % 31536000 % 2592000, 86400);
                             $h  = intdiv($total % 86400, 3600);
                             $lbl = '<label style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin:0;">';
                             return '<div class="acore-pdump-cd-wrap">'
@@ -438,7 +438,7 @@
                                                         </div>
                                                         <div id="acore-pdump-min-pt-grid" <?= !$minPtEnabled ? 'style="opacity:0.45;pointer-events:none;"' : '' ?>>
                                                             <input type="hidden" name="acore_pdump_min_playtime" id="acore_pdump_min_playtime" value="<?= esc_attr($minPlaytime) ?>">
-                                                            <?php $y=intdiv($minPlaytime,31536000); $mo=intdiv($minPlaytime%31536000,2592000); $d=intdiv($minPlaytime%2592000,86400); $h=intdiv($minPlaytime%86400,3600); ?>
+                                                            <?php $y=intdiv($minPlaytime,31536000); $mo=intdiv($minPlaytime%31536000,2592000); $d=intdiv($minPlaytime%31536000%2592000,86400); $h=intdiv($minPlaytime%86400,3600); ?>
                                                             <div class="acore-cooldown-inputs" data-target="acore_pdump_min_playtime" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:360px;">
                                                                 <label style="<?= $lbl5 ?>"><input type="number" min="0" max="99" class="acore-cd-y"  style="width:100%;text-align:center;" value="<?= $y ?>"  <?= $dis ?: ($mrDis ?: (!$minPtEnabled ? 'disabled' : '')) ?>>Years</label>
                                                                 <label style="<?= $lbl5 ?>"><input type="number" min="0" max="11" class="acore-cd-mo" style="width:100%;text-align:center;" value="<?= $mo ?>" <?= $dis ?: ($mrDis ?: (!$minPtEnabled ? 'disabled' : '')) ?>>Months</label>
@@ -460,7 +460,7 @@
                                                         </div>
                                                         <div id="acore-pdump-min-age-grid" <?= !$minAgeEnabled ? 'style="opacity:0.45;pointer-events:none;"' : '' ?>>
                                                             <input type="hidden" name="acore_pdump_min_acct_age" id="acore_pdump_min_acct_age" value="<?= esc_attr($minAcctAge) ?>">
-                                                            <?php $y=intdiv($minAcctAge,31536000); $mo=intdiv($minAcctAge%31536000,2592000); $d=intdiv($minAcctAge%2592000,86400); $h=intdiv($minAcctAge%86400,3600); ?>
+                                                            <?php $y=intdiv($minAcctAge,31536000); $mo=intdiv($minAcctAge%31536000,2592000); $d=intdiv($minAcctAge%31536000%2592000,86400); $h=intdiv($minAcctAge%86400,3600); ?>
                                                             <div class="acore-cooldown-inputs" data-target="acore_pdump_min_acct_age" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:360px;">
                                                                 <label style="<?= $lbl5 ?>"><input type="number" min="0" max="99" class="acore-cd-y"  style="width:100%;text-align:center;" value="<?= $y ?>"  <?= $dis ?: ($mrDis ?: (!$minAgeEnabled ? 'disabled' : '')) ?>>Years</label>
                                                                 <label style="<?= $lbl5 ?>"><input type="number" min="0" max="11" class="acore-cd-mo" style="width:100%;text-align:center;" value="<?= $mo ?>" <?= $dis ?: ($mrDis ?: (!$minAgeEnabled ? 'disabled' : '')) ?>>Months</label>
@@ -511,7 +511,7 @@
                                                          style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:360px;">
                                                         <label style="<?= $cdLbl ?>"><input type="number" min="0" max="99"  class="acore-cd-y"  style="width:100%;text-align:center;" value="<?= intdiv($cdSingle, 31536000) ?>"           <?= ($dis ?: (!$singleEnabled ? 'disabled' : '')) ?>>Years</label>
                                                         <label style="<?= $cdLbl ?>"><input type="number" min="0" max="11"  class="acore-cd-mo" style="width:100%;text-align:center;" value="<?= intdiv($cdSingle % 31536000, 2592000) ?>" <?= ($dis ?: (!$singleEnabled ? 'disabled' : '')) ?>>Months</label>
-                                                        <label style="<?= $cdLbl ?>"><input type="number" min="0" max="29"  class="acore-cd-d"  style="width:100%;text-align:center;" value="<?= intdiv($cdSingle % 2592000, 86400) ?>"   <?= ($dis ?: (!$singleEnabled ? 'disabled' : '')) ?>>Days</label>
+                                                        <label style="<?= $cdLbl ?>"><input type="number" min="0" max="29"  class="acore-cd-d"  style="width:100%;text-align:center;" value="<?= intdiv($cdSingle % 31536000 % 2592000, 86400) ?>"   <?= ($dis ?: (!$singleEnabled ? 'disabled' : '')) ?>>Days</label>
                                                         <label style="<?= $cdLbl ?>"><input type="number" min="0" max="23"  class="acore-cd-h"  style="width:100%;text-align:center;" value="<?= intdiv($cdSingle % 86400, 3600) ?>"      <?= ($dis ?: (!$singleEnabled ? 'disabled' : '')) ?>>Hours</label>
                                                     </div>
                                                 </div>
@@ -536,7 +536,7 @@
                                                          style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:360px;">
                                                         <label style="<?= $cdLbl ?>"><input type="number" min="0" max="99"  class="acore-cd-y"  style="width:100%;text-align:center;" value="<?= intdiv($cdAll, 31536000) ?>"           <?= ($dis ?: (!$allEnabled ? 'disabled' : '')) ?>>Years</label>
                                                         <label style="<?= $cdLbl ?>"><input type="number" min="0" max="11"  class="acore-cd-mo" style="width:100%;text-align:center;" value="<?= intdiv($cdAll % 31536000, 2592000) ?>" <?= ($dis ?: (!$allEnabled ? 'disabled' : '')) ?>>Months</label>
-                                                        <label style="<?= $cdLbl ?>"><input type="number" min="0" max="29"  class="acore-cd-d"  style="width:100%;text-align:center;" value="<?= intdiv($cdAll % 2592000, 86400) ?>"   <?= ($dis ?: (!$allEnabled ? 'disabled' : '')) ?>>Days</label>
+                                                        <label style="<?= $cdLbl ?>"><input type="number" min="0" max="29"  class="acore-cd-d"  style="width:100%;text-align:center;" value="<?= intdiv($cdAll % 31536000 % 2592000, 86400) ?>"   <?= ($dis ?: (!$allEnabled ? 'disabled' : '')) ?>>Days</label>
                                                         <label style="<?= $cdLbl ?>"><input type="number" min="0" max="23"  class="acore-cd-h"  style="width:100%;text-align:center;" value="<?= intdiv($cdAll % 86400, 3600) ?>"      <?= ($dis ?: (!$allEnabled ? 'disabled' : '')) ?>>Hours</label>
                                                     </div>
                                                 </div>
@@ -826,7 +826,7 @@
         $('#acore-pdump-bug-url-row').css({ opacity: on ? '' : '0.45', 'pointer-events': on ? '' : 'none' });
         $('#acore_bug_report_url').prop('disabled', !on);
         $('.acore-pdump-dependent').css({ opacity: on ? '' : '0.45', 'pointer-events': on ? '' : 'none' });
-        $('.acore-pdump-dependent input:not(.acore-pdump-cd-secs), .acore-pdump-dependent select, .acore-pdump-dependent textarea').prop('disabled', !on);
+        $('.acore-pdump-dependent input, .acore-pdump-dependent select, .acore-pdump-dependent textarea').prop('disabled', !on);
         if (on) {
             $('.acore-pdump-use-default:checked').each(function() { acorePdumpApplyUseDefault($(this)); });
             acoreApplyPdumpTypeToggle($('#acore-pdump-single-enabled-cb').prop('checked'), 'single');
@@ -864,7 +864,7 @@
         if (!secs) return 'no cooldown';
         var y  = Math.floor(secs / 31536000);
         var mo = Math.floor((secs % 31536000) / 2592000);
-        var d  = Math.floor((secs % 2592000) / 86400);
+        var d  = Math.floor((secs % 31536000 % 2592000) / 86400);
         var h  = Math.floor((secs % 86400) / 3600);
         var parts = [];
         if (y)  parts.push(y  + 'y');
@@ -906,7 +906,7 @@
         total = total || 0;
         var y  = Math.floor(total / 31536000);
         var mo = Math.floor((total % 31536000) / 2592000);
-        var d  = Math.floor((total % 2592000) / 86400);
+        var d  = Math.floor((total % 31536000 % 2592000) / 86400);
         var h  = Math.floor((total % 86400) / 3600);
         var lbl = '<label style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin:0;">';
         return '<div class="acore-pdump-cd-wrap">'

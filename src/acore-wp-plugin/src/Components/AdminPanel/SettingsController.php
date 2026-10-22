@@ -412,6 +412,15 @@ class SettingsController {
 
                 foreach (['acore_pdump_subscription_cooldowns', 'acore_pdump_rbac_cooldowns', 'acore_pdump_contributor_cooldowns'] as $cdKey) {
                     if (!isset($_POST[$cdKey]) || !is_array($_POST[$cdKey])) continue;
+                    // A row without its identity field means the form was submitted partially
+                    // (e.g. disabled inputs). Keep the stored rows rather than rebuilding them from fallbacks.
+                    $idField = $cdKey === 'acore_pdump_rbac_cooldowns' ? 'perm_id' : 'level';
+                    foreach ($_POST[$cdKey] as $row) {
+                        if (!is_array($row) || !array_key_exists($idField, $row)) {
+                            unset($_POST[$cdKey]);
+                            continue 2;
+                        }
+                    }
                     $sanitized = [];
                     foreach ($_POST[$cdKey] as $row) {
                         if (!is_array($row)) continue;
