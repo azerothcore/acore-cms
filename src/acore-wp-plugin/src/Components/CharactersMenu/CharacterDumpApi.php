@@ -450,6 +450,59 @@ function pdumpRestoreCooldown(int $userId, string $type, ?int $prev): void
     }
 }
 
+/**
+ * Make an error detail safe to show a player: absolute paths are reduced to the
+ * file name and query text, parameters, emails and numeric IDs are redacted.
+ */
+function pdumpSanitizeErrorDetail(string $detail): string
+{
+    // Strip known install roots first (they may contain spaces), then any remaining path.
+    $roots = array_filter([
+        defined('ABSPATH') ? ABSPATH : '',
+        defined('WP_CONTENT_DIR') ? WP_CONTENT_DIR : '',
+        $_SERVER['DOCUMENT_ROOT'] ?? '',
+        sys_get_temp_dir(),
+    ]);
+    foreach ($roots as $root) {
+        $root   = rtrim($root, '\\/');
+        $detail = str_ireplace([$root . '/', $root . '\\', str_replace('\\', '/', $root) . '/'], '', $detail);
+    }
+    // Windows paths (folder names may contain spaces), then any other path
+    $detail = preg_replace('~[A-Za-z]:[\\\\/](?:[^\\\\/:*?"<>|\r\n]*[\\\\/])*([^\s\\\\/:*?"<>|]+)~', '$1', $detail);
+    $detail = preg_replace('~(?:[^\s\\\\/:\'"]*[\\\\/])+([^\s\\\\/:\'"]+)~', '$1', $detail);
+    // Redact query text, bound parameters, DB credentials, emails and numeric IDs (names stay visible)
+    return preg_replace([
+        "/executing\\s+'.*?'(?=\\s+with params|:)/s",
+        '/with params \[.*?\]/s',
+        "/Duplicate entry '.*?'/s",
+        "/'[^'\\s]*'@'[^'\\s]*'/",
+        '/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/',
+        '/\b(account(?:_?id)?|acc_?id|guid|user(?:_?id)?|id)\b(\s*[=:#]?\s*)([\'"]?)\d+\3/i',
+    ], [
+        "executing '[REDACTED]'",
+        'with params [REDACTED]',
+        "Duplicate entry '[REDACTED]'",
+        '[REDACTED]',
+        '[REDACTED]',
+        '$1$2[REDACTED]',
+    ], $detail);
+}
+
+/**
+ * Send a 500 for a failed dump. The full detail always goes to the PHP error log;
+ * administrators get it as-is and players get a sanitized copy.
+ */
+function pdumpSendInternalError(array $phpWarnings): void
+{
+    $detail = implode("\n", $phpWarnings);
+    error_log('[acore-pdump] ' . $detail);
+    wp_send_json_error([
+        'message' => 'An internal error occurred while generating the dump.',
+        'detail'  => current_user_can('manage_options') ? $detail : pdumpSanitizeErrorDetail($detail),
+    ], 500);
+    exit;
+}
+
 function handlePdump(\WP_REST_Request $request): void
 {
     $guid  = (int) $request->get_param('guid');
@@ -541,11 +594,7 @@ function handlePdump(\WP_REST_Request $request): void
 
     if (!empty($phpWarnings)) {
         pdumpRestoreCooldown($userId, 'single', $prevTime);
-        wp_send_json_error([
-            'message' => 'An internal error occurred while generating the dump.',
-            'detail'  => implode("\n", $phpWarnings),
-        ], 500);
-        exit;
+        pdumpSendInternalError($phpWarnings);
     }
 
     if ($dump === null) {
@@ -655,37 +704,48 @@ function handlePdumpAll(\WP_REST_Request $request): void
 
     $files     = [];
     $logChars  = [];
-    foreach ($characters as $char) {
-        $guid = isset($char['guid']) ? (int) $char['guid'] : 0;
-        if ($guid < 1) continue;
+    $seenGuids = [];
+    try {
+        foreach ($characters as $char) {
+            $guid = (is_array($char) && isset($char['guid'])) ? (int) $char['guid'] : 0;
+            if ($guid < 1 || isset($seenGuids[$guid])) continue;
+            $seenGuids[$guid] = true;
 
-        $row = $conn->executeQuery(
-            "SELECT `name`, `level`, `race`, `class` FROM `characters`
-             WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL LIMIT 1",
-            [$guid, $accId]
-        )->fetchAssociative();
+            $row = $conn->executeQuery(
+                "SELECT `name`, `level`, `race`, `class` FROM `characters`
+                 WHERE `guid` = ? AND `account` = ? AND `deleteDate` IS NULL LIMIT 1",
+                [$guid, $accId]
+            )->fetchAssociative();
 
-        if (!$row) continue;
+            if (!$row) continue;
 
-        $writer = new CharacterDumpWriter($conn);
-        $dump   = $writer->getDump($guid);
-        if ($dump === null) continue;
+            $writer = new CharacterDumpWriter($conn);
+            $dump   = $writer->getDump($guid);
+            if ($dump === null) continue;
 
-        $order     = preg_replace('/[^0-9]/', '', (string)($char['order'] ?? '0'));
-        $charLevel = (int) $row['level'];
-        $raceName  = AcoreCharColors::getRaceName((int) $row['race']);
-        $className = AcoreCharColors::getClassName((int) $row['class']);
-        $raceSlug  = preg_replace('/[^a-zA-Z]/', '', $raceName);
-        $classSlug = preg_replace('/[^a-zA-Z]/', '', $className);
+            $order     = preg_replace('/[^0-9]/', '', (string)($char['order'] ?? '0'));
+            $charLevel = (int) $row['level'];
+            $raceName  = AcoreCharColors::getRaceName((int) $row['race']);
+            $className = AcoreCharColors::getClassName((int) $row['class']);
+            $raceSlug  = preg_replace('/[^a-zA-Z]/', '', $raceName);
+            $classSlug = preg_replace('/[^a-zA-Z]/', '', $className);
 
-        $files["{$order}_{$charLevel}_{$raceSlug}_{$classSlug}_{$now}.dump"] = $dump;
-        $logChars[] = [
-            'name'  => $row['name'],
-            'guid'  => $guid,
-            'level' => $charLevel,
-            'race'  => $raceName,
-            'class' => $className,
-        ];
+            $baseName = "{$order}_{$charLevel}_{$raceSlug}_{$classSlug}_{$now}";
+            $fileKey  = "{$baseName}.dump";
+            for ($n = 2; isset($files[$fileKey]); $n++) {
+                $fileKey = "{$baseName}_{$n}.dump";
+            }
+            $files[$fileKey] = $dump;
+            $logChars[] = [
+                'name'  => $row['name'],
+                'guid'  => $guid,
+                'level' => $charLevel,
+                'race'  => $raceName,
+                'class' => $className,
+            ];
+        }
+    } catch (\Throwable $e) {
+        $phpWarnings[] = get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
     }
 
     ob_end_clean();
@@ -693,11 +753,7 @@ function handlePdumpAll(\WP_REST_Request $request): void
 
     if (!empty($phpWarnings)) {
         pdumpRestoreCooldown($userId, 'all', $prevTimeAll);
-        wp_send_json_error([
-            'message' => 'An internal error occurred while generating the dump.',
-            'detail'  => implode("\n", $phpWarnings),
-        ], 500);
-        exit;
+        pdumpSendInternalError($phpWarnings);
     }
 
     if (empty($files)) {
