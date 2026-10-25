@@ -28,7 +28,8 @@ class CharactersView {
     private function formatDate($ts) { return date('d-m-Y', intval($ts)); }
     private function formatTime($ts) { return date('H:i',   intval($ts)); }
 
-    public function getHomeRender($characters, $mutetime = 0, $accBanRow = null, $serverRevision = '', $serverRevisionUrl = '', $bugReportUrl = '', $pdumpEnabled = false, $showAccountBan = false, $showAccountMute = false, $showCharBan = false) {
+    public function getHomeRender($characters, $mutetime = 0, $accBanRow = null, $serverRevision = '', $serverRevisionUrl = '', $bugReportUrl = '', $pdumpSingleEnabled = false, $pdumpAllEnabled = false, $showAccountBan = false, $showAccountMute = false, $showCharBan = false) {
+        $pdumpEnabled = $pdumpSingleEnabled || $pdumpAllEnabled;
         $now = time();
 
         // Account mute
@@ -97,7 +98,7 @@ class CharactersView {
                                         <div class="acore-col-header-cell">Ban<span class="acore-col-header-fmt">DD-MM-YYYY at HH:MM</span></div>
                                     <?php endif; ?>
                                     <div class="acore-col-header-cell">
-                                        <?php if ($pdumpEnabled): ?>
+                                        <?php if ($pdumpAllEnabled): ?>
                                         <button type="button" class="button button-primary acore-export-all-btn">Export All</button>
                                         <?php endif; ?>
                                     </div>
@@ -138,6 +139,15 @@ class CharactersView {
                                             <?php endif; ?>
                                             <div class="acore-char-ext-col">
                                                 <?php if ($pdumpEnabled): ?>
+                                                <span class="acore-char-data" style="display:none"
+                                                    data-char-guid="<?= esc_attr($char['guid']) ?>"
+                                                    data-char-name="<?= esc_attr($char['name']) ?>"
+                                                    data-char-order="<?= esc_attr($displayPos) ?>"
+                                                    data-char-level="<?= esc_attr(intval($char['level'])) ?>"
+                                                    data-char-race="<?= esc_attr(AcoreCharColors::getRaceName(intval($char['race']))) ?>"
+                                                    data-char-class="<?= esc_attr(AcoreCharColors::getClassName(intval($char['class']))) ?>"></span>
+                                                <?php endif; ?>
+                                                <?php if ($pdumpSingleEnabled): ?>
                                                 <button type="button" class="button button-primary acore-export-btn"
                                                     data-char-guid="<?= esc_attr($char['guid']) ?>"
                                                     data-char-name="<?= esc_attr($char['name']) ?>"
@@ -412,12 +422,15 @@ class CharactersView {
                 acorePdumpModal.style.display = 'flex';
             }
 
-            function acoreShowPdumpError(msg, detail) {
+            function acoreShowPdumpError(msg, detail, isCooldown) {
                 acorePdumpBody.innerHTML = '';
                 // Show the human-readable message + technical detail (if any) in the <pre>
                 acorePdumpErrorMsg.textContent = detail ? (msg + '\n\n' + detail) : msg;
 
-                if (acorePdumpBugReportUrl) {
+                if (isCooldown) {
+                    acorePdumpErrorIntro.textContent = msg;
+                    acorePdumpErrorDetails.style.display = 'none';
+                } else if (acorePdumpBugReportUrl) {
                     acorePdumpErrorIntro.innerHTML =
                         'There was an error, the PDUMP was not successful, it seems to be a bug, please report it on '
                         + '<a href="' + acorePdumpBugReportUrl + '" target="_blank" rel="noopener">GitHub</a>.';
@@ -446,11 +459,12 @@ class CharactersView {
                 }).then(function(resp) {
                     if (!resp.ok) {
                         return resp.json().then(function(body) {
-                            var data   = (body && body.data) ? body.data : body;
-                            var msg    = (data && data.message) ? data.message : 'Export failed (HTTP ' + resp.status + ').';
-                            var detail = (data && data.detail)  ? data.detail  : null;
-                            var err    = new Error(msg);
-                            err.detail = detail;
+                            var data       = (body && body.data) ? body.data : body;
+                            var msg        = (data && data.message) ? data.message : 'Export failed (HTTP ' + resp.status + ').';
+                            var detail     = (data && data.detail)  ? data.detail  : null;
+                            var err        = new Error(msg);
+                            err.detail     = detail;
+                            err.isCooldown = resp.status === 429;
                             throw err;
                         });
                     }
@@ -468,9 +482,21 @@ class CharactersView {
                 }).catch(function(err) {
                     acoreShowPdumpError(
                         err && err.message ? err.message : String(err),
-                        err && err.detail  ? err.detail  : null
+                        err && err.detail  ? err.detail  : null,
+                        !!(err && err.isCooldown)
                     );
                 });
+            }
+
+            function acorePdumpSaveBlob(blob, filename) {
+                var url  = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.href     = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
             }
 
             function acoreDownloadAll(chars) {
@@ -484,29 +510,38 @@ class CharactersView {
                 }).then(function(resp) {
                     if (!resp.ok) {
                         return resp.json().then(function(body) {
-                            var data   = (body && body.data) ? body.data : body;
-                            var msg    = (data && data.message) ? data.message : 'Export failed (HTTP ' + resp.status + ').';
-                            var detail = (data && data.detail)  ? data.detail  : null;
-                            var err    = new Error(msg);
-                            err.detail = detail;
+                            var data       = (body && body.data) ? body.data : body;
+                            var msg        = (data && data.message) ? data.message : 'Export failed (HTTP ' + resp.status + ').';
+                            var detail     = (data && data.detail)  ? data.detail  : null;
+                            var err        = new Error(msg);
+                            err.detail     = detail;
+                            err.isCooldown = resp.status === 429;
                             throw err;
                         });
                     }
-                    return resp.blob();
-                }).then(function(blob) {
-                    var filename = acorePdumpZipFilename();
-                    var url  = URL.createObjectURL(blob);
-                    var link = document.createElement('a');
-                    link.href     = url;
-                    link.download = filename;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+                    // Without the PHP zip extension the server sends JSON with one entry per dump
+                    if ((resp.headers.get('Content-Type') || '').indexOf('application/json') !== -1) {
+                        return resp.json().then(function(body) {
+                            var files = (body && body.files) ? body.files : [];
+                            files.forEach(function(f, i) {
+                                // Stagger the downloads so browsers don't drop them
+                                setTimeout(function() {
+                                    var bin   = atob(f.content);
+                                    var bytes = new Uint8Array(bin.length);
+                                    for (var j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+                                    acorePdumpSaveBlob(new Blob([bytes], { type: 'text/plain' }), f.name);
+                                }, i * 400);
+                            });
+                        });
+                    }
+                    return resp.blob().then(function(blob) {
+                        acorePdumpSaveBlob(blob, acorePdumpZipFilename());
+                    });
                 }).catch(function(err) {
                     acoreShowPdumpError(
                         err && err.message ? err.message : String(err),
-                        err && err.detail  ? err.detail  : null
+                        err && err.detail  ? err.detail  : null,
+                        !!(err && err.isCooldown)
                     );
                 });
             }
@@ -545,7 +580,7 @@ class CharactersView {
 
             $(document).on('click', '.acore-export-all-btn', function() {
                 var chars = [];
-                $('.acore-export-btn').each(function() {
+                $('.acore-char-data').each(function() {
                     chars.push({
                         guid:    $(this).data('char-guid'),
                         name:    $(this).data('char-name'),
