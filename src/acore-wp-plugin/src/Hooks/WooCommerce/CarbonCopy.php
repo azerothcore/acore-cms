@@ -76,13 +76,29 @@ class CarbonCopy extends \ACore\Lib\WpClass {
 
             $soap = ACoreServices::I()->getAccountSoap();
 
+            // The buyer comes from the order: payment_complete can run from a payment gateway callback, where the
+            // current WordPress user is not the buyer (or nobody).
+            $accountName = "";
+            $customerId = $order->get_customer_id();
+            if ($customerId) {
+                $buyer = \get_user_by('id', $customerId);
+                if ($buyer) {
+                    $accountName = $buyer->user_login;
+                }
+            }
+
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     switch ($item["acore_item_sku"]) {
                         case "carboncopy-tickets":
-                            $current_user = wp_get_current_user();
+                            if ($accountName === "") {
+                                $message = sprintf("CarbonCopy tickets NOT added: %d ticket(s), the order has no customer account", $item["qty"]);
+                                $logs->add("acore_log", $message);
+                                $order->add_order_note($message);
+                                break;
+                            }
 
-                            $res = $soap->addCCTickets($current_user->user_login, $item["qty"]);
+                            $res = $soap->addCCTickets($accountName, $item["qty"]);
                             // CCACCOUNTTICKETS replies nothing when the tickets were added. Any reply text (amount
                             // refused, account not found, SOAP error message) means they were NOT added.
                             $reply = $res instanceof \Exception ? $res->getMessage() : trim((string) $res);
@@ -90,7 +106,7 @@ class CarbonCopy extends \ACore\Lib\WpClass {
                                 $message = sprintf(
                                     "CarbonCopy tickets NOT added: %d ticket(s) for account %s - server replied: %s",
                                     $item["qty"],
-                                    $current_user->user_login,
+                                    $accountName,
                                     $reply
                                 );
                                 $logs->add("acore_log", $message);
