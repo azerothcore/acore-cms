@@ -98,10 +98,15 @@ class CarbonCopy extends \ACore\Lib\WpClass {
                                 break;
                             }
 
-                            $res = $soap->addCCTickets($accountName, $item["qty"]);
                             // CCACCOUNTTICKETS replies nothing when the tickets were added. Any reply text (amount
-                            // refused, account not found, SOAP error message) means they were NOT added.
-                            $reply = $res instanceof \Exception ? $res->getMessage() : trim((string) $res);
+                            // refused, account not found, SOAP error message) means they were NOT added. A SOAP client
+                            // that can't even be created throws: handled the same way, and the next items still run.
+                            try {
+                                $res = $soap->addCCTickets($accountName, $item["qty"]);
+                                $reply = $res instanceof \Exception ? $res->getMessage() : trim((string) $res);
+                            } catch (\Exception $e) {
+                                $reply = $e->getMessage();
+                            }
                             if ($reply !== "") {
                                 $message = sprintf(
                                     "CarbonCopy tickets NOT added: %d ticket(s) for account %s - server replied: %s",
