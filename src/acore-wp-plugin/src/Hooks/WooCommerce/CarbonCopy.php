@@ -83,8 +83,19 @@ class CarbonCopy extends \ACore\Lib\WpClass {
                             $current_user = wp_get_current_user();
 
                             $res = $soap->addCCTickets($current_user->user_login, $item["qty"]);
-                            if ($res instanceof \Exception) {
-                                throw new \Exception("There was an error adding the ticket - " . $res->getMessage());
+                            // CCACCOUNTTICKETS replies nothing when the tickets were added. Any reply text (amount
+                            // refused, account not found, SOAP error message) means they were NOT added.
+                            $reply = $res instanceof \Exception ? $res->getMessage() : trim((string) $res);
+                            if ($reply !== "") {
+                                $message = sprintf(
+                                    "CarbonCopy tickets NOT added: %d ticket(s) for account %s - server replied: %s",
+                                    $item["qty"],
+                                    $current_user->user_login,
+                                    $reply
+                                );
+                                $logs->add("acore_log", $message);
+                                // visible on the order, so an admin can add the tickets by hand
+                                $order->add_order_note($message);
                             }
                             break;
                     }
