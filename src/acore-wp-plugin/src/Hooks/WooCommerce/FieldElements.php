@@ -6,7 +6,12 @@ use ACore\Manager\ACoreServices;
 
 class FieldElements {
 
-    public static function charList($username, $deleted = false): void {
+    /**
+     * The character dropdown. $blockedReason (optional): function ($character) returning why that character can't
+     * use the service, or null - such characters are greyed out (not selectable) and listed under the dropdown with
+     * their race / class icons and the reason.
+     */
+    public static function charList($username, $deleted = false, ?callable $blockedReason = null): void {
         $ACoreSrv = ACoreServices::I();
         $accRepo = $ACoreSrv->getAccountRepo();
         $charRepo = $ACoreSrv->getCharactersRepo();
@@ -40,25 +45,33 @@ class FieldElements {
         }
 
         $bannedChars = array();
+
+        // characters that can't use this service (greyed out), and the first one that can (selected, shown in the icons)
+        $blocked = array();
+        $firstChar = $deleted ? ($deletedCharacters[0] ?? null) : ($characters[0] ?? null);
+        if (!$deleted && $blockedReason !== null) {
+            $firstChar = null;
+            foreach ($characters as $character) {
+                if ($charBanRepo->isActiveByGuid($character->getGuid())) {
+                    continue; // banned characters are listed separately
+                }
+                $reason = $blockedReason($character);
+                if ($reason !== null) {
+                    $blocked[$character->getGuid()] = $reason;
+                } elseif ($firstChar === null) {
+                    $firstChar = $character;
+                }
+            }
+        }
         ?>
         <br>
         <br>
         <label for="acore_char_sel">Select the character: </label>
         <br>
-        <?php
-         if (!$deleted) {
-             if ($characters && count($characters) > 0) { ?>
-                <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $characters[0]->getRace() . ($characters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
-                <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $characters[0]->getClass() . ".webp"; ?>" />
-            <?php  }
-         }
-         else {
-            if ($deletedCharacters && count($deletedCharacters) > 0) { ?>
-                <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $deletedCharacters[0]->getRace() . ($deletedCharacters[0]->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
-                <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $deletedCharacters[0]->getClass() . ".webp"; ?>" />
-            <?php  }
-         }
-        ?>
+        <?php if ($firstChar) { ?>
+            <img id="char-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/race/" . $firstChar->getRace() . ($firstChar->getGender() == 0 ? "m" : "f") . ".webp"; ?>" />
+            <img id="class-icon" style="display: inline-block;max-height: 50px;" src="<?= ACORE_URL_PLG . "web/assets/class/" . $firstChar->getClass() . ".webp"; ?>" />
+        <?php } ?>
         <select id="acore_char_sel" class="acore_char_sel" name="acore_char_sel">
             <?php
 
@@ -68,7 +81,11 @@ class FieldElements {
                         $bannedChars[] = $value->getName();
                         continue;
                     }
-                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharIconUrl() . '" data-classicon="' . $value->getClassIconUrl() . '">' . $value->getName() . '</option>';
+                    $isBlocked  = isset($blocked[$value->getGuid()]);
+                    $isSelected = $firstChar && $firstChar->getGuid() == $value->getGuid();
+                    echo '<option value="' . $value->getGuid() . '" data-charicon="' . $value->getCharIconUrl() . '" data-classicon="' . $value->getClassIconUrl() . '"'
+                        . ($isBlocked ? ' disabled' : '') . ($isSelected ? ' selected' : '') . '>'
+                        . esc_html($value->getName()) . ($isBlocked ? ' (' . esc_html__('not possible', 'acore-wp-plugin') . ')' : '') . '</option>';
                 endforeach;
             } else {
                 foreach ($deletedCharacters as $key => $value):
@@ -90,6 +107,9 @@ class FieldElements {
                 const charicon = document.getElementById("char-icon");
                 const classicon = document.getElementById("class-icon");
                 const selected = document.querySelector("#acore_char_sel").selectedOptions[0];
+                if (!selected || !charicon || !classicon) {
+                    return false;
+                }
                 charicon.src = selected.dataset.charicon;
                 classicon.src = selected.dataset.classicon;
                 return false;
@@ -97,10 +117,39 @@ class FieldElements {
             document.getElementById("acore_char_sel").onchange = setIcon;
         </script>
         <?php
+        if (!empty($blocked)) {
+            if ($firstChar === null) {
+                echo '<p style="color: #ff7961;">' . esc_html__('None of your characters can use this service.', 'acore-wp-plugin') . '</p>';
+            }
+            self::blockedCharacterRows($characters, $blocked);
+        }
         if ($bannedChars) {
             echo "Some characters in your account are banned: <br>";
             echo implode(",", $bannedChars) . "<br>";
         }
+    }
+
+    /**
+     * Characters that can't use a service: race icon, class icon, name, then the reason.
+     * $reasons: guid => reason (several reasons for one character can be passed as an array).
+     */
+    public static function blockedCharacterRows($characters, array $reasons): void {
+        echo '<div class="acore-char-blocked" style="margin: 0.5em 0 1em;">';
+        echo '<p style="margin: 0 0 0.4em; color: #ff7961;">' . esc_html__('Not possible for:', 'acore-wp-plugin') . '</p>';
+        foreach ($characters as $character) {
+            if (!isset($reasons[$character->getGuid()])) {
+                continue;
+            }
+            foreach ((array) $reasons[$character->getGuid()] as $reason) {
+                echo '<div style="display: flex; align-items: center; gap: 6px; margin: 0 0 0.35em;">'
+                    . '<img src="' . esc_url($character->getCharIconUrl()) . '" alt="" style="width: 28px; height: 28px; opacity: 0.6;">'
+                    . '<img src="' . esc_url($character->getClassIconUrl()) . '" alt="" style="width: 28px; height: 28px; opacity: 0.6;">'
+                    . '<strong>' . esc_html($character->getName()) . '</strong>'
+                    . '<span style="color: #ff7961;">' . esc_html($reason) . '</span>'
+                    . '</div>';
+            }
+        }
+        echo '</div>';
     }
 
     public static function destCharacter($label): void {

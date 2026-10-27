@@ -115,18 +115,17 @@ class CharChange extends \ACore\Lib\WpClass {
         } catch (\Throwable $e) {
             return;
         }
-        $lines = [];
+        $reasons = [];
         foreach ((array) $characters as $char) {
             foreach ($skus as $serviceSku) {
                 $reason = self::serviceBlockReason($serviceSku, $char->getRace(), $char->getClass());
                 if ($reason !== null) {
-                    $lines[] = '<strong>' . esc_html($char->getName()) . '</strong>: ' . esc_html($reason);
+                    $reasons[$char->getGuid()][] = $reason;
                 }
             }
         }
-        if (!empty($lines)) {
-            echo '<p class="acore-char-change-blocked" style="color: #ff7961;">' . esc_html__('Not possible for:', 'acore-wp-plugin')
-                . '<br>' . implode('<br>', $lines) . '</p>';
+        if (!empty($reasons)) {
+            FieldElements::blockedCharacterRows((array) $characters, $reasons);
         }
     }
 
@@ -194,8 +193,17 @@ class CharChange extends \ACore\Lib\WpClass {
         $current_user = wp_get_current_user();
 
         if ($current_user) {
-            FieldElements::charList($current_user->user_login, self::isDeletedSKU($product->get_sku()));
-            self::blockedCharactersNotice($product->get_sku(), $current_user->user_login);
+            $sku = $product->get_sku();
+            if ($sku === 'char-change-race' || $sku === 'char-change-faction') {
+                // characters that can't use it are greyed out in the dropdown and listed with the reason
+                FieldElements::charList($current_user->user_login, false, function ($character) use ($sku) {
+                    return self::serviceBlockReason($sku, $character->getRace(), $character->getClass());
+                });
+            } else {
+                FieldElements::charList($current_user->user_login, self::isDeletedSKU($sku));
+                // the variable "char-change" product: the option depends on the chosen variation, so only list them
+                self::blockedCharactersNotice($sku, $current_user->user_login);
+            }
         }
 
         // Optional gifting via smartstone token: leaving the field blank keeps
