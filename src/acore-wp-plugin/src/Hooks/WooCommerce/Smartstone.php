@@ -30,6 +30,13 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
     }
 
     private static function isAccountWide($category) {
+        // the type list lives in SmartstoneProductAdmin::types(); ACCOUNT_WIDE_CATEGORIES is the fallback
+        if (class_exists(SmartstoneProductAdmin::class)) {
+            $types = SmartstoneProductAdmin::types();
+            if (isset($types[(int) $category])) {
+                return (bool) $types[(int) $category][2];
+            }
+        }
         return in_array((int) $category, self::ACCOUNT_WIDE_CATEGORIES, true);
     }
 
@@ -222,17 +229,11 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         }
         [$smartstone_category, $smartstone_id] = $parsed;
 
-        // Indexes match mod-chromiecraft-smartstone's ActionType enum (src/Smartstone.h):
-        //   0 = Companion, 1 = Pet, 2 = Costume, 7 = Vehicle, 8 = Mount, 9 = Perk
-        $categoryToText = array(
-            0 => "Pet",
-            1 => "Combat Pet",
-            2 => "Costume",
-            9 => "Class Perk",
-        );
-        $label = isset($categoryToText[$smartstone_category])
-            ? $categoryToText[$smartstone_category]
-            : "Smartstone item";
+        // labels from the one type list (SmartstoneProductAdmin::types())
+        $label = class_exists(SmartstoneProductAdmin::class) ? SmartstoneProductAdmin::typeLabel($smartstone_category) : null;
+        if ($label === null) {
+            $label = "Smartstone item";
+        }
 
         if (self::isAccountWide($smartstone_category)) {
             if (isset($cart_item['acore_gift_account'])) {
