@@ -7,6 +7,7 @@ defined('ABSPATH') || exit;
 
 $hasCategories = !empty($categories);
 ?>
+<?php if (function_exists('acore_theme_points_panel')) echo acore_theme_points_panel(); // escaped in the panel ?>
 <div class="acore-store" data-has-categories="<?php echo $hasCategories ? '1' : '0'; ?>">
 
     <?php if ($hasCategories) : ?>
@@ -43,11 +44,12 @@ $hasCategories = !empty($categories);
                 $link   = $product->get_permalink();
                 $imgId  = $product->get_image_id();
                 $imgUrl = $imgId ? wp_get_attachment_image_url($imgId, 'medium') : wc_placeholder_img_src('medium');
+                $imgClass = $imgId ? '' : ' class="acore-placeholder-logo"';
                 $direct = !acore_theme_product_needs_choices($product) && $product->is_purchasable() && $product->is_in_stock();
             ?>
             <li class="acore-store-item" data-categories="<?php echo esc_attr(implode(' ', acore_theme_product_top_categories($product->get_id()))); ?>" data-title="<?php echo esc_attr(mb_strtolower($product->get_name())); ?>">
                 <a href="<?php echo esc_url($link); ?>" class="acore-store-item-img">
-                    <img src="<?php echo esc_url($imgUrl); ?>" alt="<?php echo esc_attr($product->get_name()); ?>" loading="lazy">
+                    <img src="<?php echo esc_url($imgUrl); ?>" alt="<?php echo esc_attr($product->get_name()); ?>" loading="lazy"<?php echo $imgClass; ?>>
                 </a>
                 <div class="acore-store-item-body">
                     <h3 class="acore-store-item-title"><a href="<?php echo esc_url($link); ?>"><?php echo esc_html($product->get_name()); ?></a></h3>

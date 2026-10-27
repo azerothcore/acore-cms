@@ -13,10 +13,19 @@
     display: none;
 }
 
+.woocommerce ul.products,
+.woocommerce-page ul.products {
+    align-items: stretch;
+}
+
+/* every card in a row has the same height: image on top, the button at the bottom */
 .woocommerce ul.products li.product,
 .woocommerce-page ul.products li.product {
+    display: flex;
+    flex-direction: column;
     float: none;
     width: 100%;
+    height: 100%;
     margin: 0;
     padding-bottom: 0.75rem;
     overflow: hidden;
@@ -31,12 +40,34 @@
     box-shadow: var(--acore-shadow);
 }
 
+.woocommerce ul.products li.product > a.woocommerce-LoopProduct-link {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    text-decoration: none;
+}
+
 .woocommerce ul.products li.product img {
+    display: block;
     width: 100%;
     height: 180px;
     margin: 0 0 0.5rem;
     object-fit: cover;
     border-radius: 0;
+}
+
+/* products without an image: the AzerothCore logo, whole and centred */
+.woocommerce ul.products li.product img.acore-placeholder-logo,
+.woocommerce div.product img.acore-placeholder-logo {
+    padding: 1.5rem;
+    object-fit: contain;
+    background: var(--acore-header);
+}
+
+/* small text the services add to a card (e.g. the item "Details" link) */
+.woocommerce ul.products li.product p {
+    margin: 0 0.75rem 0.25rem;
+    font-size: 0.85rem;
 }
 
 html[class*="acore-"] .woocommerce ul.products li.product .woocommerce-loop-product__title {
@@ -57,7 +88,7 @@ html[class*="acore-"] .woocommerce ul.products li.product .price ins {
 
 .woocommerce ul.products li.product .button {
     display: block;
-    margin: 0.5rem 0.75rem 0;
+    margin: auto 0.75rem 0;
     border-radius: 6px;
     text-align: center;
 }

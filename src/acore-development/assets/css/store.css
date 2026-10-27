@@ -123,6 +123,7 @@ html[class*="acore-"] .acore-store .acore-store-back:hover {
 
 .acore-store-grid {
     display: grid;
+    align-items: stretch;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 1.25rem;
     margin: 0;
@@ -158,6 +159,12 @@ html[class*="acore-"] .acore-store .acore-store-back:hover {
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s;
+}
+
+.acore-store-item-img img.acore-placeholder-logo {
+    padding: 1.5rem;
+    object-fit: contain;
+    background: var(--acore-header);
 }
 
 .acore-store-item:hover .acore-store-item-img img {

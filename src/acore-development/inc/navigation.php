@@ -48,6 +48,9 @@ function acore_theme_account_links()
             ? wc_get_page_permalink('myaccount')
             : get_edit_profile_url();
         printf('<a class="acore-account-name" href="%s">%s</a>', esc_url($account), esc_html(wp_get_current_user()->user_login));
+        if (function_exists('acore_theme_points_available') && acore_theme_points_available()) {
+            printf('<span class="acore-account-points">%s</span>', esc_html(acore_theme_points_format(acore_theme_points_balance())));
+        }
         printf('<a class="acore-account-btn" href="%s">%s</a>', esc_url(wp_logout_url($here)), esc_html__('Log out', 'acore-development'));
     } else {
         if (get_option('users_can_register')) {

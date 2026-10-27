@@ -581,3 +581,87 @@ html[class*="acore-"] .acore-dev-table th {
         display: none;
     }
 }
+
+/* Points panel (inc/dev/points.php) and the balance in the header */
+
+html[class*="acore-"] .acore-account-points {
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 20px;
+    background: var(--acore-accent-soft);
+    color: var(--acore-link);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.acore-points {
+    margin: 0 0 1.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 12px;
+    background: var(--acore-surface);
+}
+
+.acore-points-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.acore-points-balance {
+    flex: 1 1 200px;
+}
+
+.acore-points-label {
+    display: block;
+    color: var(--acore-muted);
+    font-size: 0.8rem;
+}
+
+.acore-points-balance strong {
+    color: var(--acore-heading);
+    font-size: 1.2rem;
+}
+
+.acore-points-buy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+}
+
+html[class*="acore-"] .acore-points .acore-points-pack {
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+html[class*="acore-"] .acore-points-custom input[type="number"] {
+    width: 7.5rem;
+    padding: 0.35rem 0.6rem;
+}
+
+.acore-points-note {
+    margin: 0.6rem 0 0;
+    color: var(--acore-muted);
+    font-size: 0.8rem;
+}
+
+.acore-points-message {
+    margin: 0 0 0.75rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.acore-points-ok {
+    background: #1e7d3a;
+    color: #ffffff;
+}
+
+.acore-points-error {
+    background: #b42318;
+    color: #ffffff;
+}

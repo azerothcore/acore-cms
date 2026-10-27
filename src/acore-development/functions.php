@@ -13,6 +13,7 @@
  * inc/dev/setup.php    the test shop: categories, a test product per service, Store / info pages (always)
  * inc/dev/info.php     [acore_dev_info]: what the CMS needs and what's set up (the front page)
  * inc/dev/test-gateway "ACore test payment": everyone in development, administrators otherwise
+ * inc/dev/points.php   buy test AzerothCore Points (packs or a custom amount), [acore_points]
  */
 
 defined('ABSPATH') || exit;
@@ -47,6 +48,14 @@ function acore_theme_asset_version($path)
     return $mtime ? (string) $mtime : ACORE_THEME_VERSION;
 }
 
+/** Products without an image show the AzerothCore logo. */
+add_filter('woocommerce_placeholder_img_src', function () {
+    return ACORE_THEME_URI . '/assets/images/azerothcore-logo.png';
+});
+add_filter('woocommerce_placeholder_img', function ($html) {
+    return str_replace('class="', 'class="acore-placeholder-logo ', $html);
+});
+
 require ACORE_THEME_DIR . '/inc/customizer.php';
 require ACORE_THEME_DIR . '/inc/appearance.php';
 require ACORE_THEME_DIR . '/inc/navigation.php';
@@ -55,5 +64,6 @@ require ACORE_THEME_DIR . '/inc/shop.php';
 
 require ACORE_THEME_DIR . '/inc/dev/plugins.php';
 require ACORE_THEME_DIR . '/inc/dev/test-gateway.php';
+require ACORE_THEME_DIR . '/inc/dev/points.php';
 require ACORE_THEME_DIR . '/inc/dev/setup.php';
 require ACORE_THEME_DIR . '/inc/dev/info.php';
