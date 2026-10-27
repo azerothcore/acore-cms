@@ -18,7 +18,7 @@
 defined('ABSPATH') || exit;
 
 /** Bump to make every development site run the setup again (it only ever adds what's missing). */
-define('ACORE_THEME_DEV_SETUP_VERSION', 6);
+define('ACORE_THEME_DEV_SETUP_VERSION', 7);
 
 /** Categories: slug => [name, parent slug or null]. */
 function acore_theme_dev_categories()
@@ -53,7 +53,7 @@ function acore_theme_dev_products()
         ['char-change-customize', 'Appearance Change', 5, 'acore-characters', 'Lets a character change its appearance at its next login. ' . $character],
         ['char-restore-delete', 'Restore Deleted Character', 10, 'acore-characters', 'Restores a deleted character. Pick it from your deleted characters on this page.'],
         ['char-transfer-sku', 'Character Transfer', 15, 'acore-characters', 'Moves a character to another game account. ' . $character . ' Then enter the destination account.'],
-        ['name-unlock', 'Name Unlock', 5, 'acore-characters', 'Frees a reserved character name. Enter the name and pick the character on this page.'],
+        ['name-unlock', 'Name Unlock', 5, 'acore-characters', 'Frees the name of an inactive character for one of your characters, and renames yours to it (the rename is included). Enter the name and pick your character on this page.'],
         ['itemsend_6948', 'Item: Hearthstone', 1, 'acore-items', 'Sends a Hearthstone (item 6948) to a character by mail. ' . $character],
         ['itemsend_4306_stack', 'Item: Silk Cloth (stack)', 1, 'acore-items', 'Sends Silk Cloth (item 4306) by mail; the quantity is the stack size. ' . $character],
         ['item-restoration', 'Item Restoration', 5, 'acore-items', 'Restores an item the character deleted or sold. Pick the character and the item on this page.'],
@@ -64,6 +64,22 @@ function acore_theme_dev_products()
         ['smartstone_0_1', 'SmartStone: Companion #1', 3, 'acore-smartstone-companion', 'Unlocks SmartStone companion 1 for a character (the id must exist in your SmartStone data). ' . $character],
         ['smartstone_2_1', 'SmartStone: Costume #1', 3, 'acore-smartstone-costume', 'Unlocks SmartStone costume 1 for the whole account (the id must exist in your SmartStone data).'],
     ];
+}
+
+/** The full product description of a test product (defaults to its short description). */
+function acore_theme_dev_product_description($sku, $short)
+{
+    $descriptions = [
+        'name-unlock' => '<p>' . __('The perfect name for your character is already in use by someone else, but they are not active anymore? You can now free up an inactive character\'s name with this service!', 'acore-development') . '</p>'
+            . '<p>' . __('This service allows you to claim a name that is currently held by an old, inactive character. The inactive character will be renamed with a randomly generated name, freeing up the desired name for your use.', 'acore-development') . '</p>'
+            . '<p><strong>' . __('Example:', 'acore-development') . '</strong></p><ul>'
+            . '<li>' . __('You want your character "mycharacterName" to have the name "lockedName".', 'acore-development') . '</li>'
+            . '<li>' . __('The inactive character currently named "lockedName" will be automatically renamed with a random name.', 'acore-development') . '</li>'
+            . '<li>' . __('Your character "mycharacterName" will then be renamed to "lockedName".', 'acore-development') . '</li></ul>'
+            . '<p>' . __('The rename is included: you don\'t need to buy a character rename.', 'acore-development') . '</p>'
+            . '<p><strong>' . __('Note:', 'acore-development') . '</strong> ' . __('you can\'t unlock a character\'s name if the character\'s account has a subscription.', 'acore-development') . '</p>',
+    ];
+    return $descriptions[$sku] ?? $short;
 }
 
 /** Term id of a product category, created when missing. */
@@ -172,7 +188,7 @@ function acore_theme_dev_setup($force = false, $allowInstall = true)
             $product->set_virtual(true);
             $product->set_menu_order($order);
             $product->set_short_description($description);
-            $product->set_description($description . "\n\n<em>Test product created by the ACore Development theme.</em>");
+            $product->set_description(acore_theme_dev_product_description($sku, $description) . "\n\n<em>Test product created by the ACore Development theme.</em>");
             $categoryId = acore_theme_dev_category_id($categorySlug, $categories, $log);
             if ($categoryId) {
                 $product->set_category_ids([$categoryId]);
@@ -208,6 +224,20 @@ function acore_theme_dev_setup($force = false, $allowInstall = true)
         if ($term && $term->name === $names[0]) {
             wp_update_term($term->term_id, 'product_cat', ['name' => $names[1]]);
             $log[] = "Category renamed: {$names[0]} -> {$names[1]}";
+        }
+    }
+
+    // test products from earlier versions: the name unlock's old short text gets the full description
+    $nameUnlockId = wc_get_product_id_by_sku('name-unlock');
+    $nameUnlock   = $nameUnlockId ? wc_get_product($nameUnlockId) : null;
+    if ($nameUnlock && strpos($nameUnlock->get_short_description(), 'Frees a reserved character name') === 0) {
+        foreach (acore_theme_dev_products() as $definition) {
+            if ($definition[0] === 'name-unlock') {
+                $nameUnlock->set_short_description($definition[4]);
+                $nameUnlock->set_description(acore_theme_dev_product_description('name-unlock', $definition[4]) . "\n\n<em>Test product created by the ACore Development theme.</em>");
+                $nameUnlock->save();
+                $log[] = 'Product updated: Name Unlock (description)';
+            }
         }
     }
 
