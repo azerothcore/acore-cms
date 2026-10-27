@@ -18,7 +18,7 @@
 defined('ABSPATH') || exit;
 
 /** Bump to make every development site run the setup again (it only ever adds what's missing). */
-define('ACORE_THEME_DEV_SETUP_VERSION', 5);
+define('ACORE_THEME_DEV_SETUP_VERSION', 6);
 
 /** Categories: slug => [name, parent slug or null]. */
 function acore_theme_dev_categories()
@@ -195,6 +195,20 @@ function acore_theme_dev_setup($force = false, $allowInstall = true)
             'menu_order'   => 1,
         ]);
         $log[] = is_wp_error($id) ? 'Store page: ' . $id->get_error_message() : 'Page created: Store ([acore_store])';
+    }
+
+    // categories from earlier versions: Mount (can't be granted by command) goes when empty; the old names follow
+    $mount = get_term_by('slug', 'acore-smartstone-mount', 'product_cat');
+    if ($mount && (int) $mount->count === 0) {
+        wp_delete_term($mount->term_id, 'product_cat');
+        $log[] = 'Category removed: Mount (SmartStone mounts can\'t be granted by command)';
+    }
+    foreach (['acore-smartstone-pet' => ['Pet', 'Combat Pet'], 'acore-smartstone-perk' => ['Perk', 'Class Perk']] as $slug => $names) {
+        $term = get_term_by('slug', $slug, 'product_cat');
+        if ($term && $term->name === $names[0]) {
+            wp_update_term($term->term_id, 'product_cat', ['name' => $names[1]]);
+            $log[] = "Category renamed: {$names[0]} -> {$names[1]}";
+        }
     }
 
     acore_theme_dev_classic_page(wc_get_page_id('cart'), 'woocommerce_cart', $force, $log);

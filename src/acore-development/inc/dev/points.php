@@ -34,7 +34,10 @@ function acore_theme_points_format($amount)
 {
     if (function_exists('mycred')) {
         $mycred = mycred();
-        return $mycred->format_creds($amount) . ' ' . $mycred->plural();
+        // format_creds() already adds the point type's prefix / suffix ("1,000 AzerothCore Points");
+        // only add the name when the point type has neither
+        $text = trim((string) $mycred->format_creds($amount));
+        return (empty($mycred->before) && empty($mycred->after)) ? $text . ' ' . $mycred->plural() : $text;
     }
     return number_format_i18n($amount) . ' ' . ACORE_THEME_POINTS_PLURAL;
 }
@@ -115,6 +118,8 @@ function acore_theme_points_panel()
 
         <?php if (acore_theme_points_can_buy()) : ?>
             <p class="acore-points-note"><?php esc_html_e('Test points: no money is taken, they are added to your balance right away.', 'acore-development'); ?></p>
+        <?php elseif (is_user_logged_in()) : ?>
+            <p class="acore-points-note"><?php esc_html_e('Buying test points is available when the site runs in development (DOCKER_ENVIRONMENT=development), or for administrators. An administrator can also set your balance under Users.', 'acore-development'); ?></p>
         <?php endif; ?>
     </div>
     <?php
