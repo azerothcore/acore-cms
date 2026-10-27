@@ -71,6 +71,7 @@ require ACORE_THEME_DIR . '/inc/appearance.php';
 require ACORE_THEME_DIR . '/inc/navigation.php';
 require ACORE_THEME_DIR . '/inc/store.php';
 require ACORE_THEME_DIR . '/inc/shop.php';
+require ACORE_THEME_DIR . '/inc/product-admin.php';
 
 require ACORE_THEME_DIR . '/inc/dev/plugins.php';
 require ACORE_THEME_DIR . '/inc/dev/test-gateway.php';

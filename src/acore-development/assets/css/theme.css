@@ -665,3 +665,96 @@ html[class*="acore-"] .acore-points-custom input[type="number"] {
     background: #b42318;
     color: #ffffff;
 }
+
+/* ---------- product admin: "Edit" buttons and the shop admin toolbar (users who can edit products) ---------- */
+
+.woocommerce ul.products li.product,
+.acore-store-item {
+    position: relative;
+}
+
+.acore-edit-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid var(--acore-border, #dee2e6);
+    border-radius: 999px;
+    background: var(--acore-surface, #fff);
+    color: var(--acore-text, #212529);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.acore-edit-chip:hover,
+.acore-edit-chip:focus {
+    background: var(--acore-accent, #5865f2);
+    border-color: var(--acore-accent, #5865f2);
+    color: var(--acore-accent-text, #fff);
+    text-decoration: none;
+}
+
+/* on product cards: over the image's top right corner */
+.woocommerce ul.products li.product > .acore-edit-chip,
+.acore-store-item > .acore-edit-chip {
+    position: absolute;
+    z-index: 3;
+    top: 8px;
+    right: 8px;
+}
+
+/* product page: above the title; info page: after the product name */
+.woocommerce div.product .summary > .acore-edit-chip {
+    margin-bottom: 0.75rem;
+}
+
+.acore-dev-services td .acore-edit-chip {
+    margin-left: 6px;
+    padding: 1px 8px;
+    box-shadow: none;
+}
+
+.acore-admin-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 1.25rem;
+    padding: 8px 12px;
+    border: 1px dashed var(--acore-border, #dee2e6);
+    border-radius: 8px;
+    background: var(--acore-accent-soft, rgba(88, 101, 242, 0.12));
+}
+
+.acore-admin-toolbar-label {
+    margin-right: 4px;
+    color: var(--acore-muted, #6c757d);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.acore-admin-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--acore-surface, #fff);
+    color: var(--acore-text, #212529);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.acore-admin-toolbar-btn:hover,
+.acore-admin-toolbar-btn:focus {
+    background: var(--acore-accent, #5865f2);
+    color: var(--acore-accent-text, #fff);
+    text-decoration: none;
+}

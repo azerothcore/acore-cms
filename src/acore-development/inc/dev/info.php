@@ -212,6 +212,7 @@ function acore_theme_dev_info_shortcode()
     ?>
     <div class="acore-dev">
         <p class="acore-dev-intro"><?php esc_html_e('This site runs the ACore Development theme: everything needed to try the AzerothCore CMS features, and whether it is set up.', 'acore-development'); ?></p>
+        <?php if (class_exists('WooCommerce') && function_exists('acore_theme_product_admin_toolbar')) echo acore_theme_product_admin_toolbar(); // escaped in the function ?>
 
         <?php
         acore_theme_dev_info_section(__('Site', 'acore-development'), acore_theme_dev_info_site());
@@ -242,6 +243,7 @@ function acore_theme_dev_info_shortcode()
                         <td>
                             <?php if ($productId) : ?>
                                 <a href="<?php echo esc_url(get_permalink($productId)); ?>"><?php echo esc_html(get_the_title($productId)); ?></a>
+                                <?php if (function_exists('acore_theme_product_edit_button')) echo acore_theme_product_edit_button($productId); // escaped in the function ?>
                             <?php else : ?>
                                 <span class="acore-dev-status acore-dev-bad"><?php esc_html_e('Missing', 'acore-development'); ?></span> <?php echo esc_html($name); ?>
                             <?php endif; ?>
