@@ -4,6 +4,7 @@
  *
  * Runs once (automatically, on the first page load) and creates what's missing:
  *  - the required plugins (WooCommerce, myCred, WP 2FA) installed and activated, WooCommerce pre-set (plugins.php)
+ *  - prices and payments in AzerothCore Points (myCred) instead of money
  *  - product categories for the ACore services (SmartStone with its sub-categories)
  *  - one test product for every ACore service SKU (existing products with that SKU are left alone)
  *  - a "Store" page with [acore_store]
@@ -17,7 +18,7 @@
 defined('ABSPATH') || exit;
 
 /** Bump to make every development site run the setup again (it only ever adds what's missing). */
-define('ACORE_THEME_DEV_SETUP_VERSION', 3);
+define('ACORE_THEME_DEV_SETUP_VERSION', 4);
 
 /** Categories: slug => [name, parent slug or null]. */
 function acore_theme_dev_categories()
@@ -135,6 +136,9 @@ function acore_theme_dev_setup($force = false, $allowInstall = true)
     if (!class_exists('WooCommerce') || !taxonomy_exists('product_cat')) {
         $log[] = 'WooCommerce is not loaded yet: the shop is set up on the next page load.';
         return $log;
+    }
+    if (!acore_theme_points_defaults($log)) {
+        return $log;   // myCred loads on the next page load: the setup finishes then
     }
     acore_theme_woocommerce_defaults($log);
 

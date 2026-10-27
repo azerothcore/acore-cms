@@ -53,7 +53,7 @@ add_action('customize_register', function ($wp_customize) {
     ]);
     $wp_customize->add_control('acore_nav_max_pages', [
         'label'       => __('Menu entries before "More"', 'acore-development'),
-        'description' => __('The rest go into the "More" dropdown. Uses the Primary menu, or all published pages when no menu is assigned.', 'acore-development'),
+        'description' => __('The rest go into the "More" dropdown. Uses the Primary menu (Appearance > Menus), or the theme\'s own pages when none is assigned.', 'acore-development'),
         'section'     => 'acore_theme',
         'type'        => 'number',
         'input_attrs' => ['min' => 1, 'max' => 20],
@@ -77,7 +77,7 @@ add_action('customize_register', function ($wp_customize) {
     ]);
     $wp_customize->add_control('acore_price_label', [
         'label'       => __('Store price label', 'acore-development'),
-        'description' => __('Shown after the price on the store page, e.g. "ChromiePoints". Leave empty to use the WooCommerce currency.', 'acore-development'),
+        'description' => __('Overrides the unit after the price on the store page, e.g. "ChromiePoints". Leave empty to use the WooCommerce currency (AzerothCore Points).', 'acore-development'),
         'section'     => 'acore_theme',
         'type'        => 'text',
     ]);

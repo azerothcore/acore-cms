@@ -163,6 +163,12 @@ function acore_theme_dev_info_shop()
             $classic ? __('classic (the services\' fields work)', 'acore-development') : __('block version: the services add their fields to the classic one (wp acore-dev setup --force)', 'acore-development'),
             $id > 0 ? get_permalink($id) : '', __('Open', 'acore-development'));
     }
+    $currency = get_woocommerce_currency();
+    $points   = $currency === 'MYC' || (function_exists('mycred_point_type_exists') && mycred_point_type_exists($currency));
+    $rows[]   = acore_theme_dev_row(__('Prices in', 'acore-development'), $points ? 'ok' : 'warn',
+        $points ? sprintf(__('%s (myCred points, paid from the buyer\'s balance)', 'acore-development'), html_entity_decode(get_woocommerce_currency_symbol()) ?: $currency)
+            : sprintf(__('%s - money, not points (wp acore-dev setup --force switches to points)', 'acore-development'), $currency),
+        admin_url('admin.php?page=wc-settings'), __('Settings', 'acore-development'));
     $gateways = WC()->payment_gateways() ? WC()->payment_gateways()->get_available_payment_gateways() : [];
     $names    = array_map(function ($gateway) {
         return wp_strip_all_tags($gateway->get_title());

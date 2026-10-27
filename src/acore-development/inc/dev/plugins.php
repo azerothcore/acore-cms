@@ -21,16 +21,24 @@ function acore_theme_required_plugins()
 
 /**
  * Pinned releases for older WordPress versions: slug => [ WordPress below this version => release to install ].
- * The latest release is installed when WordPress is new enough. From each release's readme ("Requires at least"):
- * WooCommerce 11.1+ needs WordPress 7.0, 10.8.x - 11.0.x need 6.9, 10.5.x - 10.7.0 need 6.8.
+ * The latest release is installed when WordPress is new enough.
+ *
+ * WordPress 6.8.x gets the versions the live ChromieCraft site runs (WordPress 6.8): WooCommerce 10.1.4 (needs
+ * WordPress 6.7+), myCred 2.9.4.5, WP 2FA 2.9.3. WordPress 6.9.x gets WooCommerce 11.0.1 (11.1+ needs WordPress 7.0).
  * Filter: acore_theme_plugin_fallbacks.
  */
 function acore_theme_plugin_fallbacks()
 {
     return apply_filters('acore_theme_plugin_fallbacks', [
         'woocommerce' => [
-            '6.9' => '10.7.0',   // WordPress 6.8.x
+            '6.9' => '10.1.4',   // WordPress 6.8.x, as on live
             '7.0' => '11.0.1',   // WordPress 6.9.x
+        ],
+        'mycred'      => [
+            '6.9' => '2.9.4.5',  // WordPress 6.8.x, as on live
+        ],
+        'wp-2fa'      => [
+            '6.9' => '2.9.3',    // WordPress 6.8.x, as on live
         ],
     ]);
 }
@@ -179,6 +187,70 @@ function acore_theme_woocommerce_defaults(&$log)
         update_option('woocommerce_onboarding_profile', array_merge(is_array($profile) ? $profile : [], ['skipped' => true]));
     }
     $log[] = 'WooCommerce settings: setup wizard skipped, store open (no "coming soon"), checkout needs an account.';
+}
+
+/** The name of the theme's points (myCred point type) and the WooCommerce currency they become. */
+define('ACORE_THEME_POINTS_SINGULAR', 'AzerothCore Point');
+define('ACORE_THEME_POINTS_PLURAL', 'AzerothCore Points');
+
+/**
+ * Prices and payments in points instead of money, with myCred's own WooCommerce integration:
+ *  - the default point type is named "AzerothCore Points" (unless it was renamed already)
+ *  - WooCommerce's currency is that point type ("MYC"), shown as "25 AzerothCore Points", no decimals
+ *  - myCred's gateway add-on is active and its "pay with points" method enabled
+ * Returns false when myCred isn't loaded yet (activated during this request).
+ */
+function acore_theme_points_defaults(&$log)
+{
+    if (!function_exists('mycred_get_option') || !function_exists('mycred_update_option')) {
+        $log[] = 'myCred is not loaded yet: points are set up on the next page load.';
+        return false;
+    }
+
+    // the point type's name (myCred's defaults are "Point" / "Points")
+    $core = mycred_get_option('mycred_pref_core', []);
+    if (is_array($core)) {
+        $plural = isset($core['name']['plural']) ? $core['name']['plural'] : '';
+        if ($plural === '' || $plural === 'Points') {
+            $core['name']   = ['singular' => ACORE_THEME_POINTS_SINGULAR, 'plural' => ACORE_THEME_POINTS_PLURAL];
+            $core['before'] = '';
+            $core['after']  = ACORE_THEME_POINTS_PLURAL;
+            if (!isset($core['format']) || !is_array($core['format'])) {
+                $core['format'] = ['type' => 'bigint', 'decimals' => 0, 'separators' => ['decimal' => '.', 'thousand' => ',']];
+            }
+            mycred_update_option('mycred_pref_core', $core);
+            $log[] = 'myCred points named "' . ACORE_THEME_POINTS_PLURAL . '".';
+        }
+    }
+
+    // myCred's WooCommerce gateway lives in its "gateway" add-on
+    $addons = mycred_get_option('mycred_pref_addons', []);
+    if (is_array($addons)) {
+        $active = isset($addons['active']) && is_array($addons['active']) ? $addons['active'] : [];
+        if (!in_array('gateway', $active, true)) {
+            $active[]         = 'gateway';
+            $addons['active'] = $active;
+            mycred_update_option('mycred_pref_addons', $addons);
+            $log[] = 'myCred gateway add-on activated.';
+        }
+    }
+
+    // WooCommerce prices in points
+    update_option('woocommerce_currency', 'MYC');
+    update_option('woocommerce_currency_pos', 'right_space');
+    update_option('woocommerce_price_num_decimals', 0);
+
+    // and paid with points
+    $gateway = get_option('woocommerce_mycred_settings', []);
+    $gateway = is_array($gateway) ? $gateway : [];
+    $gateway['enabled'] = 'yes';
+    if (empty($gateway['title']) || $gateway['title'] === 'Pay with myCRED') {
+        $gateway['title'] = 'Pay with ' . ACORE_THEME_POINTS_PLURAL;
+    }
+    update_option('woocommerce_mycred_settings', $gateway);
+
+    $log[] = 'Store prices are in ' . ACORE_THEME_POINTS_PLURAL . ' and paid with them (myCred).';
+    return true;
 }
 
 /** Switching to this theme installs what's missing right away (the admin is the one switching). */
