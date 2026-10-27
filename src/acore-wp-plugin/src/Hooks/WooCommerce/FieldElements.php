@@ -130,6 +130,24 @@ class FieldElements {
      * Characters that can't use a service: race icon, class icon, name, then the reason.
      * $reasons: guid => reason (several reasons for one character can be passed as an array).
      */
+    /**
+     * A character's race and class icons with the same borders as the characters list: faction color around the race,
+     * class color around the class (the classes are the ones main.css / the dark mode use, the borders are inline here
+     * because main.css isn't loaded on product pages). $classId 0 = race icon only, $raceIcon = icon URL override.
+     */
+    public static function charIconsHtml(int $raceId, int $classId, string $raceIcon, string $classIcon = '', int $size = 24): string {
+        $vars = \ACore\Utils\AcoreCharColors::iconVars($classId, $raceId);
+        $img  = 'width: ' . $size . 'px; height: ' . $size . 'px; display: inline-block; vertical-align: middle; transform: translateZ(0); border: 3px solid; border-radius: 4px; box-sizing: content-box;';
+        $html = '<span class="acore-char-meta" style="' . esc_attr($vars) . ' display: inline-flex; align-items: center; gap: 4px;">'
+            . '<img class="race-icon" src="' . esc_url($raceIcon) . '" alt="' . esc_attr(\ACore\Utils\AcoreCharColors::getRaceName($raceId)) . '"'
+            . ' title="' . esc_attr(\ACore\Utils\AcoreCharColors::getRaceName($raceId)) . '" style="' . $img . ' border-color: var(--faction-color);">';
+        if ($classId && $classIcon !== '') {
+            $html .= '<img class="class-icon" src="' . esc_url($classIcon) . '" alt="' . esc_attr(\ACore\Utils\AcoreCharColors::getClassName($classId)) . '"'
+                . ' title="' . esc_attr(\ACore\Utils\AcoreCharColors::getClassName($classId)) . '" style="' . $img . ' border-color: var(--cls-light);">';
+        }
+        return $html . '</span>';
+    }
+
     public static function blockedCharacterRows($characters, array $reasons): void {
         echo '<div class="acore-char-blocked" style="margin: 0.5em 0 1em;">';
         echo '<p style="margin: 0 0 0.4em; color: #ff7961;">' . esc_html__('Not possible for:', 'acore-wp-plugin') . '</p>';
@@ -139,8 +157,7 @@ class FieldElements {
             }
             foreach ((array) $reasons[$character->getGuid()] as $reason) {
                 echo '<div title="' . esc_attr($reason) . '" style="display: flex; align-items: center; gap: 6px; margin: 0 0 0.35em; cursor: help;">'
-                    . '<img src="' . esc_url($character->getCharIconUrl()) . '" alt="" style="width: 28px; height: 28px; opacity: 0.6;">'
-                    . '<img src="' . esc_url($character->getClassIconUrl()) . '" alt="" style="width: 28px; height: 28px; opacity: 0.6;">'
+                    . self::charIconsHtml($character->getRace(), $character->getClass(), $character->getCharIconUrl(), $character->getClassIconUrl(), 24)
                     . '<strong>' . esc_html($character->getName()) . '</strong>'
                     . '<span style="color: #ff7961;">' . esc_html($reason) . '</span>'
                     . '</div>';

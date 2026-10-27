@@ -186,8 +186,7 @@ class CharChange extends \ACore\Lib\WpClass {
             }
             foreach (['alliance' => self::$allianceRaces, 'horde' => self::$hordeRaces] as $key => $races) {
                 if (!empty($groups[$key])) {
-                    // faction change: the current race isn't among the other faction's races, so it gets its own column
-                    self::availabilityTable($races, $groups[$key], $serviceSku === 'char-change-faction', $nameChars);
+                    self::availabilityTable($races, $groups[$key], $nameChars);
                 }
             }
         }
@@ -196,41 +195,32 @@ class CharChange extends \ACore\Lib\WpClass {
         }
     }
 
-    private static function availabilityTable(array $races, array $rows, bool $currentColumn, int $nameChars): void {
+    private static function availabilityTable(array $races, array $rows, int $nameChars): void {
         $nameChars += 2; // bold text is a little wider than ch
         $cell = 'padding: 4px 6px; text-align: center; vertical-align: middle; overflow: hidden;';
-        // fixed layout: name column = two icons + the longest name, each race column 72px
-        $nameWidth = 'calc(' . (int) $nameChars . 'ch + 76px)';
-        $columns   = count($races) + ($currentColumn ? 1 : 0);
-        echo '<table class="acore-char-races" style="table-layout: fixed; width: calc(' . (int) $nameChars . 'ch + 76px + ' . ($columns * 72) . 'px); max-width: 100%; margin: 0.25em 0 0.75em; border-collapse: collapse;">'
+        // fixed layout: name column = two bordered icons + the longest name, each race column 72px
+        $nameWidth = 'calc(' . (int) $nameChars . 'ch + 90px)';
+        $columns   = count($races);
+        echo '<table class="acore-char-races" style="table-layout: fixed; width: calc(' . (int) $nameChars . 'ch + 90px + ' . ($columns * 72) . 'px); max-width: 100%; margin: 0.25em 0 0.75em; border-collapse: collapse;">'
             . '<colgroup><col style="width: ' . $nameWidth . ';">' . str_repeat('<col style="width: 72px;">', $columns) . '</colgroup>'
             . '<thead><tr><th style="' . $cell . '"></th>';
-        if ($currentColumn) {
-            echo '<th style="' . $cell . ' font-weight: normal; vertical-align: bottom;"><small>' . esc_html__('Current', 'acore-wp-plugin') . '</small></th>';
-        }
         foreach ($races as $race) {
             $name = self::$raceNames[$race] ?? ('race ' . $race);
             echo '<th style="' . $cell . ' font-weight: normal;" title="' . esc_attr($name) . '">'
-                . '<img src="' . esc_url(ACORE_URL_PLG . 'web/assets/race/' . $race . 'm.webp') . '" alt="' . esc_attr($name) . '" style="width: 24px; height: 24px; display: block; margin: 0 auto;">'
+                . FieldElements::charIconsHtml($race, 0, ACORE_URL_PLG . 'web/assets/race/' . $race . 'm.webp', '', 24) . '<br>'
                 . '<small>' . esc_html($name) . '</small></th>';
         }
         echo '</tr></thead><tbody>';
         foreach ($rows as [$char, $options]) {
             echo '<tr><td style="' . $cell . ' text-align: left; white-space: nowrap;">'
-                . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 24px; height: 24px; vertical-align: middle;"> '
-                . '<img src="' . esc_url($char->getClassIconUrl()) . '" alt="" style="width: 24px; height: 24px; vertical-align: middle;"> '
-                . '<strong>' . esc_html($char->getName()) . '</strong></td>';
-            if ($currentColumn) {
-                $raceName = self::$raceNames[$char->getRace()] ?? '';
-                echo '<td style="' . $cell . ' cursor: help;" title="' . esc_attr(sprintf(__('Current race: %s', 'acore-wp-plugin'), $raceName)) . '">'
-                    . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 22px; height: 22px; display: block; margin: 0 auto;"></td>';
-            }
+                . FieldElements::charIconsHtml($char->getRace(), $char->getClass(), $char->getCharIconUrl(), $char->getClassIconUrl(), 24)
+                . ' <strong style="vertical-align: middle;">' . esc_html($char->getName()) . '</strong></td>';
             foreach ($races as $race) {
                 if (!array_key_exists($race, $options)) {
                     echo '<td style="' . $cell . '"></td>';
                 } elseif ($race === $char->getRace()) {
                     echo '<td style="' . $cell . ' cursor: help;" title="' . esc_attr($options[$race]) . '">'
-                        . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 22px; height: 22px; display: block; margin: 0 auto;"></td>';
+                        . FieldElements::charIconsHtml($char->getRace(), 0, $char->getCharIconUrl(), '', 20) . '</td>';
                 } elseif ($options[$race] === null) {
                     echo '<td style="' . $cell . ' color: #4caf50; cursor: help;" title="' . esc_attr__('Possible', 'acore-wp-plugin') . '">&#10004;</td>';
                 } else {

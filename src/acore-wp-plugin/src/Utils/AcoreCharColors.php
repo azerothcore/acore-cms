@@ -93,6 +93,13 @@ class AcoreCharColors {
         );
     }
 
+    /** The color variables of rowStyle() without the row borders, for the race / class icon borders elsewhere. */
+    public static function iconVars(int $classId, int $raceId): string {
+        $cls    = self::CLASS_COLORS[$classId] ?? ['light' => self::FALLBACK_LIGHT, 'dark' => self::FALLBACK_DARK];
+        $fColor = (self::RACE_FACTION[$raceId] ?? 'unknown') === 'alliance' ? '#3FACF4' : '#FF653D';
+        return sprintf('--cls-light:%s; --cls-dark:%s; --faction-color:%s;', $cls['light'], $cls['dark'], $fColor);
+    }
+
     /** Returns the expansion slug for a level, used as data-exp attribute. */
     public static function expansionSlug(int $level): string {
         if ($level <= 60) return 'vanilla';
