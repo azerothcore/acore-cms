@@ -197,6 +197,39 @@ html[class*="acore-"] .acore-cart-link:hover {
     color: var(--acore-heading);
 }
 
+.acore-account {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+html[class*="acore-"] .acore-account-name {
+    color: var(--acore-text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-account-name:hover {
+    color: var(--acore-heading);
+    text-decoration: underline;
+}
+
+html[class*="acore-"] .acore-account-btn {
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    background: var(--acore-accent);
+    color: var(--acore-accent-text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-account-btn:hover {
+    background: var(--acore-accent-hover);
+    color: var(--acore-accent-text);
+}
+
 .acore-cart-count {
     min-width: 1.4em;
     padding: 0 0.35em;

@@ -6,8 +6,10 @@
 defined('ABSPATH') || exit;
 
 /**
- * The menu entries: the top level of the menu assigned to "Primary", or every published page when none is.
- * Each entry: [ 'title' => ..., 'url' => ... ].
+ * The menu entries: the top level of the menu assigned to "Primary" (Appearance > Menus) when there is one,
+ * otherwise the theme's own pages - the ACore Development info page, the Store and the WooCommerce shop - so pages
+ * other plugins create (WP 2FA, ...) and WordPress's "Sample Page" don't fill the bar.
+ * Each entry: [ 'title' => ..., 'url' => ... ]. Filter: acore_theme_nav_entries.
  */
 function acore_theme_nav_entries()
 {
@@ -21,19 +23,39 @@ function acore_theme_nav_entries()
                 $entries[] = ['title' => $item->title, 'url' => $item->url];
             }
         }
-        return $entries;
+        return apply_filters('acore_theme_nav_entries', $entries);
     }
 
-    $pages = get_pages([
-        'sort_column' => 'menu_order,post_title',
-        'sort_order'  => 'ASC',
-        'post_status' => 'publish',
-        'parent'      => 0,
-    ]);
-    foreach ($pages as $page) {
-        $entries[] = ['title' => get_the_title($page), 'url' => get_permalink($page)];
+    foreach (['acore-development', 'store'] as $slug) {
+        $page = get_page_by_path($slug);
+        if ($page && $page->post_status === 'publish') {
+            $entries[] = ['title' => get_the_title($page), 'url' => get_permalink($page)];
+        }
     }
-    return $entries;
+    if (function_exists('wc_get_page_id') && wc_get_page_id('shop') > 0) {
+        $entries[] = ['title' => get_the_title(wc_get_page_id('shop')), 'url' => get_permalink(wc_get_page_id('shop'))];
+    }
+    return apply_filters('acore_theme_nav_entries', $entries);
+}
+
+/** Log in / account / log out links for the header. */
+function acore_theme_account_links()
+{
+    $here = is_singular() ? get_permalink() : home_url('/');
+    echo '<div class="acore-account">';
+    if (is_user_logged_in()) {
+        $account = function_exists('wc_get_page_permalink') && wc_get_page_id('myaccount') > 0
+            ? wc_get_page_permalink('myaccount')
+            : get_edit_profile_url();
+        printf('<a class="acore-account-name" href="%s">%s</a>', esc_url($account), esc_html(wp_get_current_user()->user_login));
+        printf('<a class="acore-account-btn" href="%s">%s</a>', esc_url(wp_logout_url($here)), esc_html__('Log out', 'acore-development'));
+    } else {
+        if (get_option('users_can_register')) {
+            printf('<a class="acore-account-name" href="%s">%s</a>', esc_url(wp_registration_url()), esc_html__('Register', 'acore-development'));
+        }
+        printf('<a class="acore-account-btn" href="%s">%s</a>', esc_url(wp_login_url($here)), esc_html__('Log in', 'acore-development'));
+    }
+    echo '</div>';
 }
 
 /** True when $url is the page being viewed (same host and path). */

@@ -1,6 +1,6 @@
 <?php
 /**
- * Page header: site name / logo, the menu (inc/navigation.php) and the cart link.
+ * Page header: site name / logo, the menu, log in / account links (inc/navigation.php) and the cart link.
  */
 
 defined('ABSPATH') || exit;
@@ -27,6 +27,8 @@ defined('ABSPATH') || exit;
         </div>
 
         <?php acore_theme_primary_navigation(); ?>
+
+        <?php acore_theme_account_links(); ?>
 
         <?php if (function_exists('WC') && WC()->cart) :
             $count = WC()->cart->get_cart_contents_count();
