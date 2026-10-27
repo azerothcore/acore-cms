@@ -8,8 +8,8 @@ class FieldElements {
 
     /**
      * The character dropdown. $blockedReason (optional): function ($character) returning why that character can't
-     * use the service, or null - such characters are greyed out (not selectable) and listed under the dropdown with
-     * their race / class icons and the reason.
+     * use the service, or null - such characters are greyed out (not selectable). The caller lists them with the
+     * reason (blockedCharacterRows).
      */
     public static function charList($username, $deleted = false, ?callable $blockedReason = null): void {
         $ACoreSrv = ACoreServices::I();
@@ -117,11 +117,8 @@ class FieldElements {
             document.getElementById("acore_char_sel").onchange = setIcon;
         </script>
         <?php
-        if (!empty($blocked)) {
-            if ($firstChar === null) {
-                echo '<p style="color: #ff7961;">' . esc_html__('None of your characters can use this service.', 'acore-wp-plugin') . '</p>';
-            }
-            self::blockedCharacterRows($characters, $blocked);
+        if (!empty($blocked) && $firstChar === null) {
+            echo '<p style="color: #ff7961;">' . esc_html__('None of your characters can use this service.', 'acore-wp-plugin') . '</p>';
         }
         if ($bannedChars) {
             echo "Some characters in your account are banned: <br>";
@@ -141,7 +138,7 @@ class FieldElements {
                 continue;
             }
             foreach ((array) $reasons[$character->getGuid()] as $reason) {
-                echo '<div style="display: flex; align-items: center; gap: 6px; margin: 0 0 0.35em;">'
+                echo '<div title="' . esc_attr($reason) . '" style="display: flex; align-items: center; gap: 6px; margin: 0 0 0.35em; cursor: help;">'
                     . '<img src="' . esc_url($character->getCharIconUrl()) . '" alt="" style="width: 28px; height: 28px; opacity: 0.6;">'
                     . '<img src="' . esc_url($character->getClassIconUrl()) . '" alt="" style="width: 28px; height: 28px; opacity: 0.6;">'
                     . '<strong>' . esc_html($character->getName()) . '</strong>'

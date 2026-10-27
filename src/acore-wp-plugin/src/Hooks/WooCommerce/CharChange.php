@@ -91,42 +91,133 @@ class CharChange extends \ACore\Lib\WpClass {
         $className = self::$classNames[$class] ?? ('class ' . $class);
         if ($sku === 'char-change-race') {
             return sprintf(
-                __('A %1$s %2$s can\'t change race: no other %3$s race can be a %2$s.', 'acore-wp-plugin'),
+                __('%1$s %2$s can\'t change race: no other %3$s race can be a %2$s.', 'acore-wp-plugin'),
                 $raceName, $className, $alliance ? __('Alliance', 'acore-wp-plugin') : __('Horde', 'acore-wp-plugin')
             );
         }
         return sprintf(
-            __('A %1$s %2$s can\'t change faction: no %3$s race can be a %2$s.', 'acore-wp-plugin'),
+            __('%1$s %2$s can\'t change faction: no %3$s race can be a %2$s.', 'acore-wp-plugin'),
             $raceName, $className, $alliance ? __('Horde', 'acore-wp-plugin') : __('Alliance', 'acore-wp-plugin')
         );
     }
 
-    /** On the product page: which of the account's characters can't use this race / faction change, and why. */
-    private static function blockedCharactersNotice($sku, $username): void {
+    /**
+     * The races a character could become with a race / faction change: race => null when possible, or the reason.
+     * Race change: the other races of its faction. Faction change: the races of the other faction.
+     */
+    private static function raceOptions($sku, int $race, int $class): array {
+        $alliance = in_array($race, self::$allianceRaces, true);
+        if (!$alliance && !in_array($race, self::$hordeRaces, true)) {
+            return [];
+        }
+        $own     = $alliance ? self::$allianceRaces : self::$hordeRaces;
+        $targets = $sku === 'char-change-race' ? $own : ($alliance ? self::$hordeRaces : self::$allianceRaces);
+        $classRaces = self::classRaces();
+        $className  = self::$classNames[$class] ?? ('class ' . $class);
+        $options = [];
+        foreach ($targets as $target) {
+            $targetName = self::$raceNames[$target] ?? ('race ' . $target);
+            if ($target === $race) {
+                $options[$target] = __('Current race', 'acore-wp-plugin');
+            } elseif (isset($classRaces[$class]) && !in_array($target, $classRaces[$class], true)) {
+                $options[$target] = sprintf(__('%1$s %2$s isn\'t possible.', 'acore-wp-plugin'), $targetName, $className);
+            } else {
+                $options[$target] = null;
+            }
+        }
+        return $options;
+    }
+
+    /**
+     * Under the character dropdown: a table per faction of the races each character could become (check / cross,
+     * with the reason as a tooltip), then the characters that can't use the service at all, in red.
+     */
+    private static function availabilityNotice($sku, $username): void {
         $skus = $sku === 'char-change' ? ['char-change-race', 'char-change-faction'] : [$sku];
-        $skus = array_intersect($skus, ['char-change-race', 'char-change-faction']);
+        $skus = array_values(array_intersect($skus, ['char-change-race', 'char-change-faction']));
         if (empty($skus)) {
             return;
         }
         try {
             $ACoreSrv = ACoreServices::I();
             $account  = $ACoreSrv->getAccountRepo()->findOneByUsername($username);
-            $characters = $account ? $ACoreSrv->getCharactersRepo()->findByAccount($account->getId()) : [];
+            if (!$account || $ACoreSrv->getAccountBannedRepo()->isActiveById($account->getId())) {
+                return;
+            }
+            $banRepo    = $ACoreSrv->getCharactersBannedRepo();
+            $characters = [];
+            foreach ((array) $ACoreSrv->getCharactersRepo()->findByAccount($account->getId()) as $char) {
+                if (!$banRepo->isActiveByGuid($char->getGuid())) {
+                    $characters[] = $char;
+                }
+            }
         } catch (\Throwable $e) {
             return;
         }
+        if (empty($characters)) {
+            return;
+        }
+
         $reasons = [];
-        foreach ((array) $characters as $char) {
-            foreach ($skus as $serviceSku) {
+        foreach ($skus as $serviceSku) {
+            if (count($skus) > 1) {
+                echo '<p style="margin: 0.5em 0 0.25em;"><strong>' . esc_html($serviceSku === 'char-change-race'
+                    ? __('Race change', 'acore-wp-plugin') : __('Faction change', 'acore-wp-plugin')) . '</strong></p>';
+            }
+            // one table per faction of the target races, so each table only has the races of one faction
+            $groups = [];
+            foreach ($characters as $char) {
+                $options = self::raceOptions($serviceSku, $char->getRace(), $char->getClass());
+                if (empty($options)) {
+                    continue;
+                }
+                $key = in_array(array_key_first($options), self::$allianceRaces, true) ? 'alliance' : 'horde';
+                $groups[$key][] = [$char, $options];
                 $reason = self::serviceBlockReason($serviceSku, $char->getRace(), $char->getClass());
                 if ($reason !== null) {
                     $reasons[$char->getGuid()][] = $reason;
                 }
             }
+            foreach (['alliance' => self::$allianceRaces, 'horde' => self::$hordeRaces] as $key => $races) {
+                if (!empty($groups[$key])) {
+                    self::availabilityTable($races, $groups[$key]);
+                }
+            }
         }
         if (!empty($reasons)) {
-            FieldElements::blockedCharacterRows((array) $characters, $reasons);
+            FieldElements::blockedCharacterRows($characters, $reasons);
         }
+    }
+
+    private static function availabilityTable(array $races, array $rows): void {
+        $cell = 'padding: 4px 6px; text-align: center; vertical-align: middle;';
+        echo '<table class="acore-char-races" style="width: auto; margin: 0.25em 0 0.75em; border-collapse: collapse;"><thead><tr><th style="' . $cell . '"></th>';
+        foreach ($races as $race) {
+            $name = self::$raceNames[$race] ?? ('race ' . $race);
+            echo '<th style="' . $cell . ' font-weight: normal;" title="' . esc_attr($name) . '">'
+                . '<img src="' . esc_url(ACORE_URL_PLG . 'web/assets/race/' . $race . 'm.webp') . '" alt="' . esc_attr($name) . '" style="width: 24px; height: 24px; display: block; margin: 0 auto;">'
+                . '<small>' . esc_html($name) . '</small></th>';
+        }
+        echo '</tr></thead><tbody>';
+        foreach ($rows as [$char, $options]) {
+            echo '<tr><td style="' . $cell . ' text-align: left; white-space: nowrap;">'
+                . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 24px; height: 24px; vertical-align: middle;"> '
+                . '<img src="' . esc_url($char->getClassIconUrl()) . '" alt="" style="width: 24px; height: 24px; vertical-align: middle;"> '
+                . '<strong>' . esc_html($char->getName()) . '</strong></td>';
+            foreach ($races as $race) {
+                if (!array_key_exists($race, $options)) {
+                    echo '<td style="' . $cell . '"></td>';
+                } elseif ($race === $char->getRace()) {
+                    echo '<td style="' . $cell . ' opacity: 0.5; cursor: help;" title="' . esc_attr($options[$race]) . '">&mdash;</td>';
+                } elseif ($options[$race] === null) {
+                    echo '<td style="' . $cell . ' color: #4caf50; cursor: help;" title="' . esc_attr__('Possible', 'acore-wp-plugin') . '">&#10004;</td>';
+                } else {
+                    echo '<td style="' . $cell . ' color: #ff7961; cursor: help;" title="' . esc_attr($options[$race]) . '">&#10008;</td>';
+                }
+            }
+            echo '</tr>';
+        }
+        echo '</tbody></table>';
     }
 
     private static function giftingEnabled(): bool {
@@ -200,10 +291,10 @@ class CharChange extends \ACore\Lib\WpClass {
                     return self::serviceBlockReason($sku, $character->getRace(), $character->getClass());
                 });
             } else {
-                FieldElements::charList($current_user->user_login, self::isDeletedSKU($sku));
                 // the variable "char-change" product: the option depends on the chosen variation, so only list them
-                self::blockedCharactersNotice($sku, $current_user->user_login);
+                FieldElements::charList($current_user->user_login, self::isDeletedSKU($sku));
             }
+            self::availabilityNotice($sku, $current_user->user_login);
         }
 
         // Optional gifting via smartstone token: leaving the field blank keeps
