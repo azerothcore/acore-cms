@@ -75,8 +75,8 @@ function acore_theme_install_plugin($slug, $file, &$log)
     require_once ABSPATH . 'wp-admin/includes/misc.php';
     require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-    if (get_transient('acore_theme_install_wait_' . $slug)) {
-        return false;   // failed a few minutes ago: don't slow every page load down
+    if (!(defined('WP_CLI') && WP_CLI) && get_transient('acore_theme_install_wait_' . $slug)) {
+        return false;   // failed a few minutes ago: don't slow every page load down (WP-CLI always tries)
     }
     set_transient('acore_theme_install_wait_' . $slug, 1, 10 * MINUTE_IN_SECONDS);
 
