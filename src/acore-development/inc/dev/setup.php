@@ -2,7 +2,8 @@
 /**
  * The test shop, set up whatever the environment.
  *
- * Runs once (automatically, on the first request with WooCommerce active) and creates what's missing:
+ * Runs once (automatically, on the first page load) and creates what's missing:
+ *  - the required plugins (WooCommerce, myCred, WP 2FA) installed and activated, WooCommerce pre-set (plugins.php)
  *  - product categories for the ACore services (SmartStone with its sub-categories)
  *  - one test product for every ACore service SKU (existing products with that SKU are left alone)
  *  - a "Store" page with [acore_store]
@@ -16,7 +17,7 @@
 defined('ABSPATH') || exit;
 
 /** Bump to make every development site run the setup again (it only ever adds what's missing). */
-define('ACORE_THEME_DEV_SETUP_VERSION', 2);
+define('ACORE_THEME_DEV_SETUP_VERSION', 3);
 
 /** Categories: slug => [name, parent slug or null]. */
 function acore_theme_dev_categories()
@@ -104,8 +105,9 @@ function acore_theme_dev_classic_page($pageId, $shortcode, $force, &$log)
 /**
  * Creates the test shop. Returns what it did, one line per change.
  * $force: also put the classic cart / checkout back, make the info page the front page and re-enable the test payment.
+ * $allowInstall: may download missing plugins (administrators, WP-CLI); activating installed ones always happens.
  */
-function acore_theme_dev_setup($force = false)
+function acore_theme_dev_setup($force = false, $allowInstall = true)
 {
     $log = [];
 
@@ -129,10 +131,12 @@ function acore_theme_dev_setup($force = false)
         $log[] = 'Front page: ACore Development';
     }
 
+    acore_theme_ensure_plugins($log, $allowInstall);
     if (!class_exists('WooCommerce') || !taxonomy_exists('product_cat')) {
-        $log[] = 'WooCommerce is not active: the shop is set up once it is.';
+        $log[] = 'WooCommerce is not loaded yet: the shop is set up on the next page load.';
         return $log;
     }
+    acore_theme_woocommerce_defaults($log);
 
     // WooCommerce's own pages (cart, checkout, my account, shop)
     if (wc_get_page_id('cart') <= 0 || wc_get_page_id('checkout') <= 0) {
@@ -205,9 +209,8 @@ function acore_theme_dev_setup($force = false)
 
 /** Runs the setup once per ACORE_THEME_DEV_SETUP_VERSION (the lock stops two first requests from both running it). */
 add_action('init', function () {
-    $done = (int) get_option('acore_theme_dev_setup', 0) >= ACORE_THEME_DEV_SETUP_VERSION;
-    if ($done || (!class_exists('WooCommerce') && get_page_by_path('acore-development'))) {
-        return;   // done, or the info page exists and the shop waits for WooCommerce
+    if ((int) get_option('acore_theme_dev_setup', 0) >= ACORE_THEME_DEV_SETUP_VERSION) {
+        return;   // done (it keeps trying on each page load until WooCommerce is active and the shop is set up)
     }
     $lock = (int) get_option('acore_theme_dev_setup_lock', 0);
     if ($lock && $lock > time() - 300) {
@@ -217,7 +220,7 @@ add_action('init', function () {
         return;
     }
     update_option('acore_theme_dev_setup_lock', time(), false);
-    $log = acore_theme_dev_setup();
+    $log = acore_theme_dev_setup(false, current_user_can('install_plugins'));
     delete_option('acore_theme_dev_setup_lock');
     if (!empty($log)) {
         error_log('ACore Development setup: ' . implode(' | ', $log));
@@ -239,8 +242,9 @@ add_action('admin_notices', function () {
 
 if (defined('WP_CLI') && WP_CLI) {
     /**
-     * Creates the ACore test shop: categories, a test product per service, the Store and info pages,
-     * classic cart / checkout and the test payment method. Only adds what's missing.
+     * Creates the ACore test shop: installs / activates the required plugins, pre-sets WooCommerce, categories,
+     * a test product per service, the Store and info pages, classic cart / checkout and the test payment method.
+     * Only adds what's missing.
      *
      * ## OPTIONS
      *
@@ -248,7 +252,7 @@ if (defined('WP_CLI') && WP_CLI) {
      * : Also put the classic cart / checkout pages back, make the info page the front page and re-enable the test payment method.
      */
     WP_CLI::add_command('acore-dev setup', function ($args, $assoc) {
-        foreach (acore_theme_dev_setup(!empty($assoc['force'])) as $line) {
+        foreach (acore_theme_dev_setup(!empty($assoc['force']), true) as $line) {
             WP_CLI::log($line);
         }
         WP_CLI::success('ACore test shop is ready.');

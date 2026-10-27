@@ -9,6 +9,7 @@
  * inc/navigation.php   header menu with the "More" dropdown and the mode toggle
  * inc/store.php        [acore_store] shortcode (store page with category tiles and search)
  * inc/shop.php         category tabs and badges on the WooCommerce shop pages
+ * inc/dev/plugins.php  required plugins (WooCommerce, myCred, WP 2FA) installed / activated, WooCommerce pre-set
  * inc/dev/setup.php    the test shop: categories, a test product per service, Store / info pages (always)
  * inc/dev/info.php     [acore_dev_info]: what the CMS needs and what's set up (the front page)
  * inc/dev/test-gateway "ACore test payment": everyone in development, administrators otherwise
@@ -52,6 +53,7 @@ require ACORE_THEME_DIR . '/inc/navigation.php';
 require ACORE_THEME_DIR . '/inc/store.php';
 require ACORE_THEME_DIR . '/inc/shop.php';
 
+require ACORE_THEME_DIR . '/inc/dev/plugins.php';
 require ACORE_THEME_DIR . '/inc/dev/test-gateway.php';
 require ACORE_THEME_DIR . '/inc/dev/setup.php';
 require ACORE_THEME_DIR . '/inc/dev/info.php';

@@ -39,16 +39,18 @@ function acore_theme_dev_info_site()
     $isDev  = acore_theme_is_dev();
     $rows[] = acore_theme_dev_row(__('Environment', 'acore-development'), 'info', wp_get_environment_type()
         . ($isDev ? '' : ' - ' . __('set DOCKER_ENVIRONMENT=development in .env to let every user use the test payment', 'acore-development')));
-    $rows[] = acore_theme_dev_row(__('WooCommerce', 'acore-development'), class_exists('WooCommerce') ? 'ok' : 'bad',
-        class_exists('WooCommerce') ? sprintf(__('active (%s)', 'acore-development'), WC()->version) : __('not active: the shop needs it', 'acore-development'),
-        class_exists('WooCommerce') ? '' : admin_url('plugins.php'), __('Plugins', 'acore-development'));
+    foreach (acore_theme_required_plugins() as $slug => $plugin) {
+        list($name, $file) = $plugin;
+        $state = acore_theme_plugin_state($file);
+        $text  = $state === 'active' ? __('active', 'acore-development')
+            : ($state === 'installed' ? __('installed, activated on the next page load', 'acore-development')
+            : __('not installed: opening the site as an administrator (or wp acore-dev setup) installs it', 'acore-development'));
+        $rows[] = acore_theme_dev_row($name, $state === 'active' ? 'ok' : ($state === 'installed' ? 'warn' : 'bad'), $text);
+    }
     $acore = class_exists('ACore\Manager\ACoreServices');
     $rows[] = acore_theme_dev_row(__('ACore WP Plugins', 'acore-development'), $acore ? 'ok' : 'bad',
         $acore ? __('active', 'acore-development') : __('not active: the services need it', 'acore-development'),
         $acore ? '' : admin_url('plugins.php'), __('Plugins', 'acore-development'));
-    $mycred = defined('myCRED_VERSION') || class_exists('myCRED_Core');
-    $rows[] = acore_theme_dev_row(__('myCred', 'acore-development'), $mycred ? 'ok' : 'info',
-        $mycred ? __('active', 'acore-development') : __('not active (only needed to pay with points)', 'acore-development'));
     $rows[] = acore_theme_dev_row(__('Permalinks', 'acore-development'), get_option('permalink_structure') ? 'ok' : 'warn',
         get_option('permalink_structure') ? __('pretty permalinks', 'acore-development') : __('plain: some pages work better with pretty permalinks', 'acore-development'),
         get_option('permalink_structure') ? '' : admin_url('options-permalink.php'), __('Settings', 'acore-development'));
