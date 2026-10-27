@@ -39,6 +39,13 @@ add_action('after_setup_theme', function () {
     register_nav_menus(['primary' => __('Primary menu', 'acore-development')]);
 });
 
+/** Version for a theme asset: its modification time, so browsers fetch it again whenever it changes. */
+function acore_theme_asset_version($path)
+{
+    $mtime = @filemtime(ACORE_THEME_DIR . $path);
+    return $mtime ? (string) $mtime : ACORE_THEME_VERSION;
+}
+
 require ACORE_THEME_DIR . '/inc/customizer.php';
 require ACORE_THEME_DIR . '/inc/appearance.php';
 require ACORE_THEME_DIR . '/inc/navigation.php';

@@ -121,8 +121,8 @@ function acore_theme_store_shortcode($atts)
         }
     }
 
-    wp_enqueue_style('acore-store', ACORE_THEME_URI . '/assets/css/store.css', ['acore-development'], ACORE_THEME_VERSION);
-    wp_enqueue_script('acore-store', ACORE_THEME_URI . '/assets/js/store.js', [], ACORE_THEME_VERSION, true);
+    wp_enqueue_style('acore-store', ACORE_THEME_URI . '/assets/css/store.css', ['acore-development'], acore_theme_asset_version('/assets/css/store.css'));
+    wp_enqueue_script('acore-store', ACORE_THEME_URI . '/assets/js/store.js', [], acore_theme_asset_version('/assets/js/store.js'), true);
 
     ob_start();
     include ACORE_THEME_DIR . '/template-parts/store.php';

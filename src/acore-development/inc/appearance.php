@@ -35,8 +35,8 @@ add_action('wp_head', function () {
 }, 0);
 
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('acore-development', ACORE_THEME_URI . '/assets/css/theme.css', [], ACORE_THEME_VERSION);
-    wp_enqueue_script('acore-development', ACORE_THEME_URI . '/assets/js/theme.js', [], ACORE_THEME_VERSION, true);
+    wp_enqueue_style('acore-development', ACORE_THEME_URI . '/assets/css/theme.css', [], acore_theme_asset_version('/assets/css/theme.css'));
+    wp_enqueue_script('acore-development', ACORE_THEME_URI . '/assets/js/theme.js', [], acore_theme_asset_version('/assets/js/theme.js'), true);
     wp_localize_script('acore-development', 'acoreTheme', [
         'labelDark'  => __('Dark', 'acore-development'),
         'labelLight' => __('Light', 'acore-development'),

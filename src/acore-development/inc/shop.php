@@ -7,7 +7,7 @@ defined('ABSPATH') || exit;
 
 add_action('wp_enqueue_scripts', function () {
     if (function_exists('is_woocommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page())) {
-        wp_enqueue_style('acore-shop', ACORE_THEME_URI . '/assets/css/shop.css', ['acore-development'], ACORE_THEME_VERSION);
+        wp_enqueue_style('acore-shop', ACORE_THEME_URI . '/assets/css/shop.css', ['acore-development'], acore_theme_asset_version('/assets/css/shop.css'));
     }
 }, 30);
 

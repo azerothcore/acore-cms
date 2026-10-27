@@ -108,8 +108,30 @@ function acore_theme_dev_classic_page($pageId, $shortcode, $force, &$log)
 function acore_theme_dev_setup($force = false)
 {
     $log = [];
+
+    // the info page, as the front page unless the site already has one
+    $info = get_page_by_path('acore-development');
+    if (!$info) {
+        $infoId = wp_insert_post([
+            'post_title'   => 'ACore Development',
+            'post_name'    => 'acore-development',
+            'post_content' => "<!-- wp:shortcode -->\n[acore_dev_info]\n<!-- /wp:shortcode -->",
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+            'menu_order'   => 0,
+        ]);
+        $log[] = is_wp_error($infoId) ? 'Info page: ' . $infoId->get_error_message() : 'Page created: ACore Development ([acore_dev_info])';
+        $info = is_wp_error($infoId) ? null : get_post($infoId);
+    }
+    if ($info && ($force || get_option('show_on_front') !== 'page' || !get_option('page_on_front'))) {
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $info->ID);
+        $log[] = 'Front page: ACore Development';
+    }
+
     if (!class_exists('WooCommerce') || !taxonomy_exists('product_cat')) {
-        return ['WooCommerce is not active: nothing to set up.'];
+        $log[] = 'WooCommerce is not active: the shop is set up once it is.';
+        return $log;
     }
 
     // WooCommerce's own pages (cart, checkout, my account, shop)
@@ -165,26 +187,6 @@ function acore_theme_dev_setup($force = false)
         $log[] = is_wp_error($id) ? 'Store page: ' . $id->get_error_message() : 'Page created: Store ([acore_store])';
     }
 
-    // the info page, as the front page unless the site already has one
-    $info = get_page_by_path('acore-development');
-    if (!$info) {
-        $infoId = wp_insert_post([
-            'post_title'   => 'ACore Development',
-            'post_name'    => 'acore-development',
-            'post_content' => "<!-- wp:shortcode -->\n[acore_dev_info]\n<!-- /wp:shortcode -->",
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-            'menu_order'   => 0,
-        ]);
-        $log[] = is_wp_error($infoId) ? 'Info page: ' . $infoId->get_error_message() : 'Page created: ACore Development ([acore_dev_info])';
-        $info = is_wp_error($infoId) ? null : get_post($infoId);
-    }
-    if ($info && ($force || get_option('show_on_front') !== 'page' || !get_option('page_on_front'))) {
-        update_option('show_on_front', 'page');
-        update_option('page_on_front', $info->ID);
-        $log[] = 'Front page: ACore Development';
-    }
-
     acore_theme_dev_classic_page(wc_get_page_id('cart'), 'woocommerce_cart', $force, $log);
     acore_theme_dev_classic_page(wc_get_page_id('checkout'), 'woocommerce_checkout', $force, $log);
 
@@ -203,8 +205,9 @@ function acore_theme_dev_setup($force = false)
 
 /** Runs the setup once per ACORE_THEME_DEV_SETUP_VERSION (the lock stops two first requests from both running it). */
 add_action('init', function () {
-    if ((int) get_option('acore_theme_dev_setup', 0) >= ACORE_THEME_DEV_SETUP_VERSION || !class_exists('WooCommerce')) {
-        return;
+    $done = (int) get_option('acore_theme_dev_setup', 0) >= ACORE_THEME_DEV_SETUP_VERSION;
+    if ($done || (!class_exists('WooCommerce') && get_page_by_path('acore-development'))) {
+        return;   // done, or the info page exists and the shop waits for WooCommerce
     }
     $lock = (int) get_option('acore_theme_dev_setup_lock', 0);
     if ($lock && $lock > time() - 300) {
