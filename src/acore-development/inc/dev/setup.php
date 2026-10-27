@@ -306,8 +306,15 @@ if (defined('WP_CLI') && WP_CLI) {
      *
      * [--force]
      * : Also put the classic cart / checkout pages back, make the info page the front page and re-enable the test payment method.
+     *
+     * [--if-needed]
+     * : Only run when this theme version's setup hasn't completed yet (Docker runs it at every start).
      */
     WP_CLI::add_command('acore-dev setup', function ($args, $assoc) {
+        if (!empty($assoc['if-needed']) && (int) get_option('acore_theme_dev_setup', 0) >= ACORE_THEME_DEV_SETUP_VERSION) {
+            WP_CLI::success('ACore test shop already set up.');
+            return;
+        }
         foreach (acore_theme_dev_setup(!empty($assoc['force']), true) as $line) {
             WP_CLI::log($line);
         }

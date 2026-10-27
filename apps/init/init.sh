@@ -137,8 +137,9 @@ done
 # it for administrators). Twice: plugins activated by the first run are only loaded by the second.
 if [ "$(wp theme list --status=active --field=name --allow-root 2>/dev/null)" = "acore-development" ]; then
     echo "Setting up the ACore Development test shop..."
-    wp acore-dev setup --allow-root || echo "ACore Development setup: first run incomplete."
-    wp acore-dev setup --allow-root || echo "ACore Development setup failed: an administrator's visit or wp acore-dev setup retries it."
+    # --if-needed: only until it has completed once per theme version, so later restarts keep your shop settings
+    wp acore-dev setup --if-needed --allow-root || echo "ACore Development setup: first run incomplete."
+    wp acore-dev setup --if-needed --allow-root || echo "ACore Development setup failed: an administrator's visit or wp acore-dev setup retries it."
 fi
 
 # Correct permissions for non-root operations
