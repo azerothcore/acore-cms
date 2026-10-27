@@ -52,9 +52,19 @@ function acore_theme_asset_version($path)
 add_filter('woocommerce_placeholder_img_src', function () {
     return ACORE_THEME_URI . '/assets/images/azerothcore-logo.png';
 });
-add_filter('woocommerce_placeholder_img', function ($html) {
-    return str_replace('class="', 'class="acore-placeholder-logo ', $html);
-});
+// WooCommerce's placeholder is an uploaded image (option woocommerce_placeholder_image) that skips the src filter
+// above, so the whole <img> is replaced with the logo
+add_filter('woocommerce_placeholder_img', function ($html, $size = 'woocommerce_thumbnail', $dimensions = []) {
+    $width  = !empty($dimensions['width']) ? (int) $dimensions['width'] : '';
+    $height = !empty($dimensions['height']) ? (int) $dimensions['height'] : '';
+    return sprintf(
+        '<img src="%s" alt="%s" class="woocommerce-placeholder wp-post-image acore-placeholder-logo"%s%s loading="lazy" decoding="async" />',
+        esc_url(ACORE_THEME_URI . '/assets/images/azerothcore-logo.png'),
+        esc_attr__('AzerothCore', 'acore-development'),
+        $width ? ' width="' . $width . '"' : '',
+        $height ? ' height="' . $height . '"' : ''
+    );
+}, 10, 3);
 
 require ACORE_THEME_DIR . '/inc/customizer.php';
 require ACORE_THEME_DIR . '/inc/appearance.php';
