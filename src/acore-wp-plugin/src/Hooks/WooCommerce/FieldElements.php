@@ -20,6 +20,7 @@ class FieldElements {
         if (!$account) {
           // if the account does not exist in the core database
           echo '<br><br><span style="color: #ff7961;">Please <a href="/wp-login.php">log-in</a> or <a href="/wp-login.php?action=register">register</a> an account.</span><br>';
+          self::disableAddToCart();
           return;
         }
 
@@ -31,16 +32,19 @@ class FieldElements {
 
         if ($accBanRepo->isActiveById($accountId)) {
             echo '<br><br><span style="color: #ff7961;">Your account is banned!</span><br>';
+            self::disableAddToCart();
             return;
         }
 
         if ($deleted && count($deletedCharacters) == 0) {
             echo '<br><span style="color: red;">You have no deleted characters to restore.</span><br><br><br>';
+            self::disableAddToCart();
             return;
         }
 
         if (!$deleted && (!$characters || count($characters) == 0)) {
             echo '<br><span style="color: red;">You have to create a character in-game to use this service</span><br><br><br>';
+            self::disableAddToCart();
             return;
         }
 
@@ -93,13 +97,36 @@ class FieldElements {
         <br>
         <br>
         <?php
-        if (!empty($blocked) && $firstChar === null) {
+        if ($firstChar === null) {
             echo '<p style="color: #ff7961;">' . esc_html__('None of your characters can use this service.', 'acore-wp-plugin') . '</p>';
+            self::disableAddToCart();
         }
         if ($bannedChars) {
             echo "Some characters in your account are banned: <br>";
             echo implode(",", $bannedChars) . "<br>";
         }
+    }
+
+    /**
+     * The service can't be bought (no account / character): grey out the product form's "Add to cart" button.
+     * The cart validation refuses it anyway; this only saves a pointless click.
+     */
+    private static function disableAddToCart(): void {
+        ?>
+        <script>
+            (function (script) {
+                const form = script.closest("form.cart") || document.querySelector("form.cart");
+                const button = form && form.querySelector('button[type="submit"], .single_add_to_cart_button');
+                if (button) {
+                    button.disabled = true;
+                    button.classList.add("disabled");
+                    button.setAttribute("aria-disabled", "true");
+                    button.style.opacity = "0.5";
+                    button.style.cursor = "not-allowed";
+                }
+            })(document.currentScript);
+        </script>
+        <?php
     }
 
     /**
