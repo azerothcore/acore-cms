@@ -18,7 +18,7 @@
 defined('ABSPATH') || exit;
 
 /** Bump to make every development site run the setup again (it only ever adds what's missing). */
-define('ACORE_THEME_DEV_SETUP_VERSION', 4);
+define('ACORE_THEME_DEV_SETUP_VERSION', 5);
 
 /** Categories: slug => [name, parent slug or null]. */
 function acore_theme_dev_categories()
@@ -30,13 +30,15 @@ function acore_theme_dev_categories()
         'acore-guild'                => ['Guild', null],
         'acore-carboncopy'           => ['CarbonCopy', null],
         'acore-smartstone'           => ['SmartStone', null],
-        // SmartStone sub-categories, by the mod's ActionType: 0 Companion, 1 Pet, 2 Costume, 7 Vehicle, 8 Mount, 9 Perk
+        // SmartStone sub-categories, one per service type `.smartstone unlock service` accepts (the ACore plugin's
+        // SmartstoneProductAdmin::types() puts SmartStone products in them): 0 Companion, 1 Combat pet, 2 Costume,
+        // 6 Aura, 7 Vehicle, 9 Class perk
         'acore-smartstone-companion' => ['Companion', 'acore-smartstone'],
-        'acore-smartstone-pet'       => ['Pet', 'acore-smartstone'],
+        'acore-smartstone-pet'       => ['Combat Pet', 'acore-smartstone'],
         'acore-smartstone-costume'   => ['Costume', 'acore-smartstone'],
+        'acore-smartstone-aura'      => ['Aura', 'acore-smartstone'],
         'acore-smartstone-vehicle'   => ['Vehicle', 'acore-smartstone'],
-        'acore-smartstone-mount'     => ['Mount', 'acore-smartstone'],
-        'acore-smartstone-perk'      => ['Perk', 'acore-smartstone'],
+        'acore-smartstone-perk'      => ['Class Perk', 'acore-smartstone'],
     ];
 }
 

@@ -171,6 +171,7 @@ function acore_theme_woocommerce_defaults(&$log)
         'woocommerce_store_pages_only'                 => 'no',
         'woocommerce_task_list_hidden'                 => 'yes',
         'woocommerce_extended_task_list_hidden'        => 'yes',
+        'woocommerce_task_list_reminder_bar_hidden'    => 'yes',   // the "x steps left" bar
         'woocommerce_enable_guest_checkout'            => 'no',
         'woocommerce_enable_checkout_login_reminder'   => 'yes',
         'woocommerce_enable_signup_and_login_from_checkout' => 'no',
