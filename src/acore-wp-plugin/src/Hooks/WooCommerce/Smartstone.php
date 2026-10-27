@@ -17,7 +17,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         if (!is_string($sku) || $sku === '') {
             return false;
         }
-        $parts = explode("_", $sku);
+        $parts = explode("_", strtolower($sku));   // SKUs are case-insensitive (SkuLowercase.php)
 
         if (count($parts) < 3 || $parts[0] !== "smartstone" || !is_numeric($parts[1]) || !is_numeric($parts[2])) {
             return false;

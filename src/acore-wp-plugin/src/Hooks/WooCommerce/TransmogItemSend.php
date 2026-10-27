@@ -7,7 +7,7 @@ use ACore\Manager\ACoreServices;
 class TransmogItemSend extends \ACore\Lib\WpClass {
 
     private static function getItemId($sku) {
-        $parts = explode("_", $sku);
+        $parts = explode("_", strtolower((string) $sku));   // SKUs are case-insensitive (SkuLowercase.php)
 
         if ($parts[0] != "transmog-item" || !is_numeric($parts[1])) {
             return false;
