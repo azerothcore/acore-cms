@@ -18,8 +18,13 @@ It sets up everything needed to try the CMS features (once, automatically, whate
 * a *Store* page with `[acore_store]`: category tiles, product cards and a search box (`[acore_store category="acore-items"]` limits it to categories)
 * classic cart and checkout pages (the services add their fields through the classic WooCommerce hooks)
 * an **ACore test payment** method that completes the order immediately, so the services really run in game. Everyone can use it in development (`DOCKER_ENVIRONMENT=development` in `.env`, which sets WordPress's `WP_ENVIRONMENT_TYPE`); otherwise only administrators see it.
+* the plugins the shop needs - **WooCommerce**, **myCred** and **WP 2FA** - downloaded from wordpress.org and activated (network-wide on multisite). When the newest version needs a newer WordPress, the newest one that supports yours is installed (on WordPress 6.8: WooCommerce 10.1.4, myCred 2.9.4.5, WP 2FA 2.9.3, the versions Live runs). A failed download is retried after 10 minutes; the reason is shown on the front page.
+* shop defaults: no "coming soon" mode, no WooCommerce task list, an account is required at checkout
+* prices in **AzerothCore Points** (myCred) instead of money: the point type is named AzerothCore Points, the WooCommerce currency is set to the points (no decimals) and "Pay with AzerothCore Points" is enabled. Logged-in users see their balance in the menu; on the Store page an **Add points** panel adds 100 / 500 / 1,000 / 5,000 or any amount to your balance without leaving the page (in development, or for administrators).
+* the **AzerothCore logo** as the image of every product that has none (shop, Store page, cart, checkout)
+* for users who can edit products (administrators, shop managers): an **Edit** button on every product card and product page, and a **Shop admin** bar (Manage products, Add product, Categories) on the front page, the Store page and the shop pages
 
-Run the setup again with `wp acore-dev setup` (`--force` also restores the classic cart / checkout, the front page and the test payment). The look: dark / light mode with a toggle in the menu, a menu with a "More" dropdown, category tabs on the shop pages; settings in *Appearance > Customize > ACore Development*.
+Run the setup again with `wp acore-dev setup` (`--force` also restores the classic cart / checkout, the front page and the test payment). A new theme version with more setup steps runs them once by itself; it never overwrites products or pages you changed. The look: dark / light mode with a toggle in the menu, a menu with a "More" dropdown, category tabs on the shop pages; settings in *Appearance > Customize > ACore Development*.
 
 ## Other themes
 
