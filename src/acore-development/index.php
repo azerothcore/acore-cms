@@ -27,7 +27,7 @@ if (have_posts()) :
     the_posts_pagination();
 else :
     ?>
-    <p><?php esc_html_e('Nothing found.', 'acore-theme'); ?></p>
+    <p><?php esc_html_e('Nothing found.', 'acore-development'); ?></p>
     <?php
 endif;
 

@@ -7,29 +7,19 @@ To install a Wordpress theme is very easy, here you can find the [official guide
 
 NOTE: not all wordpress themes provide the support to Woocommerce (the shop plugin), so make sure that your theme has Woocommerce within the list of its features.
 
-## ACore Theme (included)
+## ACore Development (included, default)
 
-ACore-CMS comes with a small standalone theme in `src/acore-theme`, mainly to test the CMS features (no parent theme or other dependencies):
+ACore-CMS comes with a standalone theme in `src/acore-development` (no parent theme or other dependencies). With Docker it is activated once as the default theme; you can switch to any other theme under *Appearance > Themes*.
 
-* a dark / light look; visitors switch with the toggle in the menu and their choice is remembered
-* a header menu that shows the first entries and puts the rest in a "More" dropdown
-* a store page: put `[acore_store]` on any page for category tiles, product cards and a search box (`[acore_store category="acore-items"]` limits it to categories)
-* category tabs and badges on the WooCommerce shop pages
+It sets up everything needed to try the CMS features (once, automatically, whatever the environment; only what's missing is added):
 
-Settings: *Appearance > Customize > ACore Theme* (default mode, menu entries before "More", a price label such as "ChromiePoints").
-
-With Docker, the ACore Theme is activated on a fresh install (or in development). On an existing site, activate it under *Appearance > Themes*.
-
-### Test shop (development only)
-
-When the CMS runs in development (`DOCKER_ENVIRONMENT=development` in `.env`, which sets WordPress's `WP_ENVIRONMENT_TYPE`), the theme sets up a shop ready for testing:
-
-* product categories and one test product for every ACore service (character changes, item send, transmog, guild rename, CarbonCopy tickets, SmartStone, ...)
-* a *Store* page with `[acore_store]`
+* an **ACore Development** front page (`[acore_dev_info]`) showing what the CMS needs and whether it's set up: WooCommerce and the ACore plugin, the ACore SOAP / database settings and whether the game server answers (administrators only), your game account and characters, the shop pages, payment methods, and a test product for every service
+* product categories and one test product for every ACore service (character changes, transfer, name unlock, item send, item restoration, transmog, guild rename, CarbonCopy tickets, SmartStone)
+* a *Store* page with `[acore_store]`: category tiles, product cards and a search box (`[acore_store category="acore-items"]` limits it to categories)
 * classic cart and checkout pages (the services add their fields through the classic WooCommerce hooks)
-* an **ACore test payment** method that completes the order immediately, so the services really run in game
+* an **ACore test payment** method that completes the order immediately, so the services really run in game. Everyone can use it in development (`DOCKER_ENVIRONMENT=development` in `.env`, which sets WordPress's `WP_ENVIRONMENT_TYPE`); otherwise only administrators see it.
 
-It runs once automatically and only adds what's missing; run it again with `wp acore-theme dev-setup` (add `--force` to restore the classic cart / checkout and re-enable the test payment). None of this exists in production.
+Run the setup again with `wp acore-dev setup` (`--force` also restores the classic cart / checkout, the front page and the test payment). The look: dark / light mode with a toggle in the menu, a menu with a "More" dropdown, category tabs on the shop pages; settings in *Appearance > Customize > ACore Development*.
 
 ## Other themes
 

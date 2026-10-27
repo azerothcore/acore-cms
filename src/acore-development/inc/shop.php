@@ -7,7 +7,7 @@ defined('ABSPATH') || exit;
 
 add_action('wp_enqueue_scripts', function () {
     if (function_exists('is_woocommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page())) {
-        wp_enqueue_style('acore-shop', ACORE_THEME_URI . '/assets/css/shop.css', ['acore-theme'], ACORE_THEME_VERSION);
+        wp_enqueue_style('acore-shop', ACORE_THEME_URI . '/assets/css/shop.css', ['acore-development'], ACORE_THEME_VERSION);
     }
 }, 30);
 
@@ -47,12 +47,12 @@ function acore_theme_shop_category_tabs()
         $currentTop = ($top && !is_wp_error($top)) ? $top->slug : '';
     }
 
-    echo '<nav class="acore-shop-tabs" aria-label="' . esc_attr__('Product categories', 'acore-theme') . '">';
+    echo '<nav class="acore-shop-tabs" aria-label="' . esc_attr__('Product categories', 'acore-development') . '">';
     printf(
         '<a href="%s" class="acore-shop-tab%s">%s</a>',
         esc_url(wc_get_page_permalink('shop')),
         $currentTop === '' ? ' active' : '',
-        esc_html__('All', 'acore-theme')
+        esc_html__('All', 'acore-development')
     );
     foreach ($categories as $category) {
         $url = get_term_link($category);

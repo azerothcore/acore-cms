@@ -39,11 +39,11 @@ function acore_theme_store_price_html($product)
     $label = trim((string) acore_theme_mod('acore_price_label'));
     if ($label === '') {
         $html = $product->get_price_html();
-        return $html !== '' ? $html : esc_html__('Free', 'acore-theme');
+        return $html !== '' ? $html : esc_html__('Free', 'acore-development');
     }
     $price = $product->get_price();
     if ($price === '' || $price === null || (float) $price == 0) {
-        return esc_html__('Free', 'acore-theme');
+        return esc_html__('Free', 'acore-development');
     }
     return esc_html(number_format_i18n((float) $price) . ' ' . $label);
 }
@@ -69,7 +69,7 @@ function acore_theme_product_top_categories($productId)
 function acore_theme_store_shortcode($atts)
 {
     if (!class_exists('WooCommerce')) {
-        return '<div class="acore-store-notice">' . esc_html__('The store needs the WooCommerce plugin to be active.', 'acore-theme') . '</div>';
+        return '<div class="acore-store-notice">' . esc_html__('The store needs the WooCommerce plugin to be active.', 'acore-development') . '</div>';
     }
 
     $atts = shortcode_atts([
@@ -121,7 +121,7 @@ function acore_theme_store_shortcode($atts)
         }
     }
 
-    wp_enqueue_style('acore-store', ACORE_THEME_URI . '/assets/css/store.css', ['acore-theme'], ACORE_THEME_VERSION);
+    wp_enqueue_style('acore-store', ACORE_THEME_URI . '/assets/css/store.css', ['acore-development'], ACORE_THEME_VERSION);
     wp_enqueue_script('acore-store', ACORE_THEME_URI . '/assets/js/store.js', [], ACORE_THEME_VERSION, true);
 
     ob_start();

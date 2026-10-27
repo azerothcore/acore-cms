@@ -47,7 +47,7 @@ services:
         source: ${DOCKER_CONF_PHP_PATH:-./conf/dist/php-conf/upload.ini}
         target: /usr/local/etc/php/conf.d/upload.ini
       - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
-      - ./src/acore-theme:/var/www/html/wp-content/themes/acore-theme
+      - ./src/acore-development:/var/www/html/wp-content/themes/acore-development
       - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html
       - ./apps:/usr/local/bin/apps
       - ${DOCKER_CONF_INIT_PATH:-./conf/init}:/conf/init:ro
@@ -107,7 +107,7 @@ services:
       - ./var/logs:/var/log/nginx
       - ${DOCKER_WORDPRESS_SRC_PATH:-wordpress-src}:/var/www/html:ro
       - ./src/acore-wp-plugin:/var/www/html/wp-content/plugins/acore-wp-plugins
-      - ./src/acore-theme:/var/www/html/wp-content/themes/acore-theme
+      - ./src/acore-development:/var/www/html/wp-content/themes/acore-development
     extra_hosts:
       - "web.local:127.0.0.1"
     ports:

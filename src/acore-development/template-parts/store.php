@@ -32,10 +32,10 @@ $hasCategories = !empty($categories);
     <div class="acore-store-products"<?php if ($hasCategories) echo ' hidden'; ?>>
         <div class="acore-store-header">
             <?php if ($hasCategories) : ?>
-                <button type="button" class="acore-store-back">&larr; <?php esc_html_e('Back', 'acore-theme'); ?></button>
+                <button type="button" class="acore-store-back">&larr; <?php esc_html_e('Back', 'acore-development'); ?></button>
             <?php endif; ?>
-            <h2 class="acore-store-title"><?php esc_html_e('All products', 'acore-theme'); ?></h2>
-            <input type="search" class="acore-store-search" placeholder="<?php esc_attr_e('Search...', 'acore-theme'); ?>" aria-label="<?php esc_attr_e('Search products', 'acore-theme'); ?>" autocomplete="off">
+            <h2 class="acore-store-title"><?php esc_html_e('All products', 'acore-development'); ?></h2>
+            <input type="search" class="acore-store-search" placeholder="<?php esc_attr_e('Search...', 'acore-development'); ?>" aria-label="<?php esc_attr_e('Search products', 'acore-development'); ?>" autocomplete="off">
         </div>
 
         <ul class="acore-store-grid">
@@ -54,10 +54,10 @@ $hasCategories = !empty($categories);
                     <span class="acore-store-price"><?php echo wp_kses_post(acore_theme_store_price_html($product)); ?></span>
                     <div class="acore-store-actions">
                         <a href="<?php echo esc_url($link); ?>" class="acore-store-btn acore-store-btn-secondary">
-                            <?php $direct ? esc_html_e('Details', 'acore-theme') : esc_html_e('Choose', 'acore-theme'); ?>
+                            <?php $direct ? esc_html_e('Details', 'acore-development') : esc_html_e('Choose', 'acore-development'); ?>
                         </a>
                         <?php if ($direct) : ?>
-                            <a href="<?php echo esc_url($product->add_to_cart_url()); ?>" class="acore-store-btn acore-store-btn-primary" rel="nofollow"><?php esc_html_e('Add to cart', 'acore-theme'); ?></a>
+                            <a href="<?php echo esc_url($product->add_to_cart_url()); ?>" class="acore-store-btn acore-store-btn-primary" rel="nofollow"><?php esc_html_e('Add to cart', 'acore-development'); ?></a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -65,6 +65,6 @@ $hasCategories = !empty($categories);
             <?php endforeach; ?>
         </ul>
 
-        <p class="acore-store-empty"<?php if (!empty($products)) echo ' hidden'; ?>><?php esc_html_e('No products found.', 'acore-theme'); ?></p>
+        <p class="acore-store-empty"<?php if (!empty($products)) echo ' hidden'; ?>><?php esc_html_e('No products found.', 'acore-development'); ?></p>
     </div>
 </div>

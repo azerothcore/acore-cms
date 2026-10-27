@@ -1,6 +1,6 @@
 <?php
 /**
- * Theme settings: Appearance > Customize > ACore Theme.
+ * Theme settings: Appearance > Customize > ACore Development.
  */
 
 defined('ABSPATH') || exit;
@@ -27,7 +27,7 @@ add_action('customize_register', function ($wp_customize) {
     $defaults = acore_theme_defaults();
 
     $wp_customize->add_section('acore_theme', [
-        'title'    => __('ACore Theme', 'acore-theme'),
+        'title'    => __('ACore Development', 'acore-development'),
         'priority' => 30,
     ]);
 
@@ -38,11 +38,11 @@ add_action('customize_register', function ($wp_customize) {
         },
     ]);
     $wp_customize->add_control('acore_default_mode', [
-        'label'       => __('Default colour mode', 'acore-theme'),
-        'description' => __('Visitors can switch with the toggle in the menu; their choice is remembered in their browser.', 'acore-theme'),
+        'label'       => __('Default colour mode', 'acore-development'),
+        'description' => __('Visitors can switch with the toggle in the menu; their choice is remembered in their browser.', 'acore-development'),
         'section'     => 'acore_theme',
         'type'        => 'radio',
-        'choices'     => ['dark' => __('Dark', 'acore-theme'), 'light' => __('Light', 'acore-theme')],
+        'choices'     => ['dark' => __('Dark', 'acore-development'), 'light' => __('Light', 'acore-development')],
     ]);
 
     $wp_customize->add_setting('acore_nav_max_pages', [
@@ -52,8 +52,8 @@ add_action('customize_register', function ($wp_customize) {
         },
     ]);
     $wp_customize->add_control('acore_nav_max_pages', [
-        'label'       => __('Menu entries before "More"', 'acore-theme'),
-        'description' => __('The rest go into the "More" dropdown. Uses the Primary menu, or all published pages when no menu is assigned.', 'acore-theme'),
+        'label'       => __('Menu entries before "More"', 'acore-development'),
+        'description' => __('The rest go into the "More" dropdown. Uses the Primary menu, or all published pages when no menu is assigned.', 'acore-development'),
         'section'     => 'acore_theme',
         'type'        => 'number',
         'input_attrs' => ['min' => 1, 'max' => 20],
@@ -66,7 +66,7 @@ add_action('customize_register', function ($wp_customize) {
         },
     ]);
     $wp_customize->add_control('acore_nav_always_more', [
-        'label'   => __('Always show the "More" button', 'acore-theme'),
+        'label'   => __('Always show the "More" button', 'acore-development'),
         'section' => 'acore_theme',
         'type'    => 'checkbox',
     ]);
@@ -76,8 +76,8 @@ add_action('customize_register', function ($wp_customize) {
         'sanitize_callback' => 'sanitize_text_field',
     ]);
     $wp_customize->add_control('acore_price_label', [
-        'label'       => __('Store price label', 'acore-theme'),
-        'description' => __('Shown after the price on the store page, e.g. "ChromiePoints". Leave empty to use the WooCommerce currency.', 'acore-theme'),
+        'label'       => __('Store price label', 'acore-development'),
+        'description' => __('Shown after the price on the store page, e.g. "ChromiePoints". Leave empty to use the WooCommerce currency.', 'acore-development'),
         'section'     => 'acore_theme',
         'type'        => 'text',
     ]);

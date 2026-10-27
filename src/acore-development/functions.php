@@ -1,15 +1,17 @@
 <?php
 /**
- * ACore Theme - a small standalone theme for testing AzerothCore CMS (no parent theme, no other dependencies).
+ * ACore Development - a standalone theme for testing AzerothCore CMS (no parent theme, no other dependencies).
  *
  * header.php / footer.php / index.php   the page layout; WooCommerce pages use WooCommerce's own templates
  *
- * inc/customizer.php   settings (Appearance > Customize > ACore Theme)
+ * inc/customizer.php   settings (Appearance > Customize > ACore Development)
  * inc/appearance.php   dark / light mode and the theme's styles
  * inc/navigation.php   header menu with the "More" dropdown and the mode toggle
  * inc/store.php        [acore_store] shortcode (store page with category tiles and search)
  * inc/shop.php         category tabs and badges on the WooCommerce shop pages
- * inc/dev/*            development only: test shop setup and the "ACore test payment" method
+ * inc/dev/setup.php    the test shop: categories, a test product per service, Store / info pages (always)
+ * inc/dev/info.php     [acore_dev_info]: what the CMS needs and what's set up (the front page)
+ * inc/dev/test-gateway "ACore test payment": everyone in development, administrators otherwise
  */
 
 defined('ABSPATH') || exit;
@@ -20,7 +22,7 @@ define('ACORE_THEME_URI', get_stylesheet_directory_uri());
 
 /**
  * True on development / local installs (WP_ENVIRONMENT_TYPE; the Docker setup sets it from ENVIRONMENT).
- * The test shop and the test payment method only exist then.
+ * Then everyone can use the "ACore test payment"; otherwise only administrators can.
  */
 function acore_theme_is_dev()
 {
@@ -34,7 +36,7 @@ add_action('after_setup_theme', function () {
     add_theme_support('html5', ['search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script']);
     add_theme_support('woocommerce');
     add_theme_support('wc-product-gallery-lightbox');
-    register_nav_menus(['primary' => __('Primary menu', 'acore-theme')]);
+    register_nav_menus(['primary' => __('Primary menu', 'acore-development')]);
 });
 
 require ACORE_THEME_DIR . '/inc/customizer.php';
@@ -43,7 +45,6 @@ require ACORE_THEME_DIR . '/inc/navigation.php';
 require ACORE_THEME_DIR . '/inc/store.php';
 require ACORE_THEME_DIR . '/inc/shop.php';
 
-if (acore_theme_is_dev()) {
-    require ACORE_THEME_DIR . '/inc/dev/test-gateway.php';
-    require ACORE_THEME_DIR . '/inc/dev/setup.php';
-}
+require ACORE_THEME_DIR . '/inc/dev/test-gateway.php';
+require ACORE_THEME_DIR . '/inc/dev/setup.php';
+require ACORE_THEME_DIR . '/inc/dev/info.php';

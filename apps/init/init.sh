@@ -31,10 +31,9 @@ plugins_activate_only=(
     "ACore WP Plugins|acore-wp-plugins"
 )
 
-# List of themes to activate only once (already present in container).
-# Only on a fresh install or in development, so an existing site never has its theme switched by an update.
+# List of themes to activate only once (already present in container)
 themes_activate_only=(
-    "ACore Theme|acore-theme"
+    "ACore Development|acore-development"   # the default theme: info page and a ready-to-test shop
 )
 
 APPS_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
@@ -102,7 +101,7 @@ if ! wp core is-installed --allow-root; then
 fi
 
 # WordPress's environment type follows ENVIRONMENT (DOCKER_ENVIRONMENT in .env): development, staging, production or
-# local. The ACore Theme's test shop and test payment method only exist in development / local.
+# local. In development / local everyone can use the ACore Development theme's test payment, otherwise only admins.
 case "${ENVIRONMENT:-production}" in
     development|staging|production|local) WP_ENV_TYPE="${ENVIRONMENT}" ;;
     *) WP_ENV_TYPE="production" ;;
@@ -126,16 +125,12 @@ for plugin in "${plugins_activate_only[@]}"; do
     handle_plugin_activation_once "$plugin_slug"
 done
 
-# Handle themes activation only once (fresh installs and development only)
+# Handle themes activation only once
 for theme in "${themes_activate_only[@]}"; do
     IFS='|' read -r theme_name theme_slug <<< "$theme"
 
-    if [ "$IS_FIRST_INSTALL" = "1" ] || [ "$WP_ENV_TYPE" = "development" ] || [ "$WP_ENV_TYPE" = "local" ]; then
-        echo "Activating theme $theme_name ($theme_slug) only once..."
-        handle_theme_activation_once "$theme_slug"
-    else
-        echo "Theme $theme_name ($theme_slug) is available; activate it under Appearance > Themes if you want it."
-    fi
+    echo "Activating theme $theme_name ($theme_slug) only once..."
+    handle_theme_activation_once "$theme_slug"
 done
 
 # Correct permissions for non-root operations

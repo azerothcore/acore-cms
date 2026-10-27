@@ -1,4 +1,4 @@
-/* ACore Theme: layout and dark / light colours. All colours come from the variables below. */
+/* ACore Development: layout and dark / light colours. All colours come from the variables below. */
 
 html.acore-dark {
     --acore-bg: #36393f;
@@ -462,5 +462,89 @@ html.acore-dark ::-webkit-scrollbar-thumb:hover {
 @media (max-width: 767px) {
     .acore-nav {
         flex-wrap: wrap;
+    }
+}
+
+/* [acore_dev_info] (inc/dev/info.php) */
+
+.acore-dev-intro {
+    font-size: 1.05rem;
+}
+
+.acore-dev-section {
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 12px;
+    background: var(--acore-surface);
+}
+
+.acore-dev-section h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.15rem;
+}
+
+.acore-dev-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.acore-dev-table th,
+.acore-dev-table td {
+    padding: 0.5rem 0.6rem;
+    border-top: 1px solid var(--acore-border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.acore-dev-table tr:first-child th,
+.acore-dev-table tr:first-child td {
+    border-top: 0;
+}
+
+html[class*="acore-"] .acore-dev-table th {
+    width: 14rem;
+    background: transparent;
+    font-weight: 600;
+}
+
+.acore-dev-services th {
+    width: auto;
+}
+
+.acore-dev-status {
+    display: inline-block;
+    min-width: 4.5rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.acore-dev-ok { background: #1e7d3a; color: #ffffff; }
+.acore-dev-warn { background: #b7791f; color: #ffffff; }
+.acore-dev-bad { background: #b42318; color: #ffffff; }
+.acore-dev-info { background: var(--acore-accent-soft); color: var(--acore-link); }
+
+.acore-dev-note {
+    color: var(--acore-muted);
+    font-size: 0.85rem;
+}
+
+@media (max-width: 700px) {
+    .acore-dev-table,
+    .acore-dev-table tbody,
+    .acore-dev-table tr,
+    .acore-dev-table th,
+    .acore-dev-table td {
+        display: block;
+        width: auto;
+    }
+
+    .acore-dev-table thead {
+        display: none;
     }
 }

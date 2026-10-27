@@ -67,7 +67,7 @@ function acore_theme_primary_navigation()
     $hidden  = array_slice($entries, $max);
     $more    = !empty($hidden) || acore_theme_mod('acore_nav_always_more');
     ?>
-    <nav id="site-navigation" class="acore-nav" aria-label="<?php esc_attr_e('Primary navigation', 'acore-theme'); ?>">
+    <nav id="site-navigation" class="acore-nav" aria-label="<?php esc_attr_e('Primary navigation', 'acore-development'); ?>">
         <ul class="acore-nav-list">
             <?php foreach ($visible as $entry) : ?>
                 <li><?php acore_theme_nav_link($entry); ?></li>
@@ -76,7 +76,7 @@ function acore_theme_primary_navigation()
             <?php if ($more) : ?>
                 <li class="acore-nav-more">
                     <button type="button" class="acore-nav-more-btn" aria-expanded="false" aria-controls="acore-nav-more-menu">
-                        <?php esc_html_e('More', 'acore-theme'); ?> <span aria-hidden="true">&#9662;</span>
+                        <?php esc_html_e('More', 'acore-development'); ?> <span aria-hidden="true">&#9662;</span>
                     </button>
                     <ul id="acore-nav-more-menu" class="acore-nav-dropdown" hidden>
                         <?php foreach ($hidden as $entry) : ?>
@@ -87,9 +87,9 @@ function acore_theme_primary_navigation()
             <?php endif; ?>
         </ul>
 
-        <button type="button" class="acore-mode-toggle" aria-label="<?php esc_attr_e('Switch between dark and light mode', 'acore-theme'); ?>">
-            <span class="acore-mode-toggle-dark" aria-hidden="true">&#9728;&#65039; <?php esc_html_e('Light', 'acore-theme'); ?></span>
-            <span class="acore-mode-toggle-light" aria-hidden="true">&#127769; <?php esc_html_e('Dark', 'acore-theme'); ?></span>
+        <button type="button" class="acore-mode-toggle" aria-label="<?php esc_attr_e('Switch between dark and light mode', 'acore-development'); ?>">
+            <span class="acore-mode-toggle-dark" aria-hidden="true">&#9728;&#65039; <?php esc_html_e('Light', 'acore-development'); ?></span>
+            <span class="acore-mode-toggle-light" aria-hidden="true">&#127769; <?php esc_html_e('Dark', 'acore-development'); ?></span>
         </button>
     </nav>
     <?php

@@ -1,4 +1,4 @@
-/* ACore Theme: dark / light toggle and the "More" menu dropdown. */
+/* ACore Development: dark / light toggle and the "More" menu dropdown. */
 (function () {
     'use strict';
 

@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<a class="screen-reader-text acore-skip-link" href="#content"><?php esc_html_e('Skip to content', 'acore-theme'); ?></a>
+<a class="screen-reader-text acore-skip-link" href="#content"><?php esc_html_e('Skip to content', 'acore-development'); ?></a>
 
 <header class="acore-header">
     <div class="acore-container acore-header-inner">
@@ -32,7 +32,7 @@ defined('ABSPATH') || exit;
             $count = WC()->cart->get_cart_contents_count();
         ?>
             <a class="acore-cart-link" href="<?php echo esc_url(wc_get_cart_url()); ?>">
-                <?php esc_html_e('Cart', 'acore-theme'); ?>
+                <?php esc_html_e('Cart', 'acore-development'); ?>
                 <span class="acore-cart-count"><?php echo esc_html(number_format_i18n($count)); ?></span>
             </a>
         <?php endif; ?>

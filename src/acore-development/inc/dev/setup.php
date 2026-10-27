@@ -1,22 +1,22 @@
 <?php
 /**
- * DEVELOPMENT ONLY: a ready-to-test shop.
+ * The test shop, set up whatever the environment.
  *
  * Runs once (automatically, on the first request with WooCommerce active) and creates what's missing:
  *  - product categories for the ACore services (SmartStone with its sub-categories)
  *  - one test product for every ACore service SKU (existing products with that SKU are left alone)
  *  - a "Store" page with [acore_store]
+ *  - an "ACore Development" page with [acore_dev_info], made the front page (unless a front page is already chosen)
  *  - classic cart / checkout pages (the services add their fields through the classic WooCommerce hooks)
- *  - the "ACore test payment" method, enabled
+ *  - the "ACore test payment" method, enabled (see test-gateway.php for who can use it)
  *
- * Run it again with: wp acore-theme dev-setup [--force]
- * Loaded only when wp_get_environment_type() is "development" or "local" (see functions.php).
+ * Run it again with: wp acore-dev setup [--force]
  */
 
 defined('ABSPATH') || exit;
 
 /** Bump to make every development site run the setup again (it only ever adds what's missing). */
-define('ACORE_THEME_DEV_SETUP_VERSION', 1);
+define('ACORE_THEME_DEV_SETUP_VERSION', 2);
 
 /** Categories: slug => [name, parent slug or null]. */
 function acore_theme_dev_categories()
@@ -103,7 +103,7 @@ function acore_theme_dev_classic_page($pageId, $shortcode, $force, &$log)
 
 /**
  * Creates the test shop. Returns what it did, one line per change.
- * $force: also put the classic cart / checkout back and re-enable the test payment.
+ * $force: also put the classic cart / checkout back, make the info page the front page and re-enable the test payment.
  */
 function acore_theme_dev_setup($force = false)
 {
@@ -140,7 +140,7 @@ function acore_theme_dev_setup($force = false)
             $product->set_virtual(true);
             $product->set_menu_order($order);
             $product->set_short_description($description);
-            $product->set_description($description . "\n\n<em>Test product created by the ACore Theme (development).</em>");
+            $product->set_description($description . "\n\n<em>Test product created by the ACore Development theme.</em>");
             $categoryId = acore_theme_dev_category_id($categorySlug, $categories, $log);
             if ($categoryId) {
                 $product->set_category_ids([$categoryId]);
@@ -163,6 +163,26 @@ function acore_theme_dev_setup($force = false)
             'menu_order'   => 1,
         ]);
         $log[] = is_wp_error($id) ? 'Store page: ' . $id->get_error_message() : 'Page created: Store ([acore_store])';
+    }
+
+    // the info page, as the front page unless the site already has one
+    $info = get_page_by_path('acore-development');
+    if (!$info) {
+        $infoId = wp_insert_post([
+            'post_title'   => 'ACore Development',
+            'post_name'    => 'acore-development',
+            'post_content' => "<!-- wp:shortcode -->\n[acore_dev_info]\n<!-- /wp:shortcode -->",
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+            'menu_order'   => 0,
+        ]);
+        $log[] = is_wp_error($infoId) ? 'Info page: ' . $infoId->get_error_message() : 'Page created: ACore Development ([acore_dev_info])';
+        $info = is_wp_error($infoId) ? null : get_post($infoId);
+    }
+    if ($info && ($force || get_option('show_on_front') !== 'page' || !get_option('page_on_front'))) {
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $info->ID);
+        $log[] = 'Front page: ACore Development';
     }
 
     acore_theme_dev_classic_page(wc_get_page_id('cart'), 'woocommerce_cart', $force, $log);
@@ -197,32 +217,34 @@ add_action('init', function () {
     $log = acore_theme_dev_setup();
     delete_option('acore_theme_dev_setup_lock');
     if (!empty($log)) {
-        error_log('ACore Theme development setup: ' . implode(' | ', $log));
+        error_log('ACore Development setup: ' . implode(' | ', $log));
     }
 }, 20);
 
-/** A reminder on the dashboard that this is the development shop. */
+/** A reminder on the dashboard that this is the test shop. */
 add_action('admin_notices', function () {
     $screen = function_exists('get_current_screen') ? get_current_screen() : null;
     if (!$screen || !in_array($screen->id, ['dashboard', 'edit-product', 'woocommerce_page_wc-settings'], true)) {
         return;
     }
+    $info = get_page_by_path('acore-development');
     echo '<div class="notice notice-info"><p>'
-        . esc_html__('ACore Theme is running in development mode: the test products, the Store page and the "ACore test payment" method are set up for testing. None of this exists when WordPress runs as production.', 'acore-theme')
+        . esc_html__('The ACore Development theme is active: test products for every ACore service, the Store page and the "ACore test payment" method are set up.', 'acore-development')
+        . ($info ? ' <a href="' . esc_url(get_permalink($info)) . '">' . esc_html__('See what is set up', 'acore-development') . '</a>' : '')
         . '</p></div>';
 });
 
 if (defined('WP_CLI') && WP_CLI) {
     /**
-     * Creates the ACore test shop (development only): categories, a test product per service, the Store page,
+     * Creates the ACore test shop: categories, a test product per service, the Store and info pages,
      * classic cart / checkout and the test payment method. Only adds what's missing.
      *
      * ## OPTIONS
      *
      * [--force]
-     * : Also put the classic cart / checkout pages back and re-enable the test payment method.
+     * : Also put the classic cart / checkout pages back, make the info page the front page and re-enable the test payment method.
      */
-    WP_CLI::add_command('acore-theme dev-setup', function ($args, $assoc) {
+    WP_CLI::add_command('acore-dev setup', function ($args, $assoc) {
         foreach (acore_theme_dev_setup(!empty($assoc['force'])) as $line) {
             WP_CLI::log($line);
         }

@@ -1,14 +1,14 @@
 /*
-Theme Name:        ACore Theme
+Theme Name:        ACore Development
 Theme URI:         https://github.com/azerothcore/acore-cms
-Description:       A small standalone theme for testing AzerothCore CMS: a dark / light look, a header menu with a "More" dropdown, a game-shop store page ([acore_store]) and, in development, a shop with a test product for every ACore service.
+Description:       Standalone theme for testing AzerothCore CMS: an info page with what the CMS needs and what's set up, a shop with a test product for every ACore service, a store page ([acore_store]), dark / light look. No other dependencies.
 Author:            AzerothCore
 Author URI:        https://www.azerothcore.org
 Version:           1.0.0
 Requires at least: 6.4
 Requires PHP:      7.4
 License:           AGPL-3.0
-Text Domain:       acore-theme
+Text Domain:       acore-development
 */
 
 /* The theme's styles are in assets/css (theme.css, store.css, shop.css). */
