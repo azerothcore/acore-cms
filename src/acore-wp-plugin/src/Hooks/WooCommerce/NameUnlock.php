@@ -33,6 +33,19 @@ class NameUnlock extends \ACore\Lib\WpClass
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
         add_action('woocommerce_add_order_item_meta', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
+        add_filter('woocommerce_get_item_data', self::sprefix() . 'get_item_data', 20, 2);
+    }
+
+    // RENDER ON CART / CHECKOUT: that it includes the rename
+    public static function get_item_data($cart_data, $cart_item = null) {
+        $items = !empty($cart_data) ? $cart_data : array();
+        if (($cart_item['acore_item_sku'] ?? '') === self::$sku) {
+            $items[] = array(
+                "name"  => __('Included', 'acore-wp-plugin'),
+                "value" => __('A rename of your character to the unlocked name (no character rename needed).', 'acore-wp-plugin'),
+            );
+        }
+        return $items;
     }
 
     // LIST
@@ -55,6 +68,63 @@ class NameUnlock extends \ACore\Lib\WpClass
         if ($current_user) {
             FieldElements::charList($current_user->user_login);
         }
+
+        FieldElements::serviceNotice([self::$sku => self::includesHtml()], self::$sku, false);
+    }
+
+    /**
+     * The inactivity a name's character needs, from the "Inactivity Thresholds per Level" setting:
+     * [[label, days], ...]. A threshold [level, days] applies to characters below that level.
+     */
+    private static function inactivityRules(): array {
+        $thresholds = Opts::I()->acore_name_unlock_thresholds;
+        $valid = [];
+        foreach (is_array($thresholds) ? $thresholds : [] as $threshold) {
+            $level = isset($threshold[0]) ? (int) $threshold[0] : 0;
+            $days  = isset($threshold[1]) ? (int) $threshold[1] : 0;
+            if ($level > 0 && $days > 0) {
+                $valid[] = [$level, $days];
+            }
+        }
+        $rules = [];
+        $from  = 1;
+        foreach ($valid as $i => [$level, $days]) {
+            if ($level <= $from) {
+                continue;   // shadowed by an earlier threshold (they're checked in order)
+            }
+            $isLast = $i === count($valid) - 1;
+            $rules[] = [
+                ($isLast && $level > 80)
+                    ? sprintf(__('Level %d and above', 'acore-wp-plugin'), $from)
+                    : sprintf(__('Level %d and below', 'acore-wp-plugin'), $level - 1),
+                $days,
+            ];
+            $from = $level;
+        }
+        if ($from <= 80 && !empty($rules)) {
+            $rules[] = [sprintf(__('Level %d and above', 'acore-wp-plugin'), $from), 0];
+        }
+        return $rules;
+    }
+
+    /** What the name unlock includes, and which names can be unlocked (HTML, escaped). */
+    private static function includesHtml(): string {
+        $html = esc_html__('A rename of your character to the unlocked name, so you don\'t need to buy a character rename.', 'acore-wp-plugin');
+        $rules = self::inactivityRules();
+        if (!empty($rules)) {
+            $html .= '<br>' . esc_html__('Only names of inactive characters can be unlocked. The character\'s account must not have logged in for:', 'acore-wp-plugin')
+                . '<ul style="margin: 0.4em 0 0.4em 1.25em; padding: 0;">';
+            foreach ($rules as [$label, $days]) {
+                $html .= '<li>' . esc_html($label) . ' - ' . esc_html($days > 0
+                    ? sprintf(_n('%d day', '%d days', $days, 'acore-wp-plugin'), $days)
+                    : __('no minimum', 'acore-wp-plugin')) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+        if (function_exists('pmpro_getMembershipLevelForUser')) {
+            $html .= esc_html__('A name can\'t be unlocked if the character\'s account has a subscription.', 'acore-wp-plugin');
+        }
+        return $html;
     }
 
     // SAVE INTO ITEM DATA

@@ -327,6 +327,102 @@ class FieldElements {
         echo '</div></div>';
     }
 
+    /**
+     * A note on the product page and the same text in a pop-up when "Add to cart" is pressed, so the buyer clearly
+     * sees what the service includes before buying. $notes: sku => HTML (already escaped). For a variable product
+     * ($isVariable) the chosen variation's note is shown.
+     */
+    public static function serviceNotice(array $notes, $sku, bool $isVariable): void {
+        if (empty($notes)) {
+            return;
+        }
+        $style = 'margin: 0.75em 0; padding: 8px 12px; border-left: 4px solid #5865f2; border-radius: 4px; background: rgba(88, 101, 242, 0.1);';
+        foreach ($notes as $noteSku => $text) {
+            echo '<div class="acore-service-includes" data-sku="' . esc_attr($noteSku) . '" style="' . $style . '"' . ($isVariable ? ' hidden' : '') . '>'
+                . '<strong>' . esc_html__('Included:', 'acore-wp-plugin') . '</strong> ' . $text . '</div>';
+        }
+        ?>
+        <div class="acore-includes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="acore-includes-modal-title"
+             style="position: fixed; inset: 0; z-index: 100000; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.6);">
+            <div style="width: 100%; max-width: 440px; padding: 20px 22px; border-radius: 10px; border: 1px solid var(--acore-border, #dcdcde);
+                        background: var(--acore-surface, #fff); color: var(--acore-text, #1d2327); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);">
+                <h3 id="acore-includes-modal-title" style="margin: 0 0 10px; font-size: 1.15em;"><?= esc_html__('Before you add it to the cart', 'acore-wp-plugin') ?></h3>
+                <div class="acore-includes-modal-text" style="margin: 0 0 18px; line-height: 1.5;"></div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="button acore-includes-cancel"><?= esc_html__('Cancel', 'acore-wp-plugin') ?></button>
+                    <button type="button" class="button alt acore-includes-confirm"><?= esc_html__('I understand, add to cart', 'acore-wp-plugin') ?></button>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function (script) {
+                const notes = <?= wp_json_encode($notes) ?>;
+                const modal = script.previousElementSibling;
+                const form = script.closest("form.cart") || document.querySelector("form.cart");
+                if (!form || !modal) {
+                    return;
+                }
+                modal.style.display = "none";
+                const text = modal.querySelector(".acore-includes-modal-text");
+                let sku = <?= wp_json_encode($isVariable ? '' : $sku) ?>;
+                let confirmed = false;
+                let submitter = null;
+
+                function close() {
+                    modal.hidden = true;
+                    modal.style.display = "none";
+                }
+                if (window.jQuery) {
+                    jQuery(form)
+                        .on("found_variation", function (event, variation) {
+                            sku = variation.sku || "";
+                            form.querySelectorAll(".acore-service-includes").forEach(function (note) {
+                                note.hidden = note.dataset.sku !== sku;
+                            });
+                        })
+                        .on("reset_data", function () {
+                            sku = "";
+                            form.querySelectorAll(".acore-service-includes").forEach(function (note) {
+                                note.hidden = true;
+                            });
+                        });
+                }
+                form.addEventListener("submit", function (event) {
+                    if (confirmed || !notes[sku]) {
+                        confirmed = false;
+                        return;
+                    }
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    submitter = event.submitter || form.querySelector(".single_add_to_cart_button");
+                    text.innerHTML = notes[sku];
+                    modal.hidden = false;
+                    modal.style.display = "flex";
+                    modal.querySelector(".acore-includes-confirm").focus();
+                }, true);
+                modal.querySelector(".acore-includes-cancel").addEventListener("click", close);
+                modal.addEventListener("click", function (event) {
+                    if (event.target === modal) close();
+                });
+                document.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape" && !modal.hidden) close();
+                });
+                modal.querySelector(".acore-includes-confirm").addEventListener("click", function () {
+                    close();
+                    confirmed = true;
+                    if (form.requestSubmit) {
+                        form.requestSubmit(submitter && submitter.form === form ? submitter : undefined);
+                    } else if (submitter) {
+                        submitter.click();
+                    } else {
+                        form.submit();
+                    }
+                });
+            })(document.currentScript);
+        </script>
+        <?php
+    }
+
     public static function destCharacter($label): void {
         ?>
         <div class="acore-gift-field">
