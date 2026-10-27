@@ -1,0 +1,118 @@
+/* WooCommerce shop pages: product grid, category tabs and badges (inc/shop.php) */
+
+.woocommerce ul.products,
+.woocommerce-page ul.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin: 0 0 2rem;
+}
+
+.woocommerce ul.products::before,
+.woocommerce ul.products::after {
+    display: none;
+}
+
+.woocommerce ul.products li.product,
+.woocommerce-page ul.products li.product {
+    float: none;
+    width: 100%;
+    margin: 0;
+    padding-bottom: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--acore-border);
+    border-radius: 10px;
+    background: var(--acore-surface-2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.woocommerce ul.products li.product:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--acore-shadow);
+}
+
+.woocommerce ul.products li.product img {
+    width: 100%;
+    height: 180px;
+    margin: 0 0 0.5rem;
+    object-fit: cover;
+    border-radius: 0;
+}
+
+html[class*="acore-"] .woocommerce ul.products li.product .woocommerce-loop-product__title {
+    padding: 0 0.75rem;
+    color: var(--acore-heading);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+html[class*="acore-"] .woocommerce ul.products li.product .price {
+    padding: 0 0.75rem;
+    color: var(--acore-muted);
+}
+
+html[class*="acore-"] .woocommerce ul.products li.product .price ins {
+    color: var(--acore-success);
+}
+
+.woocommerce ul.products li.product .button {
+    display: block;
+    margin: 0.5rem 0.75rem 0;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.acore-cat-badge {
+    display: inline-block;
+    margin: 0.25rem 0.75rem 0;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 20px;
+    background: var(--acore-accent-soft);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-cat-badge {
+    color: var(--acore-link);
+}
+
+.acore-shop-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.acore-shop-tab {
+    padding: 0.35rem 1rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-shop-tab {
+    background: var(--acore-hover);
+    color: var(--acore-text);
+}
+
+html[class*="acore-"] .acore-shop-tab:hover {
+    background: var(--acore-accent-soft);
+    color: var(--acore-heading);
+}
+
+html[class*="acore-"] .acore-shop-tab.active {
+    background: var(--acore-accent);
+    border-color: var(--acore-accent);
+    color: var(--acore-accent-text);
+}
+
+html[class*="acore-"] .woocommerce-breadcrumb,
+html[class*="acore-"] .woocommerce-result-count {
+    color: var(--acore-muted);
+}

@@ -31,8 +31,11 @@ plugins_activate_only=(
     "ACore WP Plugins|acore-wp-plugins"
 )
 
-# List of themes to activate only once (already present in container)
-themes_activate_only=()
+# List of themes to activate only once (already present in container).
+# Only on a fresh install or in development, so an existing site never has its theme switched by an update.
+themes_activate_only=(
+    "ACore Theme|acore-theme"
+)
 
 APPS_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
@@ -98,6 +101,15 @@ if ! wp core is-installed --allow-root; then
     fi
 fi
 
+# WordPress's environment type follows ENVIRONMENT (DOCKER_ENVIRONMENT in .env): development, staging, production or
+# local. The ACore Theme's test shop and test payment method only exist in development / local.
+case "${ENVIRONMENT:-production}" in
+    development|staging|production|local) WP_ENV_TYPE="${ENVIRONMENT}" ;;
+    *) WP_ENV_TYPE="production" ;;
+esac
+echo "Setting WP_ENVIRONMENT_TYPE to $WP_ENV_TYPE..."
+wp config set WP_ENVIRONMENT_TYPE "$WP_ENV_TYPE" --type=constant --allow-root || echo "Could not set WP_ENVIRONMENT_TYPE."
+
 wp maintenance-mode activate --allow-root || echo "Maintenance mode already activated or failed to activate."
 
 # Install and activate plugins and themes
@@ -114,12 +126,16 @@ for plugin in "${plugins_activate_only[@]}"; do
     handle_plugin_activation_once "$plugin_slug"
 done
 
-# Handle themes activation only once
+# Handle themes activation only once (fresh installs and development only)
 for theme in "${themes_activate_only[@]}"; do
     IFS='|' read -r theme_name theme_slug <<< "$theme"
 
-    echo "Activating theme $theme_name ($theme_slug) only once..."
-    handle_theme_activation_once "$theme_slug"
+    if [ "$IS_FIRST_INSTALL" = "1" ] || [ "$WP_ENV_TYPE" = "development" ] || [ "$WP_ENV_TYPE" = "local" ]; then
+        echo "Activating theme $theme_name ($theme_slug) only once..."
+        handle_theme_activation_once "$theme_slug"
+    else
+        echo "Theme $theme_name ($theme_slug) is available; activate it under Appearance > Themes if you want it."
+    fi
 done
 
 # Correct permissions for non-root operations
