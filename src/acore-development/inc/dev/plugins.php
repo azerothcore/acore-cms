@@ -19,6 +19,40 @@ function acore_theme_required_plugins()
     ]);
 }
 
+/**
+ * Pinned releases for older WordPress versions: slug => [ WordPress below this version => release to install ].
+ * The latest release is installed when WordPress is new enough. From each release's readme ("Requires at least"):
+ * WooCommerce 11.1+ needs WordPress 7.0, 10.8.x - 11.0.x need 6.9, 10.5.x - 10.7.0 need 6.8.
+ * Filter: acore_theme_plugin_fallbacks.
+ */
+function acore_theme_plugin_fallbacks()
+{
+    return apply_filters('acore_theme_plugin_fallbacks', [
+        'woocommerce' => [
+            '6.9' => '10.7.0',   // WordPress 6.8.x
+            '7.0' => '11.0.1',   // WordPress 6.9.x
+        ],
+    ]);
+}
+
+/** The release to install for this WordPress: a pinned version, or "latest". */
+function acore_theme_plugin_version_for_wordpress($slug)
+{
+    $fallbacks = acore_theme_plugin_fallbacks();
+    if (empty($fallbacks[$slug])) {
+        return 'latest';
+    }
+    $wp = get_bloginfo('version');
+    $below = $fallbacks[$slug];
+    uksort($below, 'version_compare');
+    foreach ($below as $wpBelow => $release) {
+        if (version_compare($wp, $wpBelow, '<')) {
+            return $release;
+        }
+    }
+    return 'latest';
+}
+
 function acore_theme_load_plugin_admin()
 {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -46,76 +80,32 @@ function acore_theme_install_plugin($slug, $file, &$log)
     }
     set_transient('acore_theme_install_wait_' . $slug, 1, 10 * MINUTE_IN_SECONDS);
 
+    if (function_exists('set_time_limit')) {
+        @set_time_limit(300);   // a plugin download can take longer than PHP's default 30 seconds
+    }
+
     if (get_filesystem_method() !== 'direct') {
         $message = 'WordPress can\'t write to wp-content/plugins (file permissions)';
     } else {
-        // the latest release first; when it needs a newer WordPress / PHP, the newest older releases (a few tries)
-        $packages = array_merge(
-            ['latest' => 'https://downloads.wordpress.org/plugin/' . rawurlencode($slug) . '.latest-stable.zip'],
-            acore_theme_older_plugin_packages($slug, 4)
-        );
-        $message = '';
-        foreach ($packages as $version => $package) {
-            $skin     = new Automatic_Upgrader_Skin();
-            $upgrader = new Plugin_Upgrader($skin);
-            $result   = $upgrader->install($package);
-            if (!is_wp_error($result) && $result) {
-                wp_clean_plugins_cache();
-                delete_transient('acore_theme_install_wait_' . $slug);
-                acore_theme_plugin_error($slug, null);
-                $log[] = "Plugin installed: $slug" . ($version === 'latest' ? '' : " $version (the latest needs a newer WordPress / PHP)");
-                return array_key_exists($file, get_plugins());
-            }
-            $message = is_wp_error($result) ? $result->get_error_message() : implode(' ', array_map('wp_strip_all_tags', (array) $skin->get_upgrade_messages()));
-            // only a "requires WordPress / PHP x" refusal is worth trying an older release for
-            if (!preg_match('/requires|required|version/i', $message)) {
-                break;
-            }
+        // the latest release, or the pinned one for an older WordPress (acore_theme_plugin_fallbacks)
+        $version  = acore_theme_plugin_version_for_wordpress($slug);
+        $package  = 'https://downloads.wordpress.org/plugin/' . rawurlencode($slug)
+            . ($version === 'latest' ? '.latest-stable.zip' : '.' . rawurlencode($version) . '.zip');
+        $skin     = new Automatic_Upgrader_Skin();
+        $upgrader = new Plugin_Upgrader($skin);
+        $result   = $upgrader->install($package);
+        if (!is_wp_error($result) && $result) {
+            wp_clean_plugins_cache();
+            delete_transient('acore_theme_install_wait_' . $slug);
+            acore_theme_plugin_error($slug, null);
+            $log[] = "Plugin installed: $slug" . ($version === 'latest' ? '' : " $version (pinned for WordPress " . get_bloginfo('version') . ')');
+            return array_key_exists($file, get_plugins());
         }
+        $message = is_wp_error($result) ? $result->get_error_message() : implode(' ', array_map('wp_strip_all_tags', (array) $skin->get_upgrade_messages()));
     }
     acore_theme_plugin_error($slug, $message ?: 'download failed');
     $log[] = "Plugin $slug could not be installed: " . ($message ?: 'download failed');
     return false;
-}
-
-/**
- * Download links of a plugin's older stable releases, newest first: the newest patch of each of the $count previous
- * major.minor versions (e.g. 10.3.2, 10.2.4, ...). From the wordpress.org plugin API.
- */
-function acore_theme_older_plugin_packages($slug, $count)
-{
-    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
-    $info = plugins_api('plugin_information', ['slug' => $slug, 'fields' => ['versions' => true, 'sections' => false]]);
-    if (is_wp_error($info) || empty($info->versions) || !is_array($info->versions)) {
-        return [];
-    }
-    $latest  = isset($info->version) ? $info->version : '';
-    $byMinor = [];
-    foreach ($info->versions as $version => $link) {
-        if (!preg_match('/^(\d+)\.(\d+)(\.\d+)*$/', (string) $version, $m) || version_compare($version, $latest, '>=')) {
-            continue;   // trunk, betas, release candidates, the latest itself
-        }
-        $minor = $m[1] . '.' . $m[2];
-        if (!isset($byMinor[$minor]) || version_compare($version, $byMinor[$minor][0], '>')) {
-            $byMinor[$minor] = [$version, $link];
-        }
-    }
-    uksort($byMinor, function ($a, $b) {
-        return version_compare($b, $a);
-    });
-    $packages = [];
-    $latestMinor = preg_match('/^(\d+\.\d+)/', $latest, $lm) ? $lm[1] : '';
-    foreach ($byMinor as $minor => $release) {
-        if ($minor === $latestMinor && count($byMinor) > 1) {
-            // older patches of the latest minor usually need the same WordPress: start with the previous minors
-            continue;
-        }
-        $packages[$release[0]] = $release[1];
-        if (count($packages) >= $count) {
-            break;
-        }
-    }
-    return $packages;
 }
 
 /** Remembers (or clears, with null) why a plugin couldn't be installed, for the info page. */
