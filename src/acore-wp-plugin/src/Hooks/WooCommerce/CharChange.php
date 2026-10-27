@@ -287,6 +287,77 @@ class CharChange extends \ACore\Lib\WpClass {
     }
 
     // 1) LIST
+    /**
+     * What a race / faction change or customization also includes: [text, optional "not included" service SKU
+     * linked in the text]. Filter: acore_char_change_includes.
+     */
+    private static function includes($sku): ?array {
+        $notes = apply_filters('acore_char_change_includes', [
+            'char-change-faction'   => [__('A faction change also includes a character rename, a character customization and a race change.', 'acore-wp-plugin'), null],
+            'char-change-race'      => [__('A race change also includes a character rename and a character customization. It does not include a %s.', 'acore-wp-plugin'), 'char-change-faction'],
+            'char-change-customize' => [__('A customization includes a character rename, a gender change and face / skin customization.', 'acore-wp-plugin'), null],
+        ]);
+        return $notes[$sku] ?? null;
+    }
+
+    /** The includes text; $html links the service it doesn't include to its product page. */
+    private static function includesText($sku, bool $html): string {
+        $note = self::includes($sku);
+        if (!$note) {
+            return '';
+        }
+        [$text, $linkSku] = $note;
+        if ($linkSku === null) {
+            return $html ? esc_html($text) : $text;
+        }
+        $label = __('faction change', 'acore-wp-plugin');
+        if (!$html) {
+            return sprintf($text, $label);
+        }
+        $url = '';
+        if (function_exists('wc_get_product_id_by_sku')) {
+            $id = wc_get_product_id_by_sku($linkSku);
+            if ($id) {
+                $linked = wc_get_product($id);
+                // a variation links to its parent product
+                $url = $linked ? get_permalink($linked->get_parent_id() ?: $linked->get_id()) : '';
+            }
+        }
+        $link = $url ? '<a href="' . esc_url($url) . '">' . esc_html($label) . '</a>' : esc_html($label);
+        return sprintf(esc_html($text), $link);
+    }
+
+    /** The product page note; the variable "char-change" product shows the chosen variation's one. */
+    private static function includesNotice($sku, bool $isVariable): void {
+        $skus = $isVariable ? ['char-change-faction', 'char-change-race', 'char-change-customize'] : [$sku];
+        $style = 'margin: 0.75em 0; padding: 8px 12px; border-left: 4px solid #5865f2; border-radius: 4px; background: rgba(88, 101, 242, 0.1);';
+        foreach ($skus as $noteSku) {
+            $text = self::includesText($noteSku, true);
+            if ($text === '') {
+                continue;
+            }
+            echo '<p class="acore-service-includes" data-sku="' . esc_attr($noteSku) . '" style="' . $style . '"' . ($isVariable ? ' hidden' : '') . '>'
+                . '<strong>' . esc_html__('Included:', 'acore-wp-plugin') . '</strong> ' . $text . '</p>';   // escaped in includesText
+        }
+        if ($isVariable) {
+            ?>
+            <script>
+                jQuery(function ($) {
+                    $('form.variations_form')
+                        .on('found_variation', function (event, variation) {
+                            $('.acore-service-includes').each(function () {
+                                this.hidden = this.dataset.sku !== variation.sku;
+                            });
+                        })
+                        .on('reset_data', function () {
+                            $('.acore-service-includes').prop('hidden', true);
+                        });
+                });
+            </script>
+            <?php
+        }
+    }
+
     public static function before_add_to_cart_button() {
         global $product;
         if (!in_array($product->get_sku(), self::$skuList)) {
@@ -308,6 +379,8 @@ class CharChange extends \ACore\Lib\WpClass {
             }
             self::availabilityNotice($sku, $current_user->user_login);
         }
+
+        self::includesNotice($product->get_sku(), $product->is_type('variable'));
 
         // Optional gifting via smartstone token: leaving the field blank keeps
         // the normal self-service (instant apply to the selected character).
@@ -460,6 +533,11 @@ class CharChange extends \ACore\Lib\WpClass {
             : "The character <$charId> doesn't exist!";
 
             $custom_items[] = array("name" => 'Character', "value" => $charName);
+        }
+
+        $includes = self::includesText($cart_item['acore_item_sku'], false);
+        if ($includes !== '') {
+            $custom_items[] = array("name" => __('Included', 'acore-wp-plugin'), "value" => $includes);
         }
         return $custom_items;
     }
