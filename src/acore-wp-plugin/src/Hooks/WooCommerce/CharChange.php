@@ -180,7 +180,8 @@ class CharChange extends \ACore\Lib\WpClass {
             }
             foreach (['alliance' => self::$allianceRaces, 'horde' => self::$hordeRaces] as $key => $races) {
                 if (!empty($groups[$key])) {
-                    self::availabilityTable($races, $groups[$key]);
+                    // faction change: the current race isn't among the other faction's races, so it gets its own column
+                    self::availabilityTable($races, $groups[$key], $serviceSku === 'char-change-faction');
                 }
             }
         }
@@ -189,9 +190,12 @@ class CharChange extends \ACore\Lib\WpClass {
         }
     }
 
-    private static function availabilityTable(array $races, array $rows): void {
+    private static function availabilityTable(array $races, array $rows, bool $currentColumn = false): void {
         $cell = 'padding: 4px 6px; text-align: center; vertical-align: middle;';
         echo '<table class="acore-char-races" style="width: auto; margin: 0.25em 0 0.75em; border-collapse: collapse;"><thead><tr><th style="' . $cell . '"></th>';
+        if ($currentColumn) {
+            echo '<th style="' . $cell . ' font-weight: normal; vertical-align: bottom;"><small>' . esc_html__('Current', 'acore-wp-plugin') . '</small></th>';
+        }
         foreach ($races as $race) {
             $name = self::$raceNames[$race] ?? ('race ' . $race);
             echo '<th style="' . $cell . ' font-weight: normal;" title="' . esc_attr($name) . '">'
@@ -204,11 +208,17 @@ class CharChange extends \ACore\Lib\WpClass {
                 . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 24px; height: 24px; vertical-align: middle;"> '
                 . '<img src="' . esc_url($char->getClassIconUrl()) . '" alt="" style="width: 24px; height: 24px; vertical-align: middle;"> '
                 . '<strong>' . esc_html($char->getName()) . '</strong></td>';
+            if ($currentColumn) {
+                $raceName = self::$raceNames[$char->getRace()] ?? '';
+                echo '<td style="' . $cell . ' cursor: help;" title="' . esc_attr(sprintf(__('Current race: %s', 'acore-wp-plugin'), $raceName)) . '">'
+                    . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 22px; height: 22px; display: block; margin: 0 auto;"></td>';
+            }
             foreach ($races as $race) {
                 if (!array_key_exists($race, $options)) {
                     echo '<td style="' . $cell . '"></td>';
                 } elseif ($race === $char->getRace()) {
-                    echo '<td style="' . $cell . ' opacity: 0.5; cursor: help;" title="' . esc_attr($options[$race]) . '">&mdash;</td>';
+                    echo '<td style="' . $cell . ' cursor: help;" title="' . esc_attr($options[$race]) . '">'
+                        . '<img src="' . esc_url($char->getCharIconUrl()) . '" alt="" style="width: 22px; height: 22px; display: block; margin: 0 auto;"></td>';
                 } elseif ($options[$race] === null) {
                     echo '<td style="' . $cell . ' color: #4caf50; cursor: help;" title="' . esc_attr__('Possible', 'acore-wp-plugin') . '">&#10004;</td>';
                 } else {
