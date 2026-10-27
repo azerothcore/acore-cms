@@ -1,6 +1,7 @@
 <?php
 /**
- * Test points: buy AzerothCore Points (myCred) for testing - 100 / 500 / 1,000 / 5,000 or a custom amount.
+ * Test points: add AzerothCore Points (myCred) for testing - 100 / 500 / 1,000 / 5,000 or a custom amount.
+ * The buttons update the balance in place (AJAX); without JavaScript the form posts and comes back to the same page.
  * No money is involved: the points are added to your balance straight away, so you can pay for test products with
  * "Pay with AzerothCore Points".
  *
@@ -48,23 +49,59 @@ function acore_theme_points_balance($userId = 0)
     return acore_theme_points_available() && $userId ? (float) mycred_get_users_balance($userId) : 0;
 }
 
-/** Handles the buy buttons (POST with a nonce), then goes back to the page without resubmitting. */
+/**
+ * Adds test points to the current user. Returns [ok, message key]: added-<n>, invalid, denied or failed.
+ */
+function acore_theme_points_add_request($nonce, $amount)
+{
+    if (!acore_theme_points_can_buy() || !wp_verify_nonce($nonce, 'acore_points_buy')) {
+        return [false, 'denied'];
+    }
+    $amount = (int) $amount;
+    if ($amount < 1 || $amount > ACORE_THEME_POINTS_MAX) {
+        return [false, 'invalid'];
+    }
+    $ok = mycred_add('acore_test_points', get_current_user_id(), $amount, 'Test points added on the ACore Development site', 0, '', MYCRED_DEFAULT_TYPE_KEY);
+    return $ok ? [true, 'added-' . $amount] : [false, 'failed'];
+}
+
+/** The text shown for a result key. */
+function acore_theme_points_message($key)
+{
+    if (strpos($key, 'added-') === 0) {
+        return sprintf(__('Added %s to your balance.', 'acore-development'), acore_theme_points_format((int) substr($key, 6)));
+    }
+    if ($key === 'invalid') {
+        return sprintf(__('Choose an amount between 1 and %s.', 'acore-development'), number_format_i18n(ACORE_THEME_POINTS_MAX));
+    }
+    return __('The points could not be added.', 'acore-development');
+}
+
+/** AJAX: add points and answer with the new balance, so the page doesn't reload. */
+add_action('wp_ajax_acore_points_add', function () {
+    list($ok, $key) = acore_theme_points_add_request(
+        isset($_POST['_acore_points']) ? sanitize_key(wp_unslash($_POST['_acore_points'])) : '',
+        isset($_POST['acore_points_amount']) ? $_POST['acore_points_amount'] : 0
+    );
+    $payload = [
+        'message' => acore_theme_points_message($key),
+        'balance' => acore_theme_points_format(acore_theme_points_balance()),
+    ];
+    $ok ? wp_send_json_success($payload) : wp_send_json_error($payload);
+});
+
+/** Without JavaScript: the form posts here, then goes back to the same page without resubmitting. */
 add_action('template_redirect', function () {
     if (empty($_POST['acore_points_buy'])) {
         return;
     }
-    $back = wp_get_referer() ?: home_url('/');
-    if (!acore_theme_points_can_buy() || !isset($_POST['_acore_points']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['_acore_points'])), 'acore_points_buy')) {
-        wp_safe_redirect(add_query_arg('acore_points', 'denied', $back));
-        exit;
-    }
-    $amount = isset($_POST['acore_points_amount']) ? (int) $_POST['acore_points_amount'] : 0;
-    if ($amount < 1 || $amount > ACORE_THEME_POINTS_MAX) {
-        wp_safe_redirect(add_query_arg('acore_points', 'invalid', $back));
-        exit;
-    }
-    $ok = mycred_add('acore_test_points', get_current_user_id(), $amount, 'Test points bought on the ACore Development site', 0, '', MYCRED_DEFAULT_TYPE_KEY);
-    wp_safe_redirect(add_query_arg('acore_points', $ok ? 'added-' . $amount : 'failed', remove_query_arg('acore_points', $back)));
+    $back = isset($_POST['acore_points_back']) ? esc_url_raw(wp_unslash($_POST['acore_points_back'])) : '';
+    $back = wp_validate_redirect($back, wp_get_referer() ?: home_url('/'));
+    list(, $key) = acore_theme_points_add_request(
+        isset($_POST['_acore_points']) ? sanitize_key(wp_unslash($_POST['_acore_points'])) : '',
+        isset($_POST['acore_points_amount']) ? $_POST['acore_points_amount'] : 0
+    );
+    wp_safe_redirect(add_query_arg('acore_points', $key, remove_query_arg('acore_points', $back)));
     exit;
 });
 
@@ -74,26 +111,25 @@ function acore_theme_points_panel()
     if (!acore_theme_points_available()) {
         return '';
     }
+    if (acore_theme_points_can_buy()) {
+        wp_enqueue_script('acore-points', ACORE_THEME_URI . '/assets/js/points.js', [], acore_theme_asset_version('/assets/js/points.js'), true);
+    }
     ob_start();
     $result = isset($_GET['acore_points']) ? sanitize_key(wp_unslash($_GET['acore_points'])) : '';
     ?>
-    <div class="acore-points">
-        <?php if (strpos($result, 'added-') === 0) : ?>
-            <p class="acore-points-message acore-points-ok"><?php echo esc_html(sprintf(__('Added %s to your balance.', 'acore-development'), acore_theme_points_format((int) substr($result, 6)))); ?></p>
-        <?php elseif ($result === 'invalid') : ?>
-            <p class="acore-points-message acore-points-error"><?php echo esc_html(sprintf(__('Choose an amount between 1 and %s.', 'acore-development'), number_format_i18n(ACORE_THEME_POINTS_MAX))); ?></p>
-        <?php elseif ($result === 'denied' || $result === 'failed') : ?>
-            <p class="acore-points-message acore-points-error"><?php esc_html_e('The points could not be added.', 'acore-development'); ?></p>
-        <?php endif; ?>
+    <div class="acore-points" data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>">
+        <p class="acore-points-message <?php echo strpos($result, 'added-') === 0 ? 'acore-points-ok' : 'acore-points-error'; ?>" role="status" aria-live="polite"<?php if ($result === '') echo ' hidden'; ?>>
+            <?php echo $result !== '' ? esc_html(acore_theme_points_message($result)) : ''; ?>
+        </p>
 
         <div class="acore-points-row">
             <div class="acore-points-balance">
                 <?php if (is_user_logged_in()) : ?>
                     <span class="acore-points-label"><?php esc_html_e('Your balance', 'acore-development'); ?></span>
-                    <strong><?php echo esc_html(acore_theme_points_format(acore_theme_points_balance())); ?></strong>
+                    <strong class="acore-points-amount"><?php echo esc_html(acore_theme_points_format(acore_theme_points_balance())); ?></strong>
                 <?php else : ?>
                     <a href="<?php echo esc_url(wp_login_url(is_singular() ? get_permalink() : home_url('/'))); ?>"><?php esc_html_e('Log in', 'acore-development'); ?></a>
-                    <?php esc_html_e('to see your balance and buy points.', 'acore-development'); ?>
+                    <?php esc_html_e('to see your balance and add points.', 'acore-development'); ?>
                 <?php endif; ?>
             </div>
 
@@ -101,17 +137,19 @@ function acore_theme_points_panel()
             <form class="acore-points-buy" method="post">
                 <?php wp_nonce_field('acore_points_buy', '_acore_points'); ?>
                 <input type="hidden" name="acore_points_buy" value="1">
+                <input type="hidden" name="acore_points_back" value="<?php echo esc_url(remove_query_arg('acore_points', home_url(add_query_arg([])))); ?>">
                 <?php foreach (acore_theme_points_packs() as $pack) : ?>
                     <button type="submit" class="acore-points-pack" name="acore_points_amount" value="<?php echo esc_attr($pack); ?>">
-                        <?php echo esc_html(sprintf(__('Buy %s', 'acore-development'), number_format_i18n($pack))); ?>
+                        <?php echo esc_html(sprintf(__('Add %s', 'acore-development'), number_format_i18n($pack))); ?>
                     </button>
                 <?php endforeach; ?>
             </form>
             <form class="acore-points-buy acore-points-custom" method="post">
                 <?php wp_nonce_field('acore_points_buy', '_acore_points'); ?>
                 <input type="hidden" name="acore_points_buy" value="1">
+                <input type="hidden" name="acore_points_back" value="<?php echo esc_url(remove_query_arg('acore_points', home_url(add_query_arg([])))); ?>">
                 <input type="number" name="acore_points_amount" min="1" max="<?php echo esc_attr(ACORE_THEME_POINTS_MAX); ?>" step="1" placeholder="<?php esc_attr_e('Amount', 'acore-development'); ?>" aria-label="<?php esc_attr_e('Custom amount of points', 'acore-development'); ?>" required>
-                <button type="submit" class="acore-points-pack"><?php esc_html_e('Buy', 'acore-development'); ?></button>
+                <button type="submit" class="acore-points-pack"><?php esc_html_e('Add', 'acore-development'); ?></button>
             </form>
             <?php endif; ?>
         </div>
@@ -119,7 +157,7 @@ function acore_theme_points_panel()
         <?php if (acore_theme_points_can_buy()) : ?>
             <p class="acore-points-note"><?php esc_html_e('Test points: no money is taken, they are added to your balance right away.', 'acore-development'); ?></p>
         <?php elseif (is_user_logged_in()) : ?>
-            <p class="acore-points-note"><?php esc_html_e('Buying test points is available when the site runs in development (DOCKER_ENVIRONMENT=development), or for administrators. An administrator can also set your balance under Users.', 'acore-development'); ?></p>
+            <p class="acore-points-note"><?php esc_html_e('Adding test points is available when the site runs in development (DOCKER_ENVIRONMENT=development), or for administrators. An administrator can also set your balance under Users.', 'acore-development'); ?></p>
         <?php endif; ?>
     </div>
     <?php
