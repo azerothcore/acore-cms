@@ -29,6 +29,107 @@ class CharChange extends \ACore\Lib\WpClass {
         "char-change-customize" => 4,
     );
 
+    /** Playable races per faction (WotLK 3.3.5). */
+    private static $allianceRaces = [1, 3, 4, 7, 11];   // Human, Dwarf, Night Elf, Gnome, Draenei
+    private static $hordeRaces    = [2, 5, 6, 8, 10];   // Orc, Undead, Tauren, Troll, Blood Elf
+
+    private static $raceNames = [
+        1 => 'Human', 2 => 'Orc', 3 => 'Dwarf', 4 => 'Night Elf', 5 => 'Undead',
+        6 => 'Tauren', 7 => 'Gnome', 8 => 'Troll', 10 => 'Blood Elf', 11 => 'Draenei',
+    ];
+
+    private static $classNames = [
+        1 => 'Warrior', 2 => 'Paladin', 3 => 'Hunter', 4 => 'Rogue', 5 => 'Priest',
+        6 => 'Death Knight', 7 => 'Shaman', 8 => 'Mage', 9 => 'Warlock', 11 => 'Druid',
+    ];
+
+    /** Races that can be each class (WotLK 3.3.5). Filter: acore_char_change_class_races. */
+    private static function classRaces(): array {
+        return apply_filters('acore_char_change_class_races', [
+            1  => [1, 2, 3, 4, 5, 6, 7, 8, 11],        // Warrior
+            2  => [1, 3, 10, 11],                      // Paladin
+            3  => [2, 3, 4, 6, 8, 10, 11],             // Hunter
+            4  => [1, 2, 3, 4, 5, 7, 8, 10],           // Rogue
+            5  => [1, 3, 4, 5, 8, 10, 11],             // Priest
+            6  => [1, 2, 3, 4, 5, 6, 7, 8, 10, 11],    // Death Knight
+            7  => [2, 6, 8, 11],                       // Shaman
+            8  => [1, 5, 7, 8, 10, 11],                // Mage
+            9  => [1, 2, 5, 7, 10],                    // Warlock
+            11 => [4, 6],                              // Druid
+        ]);
+    }
+
+    /**
+     * Why a race / faction change can't be used by a character of this race and class, or null when it can.
+     * Race change: another race of the same faction must be able to be that class (so not Tauren / Night Elf
+     * Druids, Blood Elf Paladins, Draenei Shamans). Faction change: a race of the other faction must be able to.
+     */
+    public static function serviceBlockReason($sku, int $race, int $class): ?string {
+        if ($sku !== 'char-change-race' && $sku !== 'char-change-faction') {
+            return null;
+        }
+        $classRaces = self::classRaces();
+        if (!isset($classRaces[$class])) {
+            return null;   // unknown (custom) class: leave it to the server
+        }
+        $alliance = in_array($race, self::$allianceRaces, true);
+        $horde    = in_array($race, self::$hordeRaces, true);
+        if (!$alliance && !$horde) {
+            return null;   // unknown (custom) race
+        }
+
+        $own   = $alliance ? self::$allianceRaces : self::$hordeRaces;
+        $other = $alliance ? self::$hordeRaces : self::$allianceRaces;
+        $candidates = $sku === 'char-change-race'
+            ? array_diff(array_intersect($own, $classRaces[$class]), [$race])
+            : array_intersect($other, $classRaces[$class]);
+        if (!empty($candidates)) {
+            return null;
+        }
+
+        $raceName  = self::$raceNames[$race] ?? ('race ' . $race);
+        $className = self::$classNames[$class] ?? ('class ' . $class);
+        if ($sku === 'char-change-race') {
+            return sprintf(
+                __('A %1$s %2$s can\'t change race: no other %3$s race can be a %2$s.', 'acore-wp-plugin'),
+                $raceName, $className, $alliance ? __('Alliance', 'acore-wp-plugin') : __('Horde', 'acore-wp-plugin')
+            );
+        }
+        return sprintf(
+            __('A %1$s %2$s can\'t change faction: no %3$s race can be a %2$s.', 'acore-wp-plugin'),
+            $raceName, $className, $alliance ? __('Horde', 'acore-wp-plugin') : __('Alliance', 'acore-wp-plugin')
+        );
+    }
+
+    /** On the product page: which of the account's characters can't use this race / faction change, and why. */
+    private static function blockedCharactersNotice($sku, $username): void {
+        $skus = $sku === 'char-change' ? ['char-change-race', 'char-change-faction'] : [$sku];
+        $skus = array_intersect($skus, ['char-change-race', 'char-change-faction']);
+        if (empty($skus)) {
+            return;
+        }
+        try {
+            $ACoreSrv = ACoreServices::I();
+            $account  = $ACoreSrv->getAccountRepo()->findOneByUsername($username);
+            $characters = $account ? $ACoreSrv->getCharactersRepo()->findByAccount($account->getId()) : [];
+        } catch (\Throwable $e) {
+            return;
+        }
+        $lines = [];
+        foreach ((array) $characters as $char) {
+            foreach ($skus as $serviceSku) {
+                $reason = self::serviceBlockReason($serviceSku, $char->getRace(), $char->getClass());
+                if ($reason !== null) {
+                    $lines[] = '<strong>' . esc_html($char->getName()) . '</strong>: ' . esc_html($reason);
+                }
+            }
+        }
+        if (!empty($lines)) {
+            echo '<p class="acore-char-change-blocked" style="color: #ff7961;">' . esc_html__('Not possible for:', 'acore-wp-plugin')
+                . '<br>' . implode('<br>', $lines) . '</p>';
+        }
+    }
+
     private static function giftingEnabled(): bool {
         return Opts::I()->acore_smartstone_enabled == '1';
     }
@@ -94,6 +195,7 @@ class CharChange extends \ACore\Lib\WpClass {
 
         if ($current_user) {
             FieldElements::charList($current_user->user_login, self::isDeletedSKU($product->get_sku()));
+            self::blockedCharactersNotice($product->get_sku(), $current_user->user_login);
         }
 
         // Optional gifting via smartstone token: leaving the field blank keeps

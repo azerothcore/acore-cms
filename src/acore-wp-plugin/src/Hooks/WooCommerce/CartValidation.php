@@ -87,6 +87,13 @@ class CartValidation extends \ACore\Lib\WpClass {
                 \wc_add_notice(__('This character is not available in your account!', 'acore-wp-plugin'), 'error');
                 return false;
             }
+
+            // race / faction change: the class must exist for another race of the same / the other faction
+            $blocked = CharChange::serviceBlockReason($sku, $char->getRace(), $char->getClass());
+            if ($blocked !== null) {
+                \wc_add_notice($blocked, 'error');
+                return false;
+            }
         }
 
         if (in_array('acore_dest_account', self::$skuList[$activeSku])) {
