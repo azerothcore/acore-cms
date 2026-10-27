@@ -124,7 +124,9 @@ function acore_theme_dev_info_you()
     $error  = null;
     $services = acore_theme_dev_services($error);
     if ($services === null) {
-        $rows[] = acore_theme_dev_row(__('Game account', 'acore-development'), 'bad', (string) $error);
+        // the error can contain database details: only administrators see it
+        $rows[] = acore_theme_dev_row(__('Game account', 'acore-development'), 'bad', current_user_can('manage_options')
+            ? (string) $error : __('the game server connection isn\'t set up yet - ask an administrator', 'acore-development'));
         return $rows;
     }
     try {
@@ -140,7 +142,10 @@ function acore_theme_dev_info_you()
         $rows[] = acore_theme_dev_row(__('Characters', 'acore-development'), $count > 0 ? 'ok' : 'warn',
             $count > 0 ? sprintf(_n('%d character', '%d characters', $count, 'acore-development'), $count) : __('none: most services need a character', 'acore-development'));
     } catch (\Throwable $e) {
-        $rows[] = acore_theme_dev_row(__('Game account', 'acore-development'), 'bad', sprintf(__('database error: %s', 'acore-development'), $e->getMessage()));
+        error_log('ACore Development info: ' . $e->getMessage());
+        $rows[] = acore_theme_dev_row(__('Game account', 'acore-development'), 'bad', current_user_can('manage_options')
+            ? sprintf(__('database error: %s', 'acore-development'), $e->getMessage())
+            : __('the game database can\'t be read right now - ask an administrator', 'acore-development'));
     }
     return $rows;
 }

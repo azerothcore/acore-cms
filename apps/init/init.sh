@@ -133,6 +133,14 @@ for theme in "${themes_activate_only[@]}"; do
     handle_theme_activation_once "$theme_slug"
 done
 
+# ACore Development theme: install the shop plugins and set up the test shop now (on page loads the theme only does
+# it for administrators). Twice: plugins activated by the first run are only loaded by the second.
+if [ "$(wp theme list --status=active --field=name --allow-root 2>/dev/null)" = "acore-development" ]; then
+    echo "Setting up the ACore Development test shop..."
+    wp acore-dev setup --allow-root || echo "ACore Development setup: first run incomplete."
+    wp acore-dev setup --allow-root || echo "ACore Development setup failed: an administrator's visit or wp acore-dev setup retries it."
+fi
+
 # Correct permissions for non-root operations
 chown -R www-data:www-data /run /var/www/html/
 

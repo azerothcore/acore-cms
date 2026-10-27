@@ -17,7 +17,8 @@ remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrap
 remove_action('woocommerce_sidebar', 'woocommerce_get_sidebar', 10);
 
 add_action('woocommerce_before_shop_loop', 'acore_theme_shop_category_tabs', 5);
-add_action('woocommerce_after_shop_loop_item_title', 'acore_theme_shop_category_badge', 5);
+// after WooCommerce closes the product link (priority 5), so the badge's link isn't nested in it
+add_action('woocommerce_after_shop_loop_item', 'acore_theme_shop_category_badge', 7);
 
 /** Tabs for the top-level product categories ("All" first) on the shop and category pages. */
 function acore_theme_shop_category_tabs()

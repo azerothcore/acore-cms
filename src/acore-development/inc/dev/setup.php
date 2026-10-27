@@ -257,10 +257,16 @@ function acore_theme_dev_setup($force = false, $allowInstall = true)
     return $log;
 }
 
-/** Runs the setup once per ACORE_THEME_DEV_SETUP_VERSION (the lock stops two first requests from both running it). */
+/**
+ * Runs the setup once per ACORE_THEME_DEV_SETUP_VERSION, on an administrator's page load only (it installs plugins and
+ * changes the shop settings; Docker runs wp acore-dev setup at start). The lock stops two requests from both running it.
+ */
 add_action('init', function () {
     if ((int) get_option('acore_theme_dev_setup', 0) >= ACORE_THEME_DEV_SETUP_VERSION) {
-        return;   // done (it keeps trying on each page load until WooCommerce is active and the shop is set up)
+        return;   // done (it keeps trying on each administrator page load until WooCommerce is active and the shop is set up)
+    }
+    if (!is_user_logged_in() || !current_user_can('install_plugins')) {
+        return;
     }
     $lock = (int) get_option('acore_theme_dev_setup_lock', 0);
     if ($lock && $lock > time() - 300) {

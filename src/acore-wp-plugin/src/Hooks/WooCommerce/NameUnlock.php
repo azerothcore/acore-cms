@@ -82,10 +82,11 @@ class NameUnlock extends \ACore\Lib\WpClass
         foreach (is_array($thresholds) ? $thresholds : [] as $threshold) {
             $level = isset($threshold[0]) ? (int) $threshold[0] : 0;
             $days  = isset($threshold[1]) ? (int) $threshold[1] : 0;
-            if ($level > 0 && $days > 0) {
+            if ($level > 0 && $days >= 0) {   // 0 days is valid: no minimum for those levels
                 $valid[] = [$level, $days];
             }
         }
+        // non-overlapping level ranges: the first threshold a character is below applies (as in add_cart_item_data)
         $rules = [];
         $from  = 1;
         foreach ($valid as $i => [$level, $days]) {
@@ -93,12 +94,16 @@ class NameUnlock extends \ACore\Lib\WpClass
                 continue;   // shadowed by an earlier threshold (they're checked in order)
             }
             $isLast = $i === count($valid) - 1;
-            $rules[] = [
-                ($isLast && $level > 80)
-                    ? sprintf(__('Level %d and above', 'acore-wp-plugin'), $from)
-                    : sprintf(__('Level %d and below', 'acore-wp-plugin'), $level - 1),
-                $days,
-            ];
+            if ($isLast && $level > 80) {
+                $label = sprintf(__('Level %d and above', 'acore-wp-plugin'), $from);
+            } elseif ($from === 1) {
+                $label = sprintf(__('Level %d and below', 'acore-wp-plugin'), $level - 1);
+            } elseif ($from === $level - 1) {
+                $label = sprintf(__('Level %d', 'acore-wp-plugin'), $from);
+            } else {
+                $label = sprintf(__('Level %1$d to %2$d', 'acore-wp-plugin'), $from, $level - 1);
+            }
+            $rules[] = [$label, $days];
             $from = $level;
         }
         if ($from <= 80 && !empty($rules)) {
@@ -115,7 +120,7 @@ class NameUnlock extends \ACore\Lib\WpClass
             $html .= '<br>' . esc_html__('Only names of inactive characters can be unlocked. The character\'s account must not have logged in for:', 'acore-wp-plugin')
                 . '<ul style="margin: 0.4em 0 0.4em 1.25em; padding: 0;">';
             foreach ($rules as [$label, $days]) {
-                $html .= '<li>' . esc_html($label) . ' - ' . esc_html($days > 0
+                $html .= '<li>' . esc_html($label) . ': ' . esc_html($days > 0
                     ? sprintf(_n('%d day', '%d days', $days, 'acore-wp-plugin'), $days)
                     : __('no minimum', 'acore-wp-plugin')) . '</li>';
             }

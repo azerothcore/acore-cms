@@ -178,7 +178,15 @@ class FieldElements {
                 <span class="acore-char-picker-current">
                     <?php
                     if ($selected) {
-                        echo $item($selected, $selected->getName(), false);
+                        // the label charList() built (a deleted character's name is in deleteInfos_Name, not name)
+                        $selectedLabel = $selected->getName();
+                        foreach ($options as [$character, $label]) {
+                            if ($character->getGuid() == $selected->getGuid()) {
+                                $selectedLabel = $label;
+                                break;
+                            }
+                        }
+                        echo $item($selected, $selectedLabel, false);
                     } else {
                         echo '<span class="acore-char-picker-item"><span class="acore-char-picker-note">' . esc_html__('No character can use this service', 'acore-wp-plugin') . '</span></span>';
                     }

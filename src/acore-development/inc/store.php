@@ -24,9 +24,9 @@ function acore_theme_product_needs_choices($product)
     $prefixes = apply_filters('acore_theme_sku_prefixes_with_choices', [
         'char-', 'itemsend', 'item-restoration', 'guild-rename', 'transmog-', 'name-unlock', 'smartstone',
     ]);
-    $sku = (string) $product->get_sku();
+    $sku = strtolower((string) $product->get_sku());   // service SKUs are case-insensitive
     foreach ($prefixes as $prefix) {
-        if ($prefix !== '' && strpos($sku, $prefix) === 0) {
+        if ($prefix !== '' && strpos($sku, strtolower($prefix)) === 0) {
             return true;
         }
     }
@@ -120,6 +120,17 @@ function acore_theme_store_shortcode($atts)
             $products[] = $product;
         }
     }
+
+    // only tiles for categories that have a loaded product (per_page can leave some out)
+    $loaded = [];
+    foreach ($products as $product) {
+        foreach (acore_theme_product_top_categories($product->get_id()) as $slug) {
+            $loaded[$slug] = true;
+        }
+    }
+    $categories = array_values(array_filter($categories, function ($term) use ($loaded) {
+        return isset($loaded[$term->slug]);
+    }));
 
     wp_enqueue_style('acore-store', ACORE_THEME_URI . '/assets/css/store.css', ['acore-development'], acore_theme_asset_version('/assets/css/store.css'));
     wp_enqueue_script('acore-store', ACORE_THEME_URI . '/assets/js/store.js', [], acore_theme_asset_version('/assets/js/store.js'), true);

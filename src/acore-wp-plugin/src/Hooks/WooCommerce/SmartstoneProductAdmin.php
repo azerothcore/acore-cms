@@ -86,15 +86,19 @@ class SmartstoneProductAdmin {
                 var id = $('#acore_smartstone_id');
                 var sku = $('#_sku');
                 var fields = $('.acore-smartstone-field');
-                var typedSku = sku.val();
+                var pattern = /^smartstone_\d+_\d+$/i;
+                var savedSku = sku.val();                                // the SKU stored now
+                var typedSku = pattern.test(savedSku) ? '' : savedSku;   // what the SKU field goes back to when unticked
 
                 function update() {
                     var on = enabled.is(':checked');
                     fields.toggle(on);
                     sku.prop('readonly', on).css('opacity', on ? 0.6 : '');
                     if (on) {
-                        sku.val(type.val() !== '' && id.val() !== '' ? 'smartstone_' + type.val() + '_' + id.val() : '');
-                    } else if (/^smartstone_\d+_\d+$/i.test(sku.val()) === false || sku.val() === '') {
+                        // incomplete type / ID: keep the stored SKU (saving reports it and leaves the SKU unchanged)
+                        sku.val(type.val() !== '' && id.val() !== '' ? 'smartstone_' + type.val() + '_' + id.val() : savedSku);
+                    } else if (sku.val() === '' || pattern.test(sku.val())) {
+                        // unticked: no generated SKU left behind (it would tick the box again on the next load)
                         sku.val(typedSku);
                     }
                 }
@@ -117,13 +121,26 @@ class SmartstoneProductAdmin {
         if (!isset($_POST['acore_smartstone_nonce']) || !\wp_verify_nonce(\sanitize_key(\wp_unslash($_POST['acore_smartstone_nonce'])), 'acore_smartstone_product')) {
             return;
         }
+        $stored = (string) \get_post_meta($product->get_id(), '_sku', true);   // before this save
         if (empty($_POST['acore_smartstone_enabled'])) {
+            // unticked on a SmartStone product whose SKU wasn't changed by hand: clear the generated SKU, or the
+            // box would be ticked again on the next load (parseSku)
+            if (self::parseSku($stored) !== null && strcasecmp((string) $product->get_sku('edit'), $stored) === 0) {
+                $product->set_sku('');
+                \WC_Admin_Meta_Boxes::add_error(sprintf(__('SmartStone product unticked: the SKU %s was removed, enter a new one if needed.', 'acore-wp-plugin'), $stored));
+            }
             return;   // a normal product: WooCommerce saved the SKU field as typed
         }
         $type  = isset($_POST['acore_smartstone_type']) ? (string) \wp_unslash($_POST['acore_smartstone_type']) : '';
         $id    = isset($_POST['acore_smartstone_id']) ? (int) $_POST['acore_smartstone_id'] : 0;
         $types = self::types();
         if ($type === '' || !isset($types[(int) $type]) || $id < 1) {
+            // WooCommerce already took the posted SKU field: put the stored SKU back
+            try {
+                $product->set_sku($stored);
+            } catch (\WC_Data_Exception $e) {
+                // it was valid until now; nothing better to do
+            }
             \WC_Admin_Meta_Boxes::add_error(__('SmartStone product: choose a type and enter an ID, the SKU was not changed.', 'acore-wp-plugin'));
             return;
         }

@@ -4,8 +4,9 @@ namespace ACore\Hooks\WooCommerce;
 
 /**
  * ACore service SKUs are lowercase: the services compare them that way (smartstone_9_37, itemsend_6948,
- * char-change-race, ...). Saving a product lowercases an ACore SKU, and existing ones are converted once.
- * A product whose lowercase SKU is already taken by another product is left as it is (and reported).
+ * char-change-race, ...). Every product save lowercases an ACore SKU (admin, Quick Edit, import, REST), existing
+ * ones are converted once, and reading a product's SKU (get_sku()) always gives the lowercase one - so a SKU that
+ * couldn't be converted (its lowercase form is taken by another product, reported) still works everywhere.
  */
 class SkuLowercase {
 
@@ -30,7 +31,32 @@ class SkuLowercase {
     public static function init() {
         // after SmartstoneProductAdmin (priority 10), which may have just built the SKU
         add_action('woocommerce_admin_process_product_object', [__CLASS__, 'lowercaseOnSave'], 20);
+        // any other save (Quick Edit, CSV import, REST API)
+        add_action('woocommerce_before_product_object_save', [__CLASS__, 'lowercaseBeforeSave'], 20);
+        add_action('woocommerce_before_product_variation_object_save', [__CLASS__, 'lowercaseBeforeSave'], 20);
+        // what the services read: always lowercase (the edit screen still shows the stored value)
+        add_filter('woocommerce_product_get_sku', [__CLASS__, 'readLowercase'], 10, 2);
+        add_filter('woocommerce_product_variation_get_sku', [__CLASS__, 'readLowercase'], 10, 2);
         add_action('admin_init', [__CLASS__, 'convertExisting']);
+    }
+
+    public static function readLowercase($sku, $product = null) {
+        return (is_string($sku) && $sku !== '' && self::isServiceSku($sku)) ? strtolower($sku) : $sku;
+    }
+
+    public static function lowercaseBeforeSave($product) {
+        $sku = (string) $product->get_sku('edit');
+        if ($sku === '' || $sku === strtolower($sku) || !self::isServiceSku($sku)) {
+            return;
+        }
+        try {
+            $product->set_sku(strtolower($sku));
+        } catch (\WC_Data_Exception $e) {
+            // the lowercase SKU belongs to another product: kept as it is, read as lowercase (readLowercase)
+            $failed   = (array) get_option('acore_sku_lowercase_failed', []);
+            $failed[] = $sku . ' (#' . $product->get_id() . ')';
+            update_option('acore_sku_lowercase_failed', array_values(array_unique($failed)), false);
+        }
     }
 
     public static function lowercaseOnSave($product) {

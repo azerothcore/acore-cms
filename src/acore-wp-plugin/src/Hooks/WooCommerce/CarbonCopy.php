@@ -98,12 +98,27 @@ class CarbonCopy extends \ACore\Lib\WpClass {
                                 break;
                             }
 
+                            // the game account must exist: an empty reply must never stand for tickets nobody got
+                            try {
+                                $accountExists = (bool) ACoreServices::I()->getAcoreAccountIdByName($accountName);
+                            } catch (\Exception $e) {
+                                $accountExists = false;
+                            }
+                            if (!$accountExists) {
+                                $message = sprintf("CarbonCopy tickets NOT added: %d ticket(s), no game account named %s", $item["qty"], $accountName);
+                                $logs->add("acore_log", $message);
+                                $order->add_order_note($message);
+                                break;
+                            }
+
                             // CCACCOUNTTICKETS replies nothing when the tickets were added. Any reply text (amount
                             // refused, account not found, SOAP error message) means they were NOT added. A SOAP client
                             // that can't even be created throws: handled the same way, and the next items still run.
                             try {
                                 $res = $soap->addCCTickets($accountName, $item["qty"]);
-                                $reply = $res instanceof \Exception ? $res->getMessage() : trim((string) $res);
+                                // false (no answer at all) is not a success either; an empty answer (""/null) is
+                                $reply = $res instanceof \Exception ? $res->getMessage()
+                                    : ($res === false ? "no answer from the server" : trim((string) $res));
                             } catch (\Exception $e) {
                                 $reply = $e->getMessage();
                             }

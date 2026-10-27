@@ -135,8 +135,8 @@ function acore_theme_plugin_error($slug, $message = false)
 
 
 /**
- * Installs and activates the required plugins ($allowInstall is kept for callers; installing always happens). Returns true when all of them are active now
- * (a plugin activated during this request is only loaded from the next one).
+ * Installs (only when $allowInstall: an administrator or WP-CLI) and activates the required plugins. Returns true when
+ * all of them are active now (a plugin activated during this request is only loaded from the next one).
  */
 function acore_theme_ensure_plugins(&$log, $allowInstall)
 {
@@ -149,6 +149,10 @@ function acore_theme_ensure_plugins(&$log, $allowInstall)
         }
         $allActive = false;
         if ($state === 'missing') {
+            if (!$allowInstall) {
+                $log[] = "$name is not installed (an administrator's visit or wp acore-dev setup installs it).";
+                continue;
+            }
             if (!acore_theme_install_plugin($slug, $file, $log)) {
                 continue;
             }
@@ -257,7 +261,7 @@ function acore_theme_points_defaults(&$log)
 /** Switching to this theme installs what's missing right away (the admin is the one switching). */
 add_action('after_switch_theme', function () {
     $log = [];
-    acore_theme_ensure_plugins($log, true);
+    acore_theme_ensure_plugins($log, (defined('WP_CLI') && WP_CLI) || current_user_can('install_plugins'));
     if (!empty($log)) {
         error_log('ACore Development plugins: ' . implode(' | ', $log));
     }
