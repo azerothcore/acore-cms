@@ -220,7 +220,7 @@ add_action('init', function () {
         return;
     }
     update_option('acore_theme_dev_setup_lock', time(), false);
-    $log = acore_theme_dev_setup(false, current_user_can('install_plugins'));
+    $log = acore_theme_dev_setup(false, true);
     delete_option('acore_theme_dev_setup_lock');
     if (!empty($log)) {
         error_log('ACore Development setup: ' . implode(' | ', $log));

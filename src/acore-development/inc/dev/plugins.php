@@ -3,8 +3,8 @@
  * The plugins the CMS needs (the ones the ACore plugin lists as required): installed from wordpress.org when
  * missing and activated - for the whole network on multisite.
  *
- * Activating an installed plugin happens on any request; downloading one needs a user who may install plugins
- * (an administrator), WP-CLI (wp acore-dev setup) or switching to this theme.
+ * Happens on any page load (no user input is involved: the list below, from wordpress.org only). A failed download is
+ * retried at most every 10 minutes; the reason is shown on the ACore Development page.
  */
 
 defined('ABSPATH') || exit;
@@ -41,19 +41,51 @@ function acore_theme_install_plugin($slug, $file, &$log)
     require_once ABSPATH . 'wp-admin/includes/misc.php';
     require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
-    $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
-    $result   = $upgrader->install('https://downloads.wordpress.org/plugin/' . rawurlencode($slug) . '.latest-stable.zip');
-    if (is_wp_error($result) || !$result) {
-        $log[] = "Plugin $slug could not be installed: " . (is_wp_error($result) ? $result->get_error_message() : 'download or file permissions failed');
-        return false;
+    if (get_transient('acore_theme_install_wait_' . $slug)) {
+        return false;   // failed a few minutes ago: don't slow every page load down
     }
-    wp_clean_plugins_cache();
-    $log[] = "Plugin installed: $slug";
-    return array_key_exists($file, get_plugins());
+    set_transient('acore_theme_install_wait_' . $slug, 1, 10 * MINUTE_IN_SECONDS);
+
+    if (get_filesystem_method() !== 'direct') {
+        $message = 'WordPress can\'t write to wp-content/plugins (file permissions)';
+    } else {
+        $skin     = new Automatic_Upgrader_Skin();
+        $upgrader = new Plugin_Upgrader($skin);
+        $result   = $upgrader->install('https://downloads.wordpress.org/plugin/' . rawurlencode($slug) . '.latest-stable.zip');
+        if (!is_wp_error($result) && $result) {
+            wp_clean_plugins_cache();
+            delete_transient('acore_theme_install_wait_' . $slug);
+            acore_theme_plugin_error($slug, null);
+            $log[] = "Plugin installed: $slug";
+            return array_key_exists($file, get_plugins());
+        }
+        $message = is_wp_error($result) ? $result->get_error_message() : implode(' ', array_map('wp_strip_all_tags', (array) $skin->get_upgrade_messages()));
+    }
+    acore_theme_plugin_error($slug, $message ?: 'download failed');
+    $log[] = "Plugin $slug could not be installed: " . ($message ?: 'download failed');
+    return false;
 }
 
+/** Remembers (or clears, with null) why a plugin couldn't be installed, for the info page. */
+function acore_theme_plugin_error($slug, $message = false)
+{
+    $errors = get_option('acore_theme_plugin_errors', []);
+    $errors = is_array($errors) ? $errors : [];
+    if ($message === false) {
+        return isset($errors[$slug]) ? $errors[$slug] : '';
+    }
+    if ($message === null) {
+        unset($errors[$slug]);
+    } else {
+        $errors[$slug] = $message;
+    }
+    update_option('acore_theme_plugin_errors', $errors, false);
+    return '';
+}
+
+
 /**
- * Installs ($allowInstall) and activates the required plugins. Returns true when all of them are active now
+ * Installs and activates the required plugins ($allowInstall is kept for callers; installing always happens). Returns true when all of them are active now
  * (a plugin activated during this request is only loaded from the next one).
  */
 function acore_theme_ensure_plugins(&$log, $allowInstall)
@@ -67,10 +99,6 @@ function acore_theme_ensure_plugins(&$log, $allowInstall)
         }
         $allActive = false;
         if ($state === 'missing') {
-            if (!$allowInstall) {
-                $log[] = "$name is not installed: an administrator opening the site (or wp acore-dev setup) installs it.";
-                continue;
-            }
             if (!acore_theme_install_plugin($slug, $file, $log)) {
                 continue;
             }
@@ -114,7 +142,7 @@ function acore_theme_woocommerce_defaults(&$log)
 /** Switching to this theme installs what's missing right away (the admin is the one switching). */
 add_action('after_switch_theme', function () {
     $log = [];
-    acore_theme_ensure_plugins($log, current_user_can('install_plugins'));
+    acore_theme_ensure_plugins($log, true);
     if (!empty($log)) {
         error_log('ACore Development plugins: ' . implode(' | ', $log));
     }

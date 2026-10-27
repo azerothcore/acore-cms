@@ -42,9 +42,11 @@ function acore_theme_dev_info_site()
     foreach (acore_theme_required_plugins() as $slug => $plugin) {
         list($name, $file) = $plugin;
         $state = acore_theme_plugin_state($file);
+        $error = acore_theme_plugin_error($slug);
         $text  = $state === 'active' ? __('active', 'acore-development')
             : ($state === 'installed' ? __('installed, activated on the next page load', 'acore-development')
-            : __('not installed: opening the site as an administrator (or wp acore-dev setup) installs it', 'acore-development'));
+            : ($error !== '' ? sprintf(__('could not be installed: %s (retried every 10 minutes, or run wp acore-dev setup)', 'acore-development'), $error)
+            : __('not installed yet: installed on the next page load', 'acore-development')));
         $rows[] = acore_theme_dev_row($name, $state === 'active' ? 'ok' : ($state === 'installed' ? 'warn' : 'bad'), $text);
     }
     $acore = class_exists('ACore\Manager\ACoreServices');
