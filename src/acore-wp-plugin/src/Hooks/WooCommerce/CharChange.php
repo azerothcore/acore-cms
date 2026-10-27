@@ -158,6 +158,12 @@ class CharChange extends \ACore\Lib\WpClass {
             return;
         }
 
+        // every table gets the same name column (the longest name) and race columns, so they line up
+        $nameChars = 0;
+        foreach ($characters as $char) {
+            $nameChars = max($nameChars, function_exists('mb_strlen') ? mb_strlen($char->getName()) : strlen($char->getName()));
+        }
+
         $reasons = [];
         foreach ($skus as $serviceSku) {
             if (count($skus) > 1) {
@@ -181,7 +187,7 @@ class CharChange extends \ACore\Lib\WpClass {
             foreach (['alliance' => self::$allianceRaces, 'horde' => self::$hordeRaces] as $key => $races) {
                 if (!empty($groups[$key])) {
                     // faction change: the current race isn't among the other faction's races, so it gets its own column
-                    self::availabilityTable($races, $groups[$key], $serviceSku === 'char-change-faction');
+                    self::availabilityTable($races, $groups[$key], $serviceSku === 'char-change-faction', $nameChars);
                 }
             }
         }
@@ -190,9 +196,15 @@ class CharChange extends \ACore\Lib\WpClass {
         }
     }
 
-    private static function availabilityTable(array $races, array $rows, bool $currentColumn = false): void {
-        $cell = 'padding: 4px 6px; text-align: center; vertical-align: middle;';
-        echo '<table class="acore-char-races" style="width: auto; margin: 0.25em 0 0.75em; border-collapse: collapse;"><thead><tr><th style="' . $cell . '"></th>';
+    private static function availabilityTable(array $races, array $rows, bool $currentColumn, int $nameChars): void {
+        $nameChars += 2; // bold text is a little wider than ch
+        $cell = 'padding: 4px 6px; text-align: center; vertical-align: middle; overflow: hidden;';
+        // fixed layout: name column = two icons + the longest name, each race column 72px
+        $nameWidth = 'calc(' . (int) $nameChars . 'ch + 76px)';
+        $columns   = count($races) + ($currentColumn ? 1 : 0);
+        echo '<table class="acore-char-races" style="table-layout: fixed; width: calc(' . (int) $nameChars . 'ch + 76px + ' . ($columns * 72) . 'px); max-width: 100%; margin: 0.25em 0 0.75em; border-collapse: collapse;">'
+            . '<colgroup><col style="width: ' . $nameWidth . ';">' . str_repeat('<col style="width: 72px;">', $columns) . '</colgroup>'
+            . '<thead><tr><th style="' . $cell . '"></th>';
         if ($currentColumn) {
             echo '<th style="' . $cell . ' font-weight: normal; vertical-align: bottom;"><small>' . esc_html__('Current', 'acore-wp-plugin') . '</small></th>';
         }
