@@ -43,6 +43,9 @@ RUN docker-php-ext-install soap \
 RUN pecl install redis \
     && docker-php-ext-enable redis
 
+# Loads before the mounted upload.ini, which can still override these values
+COPY data/docker/php-security.ini /usr/local/etc/php/conf.d/security.ini
+
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
