@@ -23,7 +23,7 @@ services:
       PMA_ROOT_PASSWORD: flkdsjalfh
     # entrypoint: "echo 'Service phpmyadmin disabled by default'"
     ports:
-      - ${DOCKER_PMA_HTTP_PORTS:-127.0.0.1:8080:80}
+      - ${DOCKER_PMA_HTTP_PORTS:-8080:80}
     expose:
       - "80"
       - "443"
