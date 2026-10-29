@@ -17,7 +17,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         if (!is_string($sku) || $sku === '') {
             return false;
         }
-        $parts = explode("_", $sku);
+        $parts = explode("_", strtolower($sku));   // SKUs are case-insensitive (SkuLowercase.php)
 
         if (count($parts) < 3 || $parts[0] !== "smartstone" || !is_numeric($parts[1]) || !is_numeric($parts[2])) {
             return false;
@@ -29,7 +29,19 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         return [$smartstone_category, $smartstone_id];
     }
 
+    /** SmartStone SKUs, whatever their case. */
+    private static function isSmartstoneSku($sku) {
+        return stripos((string) $sku, 'smartstone') === 0;
+    }
+
     private static function isAccountWide($category) {
+        // the type list lives in SmartstoneProductAdmin::types(); ACCOUNT_WIDE_CATEGORIES is the fallback
+        if (class_exists(SmartstoneProductAdmin::class)) {
+            $types = SmartstoneProductAdmin::types();
+            if (isset($types[(int) $category])) {
+                return (bool) $types[(int) $category][2];
+            }
+        }
         return in_array((int) $category, self::ACCOUNT_WIDE_CATEGORIES, true);
     }
 
@@ -54,7 +66,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
      * When min == max, WC renders the input as plain text (no +/- buttons).
      */
     public static function quantity_input_args($args, $product) {
-        if ($product && strpos((string) $product->get_sku(), 'smartstone') === 0) {
+        if ($product && self::isSmartstoneSku($product->get_sku())) {
             $args['min_value']   = 1;
             $args['max_value']   = 1;
             $args['input_value'] = 1;
@@ -68,7 +80,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
      */
     public static function cart_item_quantity($product_quantity, $cart_item_key, $cart_item) {
         if (!empty($cart_item['acore_item_sku'])
-            && strpos((string) $cart_item['acore_item_sku'], 'smartstone') === 0) {
+            && self::isSmartstoneSku($cart_item['acore_item_sku'])) {
             return '1';
         }
         return $product_quantity;
@@ -78,7 +90,7 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
     public static function add_to_cart_validation($passed, $product_id, $quantity, $variation_id = null, $variations = null) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
         $sku = $product->get_sku();
-        if (strpos($sku, 'smartstone') !== 0) {
+        if (!self::isSmartstoneSku($sku)) {
             return $passed;
         }
 
@@ -95,6 +107,18 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
             return $passed; // malformed SKU; let WooCommerce/other validators handle it
         }
         [$smartstone_category, $smartstone_id] = $parsed;
+
+        // the buyer's game account must exist and not be banned
+        $ACoreSrv = ACoreServices::I();
+        $account  = $ACoreSrv->getAccountRepo()->findOneByUsername(wp_get_current_user()->user_login);
+        if (!$account) {
+            \wc_add_notice(__('Account not found. Please reconnect and try again.', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+        if ($ACoreSrv->getAccountBannedRepo()->isActiveById($account->getId())) {
+            \wc_add_notice(__('This account is banned!', 'acore-wp-plugin'), 'error');
+            return false;
+        }
 
         // Account-wide services (costumes, perks) unlock via `.smartstone unlock account`
         // and do not need a character selection. They optionally accept a recipient
@@ -129,6 +153,17 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         $guid = intval($_REQUEST['acore_char_sel'] ?? 0);
         if ($guid === 0) {
             \wc_add_notice(__('No character selected. Please select a character and try again.', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+
+        // the character must be one of the buyer's, and not banned
+        $char = $ACoreSrv->getCharactersRepo()->findOneByGuid($guid);
+        if (!$char || $char->getAccount() != $account->getId()) {
+            \wc_add_notice(__('This character is not available in your account!', 'acore-wp-plugin'), 'error');
+            return false;
+        }
+        if ($ACoreSrv->getCharactersBannedRepo()->isActiveByGuid($guid)) {
+            \wc_add_notice(__('This character is banned!', 'acore-wp-plugin'), 'error');
             return false;
         }
 
@@ -222,17 +257,11 @@ class SmartstoneVanity extends \ACore\Lib\WpClass {
         }
         [$smartstone_category, $smartstone_id] = $parsed;
 
-        // Indexes match mod-chromiecraft-smartstone's ActionType enum (src/Smartstone.h):
-        //   0 = Companion, 1 = Pet, 2 = Costume, 7 = Vehicle, 8 = Mount, 9 = Perk
-        $categoryToText = array(
-            0 => "Pet",
-            1 => "Combat Pet",
-            2 => "Costume",
-            9 => "Class Perk",
-        );
-        $label = isset($categoryToText[$smartstone_category])
-            ? $categoryToText[$smartstone_category]
-            : "Smartstone item";
+        // labels from the one type list (SmartstoneProductAdmin::types())
+        $label = class_exists(SmartstoneProductAdmin::class) ? SmartstoneProductAdmin::typeLabel($smartstone_category) : null;
+        if ($label === null) {
+            $label = "Smartstone item";
+        }
 
         if (self::isAccountWide($smartstone_category)) {
             if (isset($cart_item['acore_gift_account'])) {

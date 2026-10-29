@@ -76,15 +76,62 @@ class CarbonCopy extends \ACore\Lib\WpClass {
 
             $soap = ACoreServices::I()->getAccountSoap();
 
+            // The buyer comes from the order: payment_complete can run from a payment gateway callback, where the
+            // current WordPress user is not the buyer (or nobody).
+            $accountName = "";
+            $customerId = $order->get_customer_id();
+            if ($customerId) {
+                $buyer = \get_user_by('id', $customerId);
+                if ($buyer) {
+                    $accountName = $buyer->user_login;
+                }
+            }
+
             foreach ($items as $item) {
                 if (isset($item["acore_item_sku"])) {
                     switch ($item["acore_item_sku"]) {
                         case "carboncopy-tickets":
-                            $current_user = wp_get_current_user();
+                            if ($accountName === "") {
+                                $message = sprintf("CarbonCopy tickets NOT added: %d ticket(s), the order has no customer account", $item["qty"]);
+                                $logs->add("acore_log", $message);
+                                $order->add_order_note($message);
+                                break;
+                            }
 
-                            $res = $soap->addCCTickets($current_user->user_login, $item["qty"]);
-                            if ($res instanceof \Exception) {
-                                throw new \Exception("There was an error adding the ticket - " . $res->getMessage());
+                            // the game account must exist: an empty reply must never stand for tickets nobody got
+                            try {
+                                $accountExists = (bool) ACoreServices::I()->getAcoreAccountIdByName($accountName);
+                            } catch (\Exception $e) {
+                                $accountExists = false;
+                            }
+                            if (!$accountExists) {
+                                $message = sprintf("CarbonCopy tickets NOT added: %d ticket(s), no game account named %s", $item["qty"], $accountName);
+                                $logs->add("acore_log", $message);
+                                $order->add_order_note($message);
+                                break;
+                            }
+
+                            // CCACCOUNTTICKETS replies nothing when the tickets were added. Any reply text (amount
+                            // refused, account not found, SOAP error message) means they were NOT added. A SOAP client
+                            // that can't even be created throws: handled the same way, and the next items still run.
+                            try {
+                                $res = $soap->addCCTickets($accountName, $item["qty"]);
+                                // false (no answer at all) is not a success either; an empty answer (""/null) is
+                                $reply = $res instanceof \Exception ? $res->getMessage()
+                                    : ($res === false ? "no answer from the server" : trim((string) $res));
+                            } catch (\Exception $e) {
+                                $reply = $e->getMessage();
+                            }
+                            if ($reply !== "") {
+                                $message = sprintf(
+                                    "CarbonCopy tickets NOT added: %d ticket(s) for account %s - server replied: %s",
+                                    $item["qty"],
+                                    $accountName,
+                                    $reply
+                                );
+                                $logs->add("acore_log", $message);
+                                // visible on the order, so an admin can add the tickets by hand
+                                $order->add_order_note($message);
                             }
                             break;
                     }

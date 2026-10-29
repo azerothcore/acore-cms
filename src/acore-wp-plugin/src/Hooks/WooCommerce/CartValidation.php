@@ -20,9 +20,22 @@ class CartValidation extends \ACore\Lib\WpClass {
         "carboncopy-tickets" => [],
         "transmog-item" => ['acore_char_sel'],
         "transmog-itemset" => ['acore_char_sel'],
-        "name-unlock" => ['acore_unlock_name'],
-        "smartstone" => ['acore_char_sel'],
+        "name-unlock" => ['acore_char_sel', 'acore_name_to_unlock'],
+        // smartstone_<type>_<id>: validated in Smartstone::add_to_cart_validation (account-wide types need no character)
     );
+
+    /**
+     * The $skuList entry for a SKU: the SKU itself, or its prefix for SKUs with an id (itemsend_<id>,
+     * transmog-item_<id>, transmog-itemset_<id>). Null when the SKU isn't a service.
+     */
+    private static function listKey($sku): ?string {
+        $sku = strtolower((string) $sku);   // SKUs are case-insensitive (SkuLowercase.php)
+        if (isset(self::$skuList[$sku])) {
+            return $sku;
+        }
+        $prefix = explode('_', $sku)[0];
+        return ($prefix !== $sku && isset(self::$skuList[$prefix])) ? $prefix : null;
+    }
 
     public static function init() {
         add_action('woocommerce_add_to_cart_validation', self::sprefix() . 'add_to_cart_validation', 10, 5);
@@ -30,24 +43,24 @@ class CartValidation extends \ACore\Lib\WpClass {
 
     public static function add_to_cart_validation($flaq, $product_id, $quantity, $variation_id = null, $variations = null) {
         $product = $variation_id ? \wc_get_product($variation_id) : \wc_get_product($product_id);
-        $sku = $product->get_sku();
-        if (!isset(self::$skuList[$sku]) && strpos($sku, "itemsend") === false) {
+        $sku = strtolower((string) $product->get_sku());
+        $activeSku = self::listKey($sku);
+        if ($activeSku === null) {
             return true;
         }
 
         $current_user = wp_get_current_user();
 
-        if (!$current_user) {
+        if (!$current_user || !$current_user->exists()) {
             \wc_add_notice(__('You must be logged to buy it!', 'acore-wp-plugin'), 'error');
             return false;
         }
-
-        $activeSku = isset(self::$skuList[$sku]) ? $sku : "itemsend";
 
         $ACoreSrv = ACoreServices::I();
         $accRepo = $ACoreSrv->getAccountRepo();
         $charRepo = $ACoreSrv->getCharactersRepo();
         $accBanRepo = $ACoreSrv->getAccountBannedRepo();
+        $charBanRepo = $ACoreSrv->getCharactersBannedRepo();
 
         $account = $accRepo->findOneByUsername($current_user->user_login);
 
@@ -83,24 +96,50 @@ class CartValidation extends \ACore\Lib\WpClass {
 
             $char = $charRepo->findOneByGuid($guid);
 
-            if (!$char || ($char->getAccount() != $accountId && $sku !== 'char-restore-delete')) {
-                \wc_add_notice(__('This character is not available in your account!', 'acore-wp-plugin'), 'error');
-                return false;
+            if ($sku === 'char-restore-delete') {
+                // a deleted character has no account; it must be one of this account's deleted characters
+                $owned = false;
+                foreach ((array) $charRepo->findByDeleteInfos_Account($accountId) as $deletedChar) {
+                    if ($deletedChar->getGuid() == $guid) {
+                        $owned = true;
+                        break;
+                    }
+                }
+            } else {
+                $owned = $char && $char->getAccount() == $accountId;
             }
-        }
-
-        if (in_array('acore_dest_account', self::$skuList[$activeSku])) {
-            $accountName = $_REQUEST['acore_dest_account'];
-
-            $destAcc = $accRepo->findOneByUsername($accountName);
-
-            if (!$char || $char->getAccount() != $accountId) {
-                \wc_add_notice(__('This character is not in your account!', 'acore-wp-plugin'), 'error');
+            if (!$char || !$owned) {
+                \wc_add_notice(__('This character is not available in your account!', 'acore-wp-plugin'), 'error');
                 return false;
             }
 
             if ($charBanRepo->isActiveByGuid($guid)) {
                 \wc_add_notice(__('This character is banned!', 'acore-wp-plugin'), 'error');
+                return false;
+            }
+
+            // race / faction change: the class must exist for another race of the same / the other faction
+            $blocked = CharChange::serviceBlockReason($sku, $char->getRace(), $char->getClass());
+            if ($blocked !== null) {
+                \wc_add_notice($blocked, 'error');
+                return false;
+            }
+        }
+
+        if (in_array('acore_name_to_unlock', self::$skuList[$activeSku])) {
+            if (trim((string) ($_REQUEST['acore_name_to_unlock'] ?? '')) === '') {
+                \wc_add_notice(__('Please enter the character name you would like to unlock.', 'acore-wp-plugin'), 'error');
+                return false;
+            }
+        }
+
+        if (in_array('acore_dest_account', self::$skuList[$activeSku])) {
+            $accountName = trim((string) ($_REQUEST['acore_dest_account'] ?? ''));
+
+            $destAcc = $accRepo->findOneByUsername($accountName);
+
+            if (!$char || $char->getAccount() != $accountId) {
+                \wc_add_notice(__('This character is not in your account!', 'acore-wp-plugin'), 'error');
                 return false;
             }
 
@@ -118,8 +157,13 @@ class CartValidation extends \ACore\Lib\WpClass {
         if (in_array('acore_new_guild_name', self::$skuList[$activeSku])) {
             $guid = intval($_REQUEST['acore_char_sel']);
 
+            if (empty($ACoreSrv->getGuildNameByMember($guid))) {
+                \wc_add_notice(__('The character is not in a guild.', 'acore-wp-plugin'), 'error');
+                return false;
+            }
+
             if (empty($ACoreSrv->getGuildNameByLeader($guid))) {
-                \wc_add_notice(__('The character is not a guild master.', 'acore-wp-plugin'), 'error');
+                \wc_add_notice(__('The character is not the guild master of its guild.', 'acore-wp-plugin'), 'error');
                 return false;
             }
         }

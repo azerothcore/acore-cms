@@ -16,8 +16,8 @@ You can read more about what comes with `acore-cms` by checking [documentation](
 
 Whether you're building a simple website or a complex e-commerce site, ACore CMS provides the tools you need to create and manage your content effectively.
 
-> [!IMPORTANT]
-> At this current point `acore-cms` does not provide any `WordPress` themes, only the functionality.
+> [!NOTE]
+> `acore-cms` comes with one theme, **ACore Development** (`src/acore-development`): a dependency-free theme that sets up the shop and a test product for every service so the features can be tried right away. Any other WordPress theme with WooCommerce support works too, see [Themes](themes.md).
 
 ### - **Natively Supported by and for the AzerothCore Emulator**
 
@@ -342,7 +342,7 @@ themes_install+=(
 
 ACore CMS comes with a default set of plugins and themes that are always installed:
 - Plugins: WooCommerce, WPGraphQL, WPGraphQL ACF, myCred, Advanced Custom Fields, ACore WP Plugins (activation only)
-- Themes: None by default
+- Themes: ACore Development (`src/acore-development`, mounted by `docker-compose.yml` and activated once as the default theme)
 
 External configurations add to or can override these defaults by modifying the `plugins_install`, `themes_install`, and `plugins_activate_only` arrays.
 
