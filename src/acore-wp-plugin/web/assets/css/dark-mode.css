@@ -686,7 +686,8 @@ body.acore-dark-mode #mail-return-items .mail-item-slot a {
     color: #c9d1d9;
 }
 
-body.acore-dark-mode #mail-return-items .mail-cod-label {
+body.acore-dark-mode #mail-return-items .mail-cod-label,
+body.acore-dark-mode #mail-return-items .mail-deliver-note {
     color: #8b949e;
 }
 

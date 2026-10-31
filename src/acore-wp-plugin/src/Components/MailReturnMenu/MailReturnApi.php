@@ -39,6 +39,9 @@ add_action('rest_api_init', function () {
             } catch (\InvalidArgumentException $e) {
                 return new \WP_Error('invalid_request', $e->getMessage(), array('status' => 400));
 
+            } catch (\RuntimeException $e) {
+                return new \WP_Error('mail_return_failed', $e->getMessage(), array('status' => 502));
+
             } catch (\Exception $e) {
                 return new \WP_Error('server_error', 'An unexpected error occurred', array('status' => 500));
             }
