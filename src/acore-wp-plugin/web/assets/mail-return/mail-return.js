@@ -113,6 +113,17 @@ jQuery(document).ready(function () {
                         .attr('data-exp', lvlExp)
                         .text('LEVEL ' + mail.receiver_level);
 
+                    var returnButton = jQuery('<button>')
+                        .addClass('mail-return-button')
+                        .attr('data-mail-id', mail.id)
+                        .attr('data-char-guid', charGuid)
+                        .text('Return');
+                    var deliverNote = jQuery('<span>').addClass('mail-deliver-note');
+                    var deliverIn = parseInt(mail.deliver_in) || 0;
+                    if (deliverIn > 0) {
+                        startDeliveryCountdown(returnButton, deliverNote, deliverIn);
+                    }
+
                     var entry = jQuery('<li>').append(
                         jQuery('<div>').addClass('mail-entry').css({
                             // Faction color on top/right/bottom; class color on left — mirrors char row design
@@ -132,14 +143,10 @@ jQuery(document).ready(function () {
                                         jQuery('<span>').addClass('recipient-name').text(mail.receiver_name),
                                         levelBadge
                                     ),
-                                    jQuery('<button>')
-                                        .addClass('mail-return-button')
-                                        .attr('data-mail-id', mail.id)
-                                        .attr('data-char-guid', charGuid)
-                                        .text('Return')
+                                    returnButton
                                 ),
-                            // Row 2: subject + CoD label
-                            jQuery('<div>').addClass('mail-subject').html('<span class="mail-subject-label">Title:</span> <em><strong>' + subjectHtml + '</strong></em>' + codHtml),
+                            // Row 2: subject + CoD label + delivery countdown
+                            jQuery('<div>').addClass('mail-subject').html('<span class="mail-subject-label">Title:</span> <em><strong>' + subjectHtml + '</strong></em>' + codHtml).append(deliverNote),
                             // Row 3: item icon grid
                             jQuery(itemsHtml)
                         )
@@ -219,6 +226,35 @@ jQuery(document).ready(function () {
             }
         });
     });
+
+    function formatDuration(seconds) {
+        var minutes = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+        return minutes > 0 ? minutes + "m " + secs + "s" : secs + "s";
+    }
+
+    // The core refuses to return mails still in the delivery delay, so keep the button
+    // disabled until the server-computed delivery time has passed.
+    function startDeliveryCountdown(button, note, seconds) {
+        var deliverAt = Date.now() + seconds * 1000;
+        var timer;
+
+        button.prop("disabled", true).attr("title", "This mail can be returned once it is delivered.");
+
+        function tick() {
+            var left = Math.ceil((deliverAt - Date.now()) / 1000);
+            if (left <= 0 || !jQuery.contains(document, button[0])) {
+                clearInterval(timer);
+                note.remove();
+                button.prop("disabled", false).removeAttr("title");
+                return;
+            }
+            note.text(" · Delivers in " + formatDuration(left));
+        }
+
+        tick();
+        timer = setInterval(tick, 1000);
+    }
 
     function formatMoney(copper) {
         var gold = Math.floor(copper / 10000);

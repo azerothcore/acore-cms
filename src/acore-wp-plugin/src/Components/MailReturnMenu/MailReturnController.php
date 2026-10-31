@@ -6,6 +6,7 @@ use ACore\Manager\ACoreServices;
 use ACore\Manager\Opts;
 use ACore\Components\MailReturnMenu\MailReturnView;
 use InvalidArgumentException;
+use RuntimeException;
 
 class MailReturnController
 {
@@ -110,9 +111,13 @@ class MailReturnController
             }
         }
 
-        // Attach items to their mails
+        // Attach items to their mails. Mails still in the delivery delay (MailDeliveryDelay)
+        // can't be returned yet; deliver_in is computed here so the page doesn't rely on the
+        // visitor's clock.
+        $now = time();
         foreach ($mails as &$mail) {
             $mail['items'] = $itemsByMail[$mail['id']] ?? [];
+            $mail['deliver_in'] = max(0, intval($mail['deliver_time']) - $now);
         }
 
         return $mails;
@@ -134,7 +139,7 @@ class MailReturnController
         $sender = self::validateCharacterOwnership($conn, $charGuid, $accId);
 
         // Verify the mail was sent by this character and is still unread
-        $mailQuery = "SELECT m.`id`, m.`receiver`
+        $mailQuery = "SELECT m.`id`, m.`receiver`, m.`deliver_time`
             FROM `mail` m
             WHERE m.`id` = ? AND m.`sender` = ? AND m.`messageType` = 0 AND (m.`checked` & 1) = 0";
         $stmt = $conn->prepare($mailQuery);
@@ -145,6 +150,14 @@ class MailReturnController
 
         if (!$mail) {
             throw new InvalidArgumentException("Mail not found or already read");
+        }
+
+        // The core refuses undelivered mails with a plain "not found", so explain it here
+        $deliverIn = intval($mail['deliver_time']) - time();
+        if ($deliverIn > 0) {
+            throw new InvalidArgumentException(
+                "Mail #$mailId has not been delivered yet. Try again in " . self::formatDuration($deliverIn) . "."
+            );
         }
 
         // Verify the receiver character actually exists and has this mail
@@ -163,9 +176,28 @@ class MailReturnController
 
         // Execute SOAP command to return the mail
         $soap = ACoreServices::I()->getGameMailSoap();
-        $result = $soap->executeCommand(".mail return $receiverName $mailId");
+        try {
+            $result = $soap->executeCommand(".mail return $receiverName $mailId");
+        } catch (\Exception $e) {
+            throw new RuntimeException("Could not reach the game server: " . $e->getMessage());
+        }
+
+        // Command errors come back as the fault text (AcoreSoap returns it instead of
+        // throwing), so only the core's LANG_MAIL_RETURN_SUCCESS text counts as success.
+        $reply = trim(is_string($result) ? $result : '');
+        if (!preg_match('/^Mail #' . $mailId . ' returned to sender\b/', $reply)) {
+            throw new RuntimeException($reply !== '' ? $reply : "The game server did not confirm the return.");
+        }
 
         return "Mail #$mailId returned successfully";
+    }
+
+    private static function formatDuration($seconds)
+    {
+        $minutes = intdiv($seconds, 60);
+        $seconds = $seconds % 60;
+
+        return $minutes > 0 ? "{$minutes}m {$seconds}s" : "{$seconds}s";
     }
 
     public static function getCharactersByAcId()

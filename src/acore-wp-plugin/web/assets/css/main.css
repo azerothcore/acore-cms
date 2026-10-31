@@ -471,6 +471,11 @@ button.acore-char-row *,
     color: #a00;
 }
 
+.mail-deliver-note {
+    font-size: 12px;
+    color: #646970;
+}
+
 /* Row 3: item icon grid — centered in card */
 .mail-items-grid {
     display: grid;
