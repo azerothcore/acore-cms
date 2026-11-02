@@ -1,0 +1,278 @@
+/* [acore_store] */
+
+.acore-store {
+    --acore-store-img-height: 180px;
+    padding: 1.5rem;
+    border-radius: 14px;
+    background: var(--acore-surface, #f8f9fa);
+    color: var(--acore-text, #212529);
+}
+
+.acore-store [hidden] {
+    display: none !important;
+}
+
+/* Category tiles */
+
+.acore-store-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem;
+}
+
+html[class*="acore-"] .acore-store .acore-store-category {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--acore-border);
+    border-radius: 12px;
+    background: var(--acore-surface-2);
+    color: var(--acore-text);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+html[class*="acore-"] .acore-store .acore-store-category:hover,
+html[class*="acore-"] .acore-store .acore-store-category:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--acore-accent);
+    box-shadow: var(--acore-shadow);
+    background: var(--acore-surface-2);
+    color: var(--acore-text);
+}
+
+.acore-store-category-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--acore-accent-soft);
+}
+
+.acore-store-category-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.acore-store-category:hover .acore-store-category-img img {
+    transform: scale(1.08);
+}
+
+.acore-store-category-letter {
+    font-size: 2.8rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--acore-link);
+}
+
+.acore-store-category-name {
+    padding: 0.5rem 0.25rem;
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Header: back, title, search */
+
+.acore-store-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.acore-store-title {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+html[class*="acore-"] .acore-store .acore-store-back {
+    padding: 0.3rem 0.9rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 20px;
+    background: var(--acore-hover);
+    color: var(--acore-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+html[class*="acore-"] .acore-store .acore-store-back:hover {
+    background: var(--acore-accent-soft);
+    color: var(--acore-heading);
+}
+
+.acore-store .acore-store-search {
+    flex: 1 1 180px;
+    min-width: 0;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+}
+
+/* Product cards */
+
+.acore-store-grid {
+    display: grid;
+    align-items: stretch;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.acore-store-item {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--acore-border, #dee2e6);
+    border-radius: 10px;
+    background: var(--acore-surface-2, #fff);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.acore-store-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--acore-shadow);
+}
+
+.acore-store-item-img {
+    display: block;
+    height: var(--acore-store-img-height);
+    overflow: hidden;
+    background: var(--acore-surface);
+}
+
+.acore-store-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.acore-store-item-img img.acore-placeholder-logo {
+    padding: 1.5rem;
+    object-fit: contain;
+    background: var(--acore-header);
+}
+
+.acore-store-item:hover .acore-store-item-img img {
+    transform: scale(1.05);
+}
+
+.acore-store-item-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+.acore-store-item-title {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+html[class*="acore-"] .acore-store-item-title a {
+    color: var(--acore-heading);
+    text-decoration: none;
+}
+
+.acore-store-price {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 6px;
+    background: var(--acore-accent-soft);
+    color: var(--acore-link);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.acore-store-price del {
+    opacity: 0.6;
+}
+
+.acore-store-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.acore-store .acore-store-btn {
+    flex: 1 1 0;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-store .acore-store-btn-primary {
+    background: var(--acore-accent);
+    color: var(--acore-accent-text);
+}
+
+html[class*="acore-"] .acore-store .acore-store-btn-primary:hover {
+    background: var(--acore-accent-hover);
+    color: var(--acore-accent-text);
+}
+
+html[class*="acore-"] .acore-store .acore-store-btn-secondary {
+    border: 1px solid var(--acore-accent);
+    color: var(--acore-link);
+}
+
+html[class*="acore-"] .acore-store .acore-store-btn-secondary:hover {
+    background: var(--acore-accent-soft);
+    color: var(--acore-heading);
+}
+
+.acore-store-empty {
+    padding: 3rem 0;
+    color: var(--acore-muted);
+    text-align: center;
+}
+
+.acore-store-notice {
+    padding: 1rem 1.25rem;
+    border-left: 5px solid #ff4d4d;
+    border-radius: 8px;
+    background: #3d0000;
+    color: #ffb3b3;
+}
+
+@media (max-width: 576px) {
+    .acore-store {
+        --acore-store-img-height: 140px;
+        padding: 1rem;
+    }
+
+    .acore-store-categories {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .acore-store-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.75rem;
+    }
+}

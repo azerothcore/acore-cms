@@ -29,6 +29,209 @@ class CharChange extends \ACore\Lib\WpClass {
         "char-change-customize" => 4,
     );
 
+    /** Playable races per faction (WotLK 3.3.5). */
+    private static $allianceRaces = [1, 3, 4, 7, 11];   // Human, Dwarf, Night Elf, Gnome, Draenei
+    private static $hordeRaces    = [2, 5, 6, 8, 10];   // Orc, Undead, Tauren, Troll, Blood Elf
+
+    private static $raceNames = [
+        1 => 'Human', 2 => 'Orc', 3 => 'Dwarf', 4 => 'Night Elf', 5 => 'Undead',
+        6 => 'Tauren', 7 => 'Gnome', 8 => 'Troll', 10 => 'Blood Elf', 11 => 'Draenei',
+    ];
+
+    private static $classNames = [
+        1 => 'Warrior', 2 => 'Paladin', 3 => 'Hunter', 4 => 'Rogue', 5 => 'Priest',
+        6 => 'Death Knight', 7 => 'Shaman', 8 => 'Mage', 9 => 'Warlock', 11 => 'Druid',
+    ];
+
+    /** Races that can be each class (WotLK 3.3.5). Filter: acore_char_change_class_races. */
+    private static function classRaces(): array {
+        return apply_filters('acore_char_change_class_races', [
+            1  => [1, 2, 3, 4, 5, 6, 7, 8, 11],        // Warrior
+            2  => [1, 3, 10, 11],                      // Paladin
+            3  => [2, 3, 4, 6, 8, 10, 11],             // Hunter
+            4  => [1, 2, 3, 4, 5, 7, 8, 10],           // Rogue
+            5  => [1, 3, 4, 5, 8, 10, 11],             // Priest
+            6  => [1, 2, 3, 4, 5, 6, 7, 8, 10, 11],    // Death Knight
+            7  => [2, 6, 8, 11],                       // Shaman
+            8  => [1, 5, 7, 8, 10, 11],                // Mage
+            9  => [1, 2, 5, 7, 10],                    // Warlock
+            11 => [4, 6],                              // Druid
+        ]);
+    }
+
+    /**
+     * Why a race / faction change can't be used by a character of this race and class, or null when it can.
+     * Race change: another race of the same faction must be able to be that class (so not Tauren / Night Elf
+     * Druids, Blood Elf Paladins, Draenei Shamans). Faction change: a race of the other faction must be able to.
+     */
+    public static function serviceBlockReason($sku, int $race, int $class): ?string {
+        if ($sku !== 'char-change-race' && $sku !== 'char-change-faction') {
+            return null;
+        }
+        $classRaces = self::classRaces();
+        if (!isset($classRaces[$class])) {
+            return null;   // unknown (custom) class: leave it to the server
+        }
+        $alliance = in_array($race, self::$allianceRaces, true);
+        $horde    = in_array($race, self::$hordeRaces, true);
+        if (!$alliance && !$horde) {
+            return null;   // unknown (custom) race
+        }
+
+        $own   = $alliance ? self::$allianceRaces : self::$hordeRaces;
+        $other = $alliance ? self::$hordeRaces : self::$allianceRaces;
+        $candidates = $sku === 'char-change-race'
+            ? array_diff(array_intersect($own, $classRaces[$class]), [$race])
+            : array_intersect($other, $classRaces[$class]);
+        if (!empty($candidates)) {
+            return null;
+        }
+
+        $raceName  = self::$raceNames[$race] ?? ('race ' . $race);
+        $className = self::$classNames[$class] ?? ('class ' . $class);
+        if ($sku === 'char-change-race') {
+            return sprintf(
+                __('%1$s %2$s can\'t change race: no other %3$s race can be a %2$s.', 'acore-wp-plugin'),
+                $raceName, $className, $alliance ? __('Alliance', 'acore-wp-plugin') : __('Horde', 'acore-wp-plugin')
+            );
+        }
+        return sprintf(
+            __('%1$s %2$s can\'t change faction: no %3$s race can be a %2$s.', 'acore-wp-plugin'),
+            $raceName, $className, $alliance ? __('Horde', 'acore-wp-plugin') : __('Alliance', 'acore-wp-plugin')
+        );
+    }
+
+    /**
+     * The races a character could become with a race / faction change: race => null when possible, or the reason.
+     * Race change: the other races of its faction. Faction change: the races of the other faction.
+     */
+    private static function raceOptions($sku, int $race, int $class): array {
+        $alliance = in_array($race, self::$allianceRaces, true);
+        if (!$alliance && !in_array($race, self::$hordeRaces, true)) {
+            return [];
+        }
+        $own     = $alliance ? self::$allianceRaces : self::$hordeRaces;
+        $targets = $sku === 'char-change-race' ? $own : ($alliance ? self::$hordeRaces : self::$allianceRaces);
+        $classRaces = self::classRaces();
+        $className  = self::$classNames[$class] ?? ('class ' . $class);
+        $options = [];
+        foreach ($targets as $target) {
+            $targetName = self::$raceNames[$target] ?? ('race ' . $target);
+            if ($target === $race) {
+                $options[$target] = __('Current race', 'acore-wp-plugin');
+            } elseif (isset($classRaces[$class]) && !in_array($target, $classRaces[$class], true)) {
+                $options[$target] = sprintf(__('%1$s %2$s isn\'t possible.', 'acore-wp-plugin'), $targetName, $className);
+            } else {
+                $options[$target] = null;
+            }
+        }
+        return $options;
+    }
+
+    /**
+     * Under the character dropdown: a table per faction of the races each character could become (check / cross,
+     * with the reason as a tooltip), then the characters that can't use the service at all, in red.
+     */
+    private static function availabilityNotice($sku, $username): void {
+        $skus = $sku === 'char-change' ? ['char-change-race', 'char-change-faction'] : [$sku];
+        $skus = array_values(array_intersect($skus, ['char-change-race', 'char-change-faction']));
+        if (empty($skus)) {
+            return;
+        }
+        try {
+            $ACoreSrv = ACoreServices::I();
+            $account  = $ACoreSrv->getAccountRepo()->findOneByUsername($username);
+            if (!$account || $ACoreSrv->getAccountBannedRepo()->isActiveById($account->getId())) {
+                return;
+            }
+            $banRepo    = $ACoreSrv->getCharactersBannedRepo();
+            $characters = [];
+            foreach ((array) $ACoreSrv->getCharactersRepo()->findByAccount($account->getId()) as $char) {
+                if (!$banRepo->isActiveByGuid($char->getGuid())) {
+                    $characters[] = $char;
+                }
+            }
+        } catch (\Throwable $e) {
+            return;
+        }
+        if (empty($characters)) {
+            return;
+        }
+
+        // every table gets the same name column (the longest name) and race columns, so they line up
+        $nameChars = 0;
+        foreach ($characters as $char) {
+            $nameChars = max($nameChars, function_exists('mb_strlen') ? mb_strlen($char->getName()) : strlen($char->getName()));
+        }
+
+        $reasons = [];
+        foreach ($skus as $serviceSku) {
+            if (count($skus) > 1) {
+                echo '<p style="margin: 0.5em 0 0.25em;"><strong>' . esc_html($serviceSku === 'char-change-race'
+                    ? __('Race change', 'acore-wp-plugin') : __('Faction change', 'acore-wp-plugin')) . '</strong></p>';
+            }
+            // one table per faction of the target races, so each table only has the races of one faction
+            $groups = [];
+            foreach ($characters as $char) {
+                $options = self::raceOptions($serviceSku, $char->getRace(), $char->getClass());
+                if (empty($options)) {
+                    continue;
+                }
+                $key = in_array(array_key_first($options), self::$allianceRaces, true) ? 'alliance' : 'horde';
+                $groups[$key][] = [$char, $options];
+                $reason = self::serviceBlockReason($serviceSku, $char->getRace(), $char->getClass());
+                if ($reason !== null) {
+                    $reasons[$char->getGuid()][] = $reason;
+                }
+            }
+            foreach (['alliance' => self::$allianceRaces, 'horde' => self::$hordeRaces] as $key => $races) {
+                if (!empty($groups[$key])) {
+                    self::availabilityTable($races, $groups[$key], $nameChars);
+                }
+            }
+        }
+        if (!empty($reasons)) {
+            FieldElements::blockedCharacterRows($characters, $reasons);
+        }
+    }
+
+    private static function availabilityTable(array $races, array $rows, int $nameChars): void {
+        $nameChars += 2; // bold text is a little wider than ch
+        $cell = 'padding: 4px 6px; text-align: center; vertical-align: middle; overflow: hidden;';
+        // fixed layout: name column = two bordered icons + the longest name, each race column 72px
+        $nameWidth = 'calc(' . (int) $nameChars . 'ch + 90px)';
+        $columns   = count($races);
+        echo '<table class="acore-char-races" style="table-layout: fixed; width: calc(' . (int) $nameChars . 'ch + 90px + ' . ($columns * 72) . 'px); max-width: 100%; margin: 0.25em 0 0.75em; border-collapse: collapse;">'
+            . '<colgroup><col style="width: ' . $nameWidth . ';">' . str_repeat('<col style="width: 72px;">', $columns) . '</colgroup>'
+            . '<thead><tr><th style="' . $cell . '"></th>';
+        foreach ($races as $race) {
+            $name = self::$raceNames[$race] ?? ('race ' . $race);
+            echo '<th style="' . $cell . ' font-weight: normal;" title="' . esc_attr($name) . '">'
+                . FieldElements::charIconsHtml($race, 0, ACORE_URL_PLG . 'web/assets/race/' . $race . 'm.webp', '', 24) . '<br>'
+                . '<small>' . esc_html($name) . '</small></th>';
+        }
+        echo '</tr></thead><tbody>';
+        foreach ($rows as [$char, $options]) {
+            echo '<tr><td style="' . $cell . ' text-align: left; white-space: nowrap;">'
+                . FieldElements::charIconsHtml($char->getRace(), $char->getClass(), $char->getCharIconUrl(), $char->getClassIconUrl(), 24)
+                . ' <strong style="vertical-align: middle;">' . esc_html($char->getName()) . '</strong></td>';
+            foreach ($races as $race) {
+                if (!array_key_exists($race, $options)) {
+                    echo '<td style="' . $cell . '"></td>';
+                } elseif ($race === $char->getRace()) {
+                    echo '<td style="' . $cell . ' cursor: help;" title="' . esc_attr($options[$race]) . '">'
+                        . FieldElements::charIconsHtml($char->getRace(), 0, $char->getCharIconUrl(), '', 20) . '</td>';
+                } elseif ($options[$race] === null) {
+                    echo '<td style="' . $cell . ' color: #4caf50; cursor: help;" title="' . esc_attr__('Possible', 'acore-wp-plugin') . '">&#10004;</td>';
+                } else {
+                    echo '<td style="' . $cell . ' color: #ff7961; cursor: help;" title="' . esc_attr($options[$race]) . '">&#10008;</td>';
+                }
+            }
+            echo '</tr>';
+        }
+        echo '</tbody></table>';
+    }
+
     private static function giftingEnabled(): bool {
         return Opts::I()->acore_smartstone_enabled == '1';
     }
@@ -84,6 +287,62 @@ class CharChange extends \ACore\Lib\WpClass {
     }
 
     // 1) LIST
+    /**
+     * What a race / faction change or customization also includes: [text, optional "not included" service SKU
+     * linked in the text]. Filter: acore_char_change_includes.
+     */
+    private static function includes($sku): ?array {
+        $notes = apply_filters('acore_char_change_includes', [
+            'char-change-faction'   => [__('A faction change also includes a character rename, a character customization and a race change.', 'acore-wp-plugin'), null],
+            'char-change-race'      => [__('A race change also includes a character rename and a character customization. It does not include a %s.', 'acore-wp-plugin'), 'char-change-faction'],
+            'char-change-customize' => [__('A customization includes a character rename, a gender change and face / skin customization.', 'acore-wp-plugin'), null],
+        ]);
+        return $notes[$sku] ?? null;
+    }
+
+    /** The includes text; $html links the service it doesn't include to its product page. */
+    private static function includesText($sku, bool $html): string {
+        $note = self::includes($sku);
+        if (!$note) {
+            return '';
+        }
+        [$text, $linkSku] = $note;
+        if ($linkSku === null) {
+            return $html ? esc_html($text) : $text;
+        }
+        $label = __('faction change', 'acore-wp-plugin');
+        if (!$html) {
+            return sprintf($text, $label);
+        }
+        $url = '';
+        if (function_exists('wc_get_product_id_by_sku')) {
+            $id = wc_get_product_id_by_sku($linkSku);
+            if ($id) {
+                $linked = wc_get_product($id);
+                // a variation links to its parent product
+                $url = $linked ? get_permalink($linked->get_parent_id() ?: $linked->get_id()) : '';
+            }
+        }
+        $link = $url ? '<a href="' . esc_url($url) . '">' . esc_html($label) . '</a>' : esc_html($label);
+        return sprintf(esc_html($text), $link);
+    }
+
+    /** What the service includes: on the product page and in a pop-up on "Add to cart" (FieldElements::serviceNotice). */
+    private static function includesNotice($sku, bool $isVariable): void {
+        $skus  = $isVariable ? ['char-change-faction', 'char-change-race', 'char-change-customize'] : [$sku];
+        $notes = [];
+        foreach ($skus as $noteSku) {
+            $text = self::includesText($noteSku, true);   // escaped in includesText
+            if ($text !== '') {
+                $notes[$noteSku] = $text;
+            }
+        }
+        if (empty($notes)) {
+            return;
+        }
+        FieldElements::serviceNotice($notes, $sku, $isVariable);
+    }
+
     public static function before_add_to_cart_button() {
         global $product;
         if (!in_array($product->get_sku(), self::$skuList)) {
@@ -93,8 +352,20 @@ class CharChange extends \ACore\Lib\WpClass {
         $current_user = wp_get_current_user();
 
         if ($current_user) {
-            FieldElements::charList($current_user->user_login, self::isDeletedSKU($product->get_sku()));
+            $sku = $product->get_sku();
+            if ($sku === 'char-change-race' || $sku === 'char-change-faction') {
+                // characters that can't use it are greyed out in the dropdown and listed with the reason
+                FieldElements::charList($current_user->user_login, false, function ($character) use ($sku) {
+                    return self::serviceBlockReason($sku, $character->getRace(), $character->getClass());
+                });
+            } else {
+                // the variable "char-change" product: the option depends on the chosen variation, so only list them
+                FieldElements::charList($current_user->user_login, self::isDeletedSKU($sku));
+            }
+            self::availabilityNotice($sku, $current_user->user_login);
         }
+
+        self::includesNotice($product->get_sku(), $product->is_type('variable'));
 
         // Optional gifting via smartstone token: leaving the field blank keeps
         // the normal self-service (instant apply to the selected character).
@@ -247,6 +518,11 @@ class CharChange extends \ACore\Lib\WpClass {
             : "The character <$charId> doesn't exist!";
 
             $custom_items[] = array("name" => 'Character', "value" => $charName);
+        }
+
+        $includes = self::includesText($cart_item['acore_item_sku'], false);
+        if ($includes !== '') {
+            $custom_items[] = array("name" => __('Included', 'acore-wp-plugin'), "value" => $includes);
         }
         return $custom_items;
     }

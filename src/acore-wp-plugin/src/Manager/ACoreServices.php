@@ -474,6 +474,20 @@ class ACoreServices
         return (bool) $stmt->executeQuery()->fetchOne();
     }
 
+    /**
+     *  @param int $guid
+     *  @return string|false
+     *  The name of the guild the character is in, or false.
+    */
+    public function getGuildNameByMember($guid) {
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare(
+            "SELECT g.`name` FROM `guild_member` gm JOIN `guild` g ON g.`guildid` = gm.`guildid` WHERE gm.`guid` = ?"
+        );
+        $stmt->bindValue(1, intval($guid));
+        return $stmt->executeQuery()->fetchOne();
+    }
+
     /** 
      *  @param int $guildLeaderGuid
      *  @return string
