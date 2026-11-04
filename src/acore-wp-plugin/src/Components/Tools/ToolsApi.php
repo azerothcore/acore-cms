@@ -41,7 +41,7 @@ class ToolsApi {
 
     /**
      * Asks the server whether character $cname can pay for recovery row $item (the vendor's copper and the
-     * disenchant materials, from the bags). Returns ['ok' => bool, 'message' => string].
+     * disenchant materials, from the bags or bank). Returns ['ok' => bool, 'message' => string].
      */
     public static function RecoveryCheck(int $item, string $cname): array {
         return self::RunRecoveryCommand('check', $item, $cname, 'can redeem');

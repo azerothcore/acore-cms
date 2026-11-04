@@ -131,7 +131,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
                 $serverChecked = true;
             }
 
-            // Checked again right before the points are taken, since the bags may have changed since the cart
+            // Checked again right before the points are taken, since the inventory may have changed since the cart
             $error = self::checkRecoveryCost(intval($item["acore_restore_item_sel"]), intval($item["acore_char_sel"]));
             if ($error !== null) {
                 throw new \Exception($error);
@@ -224,7 +224,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       <br>
       <p class="m-0"><em>Restored items will be sent to the selected characters mailbox.</em></p>
       <?php if (ToolsApi::RecoverySourcesEnabled()): ?>
-      <p class="m-0"><em>Items you sold to a vendor or disenchanted also cost the gold or materials you got for them. They are taken from the character's bags (not the bank) when you check out. The character can be online, or fully logged out (no character of the account in game or at the character screen) for at least a minute.</em></p>
+      <p class="m-0"><em>Items you sold to a vendor or disenchanted also cost the gold or materials you got for them. They are taken from the character's bags or bank when you check out. The character can be online, or fully logged out (no character of the account in game or at the character screen) for at least a minute.</em></p>
       <?php endif; ?>
       <br>
       <hr>
@@ -288,7 +288,7 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       }
 
       // Sold and disenchanted items also cost what the player got for them, taken from the
-      // character's bags at checkout. Destroyed items (Source 0) have no extra cost.
+      // character's bags or bank at checkout. Destroyed items (Source 0) have no extra cost.
       function recoveryCostElement(item) {
         if (!item['Source']) {
           return null;
