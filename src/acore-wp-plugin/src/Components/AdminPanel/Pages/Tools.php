@@ -113,11 +113,11 @@
                                             <th>
                                                 <?php if (!$hasEnhancedSupportMod): ?>
                                                     <span class="acore-missing-module-wrap">
-                                                        <label class="acore-help-label" style="color:#d63638;" title="Also sells back items players sold to a vendor or disenchanted. The store takes the gold or materials they got for them from the character's bags. Needs ItemDelete.Vendor / ItemDelete.Disenchant in worldserver.conf.">Restore Sold and Disenchanted Items</label>
+                                                        <label class="acore-help-label" style="color:#d63638;" title="Also sells back items players sold to a vendor or disenchanted. The store takes the gold or materials they got for them from the character's bags or bank. Needs ItemDelete.Vendor / ItemDelete.Disenchant in worldserver.conf.">Restore Sold and Disenchanted Items</label>
                                                         <span class="acore-missing-module-tooltip">Requires module mod-enhanced-support</span>
                                                     </span>
                                                 <?php else: ?>
-                                                    <label class="acore-help-label" title="Also sells back items players sold to a vendor or disenchanted. The store takes the gold or materials they got for them from the character's bags. Needs ItemDelete.Vendor / ItemDelete.Disenchant in worldserver.conf.">Restore Sold and Disenchanted Items</label>
+                                                    <label class="acore-help-label" title="Also sells back items players sold to a vendor or disenchanted. The store takes the gold or materials they got for them from the character's bags or bank. Needs ItemDelete.Vendor / ItemDelete.Disenchant in worldserver.conf.">Restore Sold and Disenchanted Items</label>
                                                 <?php endif; ?>
                                             </th>
                                             <td>
