@@ -6,9 +6,18 @@ use ACore\Manager\ACoreServices;
 use ACore\Manager\Opts;
 
 class ToolsApi {
+    // Sold and disenchanted rows are only offered when the admin enabled them, since redeeming them needs mod-enhanced-support
+    public static function RecoverySourcesEnabled(): bool {
+        return Opts::I()->acore_item_restoration_sources == '1';
+    }
+
     public static function ItemRestoreList($request) {
         try {
-            return ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
+            $rows = ACoreServices::I()->getRestorableItemsByCharacter($request['cguid']);
+            if (!self::RecoverySourcesEnabled()) {
+                $rows = array_values(array_filter($rows, function ($row) { return $row['Source'] === 0; }));
+            }
+            return $rows;
         } catch (\InvalidArgumentException $e) {
             return new \WP_Error('invalid_character', 'Character not found.', ['status' => 403]);
         }
@@ -28,6 +37,36 @@ class ToolsApi {
             return new \WP_Error('forbidden', 'Restorable item not found for that character.', ['status' => 403]);
         }
         return ACoreServices::I()->getServerSoap()->executeCommand("item restore $item $ownedCharacterName");
+    }
+
+    /**
+     * Asks the server whether character $cname can pay for recovery row $item (the vendor's copper and the
+     * disenchant materials, from the bags). Returns ['ok' => bool, 'message' => string].
+     */
+    public static function RecoveryCheck(int $item, string $cname): array {
+        return self::RunRecoveryCommand('check', $item, $cname, 'can redeem');
+    }
+
+    /**
+     * Takes the copper and materials from character $cname and mails recovery row $item.
+     * Returns ['ok' => bool, 'message' => string].
+     */
+    public static function RecoveryRedeem(int $item, string $cname): array {
+        return self::RunRecoveryCommand('redeem', $item, $cname, 'redeemed for');
+    }
+
+    private static function RunRecoveryCommand(string $action, int $item, string $cname, string $successText): array {
+        $owned = ACoreServices::I()->getOwnedRecoveryItem($item, $cname);
+        if ($owned === null) {
+            return ['ok' => false, 'message' => 'Restorable item not found for that character.'];
+        }
+
+        $name  = $owned['name'];
+        $reply = trim((string) ACoreServices::I()->getServerSoap()->executeCommand(".support recovery $action $item $name"));
+
+        // AcoreSoap returns command errors as their text, so only the module's success reply counts
+        $ok = preg_match('/^Recovery ' . $item . ': .* ' . preg_quote($successText, '/') . ' /', $reply) === 1;
+        return ['ok' => $ok, 'message' => $reply !== '' ? $reply : 'The game server did not answer.'];
     }
 }
 

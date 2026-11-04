@@ -116,18 +116,54 @@ class ItemRestoration extends \ACore\Lib\WpClass {
         $items = $order->get_items();
 
         $soap = ACoreServices::I()->getServerSoap();
+        $serverChecked = false;
 
         foreach ($items as $item) {
-            if ($item["acore_item_sku"]) {
-                if ($item["acore_item_sku"] == self::ITEM_RESTORATION_SKU) {
-                    $res = $soap->serverInfo();
-                    if ($res instanceof \Exception) {
-                        throw new \Exception(__('The server seems to be offline, try again later!', 'woocommerce'));
-                    }
-                    return;
+            if (!$item["acore_item_sku"] || $item["acore_item_sku"] != self::ITEM_RESTORATION_SKU) {
+                continue;
+            }
+
+            if (!$serverChecked) {
+                $res = $soap->serverInfo();
+                if ($res instanceof \Exception) {
+                    throw new \Exception(__('The server seems to be offline, try again later!', 'woocommerce'));
                 }
+                $serverChecked = true;
+            }
+
+            // Checked again right before the points are taken, since the bags may have changed since the cart
+            $error = self::checkRecoveryCost(intval($item["acore_restore_item_sel"]), intval($item["acore_char_sel"]));
+            if ($error !== null) {
+                throw new \Exception($error);
             }
         }
+    }
+
+    /**
+     * For a vendored or disenchanted row, asks the server whether the character can pay its gold and materials.
+     * Returns null when the row can be bought, else the reason to show the player.
+     */
+    public static function checkRecoveryCost(int $itemId, int $charGuid): ?string {
+        $char = ACoreServices::I()->getCharactersRepo()->findOneByGuid($charGuid);
+        if (!$char) {
+            return __('Select a character!', 'acore-wp-plugin');
+        }
+
+        $owned = ACoreServices::I()->getOwnedRecoveryItem($itemId, $char->getName());
+        if ($owned === null) {
+            return __('Restorable item not found for that character.', 'acore-wp-plugin');
+        }
+
+        if ($owned['Source'] === 0) {
+            return null;
+        }
+
+        if (!ToolsApi::RecoverySourcesEnabled()) {
+            return __('Restoring sold or disenchanted items is not available.', 'acore-wp-plugin');
+        }
+
+        $check = ToolsApi::RecoveryCheck($itemId, $owned['name']);
+        return $check['ok'] ? null : $check['message'];
     }
 
     // DO THE FINAL ACTION
@@ -151,11 +187,29 @@ class ItemRestoration extends \ACore\Lib\WpClass {
                         $charRepo = $ACoreSrv->getCharactersRepo();
                         $char = $charRepo->findOneByGuid($charGuid);
 
-                        if ($char) {
-                          $data = array('item' => $itemId, 'cname' => $char->getName());
-                          ToolsApi::ItemRestore($data);
-                        } else {
+                        if (!$char) {
                             throw new \Exception("Select a character!");
+                        }
+
+                        $owned = $ACoreSrv->getOwnedRecoveryItem(intval($itemId), $char->getName());
+                        if ($owned === null) {
+                            // Already restored by another order, or not this character's
+                            $result = ['ok' => false, 'message' => 'the item is no longer restorable for ' . $char->getName()];
+                        } else if ($owned['Source'] !== 0) {
+                            $result = ToolsApi::RecoverySourcesEnabled()
+                                ? ToolsApi::RecoveryRedeem(intval($itemId), $owned['name'])
+                                : ['ok' => false, 'message' => 'restoring sold or disenchanted items is disabled'];
+                        } else {
+                            $reply = ToolsApi::ItemRestore(array('item' => $itemId, 'cname' => $owned['name']));
+                            $message = is_wp_error($reply) ? $reply->get_error_message() : trim((string) $reply);
+                            // The core confirms with LANG_MAIL_SENT; AcoreSoap returns command errors as text
+                            $result = ['ok' => strpos($message, 'Mail sent to') === 0, 'message' => $message];
+                        }
+
+                        if (!$result['ok']) {
+                            // The points are already spent: hold the order so it can be refunded
+                            $order->update_status('on-hold', 'Item restoration ' . $itemId . ' was not restored: ' . $result['message']);
+                            $logs->add("acore_log", "Order $order_id: recovery $itemId not restored: " . $result['message']);
                         }
                     }
                 }
@@ -169,6 +223,9 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       ?>
       <br>
       <p class="m-0"><em>Restored items will be sent to the selected characters mailbox.</em></p>
+      <?php if (ToolsApi::RecoverySourcesEnabled()): ?>
+      <p class="m-0"><em>Items you sold to a vendor or disenchanted also cost the gold or materials you got for them. They are taken from the character's bags (not the bank) when you check out. The character can be online, or fully logged out (no character of the account in game or at the character screen) for at least a minute.</em></p>
+      <?php endif; ?>
       <br>
       <hr>
       <div id="loader-icon">Loading...</div>
@@ -224,6 +281,50 @@ class ItemRestoration extends \ACore\Lib\WpClass {
         }
         })(charList.onchange);
 
+      function formatMoney(copper) {
+        const gold = Math.floor(copper / 10000);
+        const silver = Math.floor((copper % 10000) / 100);
+        return gold + 'g ' + silver + 's ' + (copper % 100) + 'c';
+      }
+
+      // Sold and disenchanted items also cost what the player got for them, taken from the
+      // character's bags at checkout. Destroyed items (Source 0) have no extra cost.
+      function recoveryCostElement(item) {
+        if (!item['Source']) {
+          return null;
+        }
+
+        const cost = document.createElement('div');
+        cost.className = 'item-restore-cost';
+        cost.appendChild(document.createTextNode(item['Source'] === 1 ? 'Sold to a vendor. Also costs: ' : 'Disenchanted. Also costs: '));
+
+        const parts = [];
+        if (item['Money'] > 0) {
+          parts.push(document.createTextNode(formatMoney(item['Money'])));
+        }
+        (item['Loot'] || []).forEach(material => {
+          const span = document.createElement('span');
+          span.appendChild(document.createTextNode(material['Count'] + 'x '));
+          const link = document.createElement('a');
+          link.href = '#';
+          link.setAttribute('data-wowhead', `item=${material['ItemEntry']}`);
+          link.textContent = 'item ' + material['ItemEntry'];
+          span.appendChild(link);
+          parts.push(span);
+        });
+        if (!parts.length) {
+          parts.push(document.createTextNode('nothing'));
+        }
+
+        parts.forEach((part, index) => {
+          if (index) {
+            cost.appendChild(document.createTextNode(', '));
+          }
+          cost.appendChild(part);
+        });
+        return cost;
+      }
+
       function selectCharacter(charGuid) {
         noResults.style.display = 'none';
         loadError.style.display = 'none';
@@ -271,6 +372,11 @@ class ItemRestoration extends \ACore\Lib\WpClass {
                   itemLink.className = "icon-item-deleted";
                   itemCell.appendChild(itemLink);
 
+                  const cost = recoveryCostElement(item);
+                  if (cost) {
+                      itemCell.appendChild(cost);
+                  }
+
                   // Button
                   const buttonCell = row.insertCell();
                   const button = document.createElement('button');
@@ -309,6 +415,10 @@ class ItemRestoration extends \ACore\Lib\WpClass {
       }
       </script>
       <style>
+            .item-restore-cost {
+                font-size: 0.9em;
+                padding: 0 0 8px 66px;
+            }
             #loader-icon {
                 color: black;
                 font-size: 1.5em;

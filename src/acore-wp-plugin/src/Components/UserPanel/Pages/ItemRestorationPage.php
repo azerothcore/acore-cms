@@ -122,7 +122,10 @@
             .then(function (items) {
                 loading.style.display = 'none';
 
-                if (!items || !items.length) {
+                // Sold and disenchanted items cost gold and materials, so they are only offered in the store
+                items = (items || []).filter(function (item) { return !item['Source']; });
+
+                if (!items.length) {
                     noResults.style.display = 'block';
                     return;
                 }
