@@ -428,15 +428,68 @@ class ACoreServices
         }
 
         $stmt = $conn->prepare(
-            "SELECT `Id`, `ItemEntry`, `Count`, `DeleteDate`
+            "SELECT `Id`, `ItemEntry`, `Count`, `Source`, `Money`, `DeleteDate`
              FROM `recovery_item`
              WHERE `Guid` = ?
              ORDER BY `DeleteDate` DESC"
         );
         $stmt->bindValue(1, intval($character));
-        return $stmt->executeQuery()->fetchAllAssociative();
+        $rows = $stmt->executeQuery()->fetchAllAssociative();
+
+        // Materials a disenchanted row owes back, grouped per row
+        $lootStmt = $conn->prepare(
+            "SELECT ril.`RecoveryId`, ril.`ItemEntry`, ril.`Count`
+             FROM `recovery_item_loot` ril
+             INNER JOIN `recovery_item` ri ON ri.`Id` = ril.`RecoveryId`
+             WHERE ri.`Guid` = ?"
+        );
+        $lootStmt->bindValue(1, intval($character));
+        $loot = [];
+        foreach ($lootStmt->executeQuery()->fetchAllAssociative() as $lootRow) {
+            $loot[$lootRow['RecoveryId']][] = [
+                'ItemEntry' => intval($lootRow['ItemEntry']),
+                'Count'     => intval($lootRow['Count']),
+            ];
+        }
+
+        foreach ($rows as &$row) {
+            $row['Source'] = intval($row['Source']);
+            $row['Money']  = intval($row['Money']);
+            $row['Loot']   = $loot[$row['Id']] ?? [];
+        }
+        unset($row);
+
+        return $rows;
     }
 
+    /**
+     * The recovery row $itemId of character $name, when that character belongs to the current account.
+     * Returns its Source and the character's exact name, or null.
+     */
+    public function getOwnedRecoveryItem(int $itemId, string $name): ?array {
+        $accId = $this->getAcoreAccountId();
+        if (!$accId || $itemId < 1 || $name === '') {
+            return null;
+        }
+        $conn = $this->getCharacterEm()->getConnection();
+        $stmt = $conn->prepare(
+            "SELECT ri.`Source`, c.`name`
+             FROM `recovery_item` ri
+             INNER JOIN `characters` c ON c.`guid` = ri.`Guid`
+             WHERE ri.`Id` = ?
+               AND c.`name` = ?
+               AND c.`account` = ?
+               AND c.`deleteDate` IS NULL
+             LIMIT 1"
+        );
+        $stmt->bindValue(1, $itemId);
+        $stmt->bindValue(2, $name);
+        $stmt->bindValue(3, intval($accId));
+        $row = $stmt->executeQuery()->fetchAssociative();
+        return $row === false ? null : ['Source' => intval($row['Source']), 'name' => $row['name']];
+    }
+
+    // Destroyed rows only: vendored and disenchanted ones owe gold and materials and go through ToolsApi::RecoveryRedeem
     public function getOwnedRestorableItemCharacterName(int $itemId, string $name): ?string {
         $accId = $this->getAcoreAccountId();
         if (!$accId || $itemId < 1 || $name === '') {
@@ -448,6 +501,7 @@ class ACoreServices
              FROM `recovery_item` ri
              INNER JOIN `characters` c ON c.`guid` = ri.`Guid`
              WHERE ri.`Id` = ?
+               AND ri.`Source` = 0
                AND c.`name` = ?
                AND c.`account` = ?
                AND c.`deleteDate` IS NULL

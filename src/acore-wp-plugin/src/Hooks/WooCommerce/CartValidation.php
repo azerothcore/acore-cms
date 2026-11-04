@@ -131,6 +131,12 @@ class CartValidation extends \ACore\Lib\WpClass {
                 \wc_add_notice(__('No item selected', 'acore-wp-plugin'), 'error');
                 return false;
             }
+
+            $error = ItemRestoration::checkRecoveryCost($itemID, intval($_REQUEST['acore_char_sel'] ?? 0));
+            if ($error !== null) {
+                \wc_add_notice(esc_html($error), 'error');
+                return false;
+            }
         }
 
         return true;

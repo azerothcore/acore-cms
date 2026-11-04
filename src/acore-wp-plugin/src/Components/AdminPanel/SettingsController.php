@@ -471,6 +471,13 @@ class SettingsController {
                                 $this->storeConf($key, $_POST[$key]);
                             else
                                 print "<div class='error'><p><strong>Item restore service error: $result</strong></p></div>";
+                        } else if ($key == 'acore_item_restoration_sources' && $_POST[$key] == "1") {
+                            // The redeem commands come from mod-enhanced-support; its help lists both subcommands
+                            $result = ACoreServices::I()->getServerSoap()->executeCommand("help support recovery");
+                            if (strpos($result, 'redeem') !== false)
+                                $this->storeConf($key, $_POST[$key]);
+                            else
+                                print "<div class='error'><p><strong>Sold and disenchanted item restore error: the worldserver has no .support recovery command (mod-enhanced-support). $result</strong></p></div>";
                         } else {
                             $this->storeConf($key, $_POST[$key]);
                         }

@@ -3,6 +3,7 @@
     $modulesCsv         = get_option('acore_modules_csv', '');
     $installedModules   = $modulesCsv ? array_map('trim', explode(',', $modulesCsv)) : [];
     $hasResurrectionMod = in_array('mod-resurrection-scroll', $installedModules);
+    $hasEnhancedSupportMod = in_array('mod-enhanced-support', $installedModules);
 
     // If module is missing, treat as disabled for UI purposes
     $scrollEnabled = $hasResurrectionMod && Opts::I()->acore_resurrection_scroll == '1';
@@ -106,6 +107,34 @@
                                                     <option value="0">Disabled</option>
                                                     <option value="1" <?php if (Opts::I()->acore_item_restoration == '1') echo 'selected'; ?>>Enabled</option>
                                                 </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <?php if (!$hasEnhancedSupportMod): ?>
+                                                    <span class="acore-missing-module-wrap">
+                                                        <label class="acore-help-label" style="color:#d63638;" title="Also sells back items players sold to a vendor or disenchanted. The store takes the gold or materials they got for them from the character's bags. Needs ItemDelete.Vendor / ItemDelete.Disenchant in worldserver.conf.">Restore Sold and Disenchanted Items</label>
+                                                        <span class="acore-missing-module-tooltip">Requires module mod-enhanced-support</span>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <label class="acore-help-label" title="Also sells back items players sold to a vendor or disenchanted. The store takes the gold or materials they got for them from the character's bags. Needs ItemDelete.Vendor / ItemDelete.Disenchant in worldserver.conf.">Restore Sold and Disenchanted Items</label>
+                                                <?php endif; ?>
+                                            </th>
+                                            <td>
+                                                <?php if (!$hasEnhancedSupportMod): ?>
+                                                    <input type="hidden" name="acore_item_restoration_sources" value="0">
+                                                    <span class="acore-missing-module-wrap">
+                                                        <select name="acore_item_restoration_sources" id="acore_item_restoration_sources" disabled>
+                                                            <option value="0">Disabled</option>
+                                                        </select>
+                                                        <span class="acore-missing-module-tooltip">Requires module mod-enhanced-support</span>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <select name="acore_item_restoration_sources" id="acore_item_restoration_sources">
+                                                        <option value="0">Disabled</option>
+                                                        <option value="1" <?php if (Opts::I()->acore_item_restoration_sources == '1') echo 'selected'; ?>>Enabled</option>
+                                                    </select>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                         <tr>
