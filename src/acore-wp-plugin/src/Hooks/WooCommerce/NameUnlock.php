@@ -25,14 +25,62 @@ class NameUnlock extends \ACore\Lib\WpClass
     private static $errTempBanned = "This character is banned temporarily. Please try again at a later date.";
     private static $errPermaBanned = "This character has been banned permanently. Please contact support to make sure the name is appropriate.";
     private static $errSubscription = "The character with this name is behind an account with a subscription";
+    private static $errMissingRequest = "Your Unlock name request is missing the name to unlock or the character to receive it. Please remove it from your cart and add it again from the product page.";
 
     public static function init()
     {
         add_action('woocommerce_after_add_to_cart_quantity', self::sprefix() . 'before_add_to_cart_button');
         add_filter('woocommerce_add_cart_item_data', self::sprefix() . 'add_cart_item_data', 20, 3);
+        add_action('woocommerce_check_cart_items', self::sprefix() . 'check_cart_items');
         add_action('woocommerce_checkout_order_processed', self::sprefix() . 'checkout_order_processed', 20, 2);
         add_action('woocommerce_add_order_item_meta', self::sprefix() . 'add_order_item_meta', 1, 3);
         add_action('woocommerce_payment_complete', self::sprefix() . 'payment_complete');
+
+        // The name and target character are only collected by the product page form,
+        // so shop listings must send buyers there instead of adding to the cart directly.
+        add_filter('woocommerce_product_add_to_cart_url', self::sprefix() . 'add_to_cart_url', 20, 2);
+        add_filter('woocommerce_product_add_to_cart_text', self::sprefix() . 'add_to_cart_text', 20, 2);
+        add_filter('woocommerce_product_supports', self::sprefix() . 'product_supports', 20, 3);
+    }
+
+    public static function add_to_cart_url($url, $product)
+    {
+        return $product && $product->get_sku() == self::$sku ? $product->get_permalink() : $url;
+    }
+
+    public static function add_to_cart_text($text, $product)
+    {
+        return $product && $product->get_sku() == self::$sku ? __('Select options', 'woocommerce') : $text;
+    }
+
+    public static function product_supports($supports, $feature, $product)
+    {
+        if ($feature == 'ajax_add_to_cart' && $product && $product->get_sku() == self::$sku) {
+            return false;
+        }
+
+        return $supports;
+    }
+
+    private static function isRequestComplete($data)
+    {
+        return !empty($data['acore_name_unlock_id']) && !empty($data['acore_char_sel']);
+    }
+
+    // Catches cart lines added without the product page form, before an order is created
+    public static function check_cart_items()
+    {
+        if (!WC()->cart) {
+            return;
+        }
+
+        foreach (WC()->cart->get_cart() as $cartItem) {
+            $product = $cartItem['data'] ?? null;
+            if ($product && $product->get_sku() == self::$sku && !self::isRequestComplete($cartItem)) {
+                \wc_add_notice(self::$errMissingRequest, 'error');
+                return;
+            }
+        }
     }
 
     // LIST
@@ -194,6 +242,14 @@ class NameUnlock extends \ACore\Lib\WpClass
         $items = $order->get_items();
 
         $soap = ACoreServices::I()->getServerSoap();
+
+        foreach ($items as $item) {
+            // Lines added without the form carry no acore_item_sku meta, so match on the product SKU
+            $product = $item->get_product();
+            if ($product && $product->get_sku() == self::$sku && !self::isRequestComplete($item)) {
+                throw new \Exception(self::$errMissingRequest);
+            }
+        }
 
         foreach ($items as $item) {
             if ($item["acore_item_sku"] && $item["acore_item_sku"] == self::$sku) {

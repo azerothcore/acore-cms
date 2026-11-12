@@ -20,7 +20,7 @@ class CartValidation extends \ACore\Lib\WpClass {
         "carboncopy-tickets" => [],
         "transmog-item" => ['acore_char_sel'],
         "transmog-itemset" => ['acore_char_sel'],
-        "name-unlock" => ['acore_unlock_name'],
+        "name-unlock" => ['acore_char_sel', 'acore_name_to_unlock'],
         "smartstone" => ['acore_char_sel'],
     );
 
@@ -115,7 +115,19 @@ class CartValidation extends \ACore\Lib\WpClass {
             }
         }
 
+        if (in_array('acore_name_to_unlock', self::$skuList[$activeSku])) {
+            if (trim((string) ($_REQUEST['acore_name_to_unlock'] ?? '')) === '') {
+                \wc_add_notice(__('Please enter the character name you would like to unlock.', 'acore-wp-plugin'), 'error');
+                return false;
+            }
+        }
+
         if (in_array('acore_new_guild_name', self::$skuList[$activeSku])) {
+            if (trim((string) ($_REQUEST['acore_new_guild_name'] ?? '')) === '') {
+                \wc_add_notice(__('Please enter a new guild name.', 'acore-wp-plugin'), 'error');
+                return false;
+            }
+
             $guid = intval($_REQUEST['acore_char_sel']);
 
             if (empty($ACoreSrv->getGuildNameByLeader($guid))) {
