@@ -40,8 +40,13 @@ RUN docker-php-ext-install soap \
     && docker-php-ext-install gmp
 
 # Install Redis PHP extension
-RUN pecl install redis \
-    && docker-php-ext-enable redis
+ARG REDIS_PECL_VERSION=6.3.0
+
+RUN curl -fsSL -o /tmp/redis.tgz \
+    "https://pecl.php.net/get/redis-${REDIS_PECL_VERSION}.tgz" \
+    && pecl install /tmp/redis.tgz \
+    && docker-php-ext-enable redis \
+    && rm -f /tmp/redis.tgz
 
 # Loads before the mounted upload.ini, which can still override these values
 COPY data/docker/php-security.ini /usr/local/etc/php/conf.d/security.ini
