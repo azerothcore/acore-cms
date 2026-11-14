@@ -1179,3 +1179,217 @@ body.acore-dark-mode #wpbody-content .mycred-tools-selected {
 .acore-qr-out:empty {
     display: none;
 }
+
+/* ── WooCommerce admin in dark mode ──────────────────────────────────
+ * Product / order / settings screens, the WooCommerce header bar and
+ * activity panel, select2 dropdowns and the editor toolbar. The editor's
+ * writing area is an iframe: DarkMode.php styles it via TinyMCE.
+ * ─────────────────────────────────────────────────────────────────── */
+
+/* WooCommerce header bar ("Edit Product", Activity, Finish setup) */
+body.acore-dark-mode .woocommerce-layout__header,
+body.acore-dark-mode .woocommerce-layout__header-wrapper,
+body.acore-dark-mode .woocommerce-layout__header .woocommerce-layout__header-heading,
+body.acore-dark-mode .woocommerce-layout__activity-panel-tabs,
+body.acore-dark-mode .woocommerce-layout__activity-panel-tab,
+body.acore-dark-mode .woocommerce-layout__activity-panel-wrapper,
+body.acore-dark-mode .woocommerce-layout__activity-panel-content {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+    box-shadow: none !important;
+}
+body.acore-dark-mode .woocommerce-layout__header .components-button,
+body.acore-dark-mode .woocommerce-layout__activity-panel-tab,
+body.acore-dark-mode .woocommerce-layout__activity-panel-tab svg {
+    color: var(--acore-text) !important;
+    fill: var(--acore-text) !important;
+}
+body.acore-dark-mode .woocommerce-layout__activity-panel-tab:hover,
+body.acore-dark-mode .woocommerce-layout__activity-panel-tab.is-active {
+    background: var(--acore-surface-2) !important;
+}
+
+/* WooCommerce home / analytics cards (React screens) */
+body.acore-dark-mode .woocommerce-layout,
+body.acore-dark-mode .woocommerce-layout__primary,
+body.acore-dark-mode .woocommerce-card,
+body.acore-dark-mode .components-card,
+body.acore-dark-mode .components-card__body,
+body.acore-dark-mode .components-card__header,
+body.acore-dark-mode .components-panel,
+body.acore-dark-mode .components-panel__body,
+body.acore-dark-mode .woocommerce-table,
+body.acore-dark-mode .woocommerce-summary,
+body.acore-dark-mode .woocommerce-summary__item,
+body.acore-dark-mode .woocommerce-list__item,
+body.acore-dark-mode .woocommerce-task-list__item,
+body.acore-dark-mode .woocommerce-inbox-message {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .woocommerce-summary__item:hover,
+body.acore-dark-mode .woocommerce-list__item:hover {
+    background: var(--acore-surface-2) !important;
+}
+
+/* Product data box: tabs on the left, options on the right */
+body.acore-dark-mode #woocommerce-product-data .panel-wrap,
+body.acore-dark-mode #woocommerce-product-data .woocommerce_options_panel,
+body.acore-dark-mode #woocommerce-product-data .wc-metaboxes-wrapper,
+body.acore-dark-mode #woocommerce-product-data .wc-metabox,
+body.acore-dark-mode #woocommerce-product-data .wc-metabox h3,
+body.acore-dark-mode #woocommerce-product-data .toolbar,
+body.acore-dark-mode #woocommerce-product-data .woocommerce_variation,
+body.acore-dark-mode #woocommerce-product-data .woocommerce_attribute {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode #woocommerce-product-data ul.wc-tabs,
+body.acore-dark-mode #woocommerce-product-data ul.wc-tabs::after {
+    background: var(--acore-bg) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode #woocommerce-product-data ul.wc-tabs li a {
+    background: transparent !important;
+    color: var(--acore-accent) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode #woocommerce-product-data ul.wc-tabs li.active a,
+body.acore-dark-mode #woocommerce-product-data ul.wc-tabs li a:hover {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode #woocommerce-product-data .postbox-header .type_box,
+body.acore-dark-mode #woocommerce-product-data .description,
+body.acore-dark-mode .woocommerce_options_panel label,
+body.acore-dark-mode .woocommerce_options_panel legend {
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode .woocommerce-help-tip,
+body.acore-dark-mode .woocommerce-help-tip::after {
+    color: var(--acore-muted) !important;
+}
+
+/* Orders */
+body.acore-dark-mode #order_data,
+body.acore-dark-mode #order_data .order_data_column,
+body.acore-dark-mode .woocommerce_order_items_wrapper,
+body.acore-dark-mode .woocommerce_order_items_wrapper table.woocommerce_order_items,
+body.acore-dark-mode .woocommerce_order_items_wrapper table.woocommerce_order_items thead th,
+body.acore-dark-mode .woocommerce_order_items_wrapper table.woocommerce_order_items tbody td,
+body.acore-dark-mode .wc-order-data-row,
+body.acore-dark-mode .wc-order-totals-items,
+body.acore-dark-mode #woocommerce-order-notes .note_content,
+body.acore-dark-mode .wc-backbone-modal-content,
+body.acore-dark-mode .wc-backbone-modal-content header,
+body.acore-dark-mode .wc-backbone-modal-content footer,
+body.acore-dark-mode .wc-backbone-modal-content article {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode #woocommerce-order-notes .note.system-note .note_content {
+    background: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode #woocommerce-order-notes .note_content::after {
+    border-color: var(--acore-surface) transparent !important;
+}
+body.acore-dark-mode #order_data h2,
+body.acore-dark-mode #order_data h3,
+body.acore-dark-mode #order_data p,
+body.acore-dark-mode #order_data label {
+    color: var(--acore-text) !important;
+}
+
+/* Settings pages and status */
+body.acore-dark-mode .woocommerce table.form-table,
+body.acore-dark-mode .woocommerce table.form-table th,
+body.acore-dark-mode .woocommerce table.form-table td,
+body.acore-dark-mode .wc_status_table,
+body.acore-dark-mode .wc_status_table td,
+body.acore-dark-mode .wc_status_table th,
+body.acore-dark-mode .wc_gateways,
+body.acore-dark-mode .wc_gateways td,
+body.acore-dark-mode .wc_gateways th,
+body.acore-dark-mode .wc-shipping-zones,
+body.acore-dark-mode .wc-shipping-zones td,
+body.acore-dark-mode .wc-shipping-zones th {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .woocommerce .subsubsub a,
+body.acore-dark-mode .wc-settings-sub-nav a {
+    color: var(--acore-accent) !important;
+}
+body.acore-dark-mode .woocommerce .subsubsub a.current {
+    color: var(--acore-text) !important;
+}
+
+/* select2 / selectWoo dropdowns (categories, tags, customers, ...) */
+body.acore-dark-mode .select2-container .select2-selection,
+body.acore-dark-mode .select2-container .select2-selection__rendered,
+body.acore-dark-mode .select2-dropdown,
+body.acore-dark-mode .select2-search__field,
+body.acore-dark-mode .select2-results__option {
+    background: var(--acore-bg) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .select2-results__option--highlighted,
+body.acore-dark-mode .select2-container .select2-selection__choice {
+    background: var(--acore-surface-2) !important;
+    color: var(--acore-text) !important;
+}
+
+/* Classic editor chrome (the writing area itself is styled through TinyMCE) */
+body.acore-dark-mode .wp-editor-container,
+body.acore-dark-mode .wp-editor-area,
+body.acore-dark-mode .quicktags-toolbar,
+body.acore-dark-mode .mce-panel,
+body.acore-dark-mode .mce-toolbar-grp,
+body.acore-dark-mode .mce-statusbar,
+body.acore-dark-mode .wp-editor-tabs .wp-switch-editor,
+body.acore-dark-mode #post-status-info {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .tmce-active .switch-tmce,
+body.acore-dark-mode .html-active .switch-html {
+    background: var(--acore-surface-2) !important;
+}
+body.acore-dark-mode .mce-btn,
+body.acore-dark-mode .mce-btn button,
+body.acore-dark-mode .mce-btn .mce-ico,
+body.acore-dark-mode .mce-listbox button,
+body.acore-dark-mode .mce-menubtn button {
+    background: transparent !important;
+    color: var(--acore-text) !important;
+    border-color: transparent !important;
+}
+body.acore-dark-mode .mce-btn:hover,
+body.acore-dark-mode .mce-btn.mce-active {
+    background: var(--acore-surface-2) !important;
+    border-color: var(--acore-border) !important;
+}
+body.acore-dark-mode .mce-menu,
+body.acore-dark-mode .mce-menu-item {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+}
+body.acore-dark-mode .mce-menu-item:hover,
+body.acore-dark-mode .mce-menu-item.mce-selected {
+    background: var(--acore-surface-2) !important;
+}
+
+/* WooCommerce notices and the store setup bar */
+body.acore-dark-mode .woocommerce-message,
+body.acore-dark-mode .woocommerce-store-alerts .components-card,
+body.acore-dark-mode .woocommerce-layout__notice-list .notice {
+    background: var(--acore-surface) !important;
+    color: var(--acore-text) !important;
+}

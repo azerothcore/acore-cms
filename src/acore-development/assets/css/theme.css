@@ -1,0 +1,760 @@
+/* ACore Development: layout and dark / light colours. All colours come from the variables below. */
+
+html.acore-dark {
+    --acore-bg: #36393f;
+    --acore-surface: #2f3136;
+    --acore-surface-2: #40444b;
+    --acore-header: #202225;
+    --acore-border: #42454a;
+    --acore-text: #dcddde;
+    --acore-heading: #ffffff;
+    --acore-muted: #b9bbbe;
+    --acore-link: #7289da;
+    --acore-link-hover: #9aaaf0;
+    --acore-accent: #5865f2;
+    --acore-accent-hover: #4752c4;
+    --acore-accent-text: #ffffff;
+    --acore-accent-soft: rgba(88, 101, 242, 0.18);
+    --acore-hover: rgba(255, 255, 255, 0.08);
+    --acore-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    --acore-success: #57f287;
+    color-scheme: dark;
+}
+
+html.acore-light {
+    --acore-bg: #eef2f7;
+    --acore-surface: #ffffff;
+    --acore-surface-2: #f0f4f8;
+    --acore-header: #c8d8e8;
+    --acore-border: #b0c4d8;
+    --acore-text: #212529;
+    --acore-heading: #0a2233;
+    --acore-muted: #55606b;
+    --acore-link: #0a5080;
+    --acore-link-hover: #0a2233;
+    --acore-accent: #0a2233;
+    --acore-accent-hover: #1a3a55;
+    --acore-accent-text: #ffffff;
+    --acore-accent-soft: #e2eaf2;
+    --acore-hover: rgba(10, 34, 51, 0.1);
+    --acore-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    --acore-success: #1e7d3a;
+    color-scheme: light;
+}
+
+/* Page */
+
+html.acore-dark body,
+html.acore-light body {
+    background: var(--acore-bg);
+    color: var(--acore-text);
+}
+
+html.acore-light body {
+    background-image: linear-gradient(180deg, #dce6f0 0%, #eef2f7 18%, #f5f7fa 100%);
+    background-attachment: fixed;
+}
+
+html[class*="acore-"] h1,
+html[class*="acore-"] h2,
+html[class*="acore-"] h3,
+html[class*="acore-"] h4,
+html[class*="acore-"] h5,
+html[class*="acore-"] h6,
+html[class*="acore-"] .entry-title,
+html[class*="acore-"] .entry-title a {
+    color: var(--acore-heading);
+}
+
+html[class*="acore-"] a {
+    color: var(--acore-link);
+}
+
+html[class*="acore-"] a:hover,
+html[class*="acore-"] a:focus {
+    color: var(--acore-link-hover);
+}
+
+html[class*="acore-"] hr,
+html[class*="acore-"] .hentry,
+html[class*="acore-"] .widget,
+html[class*="acore-"] table,
+html[class*="acore-"] th,
+html[class*="acore-"] td {
+    border-color: var(--acore-border);
+}
+
+html[class*="acore-"] table th {
+    background: var(--acore-surface);
+    color: var(--acore-heading);
+}
+
+html[class*="acore-"] table tbody td {
+    background: transparent;
+}
+
+/* Layout */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.acore-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.acore-main {
+    min-height: 60vh;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+.acore-entry + .acore-entry {
+    margin-top: 2.5rem;
+}
+
+.screen-reader-text {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+}
+
+.acore-skip-link:focus {
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 100000;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    clip: auto;
+    background: var(--acore-surface);
+}
+
+/* Header and footer */
+
+.acore-header {
+    border-bottom: 1px solid var(--acore-border);
+    background: var(--acore-header);
+    color: var(--acore-text);
+}
+
+.acore-header-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    min-height: 64px;
+}
+
+.acore-branding .custom-logo {
+    display: block;
+    max-height: 48px;
+    width: auto;
+}
+
+html[class*="acore-"] .acore-site-title {
+    color: var(--acore-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-cart-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 20px;
+    color: var(--acore-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-cart-link:hover {
+    background: var(--acore-hover);
+    color: var(--acore-heading);
+}
+
+.acore-account {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+html[class*="acore-"] .acore-account-name {
+    color: var(--acore-text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-account-name:hover {
+    color: var(--acore-heading);
+    text-decoration: underline;
+}
+
+html[class*="acore-"] .acore-account-btn {
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    background: var(--acore-accent);
+    color: var(--acore-accent-text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+html[class*="acore-"] .acore-account-btn:hover {
+    background: var(--acore-accent-hover);
+    color: var(--acore-accent-text);
+}
+
+.acore-cart-count {
+    min-width: 1.4em;
+    padding: 0 0.35em;
+    border-radius: 10px;
+    background: var(--acore-accent);
+    color: var(--acore-accent-text);
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.acore-footer {
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--acore-border);
+    background: var(--acore-header);
+    color: var(--acore-muted);
+    font-size: 0.85rem;
+}
+
+/* Header menu (inc/navigation.php) */
+
+.acore-nav {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.5rem 0;
+}
+
+.acore-nav-list {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.acore-nav-list > li {
+    position: relative;
+    margin: 0;
+}
+
+html[class*="acore-"] .acore-nav a,
+html[class*="acore-"] .acore-nav-more-btn {
+    display: block;
+    padding: 0.4rem 0.8rem;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--acore-text);
+    font-size: 0.92rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+html[class*="acore-"] .acore-nav a,
+html[class*="acore-"] .acore-nav-more-btn {
+    color: var(--acore-text);
+    background: transparent;
+}
+
+html[class*="acore-"] .acore-nav a:hover,
+html[class*="acore-"] .acore-nav a.current,
+html[class*="acore-"] .acore-nav-more-btn:hover,
+html[class*="acore-"] .acore-nav-more-btn[aria-expanded="true"] {
+    background: var(--acore-hover);
+    color: var(--acore-heading);
+}
+
+.acore-nav-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 1000;
+    min-width: 200px;
+    margin: 0;
+    padding: 0.4rem 0;
+    list-style: none;
+    background: var(--acore-surface);
+    border: 1px solid var(--acore-border);
+    border-radius: 8px;
+    box-shadow: var(--acore-shadow);
+}
+
+.acore-nav-dropdown[hidden] {
+    display: none;
+}
+
+.acore-nav-dropdown li {
+    margin: 0;
+}
+
+html[class*="acore-"] .acore-nav-dropdown a {
+    border-radius: 0;
+    padding: 0.5rem 1rem;
+}
+
+html[class*="acore-"] .acore-mode-toggle {
+    flex: 0 0 auto;
+    padding: 0.35rem 0.9rem;
+    border: 0;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+html[class*="acore-"] .acore-mode-toggle {
+    background: var(--acore-text);
+    color: var(--acore-header);
+}
+
+html[class*="acore-"] .acore-mode-toggle:hover {
+    background: var(--acore-heading);
+    color: var(--acore-header);
+}
+
+html.acore-dark .acore-mode-toggle-light,
+html.acore-light .acore-mode-toggle-dark {
+    display: none;
+}
+
+/* Forms */
+
+html[class*="acore-"] input[type="text"],
+html[class*="acore-"] input[type="email"],
+html[class*="acore-"] input[type="password"],
+html[class*="acore-"] input[type="search"],
+html[class*="acore-"] input[type="number"],
+html[class*="acore-"] input[type="tel"],
+html[class*="acore-"] input[type="url"],
+html[class*="acore-"] textarea,
+html[class*="acore-"] select,
+html[class*="acore-"] .select2-container .select2-selection {
+    background: var(--acore-surface);
+    color: var(--acore-text);
+    border: 1px solid var(--acore-border);
+    box-shadow: none;
+}
+
+html[class*="acore-"] input:focus,
+html[class*="acore-"] textarea:focus,
+html[class*="acore-"] select:focus {
+    border-color: var(--acore-link);
+    outline: 2px solid var(--acore-accent-soft);
+}
+
+html[class*="acore-"] ::placeholder {
+    color: var(--acore-muted);
+}
+
+html[class*="acore-"] button,
+html[class*="acore-"] input[type="button"],
+html[class*="acore-"] input[type="reset"],
+html[class*="acore-"] input[type="submit"],
+html[class*="acore-"] .button,
+html[class*="acore-"] .button.alt,
+html[class*="acore-"] .added_to_cart,
+html[class*="acore-"] .wc-block-components-button {
+    background: var(--acore-accent);
+    border-color: var(--acore-accent);
+    color: var(--acore-accent-text);
+}
+
+html[class*="acore-"] button:hover,
+html[class*="acore-"] input[type="button"]:hover,
+html[class*="acore-"] input[type="reset"]:hover,
+html[class*="acore-"] input[type="submit"]:hover,
+html[class*="acore-"] .button:hover,
+html[class*="acore-"] .button.alt:hover,
+html[class*="acore-"] .added_to_cart:hover,
+html[class*="acore-"] .wc-block-components-button:hover {
+    background: var(--acore-accent-hover);
+    border-color: var(--acore-accent-hover);
+    color: var(--acore-accent-text);
+}
+
+html[class*="acore-"] button,
+html[class*="acore-"] input[type="button"],
+html[class*="acore-"] input[type="reset"],
+html[class*="acore-"] input[type="submit"],
+html[class*="acore-"] .button {
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--acore-accent);
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+html[class*="acore-"] input[type="text"],
+html[class*="acore-"] input[type="email"],
+html[class*="acore-"] input[type="password"],
+html[class*="acore-"] input[type="search"],
+html[class*="acore-"] input[type="number"],
+html[class*="acore-"] input[type="tel"],
+html[class*="acore-"] textarea,
+html[class*="acore-"] select {
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    font: inherit;
+}
+
+/* The menu's own buttons keep their look */
+html[class*="acore-"] .acore-nav-more-btn:not(:hover):not([aria-expanded="true"]) {
+    background: transparent;
+}
+
+/* WooCommerce notices and boxes */
+
+html[class*="acore-"] .woocommerce-info,
+html[class*="acore-"] .woocommerce-message,
+html[class*="acore-"] .woocommerce-noreviews,
+html[class*="acore-"] p.no-comments {
+    background: var(--acore-surface-2);
+    color: var(--acore-text);
+    border-left: 4px solid var(--acore-accent);
+}
+
+html[class*="acore-"] .woocommerce-error {
+    background: #8b1e1e;
+    color: #ffffff;
+}
+
+html[class*="acore-"] #payment,
+html[class*="acore-"] .cart-collaterals .cart_totals,
+html[class*="acore-"] .woocommerce-MyAccount-navigation ul li,
+html[class*="acore-"] #order_review {
+    background: var(--acore-surface);
+    border-color: var(--acore-border);
+}
+
+html[class*="acore-"] #payment .payment_methods li,
+html[class*="acore-"] #payment .payment_box {
+    background: var(--acore-surface-2);
+    color: var(--acore-text);
+}
+
+/* Scrollbar (dark) */
+
+html.acore-dark ::-webkit-scrollbar {
+    width: 8px;
+    background: var(--acore-surface);
+}
+
+html.acore-dark ::-webkit-scrollbar-thumb {
+    background: var(--acore-border);
+    border-radius: 4px;
+}
+
+html.acore-dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--acore-accent);
+}
+
+/* Small screens: the menu wraps under the toggle */
+
+@media (max-width: 767px) {
+    .acore-nav {
+        flex-wrap: wrap;
+    }
+}
+
+/* [acore_dev_info] (inc/dev/info.php) */
+
+.acore-dev-intro {
+    font-size: 1.05rem;
+}
+
+.acore-dev-section {
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 12px;
+    background: var(--acore-surface);
+}
+
+.acore-dev-section h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.15rem;
+}
+
+.acore-dev-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.acore-dev-table th,
+.acore-dev-table td {
+    padding: 0.5rem 0.6rem;
+    border-top: 1px solid var(--acore-border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.acore-dev-table tr:first-child th,
+.acore-dev-table tr:first-child td {
+    border-top: 0;
+}
+
+html[class*="acore-"] .acore-dev-table th {
+    width: 14rem;
+    background: transparent;
+    font-weight: 600;
+}
+
+.acore-dev-services th {
+    width: auto;
+}
+
+.acore-dev-status {
+    display: inline-block;
+    min-width: 4.5rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.acore-dev-ok { background: #1e7d3a; color: #ffffff; }
+.acore-dev-warn { background: #b7791f; color: #ffffff; }
+.acore-dev-bad { background: #b42318; color: #ffffff; }
+.acore-dev-info { background: var(--acore-accent-soft); color: var(--acore-link); }
+
+.acore-dev-note {
+    color: var(--acore-muted);
+    font-size: 0.85rem;
+}
+
+@media (max-width: 700px) {
+    .acore-dev-table,
+    .acore-dev-table tbody,
+    .acore-dev-table tr,
+    .acore-dev-table th,
+    .acore-dev-table td {
+        display: block;
+        width: auto;
+    }
+
+    .acore-dev-table thead {
+        display: none;
+    }
+}
+
+/* Points panel (inc/dev/points.php) and the balance in the header */
+
+html[class*="acore-"] .acore-account-points {
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 20px;
+    background: var(--acore-accent-soft);
+    color: var(--acore-link);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.acore-points {
+    margin: 0 0 1.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--acore-border);
+    border-radius: 12px;
+    background: var(--acore-surface);
+}
+
+.acore-points-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.acore-points-balance {
+    flex: 1 1 200px;
+}
+
+.acore-points-label {
+    display: block;
+    color: var(--acore-muted);
+    font-size: 0.8rem;
+}
+
+.acore-points-balance strong {
+    color: var(--acore-heading);
+    font-size: 1.2rem;
+}
+
+.acore-points-buy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+}
+
+html[class*="acore-"] .acore-points .acore-points-pack {
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+html[class*="acore-"] .acore-points-custom input[type="number"] {
+    width: 7.5rem;
+    padding: 0.35rem 0.6rem;
+}
+
+.acore-points-note {
+    margin: 0.6rem 0 0;
+    color: var(--acore-muted);
+    font-size: 0.8rem;
+}
+
+.acore-points-message {
+    margin: 0 0 0.75rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.acore-points-ok {
+    background: #1e7d3a;
+    color: #ffffff;
+}
+
+.acore-points-error {
+    background: #b42318;
+    color: #ffffff;
+}
+
+/* ---------- product admin: "Edit" buttons and the shop admin toolbar (users who can edit products) ---------- */
+
+.woocommerce ul.products li.product,
+.acore-store-item {
+    position: relative;
+}
+
+.acore-edit-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border: 1px solid var(--acore-border, #dee2e6);
+    border-radius: 999px;
+    background: var(--acore-surface, #fff);
+    color: var(--acore-text, #212529);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.acore-edit-chip:hover,
+.acore-edit-chip:focus {
+    background: var(--acore-accent, #5865f2);
+    border-color: var(--acore-accent, #5865f2);
+    color: var(--acore-accent-text, #fff);
+    text-decoration: none;
+}
+
+/* on product cards: over the image's top right corner */
+.woocommerce ul.products li.product > .acore-edit-chip,
+.acore-store-item > .acore-edit-chip {
+    position: absolute;
+    z-index: 3;
+    top: 8px;
+    right: 8px;
+}
+
+/* product page: above the title; info page: after the product name */
+.woocommerce div.product .summary > .acore-edit-chip {
+    margin-bottom: 0.75rem;
+}
+
+.acore-dev-services td .acore-edit-chip {
+    margin-left: 6px;
+    padding: 1px 8px;
+    box-shadow: none;
+}
+
+.acore-admin-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 1.25rem;
+    padding: 8px 12px;
+    border: 1px dashed var(--acore-border, #dee2e6);
+    border-radius: 8px;
+    background: var(--acore-accent-soft, rgba(88, 101, 242, 0.12));
+}
+
+.acore-admin-toolbar-label {
+    margin-right: 4px;
+    color: var(--acore-muted, #6c757d);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.acore-admin-toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--acore-surface, #fff);
+    color: var(--acore-text, #212529);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.acore-admin-toolbar-btn:hover,
+.acore-admin-toolbar-btn:focus {
+    background: var(--acore-accent, #5865f2);
+    color: var(--acore-accent-text, #fff);
+    text-decoration: none;
+}

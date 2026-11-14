@@ -32,7 +32,9 @@ plugins_activate_only=(
 )
 
 # List of themes to activate only once (already present in container)
-themes_activate_only=()
+themes_activate_only=(
+    "ACore Development|acore-development"   # the default theme: info page and a ready-to-test shop
+)
 
 APPS_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
@@ -98,6 +100,15 @@ if ! wp core is-installed --allow-root; then
     fi
 fi
 
+# WordPress's environment type follows ENVIRONMENT (DOCKER_ENVIRONMENT in .env): development, staging, production or
+# local. In development / local everyone can use the ACore Development theme's test payment, otherwise only admins.
+case "${ENVIRONMENT:-production}" in
+    development|staging|production|local) WP_ENV_TYPE="${ENVIRONMENT}" ;;
+    *) WP_ENV_TYPE="production" ;;
+esac
+echo "Setting WP_ENVIRONMENT_TYPE to $WP_ENV_TYPE..."
+wp config set WP_ENVIRONMENT_TYPE "$WP_ENV_TYPE" --type=constant --allow-root || echo "Could not set WP_ENVIRONMENT_TYPE."
+
 wp maintenance-mode activate --allow-root || echo "Maintenance mode already activated or failed to activate."
 
 # Install and activate plugins and themes
@@ -121,6 +132,15 @@ for theme in "${themes_activate_only[@]}"; do
     echo "Activating theme $theme_name ($theme_slug) only once..."
     handle_theme_activation_once "$theme_slug"
 done
+
+# ACore Development theme: install the shop plugins and set up the test shop now (on page loads the theme only does
+# it for administrators). Twice: plugins activated by the first run are only loaded by the second.
+if [ "$(wp theme list --status=active --field=name --allow-root 2>/dev/null)" = "acore-development" ]; then
+    echo "Setting up the ACore Development test shop..."
+    # --if-needed: only until it has completed once per theme version, so later restarts keep your shop settings
+    wp acore-dev setup --if-needed --allow-root || echo "ACore Development setup: first run incomplete."
+    wp acore-dev setup --if-needed --allow-root || echo "ACore Development setup failed: an administrator's visit or wp acore-dev setup retries it."
+fi
 
 # Correct permissions for non-root operations
 chown -R www-data:www-data /run /var/www/html/

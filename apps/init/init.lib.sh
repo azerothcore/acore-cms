@@ -48,6 +48,11 @@ handle_theme_activation_once() {
     fi
 
     if is_theme_installed "$theme_slug"; then
+        # On multisite a theme must be enabled for the network before a site can use it
+        if wp core is-installed --network --allow-root >/dev/null 2>&1; then
+            wp theme enable "$theme_slug" --network --allow-root || echo "Could not network-enable theme $1."
+        fi
+
         # Check if theme is active
         if ! wp theme status "$theme_slug" --allow-root | grep -q 'Active'; then
             echo "Activating theme: $1..."

@@ -43,7 +43,7 @@ function acore_dark_mode_enqueue() {
     wp_enqueue_style('acore-css', ACORE_URL_PLG . 'web/assets/css/main.css', [], '3.0');
     wp_enqueue_style('acore-dark-mode', ACORE_URL_PLG . 'web/assets/css/dark-mode.css', ['acore-css'], '3.7');
     // Central light/dark theme layer (edit colours here). Loaded last so it wins.
-    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '5.2');
+    wp_enqueue_style('acore-theme', ACORE_URL_PLG . 'web/assets/css/theme.css', ['acore-dark-mode'], '5.3');
 
     $nonce = wp_create_nonce('acore_dark_mode');
     wp_add_inline_script('jquery-core', acore_dark_mode_js($nonce));
@@ -110,6 +110,23 @@ function acore_dark_mode_late_styles() {
 
     </style>
     <?php
+}
+
+/*
+ * The classic editor's writing area (product descriptions, posts) is an iframe that admin CSS can't reach:
+ * in dark mode give TinyMCE dark content styles.
+ */
+add_filter('tiny_mce_before_init', __NAMESPACE__ . '\acore_dark_mode_tinymce');
+
+function acore_dark_mode_tinymce($settings) {
+    if (!is_admin() || get_user_meta(get_current_user_id(), 'acore_dark_mode', true) !== '1') {
+        return $settings;
+    }
+    $dark = 'body.mce-content-body { background: #0d1117; color: #c9d1d9; } '
+        . 'body.mce-content-body a { color: #58a6ff; } '
+        . 'body.mce-content-body code, body.mce-content-body pre { background: #161b22; color: #c9d1d9; }';
+    $settings['content_style'] = trim((isset($settings['content_style']) ? $settings['content_style'] . ' ' : '') . $dark);
+    return $settings;
 }
 
 add_action('wp_ajax_acore_toggle_dark_mode', __NAMESPACE__ . '\acore_ajax_toggle_dark_mode');

@@ -58,19 +58,31 @@ To add the shop in your website selling items and services you have to:
 
 Besides items you can also sell:
 
-- Guild Rename (using as SKU `guild-rename`)
+- Guild Rename (using as SKU `guild-rename`), the character must be in a guild and its guild master
 - Character Rename (using as SKU `char-change-name`)
-- Character Customization (using as SKU `char-change-customize`), include rename
-- Change Race (using as SKU `char-change-race`), include rename and customization
-- Change Faction (using as SKU `char-change-faction`), include rename and customization
+- Character Customization (using as SKU `char-change-customize`), includes rename, gender change and face / skin customization
+- Change Race (using as SKU `char-change-race`), includes rename and customization, not a faction change. Race / class combinations that no other race of the faction can play can't buy it (e.g. Tauren or Night Elf Druid, Blood Elf Paladin, Draenei Shaman): they are greyed out in the character list, a table shows which races each character could become, and the cart refuses them. The class / race table can be changed with the `acore_char_change_class_races` filter.
+- Change Faction (using as SKU `char-change-faction`), includes rename, customization and race change, with the same check for the races of the other faction
 - Restore Deleted Characters (using as SKU `char-restore-delete`), this order should be "sold by individually", limiting the purchase 1 item per order.
 - Item Restoration (using as SKU `item-restoration`), this allows to restore the item deleted or sold (check `ItemDelete` worldserver conf)
 - Carbon Copy tickets (using as SKU `carboncopy-tickets`), this works only if you have the [CarbonCopy lua script](https://github.com/55Honey/Acore_CarbonCopy/).
 - Transmog item and itemset (using as SKU `transmog-item_ITEMID` and `transmog-itemset_ITEMSETID`), this works only if you have the [Transmog module](https://github.com/azerothcore/mod-transmog)
-- Name Unlock (using as SKU `name-unlock`), this frees up a character name if unused for a while.
-- Smartstone vanity (using as SKU `smartstone_CATEGORY_VANITYID`), this add a vanity (pet, combat ecc.), it requires the module [Smartstone module](https://github.com/chromiecraft/mod-chromiecraft-smartstone/).
+- Name Unlock (using as SKU `name-unlock`), this frees up the name of an inactive character and renames the buyer's character to it (the rename is included). How long the name's account must have been inactive depends on the character's level: *AzerothCore -> Tools -> Name Unlock Settings -> Inactivity Thresholds per Level* in the admin panel (a threshold `level, days` applies to characters below that level; by default 30 days below level 5, 90 below 30, 180 below 60, 360 otherwise). Names of accounts with a subscription (Paid Memberships Pro) can't be unlocked.
+- SmartStone (using as SKU `smartstone_TYPE_ID`), it requires the [SmartStone module](https://github.com/chromiecraft/mod-chromiecraft-smartstone/). On the product's *Inventory* tab tick **SmartStone product**, pick the type and enter the id: the SKU is built for you (and greyed out) and the product gets the type's sub-category. Types: `0` Companion, `1` Combat pet, `2` Costume (account-wide), `6` Aura, `7` Vehicle, `9` Class perk (account-wide); mounts can't be granted by command. New types can be added with the `acore_smartstone_types` filter.
 
 **Note:** if you want to sell a cumulative item you can use the `SKU itemsend_ITEM-ID_stack`.
+
+**SKUs are case-insensitive:** service SKUs are saved in lowercase (existing products are converted once), and `Smartstone_9_37` works like `smartstone_9_37`. More prefixes can be added with the `acore_service_sku_prefixes` filter.
+
+#### What the buyer sees
+
+- **Character list:** the services that need a character show the account's characters with their race and class icons, name and level. Characters that can't use the service are greyed out, banned characters aren't listed. Without a usable character the product says why and "Add to cart" is disabled.
+- **What's included:** Faction Change, Race Change, Customization and Name Unlock say what they include on the product page, in a pop-up when "Add to cart" is pressed ("I understand, add to cart" / "Cancel") and in the cart. The texts can be changed with the `acore_char_change_includes` filter.
+- **Cart checks:** a service can only be added to the cart with one of the buyer's own, not banned, characters (and, for a restore, one of the account's deleted characters), and with the fields it needs (a guild for Guild Rename, a name for Name Unlock, a destination account for a transfer).
+
+#### Admin dark mode
+
+The plugin's admin dark mode also covers the WooCommerce screens (products, orders, settings, the product editor).
 
 ### 3D Model Viewer
 
