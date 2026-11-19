@@ -88,7 +88,7 @@ services:
       retries: 30
   web.local:
     restart: unless-stopped
-    image: nginx
+    image: nginx:1.30.7
     env_file:
       # environment variables are retrieved by this file
       # NOTE: you can add more variables to the .env file but
@@ -125,7 +125,7 @@ services:
     expose:
       - "6379"
   acore-cms-maintenance:
-    image: nginx
+    image: nginx:1.30.7
     environment:
       DOCKER_CONTAINER: 1
       MAINTENANCE_MODE: "true"
