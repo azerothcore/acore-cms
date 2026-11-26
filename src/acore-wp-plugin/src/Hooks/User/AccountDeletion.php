@@ -7,6 +7,10 @@ use ACore\Utils\AcoreUtils;
 
 const ACORE_DELETE_ACCOUNT_ACTION = 'acore_delete_account';
 const ACORE_DELETE_ACCOUNT_COUNTDOWN = 10;
+const ACORE_DELETE_ACCOUNT_ARM_ACTION = 'acore_delete_account_arm';
+const ACORE_DELETE_ACCOUNT_ARMED_META = 'acore_delete_account_armed_at';
+// An armed confirmation older than this must be armed again by retyping the name.
+const ACORE_DELETE_ACCOUNT_ARM_TTL = 10 * MINUTE_IN_SECONDS;
 
 /**
  * Website capabilities that mark a user as staff. Staff accounts are removed by
@@ -225,6 +229,8 @@ function acore_profile_danger_zone($user)
         var seconds   = <?= (int) ACORE_DELETE_ACCOUNT_COUNTDOWN ?>;
         var label     = <?= wp_json_encode(__('Confirm', 'acore-wp-plugin')) ?>;
         var postUrl   = <?= wp_json_encode(admin_url('admin-post.php')) ?>;
+        var ajaxUrl   = <?= wp_json_encode(admin_url('admin-ajax.php')) ?>;
+        var armError  = <?= wp_json_encode(__('Could not start the countdown. Please reload the page and try again.', 'acore-wp-plugin')) ?>;
         var nonce     = <?= wp_json_encode(wp_create_nonce(ACORE_DELETE_ACCOUNT_ACTION . '_' . $user->ID)) ?>;
         var modal     = document.getElementById('acore-delete-account-modal');
         var openBtn   = document.getElementById('acore-delete-account-open');
@@ -234,20 +240,20 @@ function acore_profile_danger_zone($user)
         var timer     = null;
         var remaining = 0;
         var submitting = false;
+        // Bumped on every reset so a late arm reply cannot start a stale countdown.
+        var armSeq    = 0;
 
         function stopCountdown() {
+            armSeq++;
             if (timer) {
-                clearInterval(timer);
+                if (timer !== -1) clearInterval(timer);
                 timer = null;
             }
             confirmBtn.disabled = true;
             confirmBtn.textContent = label;
         }
 
-        function startCountdown() {
-            remaining = seconds;
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = label + ' (' + remaining + ')';
+        function runCountdown() {
             timer = setInterval(function() {
                 remaining--;
                 if (remaining > 0) {
@@ -259,6 +265,33 @@ function acore_profile_danger_zone($user)
                 confirmBtn.textContent = label;
                 confirmBtn.disabled = false;
             }, 1000);
+        }
+
+        // The server records when the name matched and refuses the deletion until
+        // the countdown has elapsed there too, so the countdown starts on its reply.
+        function startCountdown() {
+            var seq = ++armSeq;
+            remaining = seconds;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = label + ' (' + remaining + ')';
+            timer = -1;
+            var body = new URLSearchParams();
+            body.append('action', <?= wp_json_encode(ACORE_DELETE_ACCOUNT_ARM_ACTION) ?>);
+            body.append('_acore_nonce', nonce);
+            body.append('acore_confirm_name', input.value);
+            fetch(ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body })
+                .then(function(res) { return res.json(); })
+                .then(function(json) {
+                    if (seq !== armSeq) return;
+                    if (!json || !json.success) throw new Error('arm failed');
+                    runCountdown();
+                })
+                .catch(function() {
+                    if (seq !== armSeq) return;
+                    timer = null;
+                    confirmBtn.textContent = label;
+                    window.alert(armError);
+                });
         }
 
         function onInput() {
@@ -320,6 +353,26 @@ function acore_profile_danger_zone($user)
 <?php
 }
 
+add_action('wp_ajax_' . ACORE_DELETE_ACCOUNT_ARM_ACTION, __NAMESPACE__ . '\acore_ajax_arm_delete_account');
+
+/**
+ * Records when the typed name matched, so the deletion request can be refused
+ * until the countdown has really elapsed.
+ */
+function acore_ajax_arm_delete_account()
+{
+    $user = wp_get_current_user();
+    check_ajax_referer(ACORE_DELETE_ACCOUNT_ACTION . '_' . $user->ID, '_acore_nonce');
+
+    $typed = isset($_POST['acore_confirm_name']) ? (string) wp_unslash($_POST['acore_confirm_name']) : '';
+    if (!hash_equals($user->user_login, $typed)) {
+        wp_send_json_error(null, 400);
+    }
+
+    update_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META, (string) microtime(true));
+    wp_send_json_success(['wait' => ACORE_DELETE_ACCOUNT_COUNTDOWN]);
+}
+
 add_action('admin_post_' . ACORE_DELETE_ACCOUNT_ACTION, __NAMESPACE__ . '\acore_handle_delete_account');
 
 function acore_handle_delete_account()
@@ -344,6 +397,17 @@ function acore_handle_delete_account()
     if (!hash_equals($user->user_login, $typed)) {
         $fail(__('The account name you typed does not match. Nothing was deleted.', 'acore-wp-plugin'));
     }
+
+    $armedAt = (float) get_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META, true);
+    $elapsed = microtime(true) - $armedAt;
+    if ($armedAt <= 0 || $elapsed < ACORE_DELETE_ACCOUNT_COUNTDOWN || $elapsed > ACORE_DELETE_ACCOUNT_ARM_TTL) {
+        $fail(sprintf(
+            __('Please type your account name and wait %d seconds before confirming. Nothing was deleted.', 'acore-wp-plugin'),
+            ACORE_DELETE_ACCOUNT_COUNTDOWN
+        ));
+    }
+    // One confirmation per arming: a failed attempt below needs a new countdown.
+    delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META);
 
     try {
         $gameAccount = acore_delete_account_get_game_account($user);
