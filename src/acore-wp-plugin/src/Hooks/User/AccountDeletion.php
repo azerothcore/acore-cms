@@ -89,25 +89,41 @@ function acore_delete_account_is_staff(\WP_User $user): bool
 }
 
 /**
- * Deleting a user without a reassign target deletes every post they authored, of
- * any type and on every site of a multisite network, whatever their role is now.
+ * Deleting a user without a reassign target deletes the posts they authored,
+ * whatever their role is now: on multisite every post of any type on each of
+ * their sites, on a single site the post types wp_delete_user() picks.
  */
 function acore_delete_account_owns_posts(\WP_User $user): bool
 {
     global $wpdb;
-    $blogIds = is_multisite() ? array_keys(get_blogs_of_user($user->ID, true)) : [get_current_blog_id()];
 
-    foreach ($blogIds as $blogId) {
-        if (is_multisite()) {
-            switch_to_blog($blogId);
+    if (!is_multisite()) {
+        // Same selection as wp_delete_user(). Types like `user_request` (privacy
+        // requests) survive the deletion and must not block it.
+        $types = [];
+        foreach (get_post_types([], 'objects') as $type) {
+            if ($type->delete_with_user || (null === $type->delete_with_user && post_type_supports($type->name, 'author'))) {
+                $types[] = $type->name;
+            }
         }
+        $types = apply_filters('post_types_to_delete_with_user', $types, $user->ID);
+        if (!$types) {
+            return false;
+        }
+        $placeholders = implode(',', array_fill(0, count($types), '%s'));
+        return (bool) $wpdb->get_var($wpdb->prepare(
+            "SELECT 1 FROM {$wpdb->posts} WHERE post_author = %d AND post_type IN ($placeholders) LIMIT 1",
+            array_merge([$user->ID], $types)
+        ));
+    }
+
+    foreach (array_keys(get_blogs_of_user($user->ID, true)) as $blogId) {
+        switch_to_blog($blogId);
         $owns = (bool) $wpdb->get_var($wpdb->prepare(
             "SELECT 1 FROM {$wpdb->posts} WHERE post_author = %d LIMIT 1",
             $user->ID
         ));
-        if (is_multisite()) {
-            restore_current_blog();
-        }
+        restore_current_blog();
         if ($owns) {
             return true;
         }
