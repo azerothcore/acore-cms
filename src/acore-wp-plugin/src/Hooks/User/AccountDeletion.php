@@ -1,0 +1,418 @@
+<?php
+
+namespace ACore\Hooks\User;
+
+use ACore\Manager\ACoreServices;
+use ACore\Utils\AcoreUtils;
+
+const ACORE_DELETE_ACCOUNT_ACTION = 'acore_delete_account';
+const ACORE_DELETE_ACCOUNT_COUNTDOWN = 10;
+
+/**
+ * Website capabilities that mark a user as staff. Staff accounts are removed by
+ * another administrator, never through self-service.
+ */
+const ACORE_DELETE_ACCOUNT_STAFF_CAPS = [
+    'manage_options',
+    'edit_others_posts',
+    'list_users',
+    'edit_users',
+    'delete_users',
+    'promote_users',
+    'manage_woocommerce',
+];
+
+/**
+ * Game account linked to a website user. Website and game accounts share the
+ * username, and `account.username` is unique, so there is at most one.
+ *
+ * @return array{id:int,username:string,gmlevel:int}|null
+ */
+function acore_delete_account_get_game_account(\WP_User $user): ?array
+{
+    $conn = ACoreServices::I()->getAccountEm()->getConnection();
+    $row  = $conn->executeQuery(
+        'SELECT a.`id`, a.`username`, COALESCE(MAX(aa.`gmlevel`), 0) AS gmlevel
+         FROM `account` a
+         LEFT JOIN `account_access` aa ON aa.`id` = a.`id`
+         WHERE a.`username` = ?
+         GROUP BY a.`id`, a.`username`',
+        [$user->user_login]
+    )->fetchAssociative();
+
+    if (!$row) {
+        return null;
+    }
+
+    return [
+        'id'       => (int) $row['id'],
+        'username' => (string) $row['username'],
+        'gmlevel'  => (int) $row['gmlevel'],
+    ];
+}
+
+/**
+ * Why the user cannot delete their own account, or null when they can.
+ * Throws when the game database cannot be reached.
+ */
+function acore_delete_account_block_reason(\WP_User $user, ?array $gameAccount): ?string
+{
+    if (is_super_admin($user->ID)) {
+        return __('Staff accounts cannot be deleted from here. Ask another administrator.', 'acore-wp-plugin');
+    }
+
+    foreach (ACORE_DELETE_ACCOUNT_STAFF_CAPS as $cap) {
+        if (user_can($user, $cap)) {
+            return __('Staff accounts cannot be deleted from here. Ask another administrator.', 'acore-wp-plugin');
+        }
+    }
+
+    if ($gameAccount && $gameAccount['gmlevel'] > 0) {
+        return __('Game accounts with GM access cannot be deleted from here. Ask an administrator.', 'acore-wp-plugin');
+    }
+
+    return null;
+}
+
+// Late priority so the section renders below every other block of the profile page.
+add_action('show_user_profile', __NAMESPACE__ . '\acore_profile_danger_zone', 999);
+
+function acore_profile_danger_zone($user)
+{
+    global $pagenow;
+    if ($pagenow !== 'profile.php' || isset($_GET['page'])) {
+        return;
+    }
+
+    try {
+        $gameAccount = acore_delete_account_get_game_account($user);
+        $blockReason = acore_delete_account_block_reason($user, $gameAccount);
+    } catch (\Throwable $e) {
+        $gameAccount = null;
+        $blockReason = __('Account deletion is unavailable right now because the game database cannot be reached.', 'acore-wp-plugin');
+    }
+
+    $accountName = $user->user_login;
+?>
+    <div class="acore-danger-zone" id="acore-danger-zone">
+        <h2><?php _e('Danger zone', 'acore-wp-plugin'); ?></h2>
+        <div class="acore-danger-zone-row">
+            <div>
+                <p class="acore-danger-zone-title"><?php _e('Delete account', 'acore-wp-plugin'); ?></p>
+                <p class="acore-danger-zone-desc">
+                    <?php if ($gameAccount): ?>
+                        <?php _e('Permanently deletes your website account and your game account, including all of its characters. This cannot be undone.', 'acore-wp-plugin'); ?>
+                    <?php else: ?>
+                        <?php _e('Permanently deletes your website account. No game account is linked to it. This cannot be undone.', 'acore-wp-plugin'); ?>
+                    <?php endif; ?>
+                </p>
+                <?php if ($blockReason): ?>
+                    <p class="acore-danger-zone-desc"><strong><?= esc_html($blockReason) ?></strong></p>
+                <?php endif; ?>
+            </div>
+            <button type="button" class="button acore-danger-button" id="acore-delete-account-open" <?= $blockReason ? 'disabled' : '' ?>>
+                <?php _e('Delete account', 'acore-wp-plugin'); ?>
+            </button>
+        </div>
+    </div>
+
+    <?php if (!$blockReason): ?>
+    <div id="acore-delete-account-modal" class="acore-delete-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="acore-delete-account-title">
+        <div class="acore-delete-box">
+            <h4 id="acore-delete-account-title"><?php _e('Delete your account?', 'acore-wp-plugin'); ?></h4>
+            <p>
+                <?php if ($gameAccount): ?>
+                    <?php _e('Your website account, your game account and all of its characters will be deleted permanently.', 'acore-wp-plugin'); ?>
+                <?php else: ?>
+                    <?php _e('Your website account will be deleted permanently.', 'acore-wp-plugin'); ?>
+                <?php endif; ?>
+            </p>
+            <p>
+                <label for="acore-delete-account-name">
+                    <?php printf(
+                        __('Type %s to confirm.', 'acore-wp-plugin'),
+                        '<strong>' . esc_html($accountName) . '</strong>'
+                    ); ?>
+                </label>
+            </p>
+            <?php // No name attribute: this input sits inside the profile form and must not be submitted with it. ?>
+            <input type="text" id="acore-delete-account-name" class="regular-text" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <div class="acore-delete-actions">
+                <button type="button" class="button acore-danger-button" id="acore-delete-account-confirm" disabled><?php _e('Confirm', 'acore-wp-plugin'); ?></button>
+                <button type="button" class="button" id="acore-delete-account-cancel"><?php _e('Cancel', 'acore-wp-plugin'); ?></button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <style>
+    .acore-danger-zone {
+        margin: 32px 0 16px;
+        max-width: 860px;
+        border: 1px solid #d63638;
+        border-radius: 6px;
+        padding: 4px 16px 12px;
+        background: #fff;
+    }
+    .acore-danger-zone h2 { color: #d63638; }
+    .acore-danger-zone-row {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    .acore-danger-zone-title { font-weight: 600; margin: 0 0 4px; }
+    .acore-danger-zone-desc { margin: 0 0 4px; color: #50575e; }
+    .wp-core-ui .button.acore-danger-button {
+        color: #d63638;
+        border-color: #d63638;
+    }
+    .wp-core-ui .button.acore-danger-button:hover:not(:disabled),
+    .wp-core-ui .button.acore-danger-button:focus:not(:disabled) {
+        background: #d63638;
+        border-color: #d63638;
+        color: #fff;
+    }
+    .acore-delete-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .acore-delete-box {
+        background: #ffffff;
+        color: #1d2327;
+        border: 1px solid #c3c4c7;
+        border-top: 4px solid #d63638;
+        border-radius: 8px;
+        padding: 24px 28px;
+        max-width: 480px;
+        width: 90%;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .acore-delete-box h4 { margin: 0 0 12px; font-size: 15px; font-weight: 700; color: #d63638; }
+    .acore-delete-box p { font-size: 13px; line-height: 1.6; margin: 0 0 12px; }
+    .acore-delete-box input[type="text"] { width: 100%; margin-bottom: 20px; }
+    .acore-delete-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    body.acore-dark-mode .acore-danger-zone { background: #1e1e1e; border-color: #f86368; }
+    body.acore-dark-mode .acore-danger-zone h2,
+    body.acore-dark-mode .acore-delete-box h4 { color: #f86368; }
+    body.acore-dark-mode .acore-danger-zone-desc { color: #c3c4c7; }
+    body.acore-dark-mode .acore-delete-box { background: #1e1e1e; color: #e0e0e0; border-color: #3a3a3a; border-top-color: #f86368; }
+    body.acore-dark-mode .acore-delete-box p { color: #e0e0e0; }
+    </style>
+
+    <script>
+    (function() {
+        // show_user_profile renders inside the profile form, above its submit
+        // button. Move the section below the form so it is the last thing on the page.
+        var zone = document.getElementById('acore-danger-zone');
+        var form = document.getElementById('your-profile');
+        if (zone && form && form.contains(zone)) {
+            form.parentNode.insertBefore(zone, form.nextSibling);
+        }
+    })();
+    </script>
+
+    <?php if (!$blockReason): ?>
+    <script>
+    (function() {
+        var expected  = <?= wp_json_encode($accountName) ?>;
+        var seconds   = <?= (int) ACORE_DELETE_ACCOUNT_COUNTDOWN ?>;
+        var label     = <?= wp_json_encode(__('Confirm', 'acore-wp-plugin')) ?>;
+        var postUrl   = <?= wp_json_encode(admin_url('admin-post.php')) ?>;
+        var nonce     = <?= wp_json_encode(wp_create_nonce(ACORE_DELETE_ACCOUNT_ACTION . '_' . $user->ID)) ?>;
+        var modal     = document.getElementById('acore-delete-account-modal');
+        var openBtn   = document.getElementById('acore-delete-account-open');
+        var cancelBtn = document.getElementById('acore-delete-account-cancel');
+        var confirmBtn = document.getElementById('acore-delete-account-confirm');
+        var input     = document.getElementById('acore-delete-account-name');
+        var timer     = null;
+        var remaining = 0;
+        var submitting = false;
+
+        function stopCountdown() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = label;
+        }
+
+        function startCountdown() {
+            remaining = seconds;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = label + ' (' + remaining + ')';
+            timer = setInterval(function() {
+                remaining--;
+                if (remaining > 0) {
+                    confirmBtn.textContent = label + ' (' + remaining + ')';
+                    return;
+                }
+                clearInterval(timer);
+                timer = null;
+                confirmBtn.textContent = label;
+                confirmBtn.disabled = false;
+            }, 1000);
+        }
+
+        function onInput() {
+            if (input.value !== expected) {
+                stopCountdown();
+                return;
+            }
+            // Keep a running or finished countdown when the text still matches.
+            if (!timer && confirmBtn.disabled) {
+                startCountdown();
+            }
+        }
+
+        function close() {
+            if (submitting) return;
+            stopCountdown();
+            input.value = '';
+            modal.style.display = 'none';
+            openBtn.focus();
+        }
+
+        openBtn.addEventListener('click', function() {
+            modal.style.display = 'flex';
+            input.focus();
+        });
+        cancelBtn.addEventListener('click', close);
+        modal.addEventListener('click', function(e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display !== 'none') close();
+        });
+        input.addEventListener('input', onInput);
+        // Enter would otherwise submit the surrounding profile form.
+        input.addEventListener('keydown', function(e) { if (e.key === 'Enter') e.preventDefault(); });
+
+        confirmBtn.addEventListener('click', function() {
+            if (confirmBtn.disabled || input.value !== expected) return;
+            submitting = true;
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+
+            // The profile page is already one big form and forms cannot nest,
+            // so the request goes through a form built outside of it.
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = postUrl;
+            [['action', <?= wp_json_encode(ACORE_DELETE_ACCOUNT_ACTION) ?>], ['_acore_nonce', nonce], ['acore_confirm_name', input.value]].forEach(function(pair) {
+                var field = document.createElement('input');
+                field.type = 'hidden';
+                field.name = pair[0];
+                field.value = pair[1];
+                form.appendChild(field);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        });
+    })();
+    </script>
+    <?php endif; ?>
+<?php
+}
+
+add_action('admin_post_' . ACORE_DELETE_ACCOUNT_ACTION, __NAMESPACE__ . '\acore_handle_delete_account');
+
+function acore_handle_delete_account()
+{
+    $profileUrl = admin_url('profile.php');
+
+    if (!is_user_logged_in() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+        wp_safe_redirect(home_url('/'));
+        exit;
+    }
+
+    $user = wp_get_current_user();
+    check_admin_referer(ACORE_DELETE_ACCOUNT_ACTION . '_' . $user->ID, '_acore_nonce');
+
+    $fail = function (string $message) use ($user, $profileUrl) {
+        AcoreUtils::set_flash_message($message, 'error', $user->ID);
+        wp_safe_redirect($profileUrl);
+        exit;
+    };
+
+    $typed = isset($_POST['acore_confirm_name']) ? (string) wp_unslash($_POST['acore_confirm_name']) : '';
+    if (!hash_equals($user->user_login, $typed)) {
+        $fail(__('The account name you typed does not match. Nothing was deleted.', 'acore-wp-plugin'));
+    }
+
+    try {
+        $gameAccount = acore_delete_account_get_game_account($user);
+    } catch (\Throwable $e) {
+        $fail(__('The game database cannot be reached right now. Nothing was deleted, please try again later.', 'acore-wp-plugin'));
+    }
+
+    $blockReason = acore_delete_account_block_reason($user, $gameAccount);
+    if ($blockReason) {
+        $fail($blockReason);
+    }
+
+    if ($gameAccount) {
+        // `account delete` goes through AccountMgr::DeleteAccount, which kicks the
+        // player and removes the characters with all their data, account_access,
+        // account_banned, account_muted, realmcharacters and the account row.
+        try {
+            $result = ACoreServices::I()->getAccountSoap()->deleteAccount($gameAccount['username']);
+        } catch (\Throwable $e) {
+            $result = $e->getMessage();
+        }
+
+        // AcoreSoap returns SOAP faults as strings, and the core commits the auth
+        // DB changes asynchronously, so the reply text (LANG_ACCOUNT_DELETED,
+        // English locale) is the only reliable success signal.
+        if (!is_string($result) || stripos($result, 'Account deleted:') === false) {
+            $reply = is_string($result) ? trim($result) : '';
+            $fail(sprintf(
+                __('The game server did not delete your game account (%s). Nothing was deleted, please try again later.', 'acore-wp-plugin'),
+                $reply !== '' ? $reply : __('no reply', 'acore-wp-plugin')
+            ));
+        }
+    }
+
+    $userId = $user->ID;
+
+    global $wpdb;
+    $wpdb->delete($wpdb->prefix . 'acore_login_history', ['user_id' => $userId], ['%d']);
+
+    // Log out before deleting so the session cleanup does not write meta for a removed user.
+    wp_logout();
+
+    // The game account is already gone; skip the hook that would send `account delete` again.
+    remove_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10);
+    remove_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10);
+
+    require_once ABSPATH . 'wp-admin/includes/user.php';
+    if (is_multisite()) {
+        require_once ABSPATH . 'wp-admin/includes/ms.php';
+        wpmu_delete_user($userId);
+    } else {
+        wp_delete_user($userId);
+    }
+
+    wp_safe_redirect(add_query_arg('acore_account_deleted', '1', home_url('/')));
+    exit;
+}
+
+add_action('wp_footer', __NAMESPACE__ . '\acore_account_deleted_notice');
+
+function acore_account_deleted_notice()
+{
+    if (empty($_GET['acore_account_deleted']) || is_user_logged_in()) {
+        return;
+    }
+?>
+    <div id="acore-account-deleted-notice" role="status" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;max-width:90%;background:#1d2327;color:#fff;padding:12px 40px 12px 16px;border-radius:6px;box-shadow:0 4px 24px rgba(0,0,0,0.3);font-size:14px;">
+        <?php _e('Your account has been deleted. Goodbye!', 'acore-wp-plugin'); ?>
+        <button type="button" aria-label="<?php esc_attr_e('Dismiss', 'acore-wp-plugin'); ?>" onclick="this.parentNode.remove()" style="position:absolute;top:6px;right:8px;background:none;border:0;color:#fff;font-size:18px;cursor:pointer;">&times;</button>
+    </div>
+<?php
+}
