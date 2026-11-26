@@ -14,9 +14,11 @@ const ACORE_DELETE_ACCOUNT_ARM_TTL = 10 * MINUTE_IN_SECONDS;
 
 /**
  * Website capabilities that mark a user as staff. Staff accounts are removed by
- * another administrator, never through self-service.
+ * another administrator, never through self-service. `edit_posts` is here because
+ * wp_delete_user() without a reassign target deletes every post the user wrote.
  */
 const ACORE_DELETE_ACCOUNT_STAFF_CAPS = [
+    'edit_posts',
     'manage_options',
     'edit_others_posts',
     'list_users',
@@ -56,6 +58,54 @@ function acore_delete_account_get_game_account(\WP_User $user): ?array
 }
 
 /**
+ * On multisite the deletion removes the user from the whole network, so a role
+ * on any of their sites counts, not only on the current one.
+ */
+function acore_delete_account_is_staff(\WP_User $user): bool
+{
+    $hasStaffCap = function () use ($user): bool {
+        $current = new \WP_User($user->ID);
+        foreach (ACORE_DELETE_ACCOUNT_STAFF_CAPS as $cap) {
+            if ($current->has_cap($cap)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    if (!is_multisite()) {
+        return $hasStaffCap();
+    }
+
+    foreach (array_keys(get_blogs_of_user($user->ID, true)) as $blogId) {
+        switch_to_blog($blogId);
+        $isStaff = $hasStaffCap();
+        restore_current_blog();
+        if ($isStaff) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * True when the game account row is gone. The core commits the deletion to the
+ * auth DB asynchronously, so this polls for a few seconds before giving up.
+ */
+function acore_delete_account_game_account_gone(int $accountId): bool
+{
+    $conn = ACoreServices::I()->getAccountEm()->getConnection();
+    for ($i = 0; $i < 10; $i++) {
+        $exists = $conn->executeQuery('SELECT 1 FROM `account` WHERE `id` = ?', [$accountId])->fetchOne();
+        if ($exists === false) {
+            return true;
+        }
+        usleep(500000);
+    }
+    return false;
+}
+
+/**
  * Why the user cannot delete their own account, or null when they can.
  * Throws when the game database cannot be reached.
  */
@@ -65,10 +115,8 @@ function acore_delete_account_block_reason(\WP_User $user, ?array $gameAccount):
         return __('Staff accounts cannot be deleted from here. Ask another administrator.', 'acore-wp-plugin');
     }
 
-    foreach (ACORE_DELETE_ACCOUNT_STAFF_CAPS as $cap) {
-        if (user_can($user, $cap)) {
-            return __('Staff accounts cannot be deleted from here. Ask another administrator.', 'acore-wp-plugin');
-        }
+    if (acore_delete_account_is_staff($user)) {
+        return __('Staff accounts cannot be deleted from here. Ask another administrator.', 'acore-wp-plugin');
     }
 
     if ($gameAccount && $gameAccount['gmlevel'] > 0) {
@@ -430,10 +478,17 @@ function acore_handle_delete_account()
             $result = $e->getMessage();
         }
 
-        // AcoreSoap returns SOAP faults as strings, and the core commits the auth
-        // DB changes asynchronously, so the reply text (LANG_ACCOUNT_DELETED,
-        // English locale) is the only reliable success signal.
-        if (!is_string($result) || stripos($result, 'Account deleted:') === false) {
+        // AcoreSoap returns SOAP faults as strings. The reply text (LANG_ACCOUNT_DELETED)
+        // is only recognisable on English servers, so otherwise check the auth DB.
+        $deleted = is_string($result) && stripos($result, 'Account deleted:') !== false;
+        if (!$deleted) {
+            try {
+                $deleted = acore_delete_account_game_account_gone($gameAccount['id']);
+            } catch (\Throwable $e) {
+                $deleted = false;
+            }
+        }
+        if (!$deleted) {
             $reply = is_string($result) ? trim($result) : '';
             $fail(sprintf(
                 __('The game server did not delete your game account (%s). Nothing was deleted, please try again later.', 'acore-wp-plugin'),
