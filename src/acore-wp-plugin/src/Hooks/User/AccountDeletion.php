@@ -89,6 +89,33 @@ function acore_delete_account_is_staff(\WP_User $user): bool
 }
 
 /**
+ * Deleting a user without a reassign target deletes every post they authored, of
+ * any type and on every site of a multisite network, whatever their role is now.
+ */
+function acore_delete_account_owns_posts(\WP_User $user): bool
+{
+    global $wpdb;
+    $blogIds = is_multisite() ? array_keys(get_blogs_of_user($user->ID, true)) : [get_current_blog_id()];
+
+    foreach ($blogIds as $blogId) {
+        if (is_multisite()) {
+            switch_to_blog($blogId);
+        }
+        $owns = (bool) $wpdb->get_var($wpdb->prepare(
+            "SELECT 1 FROM {$wpdb->posts} WHERE post_author = %d LIMIT 1",
+            $user->ID
+        ));
+        if (is_multisite()) {
+            restore_current_blog();
+        }
+        if ($owns) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * True when the game account row is gone. The core commits the deletion to the
  * auth DB asynchronously, so this polls for a few seconds before giving up.
  */
@@ -117,6 +144,10 @@ function acore_delete_account_block_reason(\WP_User $user, ?array $gameAccount):
 
     if (acore_delete_account_is_staff($user)) {
         return __('Staff accounts cannot be deleted from here. Ask another administrator.', 'acore-wp-plugin');
+    }
+
+    if (acore_delete_account_owns_posts($user)) {
+        return __('Your account owns content on this site. Ask an administrator to delete it.', 'acore-wp-plugin');
     }
 
     if ($gameAccount && $gameAccount['gmlevel'] > 0) {
