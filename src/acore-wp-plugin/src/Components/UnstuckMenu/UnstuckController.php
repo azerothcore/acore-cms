@@ -4,6 +4,7 @@ namespace ACore\Components\UnstuckMenu;
 
 use ACore\Manager\ACoreServices;
 use ACore\Components\UnstuckMenu\UnstuckView;
+use ACore\Utils\AcoreUtils;
 use InvalidArgumentException;
 
 class UnstuckController
@@ -17,6 +18,11 @@ class UnstuckController
 
     public function renderCharacters()
     {
+        if (!ACoreServices::I()->getAcoreAccountId()) {
+            echo AcoreUtils::no_game_account_notice(__('Unstuck', 'acore-wp-plugin'));
+            return;
+        }
+
         echo $this->view->getUnstuckmenuRender(self::getCharactersByAcId());
     }
 

@@ -5,6 +5,7 @@ namespace ACore\Components\UserPanel;
 use ACore\Manager\Opts;
 use ACore\Manager\ACoreServices;
 use ACore\Components\UserPanel\UserView;
+use ACore\Utils\AcoreUtils;
 
 class UserController {
 
@@ -94,8 +95,9 @@ class UserController {
         }
 
         $accId = $acServices->getAcoreAccountId();
-        if (!isset($accId)) {
-            wp_die("<div class=\"notice notice-error\"><p>An error ocurred while loading your account information, please try again later. If this errors continues, please ask for support.</p></div>");
+        if (!$accId) {
+            echo AcoreUtils::no_game_account_notice(__('Recruit a Friend', 'acore-wp-plugin'));
+            return;
         }
 
         try {
