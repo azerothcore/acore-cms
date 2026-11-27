@@ -104,4 +104,21 @@ class AcoreUtils
             delete_transient('acore_flash_notice_' . get_current_user_id());
         }
     }
+
+    /**
+     * Page body for a profile page that needs a game account when the
+     * logged-in user has none, e.g. registered while the game server was
+     * unreachable or whose account was deleted in game.
+     *
+     * @param string $title Page heading, already translated.
+     *
+     * @return string
+     */
+    public static function no_game_account_notice(string $title): string
+    {
+        return '<div class="wrap"><h2>' . esc_html($title) . '</h2>'
+            . '<div class="notice notice-warning inline"><p>'
+            . esc_html__('No game account is linked to this user.', 'acore-wp-plugin')
+            . '</p></div></div>';
+    }
 }

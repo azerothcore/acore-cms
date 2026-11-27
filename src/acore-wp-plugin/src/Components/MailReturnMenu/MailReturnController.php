@@ -5,6 +5,7 @@ namespace ACore\Components\MailReturnMenu;
 use ACore\Manager\ACoreServices;
 use ACore\Manager\Opts;
 use ACore\Components\MailReturnMenu\MailReturnView;
+use ACore\Utils\AcoreUtils;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -19,6 +20,11 @@ class MailReturnController
 
     public function renderCharacters()
     {
+        if (!ACoreServices::I()->getAcoreAccountId()) {
+            echo AcoreUtils::no_game_account_notice(__('Mail Return', 'acore-wp-plugin'));
+            return;
+        }
+
         echo $this->view->getMailReturnRender(self::getCharactersByAcId());
     }
 
