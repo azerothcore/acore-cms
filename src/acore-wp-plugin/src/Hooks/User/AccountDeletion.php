@@ -277,11 +277,17 @@ function acore_profile_danger_zone($user)
                         '<strong>' . esc_html(acore_delete_account_date_text($dueAt)) . '</strong>'
                     ); ?>
                 </p>
+                <?php if ($dueAt > time()): ?>
                 <p class="acore-danger-zone-desc"><?php _e('Until then you can log in and play as usual. Cancel the deletion to keep your account.', 'acore-wp-plugin'); ?></p>
+                <?php else: ?>
+                <p class="acore-danger-zone-desc"><?php _e('The date has passed and your account is being deleted. It can no longer be cancelled.', 'acore-wp-plugin'); ?></p>
+                <?php endif; ?>
             </div>
+            <?php if ($dueAt > time()): ?>
             <button type="button" class="button button-primary" id="acore-delete-account-cancel-request">
                 <?php _e('Cancel deletion', 'acore-wp-plugin'); ?>
             </button>
+            <?php endif; ?>
         </div>
         <?php else: ?>
         <div class="acore-danger-zone-row">
@@ -422,7 +428,7 @@ function acore_profile_danger_zone($user)
     })();
     </script>
 
-    <?php if ($dueAt): ?>
+    <?php if ($dueAt && $dueAt > time()): ?>
     <script>
     (function() {
         var button = document.getElementById('acore-delete-account-cancel-request');
@@ -633,7 +639,6 @@ function acore_handle_delete_account()
     // One confirmation per arming: a failed attempt below needs a new countdown.
     delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META);
 
-
     if (acore_delete_account_due_at($user->ID)) {
         $fail(__('Your account is already scheduled for deletion.', 'acore-wp-plugin'));
     }
@@ -722,6 +727,24 @@ function acore_delete_account_send_email(\WP_User $user, string $token, bool $ha
     return (bool) wp_mail($user->user_email, $subject, implode("\n", $lines));
 }
 
+/** Tells the player their scheduled deletion was dropped, and why. */
+function acore_delete_account_send_not_deleted_email(\WP_User $user, string $reason): void
+{
+    $siteName = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+    $lines = [
+        sprintf(__('Hi %s,', 'acore-wp-plugin'), $user->display_name ?: $user->user_login),
+        '',
+        sprintf(__('Your account %1$s on %2$s was scheduled for deletion, but it was not deleted and the deletion is cancelled:', 'acore-wp-plugin'), $user->user_login, $siteName),
+        '',
+        $reason,
+    ];
+    wp_mail(
+        $user->user_email,
+        sprintf(__('[%s] Your account was not deleted', 'acore-wp-plugin'), $siteName),
+        implode("\n", $lines)
+    );
+}
+
 add_action('admin_post_nopriv_' . ACORE_DELETE_ACCOUNT_LINK_ACTION, __NAMESPACE__ . '\acore_delete_account_link_logged_out');
 
 /** The link only works for the logged in owner: log in first, then come back to it. */
@@ -802,6 +825,15 @@ function acore_delete_account_cancel()
     $user = wp_get_current_user();
     check_admin_referer(ACORE_DELETE_ACCOUNT_CANCEL_ACTION . '_' . $user->ID, '_acore_nonce');
 
+    // Past the date, cron or a login may already be deleting the account, and a game
+    // account deleted through SOAP cannot be restored.
+    $dueAt = acore_delete_account_due_at($user->ID);
+    if ($dueAt && $dueAt <= time()) {
+        AcoreUtils::set_flash_message(__('The deletion date has passed and your account is being deleted. It can no longer be cancelled.', 'acore-wp-plugin'), 'error', $user->ID);
+        wp_safe_redirect(admin_url('profile.php'));
+        exit;
+    }
+
     delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_DUE_META);
     delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_LINK_META);
 
@@ -859,14 +891,21 @@ function acore_delete_account_execute(\WP_User $user): ?\WP_Error
     $userId = $user->ID;
 
     global $wpdb;
-    $wpdb->delete($wpdb->prefix . 'acore_login_history', ['user_id' => $userId], ['%d']);
+    // Each site of a network has its own login history table.
+    $prefixes = is_multisite()
+        ? array_map([$wpdb, 'get_blog_prefix'], array_keys(get_blogs_of_user($userId, true)))
+        : [$wpdb->prefix];
+    foreach (array_unique($prefixes) as $prefix) {
+        $wpdb->delete($prefix . 'acore_login_history', ['user_id' => $userId], ['%d']);
+    }
 
     if (get_current_user_id() === $userId) {
         // Log out first so the session cleanup does not write meta for a removed user.
         wp_logout();
     }
 
-    // The game account is already gone; skip the hook that would send `account delete` again.
+    // The game account is already gone: skip after_delete, which would send `account delete`
+    // again. It is hooked on wpmu_delete_user, and on wp_delete_user, which core never fires.
     remove_action('wp_delete_user', __NAMESPACE__ . '\after_delete', 10);
     remove_action('wpmu_delete_user', __NAMESPACE__ . '\after_delete', 10);
 
@@ -910,8 +949,9 @@ function acore_delete_account_run_if_due(\WP_User $user): bool
     }
 
     if ($error->get_error_code() === 'blocked') {
-        // e.g. promoted to staff or given GM access during the wait.
+        // e.g. promoted to staff, given GM access or became the author of a post during the wait.
         delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_DUE_META);
+        acore_delete_account_send_not_deleted_email($user, $error->get_error_message());
     }
     error_log(sprintf('[acore] scheduled deletion of user %d (%s) not done: %s', $user->ID, $user->user_login, $error->get_error_message()));
     return false;
