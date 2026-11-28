@@ -101,17 +101,17 @@ const ACORE_DELETE_ACCOUNT_STAFF_CAPS = [
  * Game account linked to a website user. Website and game accounts share the
  * username, and `account.username` is unique, so there is at most one.
  *
- * @return array{id:int,username:string,gmlevel:int}|null
+ * @return array{id:int,username:string,gmlevel:int,reg_mail:string}|null
  */
 function acore_delete_account_get_game_account(\WP_User $user): ?array
 {
     $conn = ACoreServices::I()->getAccountEm()->getConnection();
     $row  = $conn->executeQuery(
-        'SELECT a.`id`, a.`username`, COALESCE(MAX(aa.`gmlevel`), 0) AS gmlevel
+        'SELECT a.`id`, a.`username`, a.`reg_mail`, COALESCE(MAX(aa.`gmlevel`), 0) AS gmlevel
          FROM `account` a
          LEFT JOIN `account_access` aa ON aa.`id` = a.`id`
          WHERE a.`username` = ?
-         GROUP BY a.`id`, a.`username`',
+         GROUP BY a.`id`, a.`username`, a.`reg_mail`',
         [$user->user_login]
     )->fetchAssociative();
 
@@ -123,7 +123,26 @@ function acore_delete_account_get_game_account(\WP_User $user): ?array
         'id'       => (int) $row['id'],
         'username' => (string) $row['username'],
         'gmlevel'  => (int) $row['gmlevel'],
+        'reg_mail' => trim((string) $row['reg_mail']),
     ];
+}
+
+/**
+ * Where the confirmation link goes: the email the game account was created with
+ * (`reg_mail`, never changed afterwards), so someone who took over the session and
+ * changed the website email cannot confirm. Falls back to the website email when
+ * there is no game account or its reg_mail is empty or invalid.
+ */
+function acore_delete_account_confirm_email(\WP_User $user, ?array $gameAccount): string
+{
+    $regMail = $gameAccount['reg_mail'] ?? '';
+    return is_email($regMail) ? $regMail : $user->user_email;
+}
+
+/** True when the link goes to the original email and not to the current website email. */
+function acore_delete_account_uses_reg_mail(\WP_User $user, string $confirmEmail): bool
+{
+    return strcasecmp($confirmEmail, $user->user_email) !== 0;
 }
 
 /**
@@ -264,8 +283,12 @@ function acore_profile_danger_zone($user)
     }
 
     $accountName = $user->user_login;
+    $confirmEmail = acore_delete_account_confirm_email($user, $gameAccount);
     $dueAt = acore_delete_account_due_at($user->ID);
     $linkExpiresAt = $dueAt ? null : acore_delete_account_link_expires_at($user->ID);
+    // The address the pending link went to: the website email may have changed since.
+    $linkMeta = get_user_meta($user->ID, ACORE_DELETE_ACCOUNT_LINK_META, true);
+    $linkSentTo = is_array($linkMeta) && !empty($linkMeta['to']) ? (string) $linkMeta['to'] : $confirmEmail;
     $delayText = acore_delete_account_duration_text(acore_delete_account_delay());
 ?>
     <div class="acore-danger-zone" id="acore-danger-zone">
@@ -309,7 +332,7 @@ function acore_profile_danger_zone($user)
                     <p class="acore-danger-zone-desc" id="acore-delete-account-link-sent">
                         <?php printf(
                             __('We sent a confirmation link to %1$s. It works until %2$s. Nothing is deleted until you open it. To get a new link, use Delete account again.', 'acore-wp-plugin'),
-                            '<strong>' . esc_html($user->user_email) . '</strong>',
+                            '<strong>' . esc_html($linkSentTo) . '</strong>',
                             esc_html(acore_delete_account_date_text($linkExpiresAt))
                         ); ?>
                     </p>
@@ -334,11 +357,19 @@ function acore_profile_danger_zone($user)
                 <?php endif; ?>
             </p>
             <p>
-                <?php printf(
-                    __('Nothing is deleted right away. We will email a confirmation link to %1$s. Once you open it, your account is deleted %2$s later, and you can cancel it from this page until then.', 'acore-wp-plugin'),
-                    '<strong>' . esc_html($user->user_email) . '</strong>',
-                    esc_html($delayText)
-                ); ?>
+                <?php if (acore_delete_account_uses_reg_mail($user, $confirmEmail)): ?>
+                    <?php printf(
+                        __('Nothing is deleted right away. The deletion must be confirmed from the email your account was created with, so we will email a confirmation link to %1$s, not to your current email. Once you open it, your account is deleted %2$s later, and you can cancel it from this page until then. If you no longer have access to that email, ask an administrator to delete your account.', 'acore-wp-plugin'),
+                        '<strong>' . esc_html($confirmEmail) . '</strong>',
+                        esc_html($delayText)
+                    ); ?>
+                <?php else: ?>
+                    <?php printf(
+                        __('Nothing is deleted right away. We will email a confirmation link to %1$s. Once you open it, your account is deleted %2$s later, and you can cancel it from this page until then.', 'acore-wp-plugin'),
+                        '<strong>' . esc_html($confirmEmail) . '</strong>',
+                        esc_html($delayText)
+                    ); ?>
+                <?php endif; ?>
             </p>
             <p>
                 <label for="acore-delete-account-name">
@@ -683,31 +714,35 @@ function acore_handle_delete_account()
         ));
     }
 
+    $confirmEmail = acore_delete_account_confirm_email($user, $gameAccount);
     // A new link replaces the previous one, so only the latest email works.
     $token = bin2hex(random_bytes(32));
     $expiresAt = $now + acore_delete_account_link_ttl();
     update_user_meta($user->ID, ACORE_DELETE_ACCOUNT_LINK_META, [
         'hash'    => acore_delete_account_token_hash($user->ID, $token),
         'expires' => $expiresAt,
+        'to'      => $confirmEmail,
     ]);
     $sends[] = $now;
     update_user_meta($user->ID, ACORE_DELETE_ACCOUNT_SENDS_META, $sends);
 
-    if (!acore_delete_account_send_email($user, $token, (bool) $gameAccount)) {
+    if (!acore_delete_account_send_email($user, $confirmEmail, $token, (bool) $gameAccount)) {
         delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_LINK_META);
         $fail(__('The confirmation email could not be sent. Nothing was deleted, please try again later.', 'acore-wp-plugin'));
     }
 
     AcoreUtils::set_flash_message(sprintf(
-        __('We sent a confirmation link to %1$s. Open it within %2$s to schedule the deletion. Nothing has been deleted yet.', 'acore-wp-plugin'),
-        $user->user_email,
+        acore_delete_account_uses_reg_mail($user, $confirmEmail)
+            ? __('The deletion must be confirmed from the email your account was created with. We sent a confirmation link to %1$s. Open it within %2$s to schedule the deletion. Nothing has been deleted yet.', 'acore-wp-plugin')
+            : __('We sent a confirmation link to %1$s. Open it within %2$s to schedule the deletion. Nothing has been deleted yet.', 'acore-wp-plugin'),
+        $confirmEmail,
         acore_delete_account_duration_text(acore_delete_account_link_ttl())
     ), 'success', $user->ID);
     wp_safe_redirect($profileUrl);
     exit;
 }
 
-function acore_delete_account_send_email(\WP_User $user, string $token, bool $hasGameAccount): bool
+function acore_delete_account_send_email(\WP_User $user, string $to, string $token, bool $hasGameAccount): bool
 {
     $siteName = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
     $link = add_query_arg([
@@ -736,7 +771,7 @@ function acore_delete_account_send_email(\WP_User $user, string $token, bool $ha
         __('If you did not ask for this, ignore this email and nothing will be deleted. The request was made while logged in to your account, so consider changing your password.', 'acore-wp-plugin'),
     ];
 
-    return (bool) wp_mail($user->user_email, $subject, implode("\n", $lines));
+    return (bool) wp_mail($to, $subject, implode("\n", $lines));
 }
 
 /** Tells the player their scheduled deletion was dropped, and why. */

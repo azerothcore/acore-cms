@@ -35,6 +35,15 @@ I recommend you to install the plugin `Manage Notification E-mails` to manage in
 
 If you encounter errors, please see the [Troubleshooting](##Troubleshooting) section below for more details.
 
+### Account deletion
+
+Players can delete their own game and website accounts from the **Danger zone** at the bottom of their Profile page. They confirm through a link sent to the email their game account was created with (`reg_mail` in the auth DB), or to their website email when the game account has none, and the accounts are deleted 7 days after the link is opened. Until then they can cancel. Staff, GM accounts, users who own posts and players who lost access to their original email must ask an administrator.
+
+- Sending email must work (see the **verification email process** above).
+- The deletion runs from an hourly WP-Cron event and when the player logs in after the date. WP-Cron only runs when the site gets traffic, so on a low-traffic site call `wp-cron.php` from a real cron job. On a multisite network the event runs on the main site.
+- If SOAP fails, nothing is deleted and the next run tries again. The failure is written to the PHP error log.
+- The link lifetime (24 hours) and the wait (7 days) can be changed with the `acore_delete_account_link_ttl` and `acore_delete_account_delay` filters, both in seconds.
+
 ### Enable the shop
 
 To add the shop in your website selling items and services you have to:
