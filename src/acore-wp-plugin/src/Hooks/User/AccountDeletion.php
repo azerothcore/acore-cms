@@ -186,10 +186,13 @@ function acore_delete_account_owns_posts(\WP_User $user): bool
         ));
     }
 
+    // wpmu_delete_user() deletes every post of the user on each site. Privacy requests and
+    // oEmbed caches (authored by whoever triggered the embed) are not content: deleting
+    // them is harmless, and counting them would block players for good.
     foreach (array_keys(get_blogs_of_user($user->ID, true)) as $blogId) {
         switch_to_blog($blogId);
         $owns = (bool) $wpdb->get_var($wpdb->prepare(
-            "SELECT 1 FROM {$wpdb->posts} WHERE post_author = %d LIMIT 1",
+            "SELECT 1 FROM {$wpdb->posts} WHERE post_author = %d AND post_type NOT IN ('user_request', 'oembed_cache') LIMIT 1",
             $user->ID
         ));
         restore_current_blog();
@@ -628,7 +631,8 @@ function acore_handle_delete_account()
         $fail(__('The account name you typed does not match. Nothing was deleted.', 'acore-wp-plugin'));
     }
 
-    $armedAt = (float) get_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META, true);
+    $armedRaw = (string) get_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META, true);
+    $armedAt = (float) $armedRaw;
     $elapsed = microtime(true) - $armedAt;
     if ($armedAt <= 0 || $elapsed < ACORE_DELETE_ACCOUNT_COUNTDOWN || $elapsed > ACORE_DELETE_ACCOUNT_ARM_TTL) {
         $fail(sprintf(
@@ -637,7 +641,15 @@ function acore_handle_delete_account()
         ));
     }
     // One confirmation per arming: a failed attempt below needs a new countdown.
-    delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META);
+    // Only the request whose DELETE removes this arming goes on, so parallel requests
+    // cannot all pass the resend limit below. Matching the value keeps a request from
+    // claiming an arming written after it read the one it checked.
+    if (!delete_user_meta($user->ID, ACORE_DELETE_ACCOUNT_ARMED_META, $armedRaw)) {
+        $fail(sprintf(
+            __('Please type your account name and wait %d seconds before confirming. Nothing was deleted.', 'acore-wp-plugin'),
+            ACORE_DELETE_ACCOUNT_COUNTDOWN
+        ));
+    }
 
     if (acore_delete_account_due_at($user->ID)) {
         $fail(__('Your account is already scheduled for deletion.', 'acore-wp-plugin'));
@@ -891,12 +903,22 @@ function acore_delete_account_execute(\WP_User $user): ?\WP_Error
     $userId = $user->ID;
 
     global $wpdb;
-    // Each site of a network has its own login history table.
-    $prefixes = is_multisite()
-        ? array_map([$wpdb, 'get_blog_prefix'], array_keys(get_blogs_of_user($userId, true)))
-        : [$wpdb->prefix];
-    foreach (array_unique($prefixes) as $prefix) {
-        $wpdb->delete($prefix . 'acore_login_history', ['user_id' => $userId], ['%d']);
+    // Each site of a network has its own login history table, created on its first page
+    // view, and a network user can log in on sites they are not a member of.
+    if (is_multisite()) {
+        $tables = array_map(function ($blogId) use ($wpdb) {
+            return $wpdb->get_blog_prefix($blogId) . 'acore_login_history';
+        }, get_sites(['fields' => 'ids', 'number' => 0]));
+        // Case-insensitive: with lower_case_table_names=1 MySQL lists a `WP_` prefix as `wp_`.
+        $tables = array_uintersect($tables, $wpdb->get_col($wpdb->prepare(
+            'SHOW TABLES LIKE %s',
+            $wpdb->esc_like($wpdb->base_prefix) . '%acore_login_history'
+        )), 'strcasecmp');
+    } else {
+        $tables = [$wpdb->prefix . 'acore_login_history'];
+    }
+    foreach ($tables as $table) {
+        $wpdb->delete($table, ['user_id' => $userId], ['%d']);
     }
 
     if (get_current_user_id() === $userId) {
