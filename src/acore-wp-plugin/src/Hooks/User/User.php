@@ -433,10 +433,26 @@ function extra_user_profile_fields($user)
         $userExpansion = Common::EXPANSION_WOTLK;
     }
 
+    // reg_mail is set when the game account is created and never changed afterwards.
+    $regMail = trim((string) ACoreServices::I()->getAccountEm()->getConnection()->executeQuery(
+        'SELECT `reg_mail` FROM `account` WHERE `id` = ?',
+        [$gameUser->getId()]
+    )->fetchOne());
+    $showRegMail = acore_delete_account_uses_reg_mail($user, acore_delete_account_confirm_email($user, ['reg_mail' => $regMail]));
+
 ?>
     <h3><?php _e("AzerothCore Fields", "blank"); ?></h3>
 
     <table class="form-table">
+        <?php if ($showRegMail): ?>
+        <tr>
+            <th><label><?php _e('Original email', 'acore-wp-plugin'); ?></label></th>
+            <td>
+                <strong><?= esc_html($regMail) ?></strong>
+                <p class="description"><?php _e('The email this account was created with. It differs from the current email above and cannot be changed. Requests to delete the account from this page are confirmed from this address.', 'acore-wp-plugin'); ?></p>
+            </td>
+        </tr>
+        <?php endif; ?>
         <tr>
             <th><label><?php _e("Expansion", 'acore-wp-plugin'); ?></label></th>
             <td>
